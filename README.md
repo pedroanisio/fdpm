@@ -376,6 +376,19 @@ fdpm-cli/plugins/
   formal_specification/    # full Python-source port (32 primitives, etc.)
 ```
 
+### Architectural decisions
+
+The recorded ADRs live at [docs/adrs/decisions.md](docs/adrs/decisions.md) and
+are generated from `sw:Decision` primitives via the
+`fdpm.software-architecture` plugin's `sw:ADRRenderer`. To regenerate after
+adding a new decision, edit
+[fdpm-cli/scripts/build-adrs.ts](fdpm-cli/scripts/build-adrs.ts) and run:
+
+```sh
+rm -rf /tmp/fdpm-adrs
+FDPM_DATA_DIR=/tmp/fdpm-adrs npx tsx fdpm-cli/scripts/build-adrs.ts
+```
+
 ## Persistence model
 
 Per §6.4: the operation log shape is SPEC-locked; on-disk persistence
@@ -539,6 +552,7 @@ Same as the parent project (see [../LICENSE](../LICENSE) if present).
 
 - [docs/specs/SPEC-CORE.md](docs/specs/SPEC-CORE.md) — the SPEC this implements.
 - [docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) — companion SPEC; server-side capabilities implemented (see "Plugin runtime" above).
+- [docs/adrs/decisions.md](docs/adrs/decisions.md) — architectural decision records, generated from `sw:Decision` primitives by [fdpm-cli/scripts/build-adrs.ts](fdpm-cli/scripts/build-adrs.ts).
 - [fdpm-cli/references/python-sources/formal_specification.py](fdpm-cli/references/python-sources/formal_specification.py) — the Python source the formal_specification plugin ports.
 - [CLAUDE.md](CLAUDE.md) — project-level engineering rules.
 - [PURPOSE.md](PURPOSE.md) — repository purpose and non-goals.
