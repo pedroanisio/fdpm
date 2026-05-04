@@ -421,7 +421,7 @@ registry. Defined in [`renderer_bindings.ts`](./renderer_bindings.ts).
 
 ## Installation & activation
 
-The plugin lives under `cli/plugins/formal_specification/` and is loaded by
+The plugin lives under `fdpm-cli/plugins/formal_specification/` and is loaded by
 the FDPM CLI host through the standard plugin discovery path. The host:
 
 1. Reads `fdpm-plugin.json`.

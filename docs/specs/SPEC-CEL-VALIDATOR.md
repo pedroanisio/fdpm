@@ -64,7 +64,7 @@ This work is subject to the methodological caveats and commitments described in 
 | Status | Stable |
 | Audience | FDPM core maintainers, plugin authors, security reviewers responsible for the §7 validation pipeline. |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, docs/specs/SPEC-CORE.md, docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md |
-| Companion code | cli/src/core/validation/pipeline.ts |
+| Companion code | fdpm-cli/src/core/validation/pipeline.ts |
 | Peer SPEC | docs/specs/SPEC-CORE.md |
 
 ---
@@ -160,7 +160,7 @@ The full decision (context, options, consequences, compliance) follows. Trade-of
 
 ##### Context
 
-Two plugins ship today (formal_specification, software_architecture). Both declare `ValidationRuleDef.expression` strings using the same legacy DSL. fs evaluates 23/23 rules via 408 lines of hand-coded TS validators. sw evaluates 0/7 rules — they fall through to a step-5 'info: predicate not evaluated' finding ([cli/src/core/validation/pipeline.ts:360-372](../../cli/src/core/validation/pipeline.ts#L360-L372)). The asymmetry is a footgun: a plugin author reads 'we have a predicate field' and assumes the host evaluates it. CLAUDE.md's PALS-LAW posture treats absence of verification as a design defect.
+Two plugins ship today (formal_specification, software_architecture). Both declare `ValidationRuleDef.expression` strings using the same legacy DSL. fs evaluates 23/23 rules via 408 lines of hand-coded TS validators. sw evaluates 0/7 rules — they fall through to a step-5 'info: predicate not evaluated' finding ([fdpm-cli/src/core/validation/pipeline.ts:360-372](../../fdpm-cli/src/core/validation/pipeline.ts#L360-L372)). The asymmetry is a footgun: a plugin author reads 'we have a predicate field' and assumes the host evaluates it. CLAUDE.md's PALS-LAW posture treats absence of verification as a design defect.
 
 ##### Options considered
 
@@ -222,7 +222,7 @@ Adopt CEL. Embed cel-js. Treat `ValidationRuleDef.expression` and `TypeConstrain
 
 ##### Compliance / verification
 
-- CI: `tsc --noEmit` over cli/ passes after host evaluator lands.
+- CI: `tsc --noEmit` over fdpm-cli/ passes after host evaluator lands.
 - CI: For every rule in formal_specification's validation_rules.ts, run a fixture-based parity test — legacy evaluator's findings must equal CEL evaluator's findings.
 - CI: Static check that no predicate string in any shipped plugin uses a CEL feature outside the documented activation environment.
 - Test: A predicate that raises during evaluation produces an `error` finding via the §7.1 step-6 exception barrier — never a host crash.
@@ -257,7 +257,7 @@ Options scored across the axes that drove the decision.
 ```
 [Source]            Core maintainer running the parity-test harness on a CI run.
 [Stimulus]          Replace each fs:val:* TS validator with the CEL translation of its declared predicate, then run the parity harness over the standard fs fixture set.
-[Environment]       CI; warm Host; standard fs fixture set committed under cli/tests/fixtures/.
+[Environment]       CI; warm Host; standard fs fixture set committed under fdpm-cli/tests/fixtures/.
 [Artifact]          ValidationPipeline + CEL evaluator + fs validation_rules.ts (CEL form).
 [Response]          For every (rule_id, instance_id) pair the CEL evaluator produces a finding identical (level, target_id, field_path, message-modulo-formatting) to the legacy evaluator's finding.
 [Response measure]  100 % parity over the fixture set. Mismatches block the migration release; no exceptions.
@@ -268,7 +268,7 @@ Options scored across the axes that drove the decision.
 ```
 [Source]            Security reviewer.
 [Stimulus]          Static review of every host-bound CEL helper plus a fuzz harness that supplies adversarial predicate strings.
-[Environment]       Source review tooling on cli/src/core/validation/cel/*.ts.
+[Environment]       Source review tooling on fdpm-cli/src/core/validation/cel/*.ts.
 [Artifact]          Helper bindings (`graph.incoming`, `graph.outgoing`, `graph.acyclic`).
 [Response]          No helper performs filesystem, network, child-process, or vm operations. Fuzzed predicates either evaluate or surface as a `plugin-validator-raised:*` error finding via the §7.1 step-6 barrier.
 [Response measure]  0 helpers escape the pure-evaluator allowlist. 0 evaluator-induced host crashes across 10⁴ fuzzed predicates.
@@ -300,11 +300,11 @@ Options scored across the axes that drove the decision.
 ## 10. Acceptance Criteria
 
 - [x] **1.** CEL evaluator is wired into ValidationPipeline behind the legacy-fallback gate. _(met)_
-  - evidence: cli/src/core/validation/pipeline.ts
+  - evidence: fdpm-cli/src/core/validation/pipeline.ts
 - [x] **2.** All 7 software_architecture rules fire as `error` / `warning` (no longer `info: predicate not evaluated`). _(met)_
-  - evidence: cli/tests/sw-cel-validation.test.ts
+  - evidence: fdpm-cli/tests/sw-cel-validation.test.ts
 - [x] **3.** fs migration: 23/23 fs:val:* rules pass the parity harness; _register_validators.ts is deleted; _validators.ts is deleted. _(met)_
-  - evidence: cli/plugins/formal_specification/validation_rules.ts
+  - evidence: fdpm-cli/plugins/formal_specification/validation_rules.ts
 - [ ] **4.** Helper-purity static check is wired into CI and passes. _(open)_
 - [ ] **5.** Performance regression on the 10k-primitive fixture stays within +20 % p50 / +30 % p95 of the pre-CEL baseline. _(open)_
 
@@ -325,11 +325,11 @@ Options scored across the axes that drove the decision.
 
 | Area | Change | Complexity | Status |
 | --- | --- | --- | --- |
-| cli/src/core/validation/cel/ | New module: `evaluator.ts` (parse, type-check, eval), `activation.ts` (binding factory), `helpers.ts` (graph helpers), `errors.ts` (parse / runtime taxonomy). | M | complete |
-| cli/src/core/validation/pipeline.ts | Step 5/6 wires the CEL evaluator: when `expression` parses, run it; otherwise fall through to the existing 'info: predicate not evaluated' path. | S | complete |
-| cli/plugins/software_architecture/validation_rules.ts | Translate each of the 7 predicate strings into CEL form. No new TS validators required. | S | complete |
-| cli/plugins/formal_specification/ | Translate 23 predicate strings into CEL form; delete _register_validators.ts and _validators.ts; delete the registerFormalSpecValidators call from index.ts; ship parity harness. | L | complete |
-| cli/tests/validation/ | New test files: cel-evaluator.test.ts, cel-fallback.test.ts, cel-attribution.test.ts, cel-helpers.test.ts, cel-fs-parity.test.ts. | M | complete |
+| fdpm-cli/src/core/validation/cel/ | New module: `evaluator.ts` (parse, type-check, eval), `activation.ts` (binding factory), `helpers.ts` (graph helpers), `errors.ts` (parse / runtime taxonomy). | M | complete |
+| fdpm-cli/src/core/validation/pipeline.ts | Step 5/6 wires the CEL evaluator: when `expression` parses, run it; otherwise fall through to the existing 'info: predicate not evaluated' path. | S | complete |
+| fdpm-cli/plugins/software_architecture/validation_rules.ts | Translate each of the 7 predicate strings into CEL form. No new TS validators required. | S | complete |
+| fdpm-cli/plugins/formal_specification/ | Translate 23 predicate strings into CEL form; delete _register_validators.ts and _validators.ts; delete the registerFormalSpecValidators call from index.ts; ship parity harness. | L | complete |
+| fdpm-cli/tests/validation/ | New test files: cel-evaluator.test.ts, cel-fallback.test.ts, cel-attribution.test.ts, cel-helpers.test.ts, cel-fs-parity.test.ts. | M | complete |
 | docs/specs/SPEC-CORE.md §7 | Spec amendment: declare CEL canonical for `ValidationRuleDef.expression` and `TypeConstraint.expression`; document the activation environment and helper contract. | S | not_started |
 
 ---
@@ -338,18 +338,18 @@ Options scored across the axes that drove the decision.
 
 Order matters: the host evaluator (step 1) must land before any plugin migrates; sw migrates before fs (step 2 before 4) so the binding contract is validated against a zero-coverage plugin first; the parity harness (step 3) blocks step 4.
 
-1. **Land host evaluator + fallback** — Ship `cli/src/core/validation/cel/` with the evaluator and graph helpers. Wire into pipeline.ts step 5/6 with the unparseable-string fallback. No plugin migrations yet — shipped behaviour is unchanged.
-   - touches: `cli/src/core/validation/cel/`
-   - touches: `cli/src/core/validation/pipeline.ts`
+1. **Land host evaluator + fallback** — Ship `fdpm-cli/src/core/validation/cel/` with the evaluator and graph helpers. Wire into pipeline.ts step 5/6 with the unparseable-string fallback. No plugin migrations yet — shipped behaviour is unchanged.
+   - touches: `fdpm-cli/src/core/validation/cel/`
+   - touches: `fdpm-cli/src/core/validation/pipeline.ts`
 2. **Migrate software_architecture (zero-coverage today)** — Translate the 7 predicate strings to CEL form. Validates the binding contract on a plugin where any improvement is strictly additive — there is no behaviour to preserve.
-   - touches: `cli/plugins/software_architecture/validation_rules.ts`
+   - touches: `fdpm-cli/plugins/software_architecture/validation_rules.ts`
 3. **Build the parity harness** — Test that for every fs:val:* rule, legacy TS validator findings == CEL evaluator findings on the standard fixture. Block migration step 4 on 100 % parity.
-   - touches: `cli/tests/validation/cel-fs-parity.test.ts`
+   - touches: `fdpm-cli/tests/validation/cel-fs-parity.test.ts`
 4. **Migrate formal_specification + delete adapters** — Translate 23 predicate strings to CEL form. Delete _register_validators.ts (408 lines) and _validators.ts (164 lines). Remove the registerFormalSpecValidators call from index.ts. Net code deletion target: ≥ 500 lines.
-   - touches: `cli/plugins/formal_specification/validation_rules.ts`
-   - touches: `cli/plugins/formal_specification/_register_validators.ts`
-   - touches: `cli/plugins/formal_specification/_validators.ts`
-   - touches: `cli/plugins/formal_specification/index.ts`
+   - touches: `fdpm-cli/plugins/formal_specification/validation_rules.ts`
+   - touches: `fdpm-cli/plugins/formal_specification/_register_validators.ts`
+   - touches: `fdpm-cli/plugins/formal_specification/_validators.ts`
+   - touches: `fdpm-cli/plugins/formal_specification/index.ts`
 5. **Amend SPEC-CORE §7** — Declare CEL canonical for `ValidationRuleDef.expression` and `TypeConstraint.expression`. Document the activation environment and the legacy-fallback contract.
    - touches: `docs/specs/SPEC-CORE.md`
 
@@ -359,9 +359,9 @@ Order matters: the host evaluator (step 1) must land before any plugin migrates;
 
 | Risk | Mitigation |
 | --- | --- |
-| **fs parity gap** — A subtle CEL semantic difference (e.g., null-handling, empty-array equality) produces different findings than the hand-coded TS validator. Migration ships a behavioural regression. | Per-plugin CEL test files exercise every shipped rule on representative fixtures and assert findings match the legacy evaluator's behaviour. fs's 23 rules and sw's 7 rules each have evaluation coverage in cli/tests/cel-validation.test.ts and cli/tests/sw-cel-validation.test.ts. |
+| **fs parity gap** — A subtle CEL semantic difference (e.g., null-handling, empty-array equality) produces different findings than the hand-coded TS validator. Migration ships a behavioural regression. | Per-plugin CEL test files exercise every shipped rule on representative fixtures and assert findings match the legacy evaluator's behaviour. fs's 23 rules and sw's 7 rules each have evaluation coverage in fdpm-cli/tests/cel-validation.test.ts and fdpm-cli/tests/sw-cel-validation.test.ts. |
 | **Helper creep** — Plugin authors request more graph helpers; the activation surface grows; the 'pure evaluator' invariant erodes. | Adding a CEL helper requires a SPEC amendment, not just a code change (§4 of this SPEC). Forces design review before surface grows. Process discipline; not a code artifact. |
-| **Per-call parse cost** — Re-parsing a predicate on every validate call dominates p50 latency on small projects. | Compiled CEL programs are cached by predicate-string identity in cli/src/core/expr/runtime.ts (`programCache`). Per-call work is bind+eval, not parse+bind+eval. |
+| **Per-call parse cost** — Re-parsing a predicate on every validate call dominates p50 latency on small projects. | Compiled CEL programs are cached by predicate-string identity in fdpm-cli/src/core/expr/runtime.ts (`programCache`). Per-call work is bind+eval, not parse+bind+eval. |
 
 ---
 
@@ -395,9 +395,9 @@ Other open questions (defaulted):
 
 >    1 | doc.fields.verification_note
                     ^]]
-- FDPM ValidationPipeline source. (cli/src/core/validation/pipeline.ts) _[verified]_ — Read at SPEC-authoring time; line numbers cited.
-- fs plugin TS validators (the 408 lines this SPEC eliminates). (cli/plugins/formal_specification/_register_validators.ts) _[verified]_ — Read at SPEC-authoring time.
-- sw plugin's 7 unevaluated predicate rules. (cli/plugins/software_architecture/validation_rules.ts) _[verified]_ — Read at SPEC-authoring time.
+- FDPM ValidationPipeline source. (fdpm-cli/src/core/validation/pipeline.ts) _[verified]_ — Read at SPEC-authoring time; line numbers cited.
+- fs plugin TS validators (the 408 lines this SPEC eliminates). (fdpm-cli/plugins/formal_specification/_register_validators.ts) _[verified]_ — Read at SPEC-authoring time.
+- sw plugin's 7 unevaluated predicate rules. (fdpm-cli/plugins/software_architecture/validation_rules.ts) _[verified]_ — Read at SPEC-authoring time.
 
 ---
 
@@ -411,7 +411,7 @@ Affected sections: 6, 11, 18
 
 ### 0.2.0 — 2026-05-04 — Implementation landed; status moved from Proposal to Stable.
 
-Commit 130a25e (`feat(cli/validation): migrate plugin predicates to CEL evaluator`) shipped: cel-js evaluator wired into ValidationPipeline, sw plugin's 7 rules now evaluate, fs plugin's 23 rules migrated, _register_validators.ts (408 lines) and _validators.ts (164 lines) deleted. ADR-CEL-001 moved from `proposed` to `accepted`. Mitigations `mit:parity-harness` and `mit:cache-compiled` moved from `planned` to `implemented`. ACs 1–3 remain `met`; ACs 4 (helper-purity static check) and 5 (perf benchmark) remain `open`.
+Commit 130a25e (`feat(fdpm-cli/validation): migrate plugin predicates to CEL evaluator`) shipped: cel-js evaluator wired into ValidationPipeline, sw plugin's 7 rules now evaluate, fs plugin's 23 rules migrated, _register_validators.ts (408 lines) and _validators.ts (164 lines) deleted. ADR-CEL-001 moved from `proposed` to `accepted`. Mitigations `mit:parity-harness` and `mit:cache-compiled` moved from `planned` to `implemented`. ACs 1–3 remain `met`; ACs 4 (helper-purity static check) and 5 (perf benchmark) remain `open`.
 
 Affected sections: 6, 12, 13, 14, 18
 

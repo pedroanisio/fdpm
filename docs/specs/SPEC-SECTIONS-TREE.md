@@ -64,7 +64,7 @@ This work is subject to the methodological caveats and commitments described in 
 | Status | Proposal |
 | Audience | FDPM core maintainers, spec_authoring plugin maintainers, and any author of a `fdpm-cli/scripts/build-spec-*.ts` script who has had to renumber sections after inserting one. |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, docs/specs/SPEC-CORE.md, docs/specs/SPEC-UID.md |
-| Companion code | cli/plugins/spec_authoring/renderers/spec_md.ts |
+| Companion code | fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts |
 | Peer SPEC | docs/specs/SPEC-RENDER-DSL.md |
 
 ---
@@ -87,7 +87,7 @@ This SPEC defines a change to the `spec_authoring` profile and its companion ren
 Three converging signals:
 
 1. **Every existing `fdpm-cli/scripts/build-spec-*.ts` hand-authors `number` strings.** Inserting one section means renumbering all downstream siblings — a real, repeated source of churn.
-2. **`spec:HasSection` already supports `Section → Section`** (cli/plugins/spec_authoring/relations.ts:15-16). The tree is already representable; the renderer just doesn't use the tree shape.
+2. **`spec:HasSection` already supports `Section → Section`** (fdpm-cli/plugins/spec_authoring/relations.ts:15-16). The tree is already representable; the renderer just doesn't use the tree shape.
 3. **SPEC-UID v0.2 ships `uid` on every primitive and relation**, giving us the deterministic, replay-stable tiebreak this SPEC needs for `(order, uid)` sibling ordering.
 
 ---
@@ -161,7 +161,7 @@ The full ADR text is embedded below.
 
 ##### Context
 
-Three converging signals: (1) every build-spec-*.ts script hand-authors `number` strings that duplicate the implicit ordering of `spec:HasSection` relations; (2) `spec:HasSection` already supports `Section → Section` per cli/plugins/spec_authoring/relations.ts:15-16, so the tree shape is permissible today, just unused by the renderer; (3) SPEC-UID v0.2 ships `uid` on every primitive and relation, giving us a deterministic tiebreak for sibling ordering.
+Three converging signals: (1) every build-spec-*.ts script hand-authors `number` strings that duplicate the implicit ordering of `spec:HasSection` relations; (2) `spec:HasSection` already supports `Section → Section` per fdpm-cli/plugins/spec_authoring/relations.ts:15-16, so the tree shape is permissible today, just unused by the renderer; (3) SPEC-UID v0.2 ships `uid` on every primitive and relation, giving us a deterministic tiebreak for sibling ordering.
 
 ##### Options considered
 
@@ -214,7 +214,7 @@ Adopt graph-derived numbering. Add `order: int` (optional, default 0) to `spec:H
 - **positive**: Build scripts shrink: ~20 hand-typed `number` fields drop per SPEC.
 - **positive**: Renderer simplifies — `compareSectionNumbers` lexicographic sort is replaced by integer comparison plus uid tiebreak.
 - **positive**: Cross-document section references become uid-resolvable, aligned with SPEC-UID v0.2.
-- **negative**: One-time migration via codemod required for the eight existing build-spec-*.ts scripts.
+- **negative**: One-time migration via codemod required for the seven existing build-spec-*.ts scripts.
 - **neutral**: A one-release deprecation window keeps authored `number` as a fallback before removal in v0.2.
 
 ##### Compliance / verification
@@ -286,7 +286,7 @@ Three SEI-format scenarios pin the most consequential behaviours: insert-without
 
 ## 10. Invariants
 
-Four invariants the renderer MUST maintain for graph-derived numbering to be sound. Each invariant is checked by a conformance item (§13).
+The four `spec:Invariant` primitives enumerated in §4 (Architectural Principles) ARE this SPEC's invariants — `graph-is-truth`, `sparse-order`, `deterministic-tiebreak`, and `authored-number-deprecated`. The plugin currently models both architectural principles and stated invariants as one primitive type, so they appear under §4. Each is checked by a conformance item in §13.
 
 ---
 
@@ -301,13 +301,13 @@ Six normative requirements. Five MUST, one SHOULD. All MUST clauses are verifiab
 Five acceptance criteria. AC-3 (zero diff before migration) and AC-4 (zero diff after codemod) together prove byte-level back-compat.
 
 - [ ] **1.** `spec:HasSection.order` field is registered and accepts non-negative integers. _(open)_
-  - evidence: cli/plugins/spec_authoring/relations.ts
+  - evidence: fdpm-cli/plugins/spec_authoring/relations.ts
 - [ ] **2.** Rendering a project with `order` edges produces correct §N.M.K headings via DFS. _(open)_
-  - evidence: cli/plugins/spec_authoring/renderers/spec_md.test.ts
-- [ ] **3.** All eight existing build-spec-*.ts scripts render byte-equal output before and after the renderer change, when the migration codemod has not been run. _(open)_
+  - evidence: fdpm-cli/plugins/spec_authoring/renderers/spec_md.test.ts
+- [ ] **3.** All seven existing build-spec-*.ts scripts render byte-equal output before and after the renderer change, when the migration codemod has not been run. _(open)_
   - evidence: fdpm-cli/scripts/
   - evidence: Differential CI test
-- [ ] **4.** After running the codemod, all eight existing build-spec-*.ts scripts no longer set `number` on any `spec:Section` and still render byte-equal output. _(open)_
+- [ ] **4.** After running the codemod, all seven existing build-spec-*.ts scripts no longer set `number` on any `spec:Section` and still render byte-equal output. _(open)_
   - evidence: fdpm-cli/scripts/migrate-section-numbers.ts
   - evidence: Differential CI test
 - [ ] **5.** Replay determinism: byte-equal SHA-256 across two consecutive replays of any sections-tree project's log. _(open)_
@@ -321,7 +321,7 @@ Three conformance items: derive-from-graph, fallback-zero-diff, and tiebreak-det
 
 - **1. DFS numbering matches the document tree** — Construct a fixture project with three nested sections (1 → 1.1 → 1.1.1 plus a 1.2 sibling and a §2 root sibling); render via spec:SpecMarkdownRenderer.
   - expected: Output headings read `## 1. …`, `### 1.1. …`, `#### 1.1.1. …`, `### 1.2. …`, `## 2. …` with no other sections present.
-- **2. Fallback to authored number produces zero diff** — Run the eight existing build-spec-*.ts scripts before and after the renderer change with the codemod NOT applied; diff the rendered Markdown.
+- **2. Fallback to authored number produces zero diff** — Run the seven existing build-spec-*.ts scripts before and after the renderer change with the codemod NOT applied; diff the rendered Markdown.
   - expected: diff exits 0 for every script.
 - **3. Tiebreak determinism on identical order** — Shuffle the insertion order of sibling sections that share an identical `order`; render twice and compare.
   - expected: Rendered output is invariant across shuffles because uid is the deterministic tiebreak.
@@ -334,12 +334,12 @@ Six implementation changes spanning the profile schema (1), the renderer (2 edit
 
 | Area | Change | Complexity | Status |
 | --- | --- | --- | --- |
-| cli/plugins/spec_authoring/relations.ts | Add `order: int` (optional, default 0) to the `spec:HasSection` field list. No cardinality changes. | XS | not_started |
-| cli/plugins/spec_authoring/renderers/spec_md.ts | Replace `renderSections` flat-filter with a DFS rooted at the document, sorting children by `(order, uid)`. Introduce `deriveNumber(path: number[]): string`. | M | not_started |
-| cli/plugins/spec_authoring/renderers/spec_md.ts | Detect 'no `order` edges in project' and route through the legacy `compareSectionNumbers` path; emit deprecation findings on mixed-mode projects. | S | not_started |
+| fdpm-cli/plugins/spec_authoring/relations.ts | Add `order: int` (optional, default 0) to the `spec:HasSection` field list. No cardinality changes. | XS | not_started |
+| fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts | Replace `renderSections` flat-filter with a DFS rooted at the document, sorting children by `(order, uid)`. Introduce `deriveNumber(path: number[]): string`. | M | not_started |
+| fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts | Detect 'no `order` edges in project' and route through the legacy `compareSectionNumbers` path; emit deprecation findings on mixed-mode projects. | S | not_started |
 | fdpm-cli/scripts/migrate-section-numbers.ts | New script: parses existing build-spec-*.ts, replaces `number: "N"` literals with `fields: { order: N * 10 }` on the corresponding `spec:HasSection`, drops the `number` from the `spec:Section` payload. | M | not_started |
-| cli/plugins/spec_authoring/renderers/spec_md.test.ts | Three new fixtures: (a) pure graph-derived; (b) pure authored-number fallback; (c) mixed-mode with deprecation findings. | S | not_started |
-| cli/plugins/spec_authoring/primitives/document.ts | Mark the `number` field on `spec:Section` as deprecated in its description. No structural change in v0.1; field is removed in v0.2. | XS | not_started |
+| fdpm-cli/plugins/spec_authoring/renderers/spec_md.test.ts | Three new fixtures: (a) pure graph-derived; (b) pure authored-number fallback; (c) mixed-mode with deprecation findings. | S | not_started |
+| fdpm-cli/plugins/spec_authoring/primitives/document.ts | Mark the `number` field on `spec:Section` as deprecated in its description. No structural change in v0.1; field is removed in v0.2. | XS | not_started |
 
 ---
 
@@ -348,17 +348,17 @@ Six implementation changes spanning the profile schema (1), the renderer (2 edit
 Four sequenced steps: ship back-compat → ship codemod → mark deprecated → remove in v0.2.
 
 1. **Land `order` field + DFS renderer (back-compat)** — Ship CHG-1, CHG-2, CHG-3, CHG-5. Renderer derives numbering from graph when `order != 0` is present anywhere in the project; otherwise falls back. Zero existing build script changes required.
-   - touches: `cli/plugins/spec_authoring/relations.ts`
-   - touches: `cli/plugins/spec_authoring/renderers/spec_md.ts`
-   - touches: `cli/plugins/spec_authoring/renderers/spec_md.test.ts`
-2. **Ship the codemod** — CHG-4. Run against all eight existing build-spec-*.ts; commit the migrated forms in a separate PR. Each migrated SPEC re-renders byte-equal.
+   - touches: `fdpm-cli/plugins/spec_authoring/relations.ts`
+   - touches: `fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts`
+   - touches: `fdpm-cli/plugins/spec_authoring/renderers/spec_md.test.ts`
+2. **Ship the codemod** — CHG-4. Run against all seven existing build-spec-*.ts; commit the migrated forms in a separate PR. Each migrated SPEC re-renders byte-equal.
    - touches: `fdpm-cli/scripts/migrate-section-numbers.ts`
    - touches: `fdpm-cli/scripts/build-spec-*.ts`
 3. **Mark `number` deprecated in profile docs** — CHG-6. Description-only change; no behaviour change. Operators see the deprecation when they consult `fdpm profile inspect`.
-   - touches: `cli/plugins/spec_authoring/primitives/document.ts`
+   - touches: `fdpm-cli/plugins/spec_authoring/primitives/document.ts`
 4. **Remove `number` field in SPEC v0.2** — Tracked separately. Once all callers are migrated and one minor release has passed, remove the field from `spec:Section` and the fallback path from the renderer.
-   - touches: `cli/plugins/spec_authoring/primitives/document.ts`
-   - touches: `cli/plugins/spec_authoring/renderers/spec_md.ts`
+   - touches: `fdpm-cli/plugins/spec_authoring/primitives/document.ts`
+   - touches: `fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts`
 
 ---
 
@@ -410,8 +410,8 @@ Seven references, all PALS-verified. Three repo files (CLAUDE.md, PURPOSE.md, tw
 
 - CLAUDE.md — Project Guidelines (this repository, root). (CLAUDE.md) _[verified]_ — Read the file at HEAD. Sections "Behavioral Constraints" and "PALS's LAW" govern the disclaimer/banner requirements honored by this SPEC.
 - PURPOSE.md (this repository, root). (PURPOSE.md) _[verified]_ — Read the file at HEAD. CLAUDE.md mandates that no proposal conflict with PURPOSE.md; this SPEC's single-source-of-truth principle aligns with PURPOSE's typed-graph-first stance.
-- spec_authoring/relations.ts — HasSection definition. (cli/plugins/spec_authoring/relations.ts) _[verified]_ — Read lines 11-21. Confirms `source_types: ["spec:Document", "spec:Section"]` already permits the tree shape; this SPEC adds the `order` field, not the tree itself.
-- spec_md.ts — current spec:SpecMarkdownRenderer implementation. (cli/plugins/spec_authoring/renderers/spec_md.ts) _[verified]_ — Read lines 705-769. `KIND_RENDERERS` is the closed dispatch table; `renderSections` is the function this SPEC modifies; `compareSectionNumbers` is the lexicographic sort that becomes obsolete.
+- spec_authoring/relations.ts — HasSection definition. (fdpm-cli/plugins/spec_authoring/relations.ts) _[verified]_ — Read lines 11-21. Confirms `source_types: ["spec:Document", "spec:Section"]` already permits the tree shape; this SPEC adds the `order` field, not the tree itself.
+- spec_md.ts — current spec:SpecMarkdownRenderer implementation. (fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts) _[verified]_ — Read lines 705-769. `KIND_RENDERERS` is the closed dispatch table; `renderSections` is the function this SPEC modifies; `compareSectionNumbers` is the lexicographic sort that becomes obsolete.
 - SPEC-CORE — Replay determinism (§5.5.3). (docs/specs/SPEC-CORE.md) _[verified]_ — Read §5.5.3. The DFS-over-(order, uid) numbering preserves the byte-equal-replay property because both `order` and `uid` are immutable post-creation.
 - SPEC-RENDER-DSL — Render-Time DSL for FDPM Document Templates. (docs/specs/SPEC-RENDER-DSL.md) _[verified]_ — Read §1 Purpose. Confirms render-DSL targets template content, not structural metadata — supports the rejection of Option C.
 - SPEC-UID — Universal Identifiers (§10 invariants). (docs/specs/SPEC-UID.md) _[verified]_ — Read §10. Confirms uid is minted once and never changes — the necessary precondition for using uid as a stable tiebreak in this SPEC's DFS.
@@ -426,6 +426,6 @@ Seven references, all PALS-verified. Three repo files (CLAUDE.md, PURPOSE.md, tw
 
 Captures the dual-source-of-truth bug between `spec:Section.number` and `spec:HasSection` order; proposes graph-derived numbering with sparse `order: int` and `uid` tiebreak; outlines six implementation changes, four migration steps, three QA scenarios, and a one-release deprecation window for authored `number`.
 
-Affected sections: §1, §7, §8, §9, §11, §14, §15
+Affected sections: all
 
 ---

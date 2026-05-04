@@ -64,7 +64,7 @@ This work is subject to the methodological caveats and commitments described in 
 | Status | Proposal |
 | Audience | FDPM core maintainers, plugin authors writing renderers (cap:renderer), security reviewers responsible for output sandboxing. |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, docs/specs/SPEC-CORE.md, docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md, docs/specs/SPEC-EXPRESSION-RUNTIME.md, docs/specs/SPEC-CEL-VALIDATOR.md |
-| Companion code | cli/plugins/spec_authoring/renderers/spec_md.ts |
+| Companion code | fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts |
 | Peer SPEC | docs/specs/SPEC-CEL-VALIDATOR.md |
 
 ---
@@ -262,7 +262,7 @@ The full ADR (context, options, consequences, compliance) follows. Trade-off mat
 
 ##### Context
 
-Two recent observations push toward formalising a render-time DSL. (1) The GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings that contain literal project ids — the natural form is `${doc.spec_id}` (a Tier-A binding). (2) The renderer in cli/plugins/spec_authoring/renderers/spec_md.ts has ~20 small TS helpers (renderADRs, renderRevisions, renderRisks, renderReferences, ...) each doing the same shape: filter primitives by type_id, sort by some field, project specific columns. That shape is exactly what a CEL list comprehension expresses. CLAUDE.md's PALS-LAW posture also penalises silently-empty output — the right time to formalise the evaluator's behaviour on undefined names is now, before authors come to depend on the silent-coerce behaviour. SPEC-EXPRESSION-RUNTIME defines the evaluator contract this SPEC consumes; type mapping (M1), error model (M2), activation tiers (M7), and helper-set versioning (M14) are inherited verbatim.
+Two recent observations push toward formalising a render-time DSL. (1) The GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings that contain literal project ids — the natural form is `${doc.spec_id}` (a Tier-A binding). (2) The renderer in fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts has ~20 small TS helpers (renderADRs, renderRevisions, renderRisks, renderReferences, ...) each doing the same shape: filter primitives by type_id, sort by some field, project specific columns. That shape is exactly what a CEL list comprehension expresses. CLAUDE.md's PALS-LAW posture also penalises silently-empty output — the right time to formalise the evaluator's behaviour on undefined names is now, before authors come to depend on the silent-coerce behaviour. SPEC-EXPRESSION-RUNTIME defines the evaluator contract this SPEC consumes; type mapping (M1), error model (M2), activation tiers (M7), and helper-set versioning (M14) are inherited verbatim.
 
 ##### Options considered
 
@@ -378,7 +378,7 @@ Options scored across the axes that drove the decision.
 ```
 [Source]            Security reviewer.
 [Stimulus]          Static review of every host-bound helper plus a fuzz harness supplying adversarial templates (deeply nested, very long literals, type-mismatched arguments).
-[Environment]       Source review tooling on cli/src/core/expr/*.ts and any render-time template glue.
+[Environment]       Source review tooling on fdpm-cli/src/core/expr/*.ts and any render-time template glue.
 [Artifact]          Helper bindings under `fn.*`.
 [Response]          No helper performs filesystem, network, child-process, or vm operations. Fuzzed templates either evaluate to a value or surface a `render-error` finding via the §7.1 step-6 exception barrier.
 [Response measure]  0 helpers escape the §6.4 inventory. 0 evaluator-induced host crashes across 10⁴ fuzzed templates.
@@ -388,7 +388,7 @@ Options scored across the axes that drove the decision.
 
 ## 10. Requirements
 
-- **(MUST) Reuse SPEC-CEL-VALIDATOR's evaluator** — The render-time DSL MUST evaluate via the shared host CEL runtime owned by `cli/src/core/expr/` and specified by SPEC-EXPRESSION-RUNTIME. A second engine is forbidden.
+- **(MUST) Reuse SPEC-CEL-VALIDATOR's evaluator** — The render-time DSL MUST evaluate via the shared host CEL runtime owned by `fdpm-cli/src/core/expr/` and specified by SPEC-EXPRESSION-RUNTIME. A second engine is forbidden.
 - **(MUST) Variables resolve via dotted-path lookup** — `${a.b.c}` MUST resolve via successive property access on the activation root. Missing intermediate keys MUST produce a `render-error` (Principle 4).
 - **(MUST) Queries are read-only** — Render-time CEL list-comprehension expressions and helper calls MUST never produce side effects. Iteration over `project.primitives` / `project.relations` is read-only; the DSL MUST NOT introduce mutation forms.
 - **(MUST) Conditional blocks balance** — Every `${if: …}` MUST have a matching `${endif}` in the same template. Unbalanced templates MUST produce a parse-time `render-error`.
@@ -398,15 +398,15 @@ Options scored across the axes that drove the decision.
 
 ## 11. Acceptance Criteria
 
-- [x] **1.** DSL evaluator wired into the render-time path through the shared host-owned `cli/src/core/expr/` runtime. _(met)_
-  - evidence: cli/src/core/render/template.ts
-  - evidence: cli/src/plugin/runtime.ts
-  - evidence: cli/src/commands/render.ts
+- [x] **1.** DSL evaluator wired into the render-time path through the shared host-owned `fdpm-cli/src/core/expr/` runtime. _(met)_
+  - evidence: fdpm-cli/src/core/render/template.ts
+  - evidence: fdpm-cli/src/plugin/runtime.ts
+  - evidence: fdpm-cli/src/commands/render.ts
 - [x] **2.** spec:SpecMarkdownRenderer ships at least one template-driven section (`renderADRs` or `renderReferences`) replacing its hand-coded TS function. _(met)_
-  - evidence: cli/plugins/spec_authoring/renderers/spec_md.ts
+  - evidence: fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts
 - [ ] **3.** Determinism harness runs in CI and asserts byte-identical output across two renders. _(in_progress)_
-  - evidence: cli/tests/render-dsl.test.ts
-- [ ] **4.** Helper-purity static check (no fs / net / child_process / vm imports under cli/src/core/expr/ and any render-time template glue) wired into CI. _(open)_
+  - evidence: fdpm-cli/tests/render-dsl.test.ts
+- [ ] **4.** Helper-purity static check (no fs / net / child_process / vm imports under fdpm-cli/src/core/expr/ and any render-time template glue) wired into CI. _(open)_
 - [ ] **5.** Render performance regression on the SPEC-CEL-VALIDATOR fixture stays within +25 % p50 of the pre-DSL baseline. _(open)_
 
 ---
@@ -426,10 +426,10 @@ Options scored across the axes that drove the decision.
 
 | Area | Change | Complexity | Status |
 | --- | --- | --- | --- |
-| cli/src/core/render/ template glue + cli/src/core/expr/ | New module: `template-lexer.ts` (split text vs. `${...}` placeholders + recognise the 3 directive keywords), thin glue to the host CEL evaluator from SPEC-EXPRESSION-RUNTIME for everything inside placeholders. NO CEL parser of our own. | L | complete |
-| cli/plugins/spec_authoring/renderers/spec_md.ts | Migrate one of the kind renderers (start with `renderReferences` — simplest projection) to a CEL-driven template using `project.primitives.filter(...)` plus the closed `fn.*` helper set. Keep all others on the TS path until parity is proven. | M | complete |
-| cli/tests/render-dsl-*.test.ts | Extend the live render suites (`render.test.ts`, `error-render.test.ts`) with render-DSL variable, iteration, conditional, include, helper, determinism, and error-path coverage. | M | in_progress |
-| cli/tests/fuzz/render-dsl.fuzz.ts | Adversarial templates: deeply nested if-blocks, oversized literals, type-mismatched helper args, malformed query syntax. Assert no host crash, no untaxonomised errors. | M | not_started |
+| fdpm-cli/src/core/render/ template glue + fdpm-cli/src/core/expr/ | New module: `template-lexer.ts` (split text vs. `${...}` placeholders + recognise the 3 directive keywords), thin glue to the host CEL evaluator from SPEC-EXPRESSION-RUNTIME for everything inside placeholders. NO CEL parser of our own. | L | complete |
+| fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts | Migrate one of the kind renderers (start with `renderReferences` — simplest projection) to a CEL-driven template using `project.primitives.filter(...)` plus the closed `fn.*` helper set. Keep all others on the TS path until parity is proven. | M | complete |
+| fdpm-cli/tests/render-dsl-*.test.ts | Extend the live render suites (`render.test.ts`, `error-render.test.ts`) with render-DSL variable, iteration, conditional, include, helper, determinism, and error-path coverage. | M | in_progress |
+| fdpm-cli/tests/fuzz/render-dsl.fuzz.ts | Adversarial templates: deeply nested if-blocks, oversized literals, type-mismatched helper args, malformed query syntax. Assert no host crash, no untaxonomised errors. | M | not_started |
 | docs/specs/SPEC-CORE.md §10 (Frontend Shell) | Spec amendment: declare the render-time DSL canonical for `cap:renderer` template authoring; reference this SPEC. | S | not_started |
 
 ---
@@ -438,14 +438,14 @@ Options scored across the axes that drove the decision.
 
 Order matters: this SPEC waits for SPEC-CEL-VALIDATOR's host evaluator (step 1), lands the DSL behind a feature flag (step 2), migrates the smallest projection first (step 3), then progresses kind-by-kind with parity tests (step 4) before amending SPEC-CORE (step 5).
 
-1. **Wait for shared host expression runtime adoption point** — This SPEC depends on the shared host-owned runtime contract in `cli/src/core/expr/`. Block until render-time glue can consume that service directly.
-2. **Land DSL parser + evaluator** — Ship render-time template parsing/glue that consumes cli/src/core/expr/ for every expression inside placeholders. No renderer migrations yet.
-   - touches: `cli/src/core/expr/`
-   - touches: `cli/src/core/render/`
+1. **Wait for shared host expression runtime adoption point** — This SPEC depends on the shared host-owned runtime contract in `fdpm-cli/src/core/expr/`. Block until render-time glue can consume that service directly.
+2. **Land DSL parser + evaluator** — Ship render-time template parsing/glue that consumes fdpm-cli/src/core/expr/ for every expression inside placeholders. No renderer migrations yet.
+   - touches: `fdpm-cli/src/core/expr/`
+   - touches: `fdpm-cli/src/core/render/`
 3. **Migrate renderReferences** — Smallest projection in spec_md.ts; replace its hand-coded TS with a template using CEL filtering/sorting over `project.primitives`. Validates the iteration path on a function with trivial sort and no row-template logic.
-   - touches: `cli/plugins/spec_authoring/renderers/spec_md.ts`
+   - touches: `fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts`
 4. **Migrate progressively, blocked by parity tests** — renderRevisions → renderRisks → renderAcceptanceCriteria → renderImplementationPlan → renderMigration → renderOpenQuestions. Each migration ships with a parity test against the pre-DSL output on the SPEC-CEL-VALIDATOR fixture.
-   - touches: `cli/plugins/spec_authoring/renderers/spec_md.ts`
+   - touches: `fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts`
 5. **Amend SPEC-CORE §10** — Once at least three kind renderers are template-driven, amend SPEC-CORE §10 to reference this SPEC and declare templates the canonical authoring surface for cap:renderer.
    - touches: `docs/specs/SPEC-CORE.md`
 
@@ -456,7 +456,7 @@ Order matters: this SPEC waits for SPEC-CEL-VALIDATOR's host evaluator (step 1),
 | Risk | Mitigation |
 | --- | --- |
 | **Helper creep** — Authors request more helpers; the §6.4 inventory grows; the closed-set property erodes. | Adding a helper requires a SPEC amendment, not just a code change (Principle 3). Amendment process forces design review before surface grows. |
-| **Silent empty-string regression** — Implementation drift introduces a fall-through that coerces undefined names to '' (the exact PALS-LAW failure this SPEC exists to prevent). | Type-system invariant in the shared activation/runtime path (`cli/src/core/expr/activation.ts` plus render-time glue): every name lookup returns `Value \| RenderError`, never `undefined`. The renderer surface refuses to render if any RenderError is present. |
+| **Silent empty-string regression** — Implementation drift introduces a fall-through that coerces undefined names to '' (the exact PALS-LAW failure this SPEC exists to prevent). | Type-system invariant in the shared activation/runtime path (`fdpm-cli/src/core/expr/activation.ts` plus render-time glue): every name lookup returns `Value \| RenderError`, never `undefined`. The renderer surface refuses to render if any RenderError is present. |
 | **Per-render parse cost** — Parsing each template per render dominates p50 latency on small projects. | Cache compiled templates by template-id at registration time. Per-render work becomes evaluate-only. |
 | **Coupling to SPEC-CEL-VALIDATOR rollout** — If SPEC-CEL-VALIDATOR is delayed or rolled back, this SPEC stalls. | v0.1 ships behind a feature gate; renderers continue to use the TS path until each migration step's parity test passes. Rollback is a flag flip, not a revert. |
 
@@ -498,7 +498,7 @@ Other open questions (defaulted):
 >    1 | doc.fields.verification_note
                     ^]]
 - LiquidJS — JavaScript implementation of the Liquid template language. (https://liquidjs.com/) _[unverified]_ — Cited as Option B; existence and license to be verified before any future adoption.
-- spec_authoring renderer — the hand-coded TS this SPEC proposes to replace. (cli/plugins/spec_authoring/renderers/spec_md.ts) _[verified]_ — Read at SPEC-authoring time; ~20 small kind-renderer functions.
+- spec_authoring renderer — the hand-coded TS this SPEC proposes to replace. (fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts) _[verified]_ — Read at SPEC-authoring time; ~20 small kind-renderer functions.
 - SPEC-CEL-VALIDATOR — CEL Runtime Validator for FDPM Plugin Predicates v0.1. (docs/specs/SPEC-CEL-VALIDATOR.md) _[verified]_ — Authored alongside this SPEC; rendered from the same fdpm.spec-authoring profile.
 
 ---
@@ -509,7 +509,7 @@ Other open questions (defaulted):
 
 Surface expansion is still intentionally narrow, but the implementation is now live instead of purely specified:
 
-1. New host-owned render-template glue lives under `cli/src/core/render/template.ts` and evaluates `${...}` / `${if: ...}` / `${include: ...}` through the shared `cli/src/core/expr/` runtime rather than a renderer-local evaluator.
+1. New host-owned render-template glue lives under `fdpm-cli/src/core/render/template.ts` and evaluates `${...}` / `${if: ...}` / `${include: ...}` through the shared `fdpm-cli/src/core/expr/` runtime rather than a renderer-local evaluator.
 
 2. `fdpm render --strict` now preserves rendered bytes while changing the exit code when render findings are present, matching the v0.1 error-policy contract.
 
@@ -525,7 +525,7 @@ No intended surface expansion. This patch fixes four source-of-truth drifts in t
 
 1. Render-time error policy now matches SPEC-EXPRESSION-RUNTIME §M2: default CLI emits bytes with inline markers and records `RenderFinding[]`; `--strict` changes exit semantics, not byte emission.
 
-2. Dependency and rollout wording no longer claims SPEC-CEL-VALIDATOR owns the evaluator. The owner is the shared host runtime in `cli/src/core/expr/`; SPEC-CEL-VALIDATOR is a consumer.
+2. Dependency and rollout wording no longer claims SPEC-CEL-VALIDATOR owns the evaluator. The owner is the shared host runtime in `fdpm-cli/src/core/expr/`; SPEC-CEL-VALIDATOR is a consumer.
 
 3. Bounded-execution text now names the shipped shared-runtime caps (nesting 32, list iteration 1000, arity 8, string output 65 536) instead of stale query-era `LIMIT` / conditional-nesting wording.
 
@@ -543,7 +543,7 @@ No intended surface expansion. This patch removes contradictions and stale path 
 
 3. The helper-count claim now derives from the shared inventory (`STANDARD_HELPER_COUNT`) instead of hard-coding an obsolete value.
 
-4. Implementation references and migration steps now point at the host-owned runtime in `cli/src/core/expr/` and render-time glue that consumes it, instead of the old `cli/src/core/render/dsl/` / `cli/src/core/validation/cel/` paths.
+4. Implementation references and migration steps now point at the host-owned runtime in `fdpm-cli/src/core/expr/` and render-time glue that consumes it, instead of the old `fdpm-cli/src/core/render/dsl/` / `fdpm-cli/src/core/validation/cel/` paths.
 
 5. The row-template and cross-project future-work notes no longer reintroduce the removed SQL surface.
 
@@ -565,7 +565,7 @@ No surface changes. Stabilization-pass corrections:
 
 6. Two positional Open-Question references replaced with id-based references (spec:q:else-block, spec:q:nested-placeholders). Reordering OQ doesn't break cross-references.
 
-7. New regression test (cli/tests/spec-builds-determinism.test.ts) asserts cross-SPEC drift cannot recur.
+7. New regression test (fdpm-cli/tests/spec-builds-determinism.test.ts) asserts cross-SPEC drift cannot recur.
 
 Affected sections: §3, §4, §6, §6.4, §17, §19
 

@@ -31,6 +31,7 @@ describe("documentation drift regressions", () => {
     expect(MANUAL).not.toContain("npm --prefix cli");
     expect(MANUAL).not.toContain("/path/to/repo/cli");
     expect(MANUAL).not.toContain("$HOME/.fdpm/data");
+    expect(MANUAL).not.toContain("fdpm-fdpm-cli");
   });
 
   it("plugin READMEs keep current CLI verbs", () => {
@@ -38,6 +39,7 @@ describe("documentation drift regressions", () => {
       expect(text).not.toContain("fdpm project init");
       expect(text).not.toContain("fdpm primitive add");
       expect(text).not.toContain("fdpm relation add");
+      expect(text).not.toContain("fdpm-fdpm-cli");
     }
   });
 

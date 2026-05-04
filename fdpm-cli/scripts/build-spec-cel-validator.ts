@@ -331,7 +331,7 @@ const adr: PrimitiveSpec = {
     status: "accepted",
     date: "2026-05-04",
     context:
-      "Two plugins ship today (formal_specification, software_architecture). Both declare `ValidationRuleDef.expression` strings using the same legacy DSL. fs evaluates 23/23 rules via 408 lines of hand-coded TS validators. sw evaluates 0/7 rules — they fall through to a step-5 'info: predicate not evaluated' finding ([cli/src/core/validation/pipeline.ts:360-372](../../cli/src/core/validation/pipeline.ts#L360-L372)). The asymmetry is a footgun: a plugin author reads 'we have a predicate field' and assumes the host evaluates it. CLAUDE.md's PALS-LAW posture treats absence of verification as a design defect.",
+      "Two plugins ship today (formal_specification, software_architecture). Both declare `ValidationRuleDef.expression` strings using the same legacy DSL. fs evaluates 23/23 rules via 408 lines of hand-coded TS validators. sw evaluates 0/7 rules — they fall through to a step-5 'info: predicate not evaluated' finding ([fdpm-cli/src/core/validation/pipeline.ts:360-372](../../fdpm-cli/src/core/validation/pipeline.ts#L360-L372)). The asymmetry is a footgun: a plugin author reads 'we have a predicate field' and assumes the host evaluates it. CLAUDE.md's PALS-LAW posture treats absence of verification as a design defect.",
     decision:
       "Adopt CEL. Embed cel-js. Treat `ValidationRuleDef.expression` and `TypeConstraint.expression` as CEL when present. Bind a `graph` helper into the activation for relation predicates. Keep current step-5 fallback for unparseable / legacy DSL strings until plugins migrate.",
     consequences: [
@@ -345,7 +345,7 @@ const adr: PrimitiveSpec = {
       { polarity: "neutral", text: "FieldValidation.kind open-string mechanism is OUT OF SCOPE for this SPEC (see Open Question Q1)." },
     ],
     compliance_checks: [
-      "CI: `tsc --noEmit` over cli/ passes after host evaluator lands.",
+      "CI: `tsc --noEmit` over fdpm-cli/ passes after host evaluator lands.",
       "CI: For every rule in formal_specification's validation_rules.ts, run a fixture-based parity test — legacy evaluator's findings must equal CEL evaluator's findings.",
       "CI: Static check that no predicate string in any shipped plugin uses a CEL feature outside the documented activation environment.",
       "Test: A predicate that raises during evaluation produces an `error` finding via the §7.1 step-6 exception barrier — never a host crash.",
@@ -431,7 +431,7 @@ const scenarios: PrimitiveSpec[] = [
       source: "Core maintainer running the parity-test harness on a CI run.",
       stimulus:
         "Replace each fs:val:* TS validator with the CEL translation of its declared predicate, then run the parity harness over the standard fs fixture set.",
-      environment: "CI; warm Host; standard fs fixture set committed under cli/tests/fixtures/.",
+      environment: "CI; warm Host; standard fs fixture set committed under fdpm-cli/tests/fixtures/.",
       artifact: "ValidationPipeline + CEL evaluator + fs validation_rules.ts (CEL form).",
       response:
         "For every (rule_id, instance_id) pair the CEL evaluator produces a finding identical (level, target_id, field_path, message-modulo-formatting) to the legacy evaluator's finding.",
@@ -447,7 +447,7 @@ const scenarios: PrimitiveSpec[] = [
       source: "Security reviewer.",
       stimulus:
         "Static review of every host-bound CEL helper plus a fuzz harness that supplies adversarial predicate strings.",
-      environment: "Source review tooling on cli/src/core/validation/cel/*.ts.",
+      environment: "Source review tooling on fdpm-cli/src/core/validation/cel/*.ts.",
       artifact: "Helper bindings (`graph.incoming`, `graph.outgoing`, `graph.acyclic`).",
       response:
         "No helper performs filesystem, network, child-process, or vm operations. Fuzzed predicates either evaluate or surface as a `plugin-validator-raised:*` error finding via the §7.1 step-6 barrier.",
@@ -483,7 +483,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         "Any exception thrown during CEL parse or evaluation is caught by the §7.1 step-6 exception barrier and converted into a `plugin-validator-raised:<rule_id>` error finding. The host process never crashes due to a malformed predicate.",
       enforcement: "ci_check",
-      scope_ref: "cli/src/core/validation/pipeline.ts §7.1 step 6",
+      scope_ref: "fdpm-cli/src/core/validation/pipeline.ts §7.1 step 6",
     },
   },
   {
@@ -494,7 +494,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         "When `expression` is set but does not parse as CEL, the rule falls back to the current step-5 'info: predicate not evaluated' behaviour. A parse failure is not an error finding.",
       enforcement: "runtime_check",
-      scope_ref: "cli/src/core/validation/pipeline.ts step 5/6",
+      scope_ref: "fdpm-cli/src/core/validation/pipeline.ts step 5/6",
     },
   },
 ];
@@ -509,7 +509,7 @@ const requirements: PrimitiveSpec[] = [
         "The host MUST embed a CEL evaluator (cel-js or equivalent) accessible from the §7 ValidationPipeline.",
       strength: "MUST",
       verifiability: "ci_check",
-      verifier_ref: "cli/package.json (dependency); tsc resolves the import.",
+      verifier_ref: "fdpm-cli/package.json (dependency); tsc resolves the import.",
     },
   },
   {
@@ -521,7 +521,7 @@ const requirements: PrimitiveSpec[] = [
         "Predicates evaluate against exactly `{ instance, type, profile, graph }`. No other names are bound. Adding a new binding is a SPEC amendment.",
       strength: "MUST",
       verifiability: "review",
-      verifier_ref: "cli/src/core/validation/cel/activation.ts",
+      verifier_ref: "fdpm-cli/src/core/validation/cel/activation.ts",
     },
   },
   {
@@ -533,7 +533,7 @@ const requirements: PrimitiveSpec[] = [
         "Every standard `graph.*` helper MUST be a pure function over the project graph. As of helper-set v1.1.0 the closed inventory is `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, and `graph.target_exists(rel_id)`. None MAY perform I/O, spawn processes, invoke `eval`, or read clock/RNG. Adding a graph helper is a SPEC amendment AND a helper-set semver bump.",
       strength: "MUST",
       verifiability: "ci_check",
-      verifier_ref: "CI grep over cli/src/core/expr/helpers.ts",
+      verifier_ref: "CI grep over fdpm-cli/src/core/expr/helpers.ts",
     },
   },
   {
@@ -545,7 +545,7 @@ const requirements: PrimitiveSpec[] = [
         "When a predicate references a field path expressible as `instance.field_values.<name>`, the resulting finding's `field_path` SHOULD be `field_values.<name>`.",
       strength: "SHOULD",
       verifiability: "test",
-      verifier_ref: "cli/tests/validation/cel-attribution.test.ts",
+      verifier_ref: "fdpm-cli/tests/validation/cel-attribution.test.ts",
     },
   },
   {
@@ -557,7 +557,7 @@ const requirements: PrimitiveSpec[] = [
         "An unparseable `expression` MUST NOT block validation. The pipeline MUST emit the existing `info: predicate not evaluated` finding and continue.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/validation/cel-fallback.test.ts",
+      verifier_ref: "fdpm-cli/tests/validation/cel-fallback.test.ts",
     },
   },
 ];
@@ -572,7 +572,7 @@ const acceptances: PrimitiveSpec[] = [
       ordinal: 1,
       criterion: "CEL evaluator is wired into ValidationPipeline behind the legacy-fallback gate.",
       status: "met",
-      evidence_refs: ["cli/src/core/validation/pipeline.ts"],
+      evidence_refs: ["fdpm-cli/src/core/validation/pipeline.ts"],
     },
   },
   {
@@ -582,7 +582,7 @@ const acceptances: PrimitiveSpec[] = [
       ordinal: 2,
       criterion: "All 7 software_architecture rules fire as `error` / `warning` (no longer `info: predicate not evaluated`).",
       status: "met",
-      evidence_refs: ["cli/tests/sw-cel-validation.test.ts"],
+      evidence_refs: ["fdpm-cli/tests/sw-cel-validation.test.ts"],
     },
   },
   {
@@ -593,7 +593,7 @@ const acceptances: PrimitiveSpec[] = [
       criterion:
         "fs migration: 23/23 fs:val:* rules pass the parity harness; _register_validators.ts is deleted; _validators.ts is deleted.",
       status: "met",
-      evidence_refs: ["cli/plugins/formal_specification/validation_rules.ts"],
+      evidence_refs: ["fdpm-cli/plugins/formal_specification/validation_rules.ts"],
     },
   },
   {
@@ -662,7 +662,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:host-evaluator",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/src/core/validation/cel/",
+      area: "fdpm-cli/src/core/validation/cel/",
       change:
         "New module: `evaluator.ts` (parse, type-check, eval), `activation.ts` (binding factory), `helpers.ts` (graph helpers), `errors.ts` (parse / runtime taxonomy).",
       complexity: "M",
@@ -673,7 +673,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:pipeline-wire",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/src/core/validation/pipeline.ts",
+      area: "fdpm-cli/src/core/validation/pipeline.ts",
       change:
         "Step 5/6 wires the CEL evaluator: when `expression` parses, run it; otherwise fall through to the existing 'info: predicate not evaluated' path.",
       complexity: "S",
@@ -684,7 +684,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:sw-migrate",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/plugins/software_architecture/validation_rules.ts",
+      area: "fdpm-cli/plugins/software_architecture/validation_rules.ts",
       change:
         "Translate each of the 7 predicate strings into CEL form. No new TS validators required.",
       complexity: "S",
@@ -695,7 +695,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:fs-migrate",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/plugins/formal_specification/",
+      area: "fdpm-cli/plugins/formal_specification/",
       change:
         "Translate 23 predicate strings into CEL form; delete _register_validators.ts and _validators.ts; delete the registerFormalSpecValidators call from index.ts; ship parity harness.",
       complexity: "L",
@@ -706,7 +706,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:tests",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/tests/validation/",
+      area: "fdpm-cli/tests/validation/",
       change:
         "New test files: cel-evaluator.test.ts, cel-fallback.test.ts, cel-attribution.test.ts, cel-helpers.test.ts, cel-fs-parity.test.ts.",
       complexity: "M",
@@ -734,10 +734,10 @@ const migration: PrimitiveSpec[] = [
       ordinal: 1,
       label: "Land host evaluator + fallback",
       action:
-        "Ship `cli/src/core/validation/cel/` with the evaluator and graph helpers. Wire into pipeline.ts step 5/6 with the unparseable-string fallback. No plugin migrations yet — shipped behaviour is unchanged.",
+        "Ship `fdpm-cli/src/core/validation/cel/` with the evaluator and graph helpers. Wire into pipeline.ts step 5/6 with the unparseable-string fallback. No plugin migrations yet — shipped behaviour is unchanged.",
       affected_paths: [
-        "cli/src/core/validation/cel/",
-        "cli/src/core/validation/pipeline.ts",
+        "fdpm-cli/src/core/validation/cel/",
+        "fdpm-cli/src/core/validation/pipeline.ts",
       ],
     },
   },
@@ -749,7 +749,7 @@ const migration: PrimitiveSpec[] = [
       label: "Migrate software_architecture (zero-coverage today)",
       action:
         "Translate the 7 predicate strings to CEL form. Validates the binding contract on a plugin where any improvement is strictly additive — there is no behaviour to preserve.",
-      affected_paths: ["cli/plugins/software_architecture/validation_rules.ts"],
+      affected_paths: ["fdpm-cli/plugins/software_architecture/validation_rules.ts"],
       depends_on: ["spec:mig:1"],
     },
   },
@@ -761,7 +761,7 @@ const migration: PrimitiveSpec[] = [
       label: "Build the parity harness",
       action:
         "Test that for every fs:val:* rule, legacy TS validator findings == CEL evaluator findings on the standard fixture. Block migration step 4 on 100 % parity.",
-      affected_paths: ["cli/tests/validation/cel-fs-parity.test.ts"],
+      affected_paths: ["fdpm-cli/tests/validation/cel-fs-parity.test.ts"],
       depends_on: ["spec:mig:1"],
     },
   },
@@ -774,10 +774,10 @@ const migration: PrimitiveSpec[] = [
       action:
         "Translate 23 predicate strings to CEL form. Delete _register_validators.ts (408 lines) and _validators.ts (164 lines). Remove the registerFormalSpecValidators call from index.ts. Net code deletion target: ≥ 500 lines.",
       affected_paths: [
-        "cli/plugins/formal_specification/validation_rules.ts",
-        "cli/plugins/formal_specification/_register_validators.ts",
-        "cli/plugins/formal_specification/_validators.ts",
-        "cli/plugins/formal_specification/index.ts",
+        "fdpm-cli/plugins/formal_specification/validation_rules.ts",
+        "fdpm-cli/plugins/formal_specification/_register_validators.ts",
+        "fdpm-cli/plugins/formal_specification/_validators.ts",
+        "fdpm-cli/plugins/formal_specification/index.ts",
       ],
       depends_on: ["spec:mig:3"],
     },
@@ -840,7 +840,7 @@ const mitigations: PrimitiveSpec[] = [
     type: "spec:Mitigation",
     fields: {
       strategy:
-        "Per-plugin CEL test files exercise every shipped rule on representative fixtures and assert findings match the legacy evaluator's behaviour. fs's 23 rules and sw's 7 rules each have evaluation coverage in cli/tests/cel-validation.test.ts and cli/tests/sw-cel-validation.test.ts.",
+        "Per-plugin CEL test files exercise every shipped rule on representative fixtures and assert findings match the legacy evaluator's behaviour. fs's 23 rules and sw's 7 rules each have evaluation coverage in fdpm-cli/tests/cel-validation.test.ts and fdpm-cli/tests/sw-cel-validation.test.ts.",
       status: "implemented",
     },
   },
@@ -858,7 +858,7 @@ const mitigations: PrimitiveSpec[] = [
     type: "spec:Mitigation",
     fields: {
       strategy:
-        "Compiled CEL programs are cached by predicate-string identity in cli/src/core/expr/runtime.ts (`programCache`). Per-call work is bind+eval, not parse+bind+eval.",
+        "Compiled CEL programs are cached by predicate-string identity in fdpm-cli/src/core/expr/runtime.ts (`programCache`). Per-call work is bind+eval, not parse+bind+eval.",
       status: "implemented",
     },
   },
@@ -953,7 +953,7 @@ const references: PrimitiveSpec[] = [
     fields: {
       kind: "repo_file",
       citation: "FDPM ValidationPipeline source.",
-      locator: "cli/src/core/validation/pipeline.ts",
+      locator: "fdpm-cli/src/core/validation/pipeline.ts",
       verification: "verified",
       verification_note: "Read at SPEC-authoring time; line numbers cited.",
     },
@@ -964,7 +964,7 @@ const references: PrimitiveSpec[] = [
     fields: {
       kind: "repo_file",
       citation: "fs plugin TS validators (the 408 lines this SPEC eliminates).",
-      locator: "cli/plugins/formal_specification/_register_validators.ts",
+      locator: "fdpm-cli/plugins/formal_specification/_register_validators.ts",
       verification: "verified",
       verification_note: "Read at SPEC-authoring time.",
     },
@@ -975,7 +975,7 @@ const references: PrimitiveSpec[] = [
     fields: {
       kind: "repo_file",
       citation: "sw plugin's 7 unevaluated predicate rules.",
-      locator: "cli/plugins/software_architecture/validation_rules.ts",
+      locator: "fdpm-cli/plugins/software_architecture/validation_rules.ts",
       verification: "verified",
       verification_note: "Read at SPEC-authoring time.",
     },
@@ -1016,7 +1016,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Implementation landed; status moved from Proposal to Stable.",
       notes:
-        "Commit 130a25e (`feat(cli/validation): migrate plugin predicates to CEL evaluator`) shipped: cel-js evaluator wired into ValidationPipeline, sw plugin's 7 rules now evaluate, fs plugin's 23 rules migrated, _register_validators.ts (408 lines) and _validators.ts (164 lines) deleted. ADR-CEL-001 moved from `proposed` to `accepted`. Mitigations `mit:parity-harness` and `mit:cache-compiled` moved from `planned` to `implemented`. ACs 1–3 remain `met`; ACs 4 (helper-purity static check) and 5 (perf benchmark) remain `open`.",
+        "Commit 130a25e (`feat(fdpm-cli/validation): migrate plugin predicates to CEL evaluator`) shipped: cel-js evaluator wired into ValidationPipeline, sw plugin's 7 rules now evaluate, fs plugin's 23 rules migrated, _register_validators.ts (408 lines) and _validators.ts (164 lines) deleted. ADR-CEL-001 moved from `proposed` to `accepted`. Mitigations `mit:parity-harness` and `mit:cache-compiled` moved from `planned` to `implemented`. ACs 1–3 remain `met`; ACs 4 (helper-purity static check) and 5 (perf benchmark) remain `open`.",
       affected_sections: ["6", "12", "13", "14", "18"],
       kind: "minor",
     },

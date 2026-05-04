@@ -36,6 +36,7 @@ import { RENDERER_BINDINGS } from "./renderer_bindings.js";
 import { TEMPLATES } from "./templates.js";
 import { renderOpenApi } from "./renderers/openapi.js";
 import { renderAdr } from "./renderers/adr.js";
+import { registerSoftwareArchitectureCapabilities } from "./_capabilities.js";
 
 export { renderOpenApi, renderAdr };
 
@@ -99,14 +100,39 @@ export async function activate(ctx: PluginContext): Promise<void> {
     rendererId: "sw:ADRRenderer",
     fn: renderAdr,
   });
+  registerSoftwareArchitectureCapabilities(ctx);
   ctx.logger.info(
-    `software-architecture activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} validators, 2 renderers (sw:OpenAPIRenderer/yaml, sw:ADRRenderer/md)`,
+    `software-architecture activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} CEL rules + 3 cap:validator implementations, 2 renderers (sw:OpenAPIRenderer/yaml, sw:ADRRenderer/md), 1 expr-helper, 1 transformer, 1 importer (sw-jsonl), 1 exporter (sw-jsonl)`,
   );
+}
+
+export function onInstall(ctx: PluginContext): void {
+  ctx.logger.debug(`on-install fired for ${ctx.pluginId}`);
 }
 
 export function onEnable(ctx: PluginContext): void {
   ctx.logger.debug(`on-enable fired for ${ctx.pluginId}`);
 }
 
-const entry: PluginEntryModule = { manifest, activate, onEnable };
+export function onDisable(ctx: PluginContext): void {
+  ctx.logger.debug(`on-disable fired for ${ctx.pluginId}`);
+}
+
+export function onUninstall(ctx: PluginContext): void {
+  ctx.logger.debug(`on-uninstall fired for ${ctx.pluginId}`);
+}
+
+export function deactivate(ctx: PluginContext): void {
+  ctx.logger.debug(`deactivate fired for ${ctx.pluginId}`);
+}
+
+const entry: PluginEntryModule = {
+  manifest,
+  activate,
+  onInstall,
+  onEnable,
+  onDisable,
+  onUninstall,
+  deactivate,
+};
 export default entry;

@@ -9,7 +9,7 @@
  * mode the SPEC-CEL-VALIDATOR proposal addresses. We register real
  * validators here so this plugin does not ship the bug it documents.
  *
- * Mirrors cli/plugins/formal_specification/_validators.ts in shape;
+ * Mirrors fdpm-cli/plugins/formal_specification/_validators.ts in shape;
  * intentionally duplicated rather than imported (SPEC-PLUGGABLE §6.1
  * plugin-isolation rule).
  *

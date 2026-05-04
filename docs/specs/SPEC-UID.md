@@ -64,7 +64,7 @@ This work is subject to the methodological caveats and commitments described in 
 | Status | Stable |
 | Audience | FDPM core maintainers, plugin authors, security reviewers, and any operator who has wished `transfer.import` could detect duplicates by identity rather than by slug. |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, docs/specs/SPEC-CORE.md |
-| Companion code | cli/src/core/models/instance.ts |
+| Companion code | fdpm-cli/src/core/models/instance.ts |
 | Peer SPEC | docs/specs/SPEC-CORE.md |
 
 ---
@@ -146,7 +146,7 @@ Terms used by this SPEC. Definitions are auto-included from `spec:Term` primitiv
 | **Slug** | A human-authored, profile-defined identifier with semantic meaning, e.g., `spec:doc:cel-validator`. Operator-typeable, greppable, and namespaced. Mutable: a `primitive.replace` op can change it. _(also: human ID, namespaced ID)_ |
 | **UID** | A 26-character ULID (Crockford base32) minted by Core at primitive/relation creation. Opaque, immutable, time-sortable, and globally unique. Never authored by a human; never changed. _(also: universal identifier, ULID)_ |
 | **ULID** | Universally Unique Lexicographically Sortable Identifier. 128 bits — 48 bits of millisecond timestamp + 80 bits of randomness. Crockford base32 encoding produces a 26-char string that sorts in creation order under byte comparison. |
-| **Upcaster** | A pure function `(oldPayload) → newPayload` registered in `cli/src/core/operations/upcast.ts` that runs at replay time, before the operation is applied. Used to evolve persisted log shapes across SPEC versions. |
+| **Upcaster** | A pure function `(oldPayload) → newPayload` registered in `fdpm-cli/src/core/operations/upcast.ts` that runs at replay time, before the operation is applied. Used to evolve persisted log shapes across SPEC versions. |
 
 ---
 
@@ -171,11 +171,11 @@ The full ADR text is embedded below.
 
 ##### Context
 
-FDPM v1.1 has a hard project boundary: relations validate endpoints in the local primitive map only ([pipeline.ts:579-580](cli/src/core/validation/pipeline.ts#L579)), and `primitive id collision` ([replay.ts:171-175](cli/src/core/store/replay.ts#L171)) is enforced per-project, never globally.
+FDPM v1.1 has a hard project boundary: relations validate endpoints in the local primitive map only ([pipeline.ts:579-580](fdpm-cli/src/core/validation/pipeline.ts#L579)), and `primitive id collision` ([replay.ts:171-175](fdpm-cli/src/core/store/replay.ts#L171)) is enforced per-project, never globally.
 
-84 plugin primitives declare `uniqueness: 'global'` as their default ([_common.ts](cli/plugins/spec_authoring/_common.ts), [formal_specification/_common.ts](cli/plugins/formal_specification/_common.ts)) — but that field is parsed by Zod and never read by any runtime code.
+84 plugin primitives declare `uniqueness: 'global'` as their default ([_common.ts](fdpm-cli/plugins/spec_authoring/_common.ts), [formal_specification/_common.ts](fdpm-cli/plugins/formal_specification/_common.ts)) — but that field is parsed by Zod and never read by any runtime code.
 
-The audit-trail layer is already ULID-native: `op_id`, `causation_op_id`, and `parent_op_id` are 26-char ULIDs ([operation.ts:10-20](cli/src/core/operations/operation.ts#L10)), and `request_id` is a UUIDv7. The `ulid` package is already in dependencies.
+The audit-trail layer is already ULID-native: `op_id`, `causation_op_id`, and `parent_op_id` are 26-char ULIDs ([operation.ts:10-20](fdpm-cli/src/core/operations/operation.ts#L10)), and `request_id` is a UUIDv7. The `ulid` package is already in dependencies.
 
 Cross-artifact references — needed for inter-document citations, `transfer.import --merge`, and any future cross-project relation type — require an identifier with two properties slugs lack: global uniqueness *enforced* by the host, and stability across rename/transfer.
 
@@ -239,15 +239,15 @@ Adopt the dual-ID model: every primitive and relation gets a `uid: string(26)` f
 - **positive**: Audit-trail continuity: 'show every operation that ever touched this primitive' is O(log_lines), not O(N_projects × string_search).
 - **negative**: Schema grows on every primitive and relation; persistence size grows by ~30 bytes per op. Storage cost is real but bounded.
 - **negative**: Two id-spaces to keep in sync; a Core-level uid_index is needed for O(1) lookup. Bug surface is the index between them.
-- **neutral**: Existing JSONL logs replay forward via an upcaster — the same mechanism that handled `host_compat` in [upcast.ts](cli/src/core/operations/upcast.ts). No operator-side migration needed.
+- **neutral**: Existing JSONL logs replay forward via an upcaster — the same mechanism that handled `host_compat` in [upcast.ts](fdpm-cli/src/core/operations/upcast.ts). No operator-side migration needed.
 
 ##### Compliance / verification
 
-- ✓ `PrimitiveInstance` and `RelationInstance` schemas declare `uid: z.string().length(26).regex(ULID_PATTERN)` (cli/src/core/models/instance.ts).
-- ✓ Every `primitive.create`, `relation.create`, `transfer.import`, `template.apply`, `project.clone`, and `project.split` operation records a `uid` in its payload (cli/src/core/host.ts, cli/src/core/host-extra.ts).
-- ✓ Replay against a v1.1 log with no uids produces a v1.2 state with all uids present and byte-equal across runs — verified by SPEC-UID AC-5 (cli/tests/spec-uid.test.ts).
+- ✓ `PrimitiveInstance` and `RelationInstance` schemas declare `uid: z.string().length(26).regex(ULID_PATTERN)` (fdpm-cli/src/core/models/instance.ts).
+- ✓ Every `primitive.create`, `relation.create`, `transfer.import`, `template.apply`, `project.clone`, and `project.split` operation records a `uid` in its payload (fdpm-cli/src/core/host.ts, fdpm-cli/src/core/host-extra.ts).
+- ✓ Replay against a v1.1 log with no uids produces a v1.2 state with all uids present and byte-equal across runs — verified by SPEC-UID AC-5 (fdpm-cli/tests/spec-uid.test.ts).
 - ✓ `fdpm primitive get <slug>` continues to work; `--by-uid` flag added to primitive {get, replace, patch, delete, field-patch} and relation {get, replace, patch, delete, field-patch}.
-- ✓ No file under `cli/plugins/` (other than `fs_v3_importer/index.ts`, which mints fresh uids when ingesting legacy data) mentions `uid` in primitive type definitions — corpus invariant verified by AC-3.
+- ✓ No file under `fdpm-cli/plugins/` (other than `fs_v3_importer/index.ts`, which mints fresh uids when ingesting legacy data) mentions `uid` in primitive type definitions — corpus invariant verified by AC-3.
 
 ##### Signals to revisit
 
@@ -327,30 +327,30 @@ Ten normative requirements (RFC 2119 strength). All MUST clauses are verifiable 
 
 ## 12. Acceptance Criteria
 
-Eight acceptance criteria, all met. AC-1 through AC-5 are unit/integration tests, AC-6 is a corpus invariant, AC-7 is a CLI parity test, AC-8 (no-plugin-changes) is a code survey. Evidence consolidated in cli/tests/spec-uid.test.ts (19 cases).
+Eight acceptance criteria, all met. AC-1 through AC-5 are unit/integration tests, AC-6 is a corpus invariant, AC-7 is a CLI parity test, AC-8 (no-plugin-changes) is a code survey. Evidence consolidated in fdpm-cli/tests/spec-uid.test.ts (19 cases).
 
 - [x] **1.** PrimitiveInstance and RelationInstance Zod schemas declare `uid: z.string().length(26).regex(ULID_PATTERN)`; the existing 506-test suite still passes. _(met)_
-  - evidence: cli/tests/spec-uid.test.ts (AC-1 cases)
-  - evidence: cli/src/core/models/instance.ts:11-34
+  - evidence: fdpm-cli/tests/spec-uid.test.ts (AC-1 cases)
+  - evidence: fdpm-cli/src/core/models/instance.ts:11-34
 - [x] **2.** A unit test creates a primitive, asserts `uid` is a 26-char ULID, asserts subsequent `primitive.replace`, `primitive.patch`, and `primitive.field-patch` operations preserve the uid byte-for-byte. Same for relations. _(met)_
-  - evidence: cli/tests/spec-uid.test.ts (AC-2 cases)
-  - evidence: cli/src/core/store/replay.ts (applyPrimitiveReplace rejects payloads whose uid disagrees with pre-state)
-- [x] **3.** Corpus invariant: every TS file under `cli/src/` is scanned; only `cli/src/core/identity/uid.ts` imports `ulid` or calls `ulid()`. Pinned by a test in the same style as the existing host-warnings-corpus and error-message-style invariants. (Implementation rerouted `cli/src/core/store/store.ts` op_id minting through `mintUid()` to satisfy this constraint.) _(met)_
-  - evidence: cli/tests/spec-uid.test.ts (AC-3 corpus walker)
+  - evidence: fdpm-cli/tests/spec-uid.test.ts (AC-2 cases)
+  - evidence: fdpm-cli/src/core/store/replay.ts (applyPrimitiveReplace rejects payloads whose uid disagrees with pre-state)
+- [x] **3.** Corpus invariant: every TS file under `fdpm-cli/src/` is scanned; only `fdpm-cli/src/core/identity/uid.ts` imports `ulid` or calls `ulid()`. Pinned by a test in the same style as the existing host-warnings-corpus and error-message-style invariants. (Implementation rerouted `fdpm-cli/src/core/store/store.ts` op_id minting through `mintUid()` to satisfy this constraint.) _(met)_
+  - evidence: fdpm-cli/tests/spec-uid.test.ts (AC-3 corpus walker)
 - [x] **4.** A round-trip test exports a project via `transfer.export`, imports it into a new project (re-homed under a different project_id to dodge slug collision), and asserts every primitive's uid is preserved. _(met)_
-  - evidence: cli/tests/spec-uid.test.ts (AC-4 round-trip)
+  - evidence: fdpm-cli/tests/spec-uid.test.ts (AC-4 round-trip)
 - [x] **5.** A determinism test exercises `mintUidFromSeed` (deterministic per seed) and replays a real operation log on two instances; both AC-5 sub-tests assert byte-equal `state.primitives` and `state.uid_index` across runs. _(met)_
-  - evidence: cli/tests/spec-uid.test.ts (AC-5 cases)
-  - evidence: cli/src/core/operations/upcast.ts (registers primitive.create@1.1.0 → 1.2.0 and relation.create@1.1.0 → 1.2.0; both call mintUidFromSeed(op.op_id))
+  - evidence: fdpm-cli/tests/spec-uid.test.ts (AC-5 cases)
+  - evidence: fdpm-cli/src/core/operations/upcast.ts (registers primitive.create@1.1.0 → 1.2.0 and relation.create@1.1.0 → 1.2.0; both call mintUidFromSeed(op.op_id))
 - [x] **6.** A clone test asserts that `cloneProject` produces a new project whose primitives have fresh uids (none equal to the source project's uids). Same posture for `splitProject` and `applyTemplate` — all three mint fresh on instantiate. _(met)_
-  - evidence: cli/tests/spec-uid.test.ts (AC-6 clone case)
-  - evidence: cli/src/core/host-extra.ts (cloneProject, splitProject, applyTemplate all call mintUid)
-- [x] **7.** No plugin file under `cli/plugins/` is modified beyond `fs_v3_importer/index.ts`, which mints fresh uids when converting legacy v3 records (the plugin is by definition a legacy-data conversion path; minting there is correct, not a leakage of uid concerns into plugin code). Plugin-author surface (id_format, idTemplate) unchanged. _(met)_
-  - evidence: cli/plugins/fs_v3_importer/index.ts (only modified plugin file)
-  - evidence: cli/plugins/spec_authoring/, cli/plugins/formal_specification/, cli/plugins/software_architecture/ — unchanged
+  - evidence: fdpm-cli/tests/spec-uid.test.ts (AC-6 clone case)
+  - evidence: fdpm-cli/src/core/host-extra.ts (cloneProject, splitProject, applyTemplate all call mintUid)
+- [x] **7.** No plugin file under `fdpm-cli/plugins/` is modified beyond `fs_v3_importer/index.ts`, which mints fresh uids when converting legacy v3 records (the plugin is by definition a legacy-data conversion path; minting there is correct, not a leakage of uid concerns into plugin code). Plugin-author surface (id_format, idTemplate) unchanged. _(met)_
+  - evidence: fdpm-cli/plugins/fs_v3_importer/index.ts (only modified plugin file)
+  - evidence: fdpm-cli/plugins/spec_authoring/, fdpm-cli/plugins/formal_specification/, fdpm-cli/plugins/software_architecture/ — unchanged
 - [x] **8.** `fdpm primitive get <slug>` and `fdpm primitive get --by-uid <uid>` both resolve to the same primitive. The compat test pins both code paths via `host.lookupUid` and `host.resolvePrimitiveByUid`. Negative-path tests verify mismatched-kind, mismatched-project, and post-delete `lookupUid` returns null. _(met)_
-  - evidence: cli/tests/spec-uid.test.ts (AC-7 cases incl. cascaded deletion)
-  - evidence: cli/src/commands/primitive.ts:resolveSlug (helper applied to primitive {get, replace, patch, delete, field-patch} and relation {get, replace, patch, delete, field-patch})
+  - evidence: fdpm-cli/tests/spec-uid.test.ts (AC-7 cases incl. cascaded deletion)
+  - evidence: fdpm-cli/src/commands/primitive.ts:resolveSlug (helper applied to primitive {get, replace, patch, delete, field-patch} and relation {get, replace, patch, delete, field-patch})
 
 ---
 
@@ -358,11 +358,11 @@ Eight acceptance criteria, all met. AC-1 through AC-5 are unit/integration tests
 
 Three conformance items: uid-immutability postcondition, replay-determinism differential test, and a no-plugin-changes CI guard.
 
-- **1. uid-immutable postcondition** — Replay-handler `applyPrimitiveReplace` (cli/src/core/store/replay.ts) rejects any payload whose `uid` field disagrees with the pre-state primitive's uid. AC-2 unit tests exercise create → replace → patch → field-patch and assert byte-equality of the uid before and after each.
+- **1. uid-immutable postcondition** — Replay-handler `applyPrimitiveReplace` (fdpm-cli/src/core/store/replay.ts) rejects any payload whose `uid` field disagrees with the pre-state primitive's uid. AC-2 unit tests exercise create → replace → patch → field-patch and assert byte-equality of the uid before and after each.
   - expected: Every replace preserves the uid byte-for-byte; CI fails on any drift. Operator-supplied uid on a replace surfaces as `verification` (not `internal`) — it is invalid input, not a host bug.
 - **2. replay-determinism differential test** — Two `replay()` calls on the same operation log, plus `mintUidFromSeed` purity test. Implementation: SHA-256 of the seed feeds a deterministic PRNG into the `ulid` factory, with the timestamp byte-prefix derived from the seed's own ULID timestamp (when the seed is itself a valid ULID such as op_id).
   - expected: Both projections are byte-equal: `state.primitives` and `state.uid_index` JSON-stringify identically. `mintUidFromSeed(s)` returns the same string on every call across processes.
-- **3. no-plugin-changes CI guard** — Static survey of `cli/plugins/` after v1.2 cut. The fs_v3_importer plugin received a 2-line change to mint a uid per legacy record (a legacy-data conversion shim by design). All other plugins (spec_authoring, formal_specification, software_architecture) untouched.
+- **3. no-plugin-changes CI guard** — Static survey of `fdpm-cli/plugins/` after v1.2 cut. The fs_v3_importer plugin received a 2-line change to mint a uid per legacy record (a legacy-data conversion shim by design). All other plugins (spec_authoring, formal_specification, software_architecture) untouched.
   - expected: Plugin authoring surface (id_format, idTemplate, primitive type definitions) is unchanged. A plugin author who has never heard of ULID still ships working primitives.
 
 ---
@@ -373,15 +373,15 @@ Nine implementation changes, all complete. Eight planned (one per affected file/
 
 | Area | Change | Complexity | Status |
 | --- | --- | --- | --- |
-| cli/src/core/identity/uid.ts (new file) | Dedicated uid module exporting `mintUid()` (fresh ULID), `mintUidFromSeed(seed: string)` (deterministic ULID — SHA-256 of seed feeds the ulid factory's PRNG; if seed is itself a ULID, its timestamp prefix is reused), `isValidUid(s: string)` (Crockford-base32 26-char validator), `uidCreatedAt(uid: string): Date` (timestamp extraction). Exports `UID_LENGTH = 26` and `ULID_PATTERN`. | S | complete |
-| cli/src/core/models/instance.ts | `PrimitiveInstance` and `RelationInstance` declare `uid: z.string().length(UID_LENGTH).regex(ULID_PATTERN)` (REQUIRED). v1.2 ships the field as required in one cut — the upcaster handles legacy v1.1 ops; no transitional `.optional()` window. | S | complete |
-| cli/src/core/host.ts | `createPrimitive` and `createRelation` call `mintUid()` before append; both reject payloads that already carry a uid with category=verification (Core-only mint site invariant). Host gains `lookupUid(uid)`, `resolvePrimitiveByUid(uid)`, `resolveRelationByUid(uid)` for O(1) cross-project lookup. | M | complete |
-| cli/src/core/store/replay.ts | `applyPrimitiveReplace` rejects payloads whose `uid` disagrees with the pre-state (category=verification). `applyPrimitiveCreate` / `applyRelationCreate` reject `uid` collisions against `state.uid_index` (category=conflict). `applyPrimitiveDelete` removes the primitive's uid plus cascaded relation uids. `applyProjectDelete` purges every uid_index entry pointing at the project. | M | complete |
-| cli/src/core/operations/upcast.ts | `upcastPayload` signature gained an `op: Operation` parameter so upcasters can read immutable provenance (op_id). Two upcasters registered: `primitive.create@1.1.0 → 1.2.0` and `relation.create@1.1.0 → 1.2.0`, both call `mintUidFromSeed(op.op_id)`. Replay byte-equality verified by AC-5. | M | complete |
-| cli/src/core/store/state.ts | `StoreState.uid_index: Record<string, UidIndexEntry>` (UidIndexEntry = { project_id, kind: 'primitive' \| 'relation', id }). Maintained inline by the same handlers that mutate the primitive/relation maps so the two views cannot drift (mitigates spec:risk:index-drift). `Store.lookupUid` exposes the index to the Host. | M | complete |
-| cli/src/commands/primitive.ts, cli/src/commands/relation.ts | `--by-uid` flag added to `primitive {get, replace, patch, delete, field-patch}` and `relation {get, replace, patch, delete, field-patch}`. Shared `resolveSlug()` helper enforces strict project-scoped, kind-correct uid resolution; mismatches surface as `verification` (wrong kind) or `not_found` (wrong project / unknown uid). | S | complete |
-| cli/src/core/host-extra.ts, cli/src/commands/transfer.ts | `importTransfer` accepts `{ uidMode: 'preserve' \| 'merge-by-uid' \| 'mint-fresh' }`. `preserve` (default) carries uids through and rejects collisions with category=conflict; `merge-by-uid` skips bundled records whose uid is already present locally; `mint-fresh` ignores bundled uids entirely. Result envelope adds `primitives_skipped_uid_match` / `relations_skipped_uid_match`. CLI flags: `--merge-by-uid`, `--mint-fresh-uids` (mutually exclusive). Transfers without a `uid` field (legacy v1.1 fixtures) auto-mint per record. Also: `cloneProject`, `splitProject`, `applyTemplate`, and `batchEdit` mint Core-side for any `primitive.create`/`relation.create` they synthesise. | M | complete |
-| cli/src/core/store/store.ts | Op_id minting routed through `mintUid()` (was a direct `ulid()` call). Required by AC-3's corpus invariant: only `cli/src/core/identity/uid.ts` may import or call `ulid()` directly. Behaviourally identical — `mintUid()` is `ulid()` — but funnels every ULID through the audit-able mint surface. | XS | complete |
+| fdpm-cli/src/core/identity/uid.ts (new file) | Dedicated uid module exporting `mintUid()` (fresh ULID), `mintUidFromSeed(seed: string)` (deterministic ULID — SHA-256 of seed feeds the ulid factory's PRNG; if seed is itself a ULID, its timestamp prefix is reused), `isValidUid(s: string)` (Crockford-base32 26-char validator), `uidCreatedAt(uid: string): Date` (timestamp extraction). Exports `UID_LENGTH = 26` and `ULID_PATTERN`. | S | complete |
+| fdpm-cli/src/core/models/instance.ts | `PrimitiveInstance` and `RelationInstance` declare `uid: z.string().length(UID_LENGTH).regex(ULID_PATTERN)` (REQUIRED). v1.2 ships the field as required in one cut — the upcaster handles legacy v1.1 ops; no transitional `.optional()` window. | S | complete |
+| fdpm-cli/src/core/host.ts | `createPrimitive` and `createRelation` call `mintUid()` before append; both reject payloads that already carry a uid with category=verification (Core-only mint site invariant). Host gains `lookupUid(uid)`, `resolvePrimitiveByUid(uid)`, `resolveRelationByUid(uid)` for O(1) cross-project lookup. | M | complete |
+| fdpm-cli/src/core/store/replay.ts | `applyPrimitiveReplace` rejects payloads whose `uid` disagrees with the pre-state (category=verification). `applyPrimitiveCreate` / `applyRelationCreate` reject `uid` collisions against `state.uid_index` (category=conflict). `applyPrimitiveDelete` removes the primitive's uid plus cascaded relation uids. `applyProjectDelete` purges every uid_index entry pointing at the project. | M | complete |
+| fdpm-cli/src/core/operations/upcast.ts | `upcastPayload` signature gained an `op: Operation` parameter so upcasters can read immutable provenance (op_id). Two upcasters registered: `primitive.create@1.1.0 → 1.2.0` and `relation.create@1.1.0 → 1.2.0`, both call `mintUidFromSeed(op.op_id)`. Replay byte-equality verified by AC-5. | M | complete |
+| fdpm-cli/src/core/store/state.ts | `StoreState.uid_index: Record<string, UidIndexEntry>` (UidIndexEntry = { project_id, kind: 'primitive' \| 'relation', id }). Maintained inline by the same handlers that mutate the primitive/relation maps so the two views cannot drift (mitigates spec:risk:index-drift). `Store.lookupUid` exposes the index to the Host. | M | complete |
+| fdpm-cli/src/commands/primitive.ts, fdpm-cli/src/commands/relation.ts | `--by-uid` flag added to `primitive {get, replace, patch, delete, field-patch}` and `relation {get, replace, patch, delete, field-patch}`. Shared `resolveSlug()` helper enforces strict project-scoped, kind-correct uid resolution; mismatches surface as `verification` (wrong kind) or `not_found` (wrong project / unknown uid). | S | complete |
+| fdpm-cli/src/core/host-extra.ts, fdpm-cli/src/commands/transfer.ts | `importTransfer` accepts `{ uidMode: 'preserve' \| 'merge-by-uid' \| 'mint-fresh' }`. `preserve` (default) carries uids through and rejects collisions with category=conflict; `merge-by-uid` skips bundled records whose uid is already present locally; `mint-fresh` ignores bundled uids entirely. Result envelope adds `primitives_skipped_uid_match` / `relations_skipped_uid_match`. CLI flags: `--merge-by-uid`, `--mint-fresh-uids` (mutually exclusive). Transfers without a `uid` field (legacy v1.1 fixtures) auto-mint per record. Also: `cloneProject`, `splitProject`, `applyTemplate`, and `batchEdit` mint Core-side for any `primitive.create`/`relation.create` they synthesise. | M | complete |
+| fdpm-cli/src/core/store/store.ts | Op_id minting routed through `mintUid()` (was a direct `ulid()` call). Required by AC-3's corpus invariant: only `fdpm-cli/src/core/identity/uid.ts` may import or call `ulid()` directly. Behaviourally identical — `mintUid()` is `ulid()` — but funnels every ULID through the audit-able mint surface. | XS | complete |
 
 ---
 
@@ -389,27 +389,27 @@ Nine implementation changes, all complete. Eight planned (one per affected file/
 
 Five planned steps; four executed (steps 1, 2, 4, 5). Step 3 (`uid optional → required`) was absorbed into step 1: v1.2 ships uid-required from day one with the upcaster handling v1.1 fixtures, so a transitional optional window served no purpose. The historical step is preserved here as a record of the design's evolution.
 
-1. **[done] Land the uid module + schema (required from day one) + Core mint site** — Created `cli/src/core/identity/uid.ts` exporting `mintUid()`, `mintUidFromSeed(seed)`, `isValidUid(s)`, `uidCreatedAt(uid)`, `UID_LENGTH`, `ULID_PATTERN`. Added `uid` to `PrimitiveInstance` and `RelationInstance` schemas as REQUIRED. Hosts `createPrimitive` and `createRelation` mint via `mintUid()`. NOTE: planned step 3 (`uid optional → required`) was collapsed into step 1 — v1.2 cut is one shot, with the upcaster handling v1.1 fixtures, so a transitional optional window served no purpose.
-   - touches: `cli/src/core/identity/uid.ts (new)`
-   - touches: `cli/src/core/models/instance.ts`
-   - touches: `cli/src/core/host.ts`
+1. **[done] Land the uid module + schema (required from day one) + Core mint site** — Created `fdpm-cli/src/core/identity/uid.ts` exporting `mintUid()`, `mintUidFromSeed(seed)`, `isValidUid(s)`, `uidCreatedAt(uid)`, `UID_LENGTH`, `ULID_PATTERN`. Added `uid` to `PrimitiveInstance` and `RelationInstance` schemas as REQUIRED. Hosts `createPrimitive` and `createRelation` mint via `mintUid()`. NOTE: planned step 3 (`uid optional → required`) was collapsed into step 1 — v1.2 cut is one shot, with the upcaster handling v1.1 fixtures, so a transitional optional window served no purpose.
+   - touches: `fdpm-cli/src/core/identity/uid.ts (new)`
+   - touches: `fdpm-cli/src/core/models/instance.ts`
+   - touches: `fdpm-cli/src/core/host.ts`
 2. **[done] Land deterministic upcaster for legacy v1.1 ops** — Bumped `CURRENT_PAYLOAD_SCHEMA_VERSION` to 1.2.0. Extended `upcastPayload` signature to take the full `Operation` (so upcasters can read `op.op_id`). Registered `primitive.create@1.1.0 → 1.2.0` and `relation.create@1.1.0 → 1.2.0`, both calling `mintUidFromSeed(op.op_id)`. Differential test in spec-uid.test.ts (AC-5) pins purity and replay byte-equality.
-   - touches: `cli/src/core/operations/upcast.ts`
-   - touches: `cli/src/core/operations/payloads.ts`
-   - touches: `cli/src/core/store/replay.ts (signature follow-through)`
-   - touches: `cli/tests/spec-uid.test.ts (AC-5)`
+   - touches: `fdpm-cli/src/core/operations/upcast.ts`
+   - touches: `fdpm-cli/src/core/operations/payloads.ts`
+   - touches: `fdpm-cli/src/core/store/replay.ts (signature follow-through)`
+   - touches: `fdpm-cli/tests/spec-uid.test.ts (AC-5)`
 3. **[absorbed] Tighten schema: uid becomes required** — Originally planned as a separate step after a soft-launch period with `uid?: optional`. Absorbed into step 1 — v1.2 ships uid-required from day one. The upcaster fills in legacy ops at replay time, and the schema gate rejects malformed payloads at the §8 boundary. No transitional window was needed.
-   - touches: `cli/src/core/models/instance.ts (already required)`
+   - touches: `fdpm-cli/src/core/models/instance.ts (already required)`
 4. **[done] Add uid_index + --by-uid CLI surface** — Added `StoreState.uid_index: Record<string, UidIndexEntry>` maintained inline in the create/delete replay handlers. Exposed `host.lookupUid`, `host.resolvePrimitiveByUid`, `host.resolveRelationByUid`. Added `--by-uid` to primitive {get, replace, patch, delete, field-patch} and relation {get, replace, patch, delete, field-patch} via a shared `resolveSlug` helper enforcing strict project + kind matching.
-   - touches: `cli/src/core/store/state.ts`
-   - touches: `cli/src/core/store/store.ts (Store.lookupUid)`
-   - touches: `cli/src/core/host.ts (lookup/resolve methods)`
-   - touches: `cli/src/commands/primitive.ts (resolveSlug + --by-uid)`
-   - touches: `cli/src/commands/relation.ts (--by-uid)`
+   - touches: `fdpm-cli/src/core/store/state.ts`
+   - touches: `fdpm-cli/src/core/store/store.ts (Store.lookupUid)`
+   - touches: `fdpm-cli/src/core/host.ts (lookup/resolve methods)`
+   - touches: `fdpm-cli/src/commands/primitive.ts (resolveSlug + --by-uid)`
+   - touches: `fdpm-cli/src/commands/relation.ts (--by-uid)`
 5. **[done] transfer.import uid-collision policies (3-mode)** — Implemented as a 3-mode policy rather than the original 2-flag design: `{ uidMode: 'preserve' | 'merge-by-uid' | 'mint-fresh' }`. Default `preserve` rejects collisions with category=conflict (same outcome as the SPEC's `--fail-on-uid-collision` flag); `merge-by-uid` skips bundled records whose uid is already present; `mint-fresh` ignores bundled uids. CLI exposes `--merge-by-uid` and `--mint-fresh-uids` (mutually exclusive). Result envelope adds `primitives_skipped_uid_match` / `relations_skipped_uid_match`. Also: cloneProject, splitProject, applyTemplate, batchEdit all mint Core-side for the create-ops they synthesise.
-   - touches: `cli/src/core/host-extra.ts (importTransfer, cloneProject, splitProject, applyTemplate, batchEdit)`
-   - touches: `cli/src/commands/transfer.ts`
-   - touches: `cli/plugins/fs_v3_importer/index.ts (mints uids on legacy v3 ingestion)`
+   - touches: `fdpm-cli/src/core/host-extra.ts (importTransfer, cloneProject, splitProject, applyTemplate, batchEdit)`
+   - touches: `fdpm-cli/src/commands/transfer.ts`
+   - touches: `fdpm-cli/plugins/fs_v3_importer/index.ts (mints uids on legacy v3 ingestion)`
 
 ---
 
@@ -419,7 +419,7 @@ Four risks identified, four mitigations planned. The most serious is replay dive
 
 | Risk | Mitigation |
 | --- | --- |
-| **Replay produces different uids on different hosts** — If the upcaster uses non-deterministic randomness (e.g. fresh `ulid()` calls during replay), two host instances replaying the same log produce different projections. This breaks SPEC-CORE §5.5.3. | Upcaster derives the uid from the op's `op_id` via `mintUidFromSeed` (SHA-256-seeded ulid factory; timestamp prefix reused from the seed when seed is itself a ULID). Same op_id → same uid on every host, every replay. Byte-equality of `state.primitives` and `state.uid_index` verified by AC-5 in cli/tests/spec-uid.test.ts. |
+| **Replay produces different uids on different hosts** — If the upcaster uses non-deterministic randomness (e.g. fresh `ulid()` calls during replay), two host instances replaying the same log produce different projections. This breaks SPEC-CORE §5.5.3. | Upcaster derives the uid from the op's `op_id` via `mintUidFromSeed` (SHA-256-seeded ulid factory; timestamp prefix reused from the seed when seed is itself a ULID). Same op_id → same uid on every host, every replay. Byte-equality of `state.primitives` and `state.uid_index` verified by AC-5 in fdpm-cli/tests/spec-uid.test.ts. |
 | **uid_index falls out of sync with the projection** — If a delete handler updates the projection but forgets to update the uid_index, `fdpm primitive show --by-uid` returns a phantom result. The two id-spaces drift silently. | `uid_index` is mutated by the same handlers that mutate the primitive/relation maps (`applyPrimitiveCreate`, `applyRelationCreate`, `applyPrimitiveDelete`, `applyRelationDelete`, `applyProjectDelete`) so a missed update would require the same mutation to be skipped twice. AC-7 verifies post-delete `lookupUid` returns null and that cascaded relation deletions cleanly remove their uid_index entries. |
 | **Operators encounter uids in error messages and wonder what they are** — Even with slugs as the default surface, JSON envelopes and audit log dumps will show uids. Without documentation, operators may copy-paste them as slugs and get confused when commands fail. | Add a one-paragraph 'About UIDs' section to `fdpm --help` and to the bin handler's verbose-error output (uses the `error-render.ts` helper from H). Operators encountering a uid in JSON output get a discovery hint. (Not yet implemented — operator confusion is low-impact and reachable via this SPEC's documentation; deferred until first user report.) |
 | **Persistence size grows by ~30 bytes per op** — For projects with millions of primitives, the on-disk JSONL log grows by tens of megabytes. Not a correctness issue, but a deployment-cost issue. | +30-byte cost per op documented in the SPEC. A future opt-in `transfer compact` operation could re-encode the log without legacy `schema_version` fields; tracked in spec:fw:transfer-compact (target v1.3). Acceptable for v1.2 given typical project sizes. |
@@ -457,8 +457,8 @@ Three items deferred: cross-project relations (v2.0), uid-stable tooling (v1.3),
 Seven references, all PALS-verified. Three are repo files (CLAUDE.md, PURPOSE.md, the CEL pipeline source), three are external standards (ULID spec, RFC 9562, SPEC-CORE), and one is the upcaster mechanism's source file from the recent audit.
 
 - CLAUDE.md — Project Guidelines, this repository. (CLAUDE.md) _[verified]_ — PALS-LAW (architectural-requirement clause) is the source of the principle that 'is this the same artifact?' must have an enforced answer, not a conventional one.
-- cli/src/core/operations/operation.ts — current Operation schema. (cli/src/core/operations/operation.ts) _[verified]_ — Confirms `op_id: z.string().length(26)` (ULID) and `request_id: z.string()` (UUIDv7) are already in production. The audit-trail layer is ULID-native.
-- cli/src/core/operations/upcast.ts — upcaster mechanism. (cli/src/core/operations/upcast.ts) _[verified]_ — The mechanism this SPEC reuses for the v1.1 → v1.2 migration. Audit issue B established that the host_compat exit code (10) is the right surface for incompatible-upcaster failures.
+- fdpm-cli/src/core/operations/operation.ts — current Operation schema. (fdpm-cli/src/core/operations/operation.ts) _[verified]_ — Confirms `op_id: z.string().length(26)` (ULID) and `request_id: z.string()` (UUIDv7) are already in production. The audit-trail layer is ULID-native.
+- fdpm-cli/src/core/operations/upcast.ts — upcaster mechanism. (fdpm-cli/src/core/operations/upcast.ts) _[verified]_ — The mechanism this SPEC reuses for the v1.1 → v1.2 migration. Audit issue B established that the host_compat exit code (10) is the right surface for incompatible-upcaster failures.
 - FDPM SPEC-CORE v1.1, this repository, 2026. (docs/specs/SPEC-CORE.md) _[verified]_ — Replay determinism (§5.5.3), ID rules (§12.1), reserved namespaces (§11.3), and operation kinds (§5.5.1) are referenced verbatim.
 - PURPOSE.md — FDPM mission, this repository. (PURPOSE.md) _[verified]_ — Knowledge-graph framing motivates the dual-ID model: a graph whose nodes lack stable identity cannot represent inter-graph references.
 - RFC 9562 — Universally Unique IDentifiers (UUIDs), Davis, Peabody, & Leach, May 2024. (https://datatracker.ietf.org/doc/html/rfc9562) _[verified]_ — Cited for context on UUIDv7; not load-bearing for the ULID choice but informs the open question Q3.
@@ -476,11 +476,11 @@ ADR-UID-001 transitioned proposed → accepted.
 
 Document status moved Proposal → Stable.
 
-All 8 acceptance criteria moved open → met. Evidence consolidated in cli/tests/spec-uid.test.ts (19 cases).
+All 8 acceptance criteria moved open → met. Evidence consolidated in fdpm-cli/tests/spec-uid.test.ts (19 cases).
 
 Migration step 3 (`uid optional → required`) was absorbed into step 1: v1.2 ships uid-required from day one; the upcaster handles v1.1 fixtures, so no transitional optional window.
 
-Implementation step 9 added: cli/src/core/store/store.ts op_id minting routed through mintUid() to satisfy AC-3's corpus invariant.
+Implementation step 9 added: fdpm-cli/src/core/store/store.ts op_id minting routed through mintUid() to satisfy AC-3's corpus invariant.
 
 Mitigations: `mit:deterministic-mint` and `mit:single-source-of-truth-index` moved planned → verified; `mit:doc-uids-in-help` remains planned (low-impact, deferred).
 

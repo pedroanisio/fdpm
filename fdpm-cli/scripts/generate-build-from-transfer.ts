@@ -199,10 +199,10 @@ async function generate(transferPath: string, outPath: string): Promise<void> {
 
   // Compute the import path from the output script's location to the
   // SDK module, so the generated script works wherever the user puts
-  // it (not only under cli/scripts/). The generator lives in
-  // cli/scripts/, the SDK lives at cli/src/sdk.ts. We compute relative
+  // it (not only under fdpm-cli/scripts/). The generator lives in
+  // fdpm-cli/scripts/, the SDK lives at fdpm-cli/src/sdk.ts. We compute relative
   // from the *output's directory* to the resolved sdk source path.
-  const here = dirname(fileURLToPath(import.meta.url)); // cli/scripts/
+  const here = dirname(fileURLToPath(import.meta.url)); // fdpm-cli/scripts/
   const sdkSrcPath = resolve(here, "..", "src", "sdk.js");
   let sdkImport = relative(dirname(outPath), sdkSrcPath);
   // Node ESM imports require an explicit "./" or "../" prefix and the

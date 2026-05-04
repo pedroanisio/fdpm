@@ -98,7 +98,7 @@ const documentSpec: PrimitiveSpec = {
       "docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md",
     ],
     companion_code:
-      "cli/src/core/expr/runtime.ts (ExpressionRuntime), cli/src/core/expr/std.ts (helper-set inventory), cli/src/core/expr/activation.ts (Tier-A/Tier-B activation + legacy aliases), cli/src/core/expr/types.ts (FDPM→CEL mapper), cli/src/core/validation/pipeline.ts (validate-time consumer).",
+      "fdpm-cli/src/core/expr/runtime.ts (ExpressionRuntime), fdpm-cli/src/core/expr/std.ts (helper-set inventory), fdpm-cli/src/core/expr/activation.ts (Tier-A/Tier-B activation + legacy aliases), fdpm-cli/src/core/expr/types.ts (FDPM→CEL mapper), fdpm-cli/src/core/validation/pipeline.ts (validate-time consumer).",
     peer_spec: "docs/specs/SPEC-CORE.md",
     disclaimer_path: "../../DISCLAIMER.md",
     pals_banner: true,
@@ -311,7 +311,7 @@ const m1TypeMapping: PrimitiveSpec = {
     body: [
       "// Plugins, validators, and renderers MUST go through this mapping.",
       "// Private mappings (a plugin coercing a field a different way) are a",
-      "// contract violation. The mapper lives in cli/src/core/expr/types.ts",
+      "// contract violation. The mapper lives in fdpm-cli/src/core/expr/types.ts",
       "// once the runtime ships.",
       "",
       "FDPM kind          → CEL type     Notes",
@@ -418,7 +418,7 @@ const m2ErrorModel: PrimitiveSpec = {
       "//     expression: string,    // the offending CEL source",
       "//     evidence:  map         // category-specific extra fields",
       "//   }",
-      "// RenderFinding is DISTINCT from ValidationFinding (cli/src/core/",
+      "// RenderFinding is DISTINCT from ValidationFinding (fdpm-cli/src/core/",
       "// models/instance.ts). Validate-time uses ValidationFinding (carries",
       "// rule_id, target_id, field_path); render-time uses RenderFinding",
       "// (carries template_id and line/col). Both share the §M2 category",
@@ -539,7 +539,7 @@ const m14Versioning: PrimitiveSpec = {
       "",
       "// 2. CEL spec revision (pinned)",
       "//    Initial pin: TBD at implementation time. The PR landing",
-      "//    cli/src/core/expr/ MUST cite the cel-spec git revision it",
+      "//    fdpm-cli/src/core/expr/ MUST cite the cel-spec git revision it",
       "//    targets and the cel-js npm version it embeds. Bumping is:",
       "//      - patch: behavior preserved (e.g., a typo in the cel-spec",
       "//               document was fixed; nothing observable changes)",
@@ -636,7 +636,7 @@ const optA: PrimitiveSpec = {
   fields: {
     label: "Option A — One Core service, one CEL engine, three tiers",
     description:
-      "Establish `cli/src/core/expr/` as a Core service: type mapper, evaluator wrapper around cel-js, activation factory, helper registry, error converter. Plugins register Tier-C helpers via `cap:expr-helper`. Validators and renderers receive activations from this service; neither imports cel-js directly.",
+      "Establish `fdpm-cli/src/core/expr/` as a Core service: type mapper, evaluator wrapper around cel-js, activation factory, helper registry, error converter. Plugins register Tier-C helpers via `cap:expr-helper`. Validators and renderers receive activations from this service; neither imports cel-js directly.",
     pros: [
       "Single source of truth for type mapping, error categories, helper inventory, activation contract.",
       "Plugins can't drift — there's no other engine to drift from.",
@@ -679,7 +679,7 @@ const optC: PrimitiveSpec = {
   fields: {
     label: "Option C — Status quo: predicates as info findings; no render-time DSL",
     description:
-      "Don't formalise an expression runtime at all. SPEC-CEL-VALIDATOR ships with cel-js embedded directly in cli/src/core/validation/. SPEC-RENDER-DSL stalls. Future expression contexts each pick their own engine.",
+      "Don't formalise an expression runtime at all. SPEC-CEL-VALIDATOR ships with cel-js embedded directly in fdpm-cli/src/core/validation/. SPEC-RENDER-DSL stalls. Future expression contexts each pick their own engine.",
     pros: [
       "Zero new SPEC.",
       "Smallest immediate footprint.",
@@ -706,7 +706,7 @@ const adr: PrimitiveSpec = {
     context:
       "SPEC-CEL-VALIDATOR proposed adopting CEL for predicate evaluation. SPEC-RENDER-DSL proposed adopting it for render-time templates. Both implicitly assumed the same engine. Inspection of those drafts surfaced four load-bearing gaps neither SPEC had spec'd: M1 (type mapping), M2 (error model), M7 (activation provenance / permissions), M14 (versioning). Picking those at the consumer-SPEC level would either force each consumer to repeat the picks (drift waiting to happen) or force the picks into one of them and have the other depend on it (asymmetry). Neither is honest.",
     decision:
-      "Establish a Core service `cli/src/core/expr/` that owns the CEL evaluator, the FDPM→CEL type mapping (§M1), the closed error category set + two-policy error model (§M2), the three-tier activation surface (§M7), and the helper-set semver (§M14). SPEC-CEL-VALIDATOR and SPEC-RENDER-DSL become CONSUMERS — they declare which activation tier they bind, which evaluation context they use, and which helpers they reference. They do NOT define the type mapping, the error model, the helper set, or the version pinning rules. Those live here.",
+      "Establish a Core service `fdpm-cli/src/core/expr/` that owns the CEL evaluator, the FDPM→CEL type mapping (§M1), the closed error category set + two-policy error model (§M2), the three-tier activation surface (§M7), and the helper-set semver (§M14). SPEC-CEL-VALIDATOR and SPEC-RENDER-DSL become CONSUMERS — they declare which activation tier they bind, which evaluation context they use, and which helpers they reference. They do NOT define the type mapping, the error model, the helper set, or the version pinning rules. Those live here.",
     consequences: [
       { polarity: "positive", text: "One service, one set of rules. Plugins can't drift across consumers." },
       { polarity: "positive", text: "Adds a new permission (`read:vcs`) to SPEC-PLUGGABLE-ARCHITECTURE §5.2 — unblocks env.GIT_SHA cleanly." },
@@ -718,9 +718,9 @@ const adr: PrimitiveSpec = {
       { polarity: "neutral", text: "Render-time errors are inline-and-continue (not halt). Validate-time errors are halt-and-tag. Different policies for different contexts; both share the closed category set." },
     ],
     compliance_checks: [
-      "CI: cli/src/core/expr/ has zero imports of cel-js OUTSIDE evaluator.ts. Plugins MUST NOT import cel-js at all (CI grep).",
+      "CI: fdpm-cli/src/core/expr/ has zero imports of cel-js OUTSIDE evaluator.ts. Plugins MUST NOT import cel-js at all (CI grep).",
       "CI: every plugin manifest declaring cap:expr-helper has matching `permissions` and `arity` entries; helpers without arity declarations refuse to register.",
-      "CI: the standard helper-set inventory exported from cli/src/core/expr/std.ts matches §M14's listing exactly (one-line-per-helper test).",
+      "CI: the standard helper-set inventory exported from fdpm-cli/src/core/expr/std.ts matches §M14's listing exactly (one-line-per-helper test).",
       "Test: an undefined name produces `unknown-name` error with file:line:col, never silent null.",
       "Test: a Tier-B binding without permission produces `permission-denied`, never silent null.",
       "Test: re-evaluating the same expression against the same project produces byte-identical output. env.NOW is captured-at-start; second call within the same evaluator-instance returns the same string.",
@@ -807,7 +807,7 @@ const scenarios: PrimitiveSpec[] = [
       source: "Plugin author writing the same predicate in a validator and a render template.",
       stimulus: "An expression `doc.fields.status == \"accepted\"` runs in both contexts.",
       environment: "Standard fixture; warm Host.",
-      artifact: "cli/src/core/expr/.",
+      artifact: "fdpm-cli/src/core/expr/.",
       response:
         "The same parser, the same type mapping, the same null-handling, the same comparison rule produce the same boolean in both contexts. A change to §M1 affects both contexts in the same release.",
       response_measure:
@@ -822,7 +822,7 @@ const scenarios: PrimitiveSpec[] = [
       source: "Renderer author with a typo: `${doc.titel}`.",
       stimulus: "Render the project containing this template.",
       environment: "Local CLI; render-time.",
-      artifact: "Activation resolver in cli/src/core/expr/.",
+      artifact: "Activation resolver in fdpm-cli/src/core/expr/.",
       response:
         "Resolution returns `unknown-name` error. Render-time policy emits inline marker `[render-error: unknown-name @<line>:<col>]`. Operator sees the marker AND the error in the renderer's `render_errors` list.",
       response_measure: "0 typo'd names resolve to null. 100 % surface a categorised error.",
@@ -867,9 +867,9 @@ const invariants: PrimitiveSpec[] = [
     fields: {
       label: "Exactly one cel-js import in the entire codebase.",
       statement:
-        "`cli/src/core/expr/evaluator.ts` is the only file that may import `cel-js`. All other code goes through `cli/src/core/expr/` exports.",
+        "`fdpm-cli/src/core/expr/evaluator.ts` is the only file that may import `cel-js`. All other code goes through `fdpm-cli/src/core/expr/` exports.",
       enforcement: "ci_check",
-      scope_ref: "CI grep over cli/src/ AND cli/plugins/",
+      scope_ref: "CI grep over fdpm-cli/src/ AND fdpm-cli/plugins/",
     },
   },
   {
@@ -880,7 +880,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         "Every name lookup in the resolver returns a tagged union of resolved value or categorised error. There is no fall-through to JS `undefined`. Type-system enforced.",
       enforcement: "type_system",
-      scope_ref: "cli/src/core/expr/activation.ts",
+      scope_ref: "fdpm-cli/src/core/expr/activation.ts",
     },
   },
   {
@@ -889,9 +889,9 @@ const invariants: PrimitiveSpec[] = [
     fields: {
       label: "Standard helper set matches §M14 verbatim.",
       statement:
-        "The exported `STANDARD_HELPERS` constant in `cli/src/core/expr/std.ts` MUST match the §M14 inventory line-for-line. CI parses both and compares.",
+        "The exported `STANDARD_HELPERS` constant in `fdpm-cli/src/core/expr/std.ts` MUST match the §M14 inventory line-for-line. CI parses both and compares.",
       enforcement: "ci_check",
-      scope_ref: "cli/src/core/expr/std.ts + this SPEC's §M14",
+      scope_ref: "fdpm-cli/src/core/expr/std.ts + this SPEC's §M14",
     },
   },
   {
@@ -902,7 +902,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         "All expressions in a single render or validate call see the SAME `env.NOW` string. Implementations MUST capture wall-clock at evaluator-construction and reuse the captured value for the lifetime of the instance.",
       enforcement: "runtime_check",
-      scope_ref: "cli/src/core/expr/activation.ts (env factory)",
+      scope_ref: "fdpm-cli/src/core/expr/activation.ts (env factory)",
     },
   },
   {
@@ -913,7 +913,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         "List-iteration cap (default 1000, hard 100k), expression nesting cap (32), helper arity cap (8), output-string cap (65 536). Caps are configurable upward only via Core option, never per-plugin.",
       enforcement: "runtime_check",
-      scope_ref: "cli/src/core/expr/evaluator.ts",
+      scope_ref: "fdpm-cli/src/core/expr/evaluator.ts",
     },
   },
 ];
@@ -925,10 +925,10 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Single Core module owns CEL",
       statement:
-        "All CEL evaluation in FDPM MUST flow through `cli/src/core/expr/`. Plugins MUST NOT import `cel-js` directly.",
+        "All CEL evaluation in FDPM MUST flow through `fdpm-cli/src/core/expr/`. Plugins MUST NOT import `cel-js` directly.",
       strength: "MUST",
       verifiability: "ci_check",
-      verifier_ref: "CI: grep -r 'cel-js' cli/plugins/ cli/src/ excluding cli/src/core/expr/evaluator.ts",
+      verifier_ref: "CI: grep -r 'cel-js' fdpm-cli/plugins/ fdpm-cli/src/ excluding fdpm-cli/src/core/expr/evaluator.ts",
     },
   },
   {
@@ -952,7 +952,7 @@ const requirements: PrimitiveSpec[] = [
         "Validate-time uses halt-and-tag. Render-time uses inline-and-continue. Both draw from the closed §M2 category set. New categories MUST come via SPEC amendment.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/expr-error-categories.test.ts",
+      verifier_ref: "fdpm-cli/tests/expr-error-categories.test.ts",
     },
   },
   {
@@ -964,7 +964,7 @@ const requirements: PrimitiveSpec[] = [
         "Tier A bindings are listed in §M7 verbatim. Tier B bindings require manifest permissions. Tier C bindings require manifest opt-in. The resolver MUST refuse access in any other configuration.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/expr-activation-tiers.test.ts",
+      verifier_ref: "fdpm-cli/tests/expr-activation-tiers.test.ts",
     },
   },
   {
@@ -976,7 +976,7 @@ const requirements: PrimitiveSpec[] = [
         "A plugin manifest declaring `expr_helper_set: <range>` MUST be refused if the host's helper-set version doesn't satisfy the range. The refusal surfaces as `host_compat` error.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/expr-helper-set-pin.test.ts",
+      verifier_ref: "fdpm-cli/tests/expr-helper-set-pin.test.ts",
     },
   },
   {
@@ -988,7 +988,7 @@ const requirements: PrimitiveSpec[] = [
         "An evaluator instance captures wall clock at construction and reuses it. Two expressions evaluated by the same instance see the same `env.NOW`.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/expr-env-now.test.ts",
+      verifier_ref: "fdpm-cli/tests/expr-env-now.test.ts",
     },
   },
 ];
@@ -1002,15 +1002,15 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 1,
       criterion:
-        "cli/src/core/expr/ ships with type-mapper, evaluator, activation factory, helper registry, error converter.",
+        "fdpm-cli/src/core/expr/ ships with type-mapper, evaluator, activation factory, helper registry, error converter.",
       status: "in_progress",
       evidence_refs: [
-        "cli/src/core/expr/runtime.ts (ExpressionRuntime + helper registry + program cache + standard helper binding — shipped)",
-        "cli/src/core/expr/activation.ts (Tier-A/Tier-B activation plus legacy aliases — shipped)",
-        "cli/src/core/expr/types.ts (the §M1 mapper — shipped)",
-        "cli/src/core/validation/pipeline.ts (project/fingerprint context threaded into evaluate-time activation)",
-        "cli/src/core/expr/errors.ts (closed 8-code runtime enum shipped on CELValidationError / CELRuntimeError)",
-        "cli/src/core/expr/runtime.ts (list/nesting/arity/output caps + fn.sortBy key-expression evaluation shipped)",
+        "fdpm-cli/src/core/expr/runtime.ts (ExpressionRuntime + helper registry + program cache + standard helper binding — shipped)",
+        "fdpm-cli/src/core/expr/activation.ts (Tier-A/Tier-B activation plus legacy aliases — shipped)",
+        "fdpm-cli/src/core/expr/types.ts (the §M1 mapper — shipped)",
+        "fdpm-cli/src/core/validation/pipeline.ts (project/fingerprint context threaded into evaluate-time activation)",
+        "fdpm-cli/src/core/expr/errors.ts (closed 8-code runtime enum shipped on CELValidationError / CELRuntimeError)",
+        "fdpm-cli/src/core/expr/runtime.ts (list/nesting/arity/output caps + fn.sortBy key-expression evaluation shipped)",
       ],
     },
   },
@@ -1019,11 +1019,11 @@ const acceptances: PrimitiveSpec[] = [
     type: "spec:AcceptanceCriterion",
     fields: {
       ordinal: 2,
-      criterion: "SPEC-CEL-VALIDATOR amends §7 to consume cli/src/core/expr/ instead of an ad-hoc evaluator path.",
+      criterion: "SPEC-CEL-VALIDATOR amends §7 to consume fdpm-cli/src/core/expr/ instead of an ad-hoc evaluator path.",
       status: "in_progress",
       evidence_refs: [
-        "cli/src/core/validation/cel/{activation,evaluator,errors}.ts re-exports from cli/src/core/expr/.",
-        "Predicate evaluation works end-to-end: cli/plugins/software_architecture/validation_rules.ts ships 12 CEL expressions; SPEC-CEL-VALIDATOR §10 ACs 1-3 are marked met.",
+        "fdpm-cli/src/core/validation/cel/{activation,evaluator,errors}.ts re-exports from fdpm-cli/src/core/expr/.",
+        "Predicate evaluation works end-to-end: fdpm-cli/plugins/software_architecture/validation_rules.ts ships 12 CEL expressions; SPEC-CEL-VALIDATOR §10 ACs 1-3 are marked met.",
         "GAP: SPEC-CEL-VALIDATOR §6 still names the legacy activation surface (instance/instance_type/profile/graph) rather than referring to §M7 of this SPEC.",
       ],
     },
@@ -1033,7 +1033,7 @@ const acceptances: PrimitiveSpec[] = [
     type: "spec:AcceptanceCriterion",
     fields: {
       ordinal: 3,
-      criterion: "SPEC-RENDER-DSL ships against cli/src/core/expr/ with the CEL-only surface (no SQL sugar).",
+      criterion: "SPEC-RENDER-DSL ships against fdpm-cli/src/core/expr/ with the CEL-only surface (no SQL sugar).",
       status: "open",
     },
   },
@@ -1054,8 +1054,8 @@ const acceptances: PrimitiveSpec[] = [
       criterion: "Standard helper set v1.0.0 (14 helpers across 4 families) shipped with parity tests.",
       status: "in_progress",
       evidence_refs: [
-        "cli/src/core/expr/std.ts: STANDARD_HELPER_IDS lists all 14 ids; EXPR_HELPER_SET_VERSION = '1.0.0'.",
-        "cli/src/core/expr/runtime.ts + helpers.ts bind and execute all 14 helper ids through the host-owned runtime.",
+        "fdpm-cli/src/core/expr/std.ts: STANDARD_HELPER_IDS lists all 14 ids; EXPR_HELPER_SET_VERSION = '1.0.0'.",
+        "fdpm-cli/src/core/expr/runtime.ts + helpers.ts bind and execute all 14 helper ids through the host-owned runtime.",
         "GAP: parity tests asserting each helper's full §M14 normative semantics do not yet exist; current coverage is focused integration coverage.",
       ],
     },
@@ -1068,9 +1068,9 @@ const acceptances: PrimitiveSpec[] = [
       criterion: "Plugin manifest validator rejects unsatisfied helper-set pins with a clear `host_compat` error.",
       status: "in_progress",
       evidence_refs: [
-        "cli/src/plugin/manifest.ts accepts expr_helper_set semver pins.",
-        "cli/src/plugin/runtime.ts rejects unsatisfied helper-set ranges during registration.",
-        "cli/tests/expr-helper-set-pin.test.ts covers the host_compat rejection path.",
+        "fdpm-cli/src/plugin/manifest.ts accepts expr_helper_set semver pins.",
+        "fdpm-cli/src/plugin/runtime.ts rejects unsatisfied helper-set ranges during registration.",
+        "fdpm-cli/tests/expr-helper-set-pin.test.ts covers the host_compat rejection path.",
       ],
     },
   },
@@ -1128,7 +1128,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:expr-module",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/src/core/expr/",
+      area: "fdpm-cli/src/core/expr/",
       change:
         "New module. SHIPPED: `runtime.ts` (ExpressionRuntime + helper registry + expression-string-keyed program cache + standard helper registration + Tier-A/Tier-B activation wiring), `std.ts` (14 STANDARD_HELPER_IDS + EXPR_HELPER_SET_VERSION + EXPR_CEL_REVISION), `activation.ts` (Tier-A bindings plus legacy validation aliases and Tier-B permission gates), `evaluator.ts` (thin wrapper delegating to `defaultExpressionRuntime`), `helpers.ts` (graph + standard helper bodies), `errors.ts` (CELParseError → verification, CELRuntimeError → internal), `types.ts` (the §M1 mapper). STILL OPEN: bound caps (Principle 4), a closed 8-category error enum, and full `fn.sortBy` macro semantics beyond the current path-rooted implementation.",
       complexity: "L",
@@ -1139,7 +1139,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:plugin-cap",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/src/plugin/manifest.ts + types.ts",
+      area: "fdpm-cli/src/plugin/manifest.ts + types.ts",
       change:
         "Add `cap:expr-helper` capability. Add `requires_helpers: string[]` and `expr_helper_set: string` (semver range) to PluginManifest. Add `read:vcs`, `read:os-info` permissions. SHIPPED in manifest/runtime; remaining work is consumer-SPEC/documentation alignment.",
       complexity: "S",
@@ -1152,7 +1152,7 @@ const changes: PrimitiveSpec[] = [
     fields: {
       area: "docs/specs/SPEC-CEL-VALIDATOR.md",
       change:
-        "Amend §1 (Required reads) to include this SPEC. Amend §6 (Activation environment) to delete the inline activation table — replaced by reference to §M7 here. Amend §15 (ADR-CEL-001 Decision) to consume cli/src/core/expr/ rather than its own evaluator path.",
+        "Amend §1 (Required reads) to include this SPEC. Amend §6 (Activation environment) to delete the inline activation table — replaced by reference to §M7 here. Amend §15 (ADR-CEL-001 Decision) to consume fdpm-cli/src/core/expr/ rather than its own evaluator path.",
       complexity: "S",
       status: "not_started",
     },
@@ -1172,7 +1172,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:tests",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/tests/expr-*.test.ts",
+      area: "fdpm-cli/tests/expr-*.test.ts",
       change:
         "expr-type-mapping.test.ts (one per §M1 kind), expr-error-categories.test.ts (one per §M2 category), expr-activation-tiers.test.ts (Tier A always, Tier B permission gate, Tier C namespacing), expr-helper-set-pin.test.ts, expr-env-now.test.ts (frozen), expr-bound-exceeded.test.ts (each cap).",
       complexity: "M",
@@ -1198,10 +1198,10 @@ const migration: PrimitiveSpec[] = [
     type: "spec:MigrationStep",
     fields: {
       ordinal: 1,
-      label: "Land cli/src/core/expr/ + standard helpers",
+      label: "Land fdpm-cli/src/core/expr/ + standard helpers",
       action:
         "Ship the Core module with full type mapping, evaluator, activation factory, registry, error converter, and standard helper set. SHIPPED AS OF 0.1.7: ExpressionRuntime + helper registry + program cache + helper-id namespacing + Tier-A/Tier-B activation + typed top-level bindings + closed runtime error-code enum + bound caps + full `fn.sortBy` key-expression semantics. See §0.5 Implementation Status.",
-      affected_paths: ["cli/src/core/expr/"],
+      affected_paths: ["fdpm-cli/src/core/expr/"],
     },
   },
   {
@@ -1211,8 +1211,8 @@ const migration: PrimitiveSpec[] = [
       ordinal: 2,
       label: "Wire SPEC-CEL-VALIDATOR consumer",
       action:
-        "Migrate ValidationPipeline §7 step-6 dispatch to use cli/src/core/expr/. Run fs parity harness (per SPEC-CEL-VALIDATOR migration step 3).",
-      affected_paths: ["cli/src/core/validation/pipeline.ts"],
+        "Migrate ValidationPipeline §7 step-6 dispatch to use fdpm-cli/src/core/expr/. Run fs parity harness (per SPEC-CEL-VALIDATOR migration step 3).",
+      affected_paths: ["fdpm-cli/src/core/validation/pipeline.ts"],
       depends_on: ["spec:mig:1"],
     },
   },
@@ -1225,8 +1225,8 @@ const migration: PrimitiveSpec[] = [
       action:
         "Land template-lexer.ts in spec_authoring/renderers/. Migrate one kind renderer (renderReferences) to template form. Verify byte-identical output against pre-DSL baseline.",
       affected_paths: [
-        "cli/plugins/spec_authoring/renderers/template-lexer.ts",
-        "cli/plugins/spec_authoring/renderers/spec_md.ts",
+        "fdpm-cli/plugins/spec_authoring/renderers/template-lexer.ts",
+        "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
       ],
       depends_on: ["spec:mig:1"],
     },
@@ -1358,9 +1358,9 @@ const openQuestions: PrimitiveSpec[] = [
       question:
         "Which cel-spec git revision and which cel-js npm version does the host pin?",
       default_choice:
-        "STILL OPEN AS OF 0.1.7. cli/src/core/expr/std.ts ships `EXPR_CEL_REVISION = \"TBD\"` and the host embeds `@marcbachmann/cel-js` (version pinned in package.json but not cited in this SPEC). The amendment that closes this question MUST update std.ts to a concrete cel-spec git revision string AND record the cel-js version in §M14 in the same patch. Until both are recorded, a host upgrade that crosses cel-js minor boundaries may produce evaluator-behaviour drift the SPEC's bump rules cannot catch.",
+        "STILL OPEN AS OF 0.1.7. fdpm-cli/src/core/expr/std.ts ships `EXPR_CEL_REVISION = \"TBD\"` and the host embeds `@marcbachmann/cel-js` (version pinned in package.json but not cited in this SPEC). The amendment that closes this question MUST update std.ts to a concrete cel-spec git revision string AND record the cel-js version in §M14 in the same patch. Until both are recorded, a host upgrade that crosses cel-js minor boundaries may produce evaluator-behaviour drift the SPEC's bump rules cannot catch.",
       is_blocking: "yes",
-      owner: "Implementer of cli/src/core/expr/",
+      owner: "Implementer of fdpm-cli/src/core/expr/",
     },
   },
   {
@@ -1582,7 +1582,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Implementation completion sync for the shipped expression runtime.",
       notes:
-        "No architectural change. This revision updates the source-of-truth generator so it matches the code that is now live in `cli/src/core/expr/`:\n\n1. §0 companion_code now points at the host-owned runtime, activation, type-mapper, and validate-time consumer without calling them partial scaffolds.\n\n2. §0.5 Implementation Status now marks the runtime module, helper binding, manifest helper-set pins, and `env.NOW` determinism honestly. Tier-A/Tier-B and the standard helper set remain `partial` only where behavior is still incomplete (`fn.sortBy` macro semantics, automatic git probing, static CEL typing).\n\n3. §11 Acceptance Criteria evidence now reflects the shipped mapper, activation, helper binding, and helper-set pin rejection path instead of the old pre-implementation gaps.\n\n4. §14 Migration step 1 now records the real remaining gaps: bound caps, a closed 8-category runtime enum, and full `fn.sortBy` macro semantics.\n\n5. The rendered spec produced from this generator is intended to match the implementation status asserted by the focused runtime/plugin tests and the spec-build determinism test in the same revision.\n\nThe source-of-truth script is now aligned with the repository state instead of describing the previous audit baseline.",
+        "No architectural change. This revision updates the source-of-truth generator so it matches the code that is now live in `fdpm-cli/src/core/expr/`:\n\n1. §0 companion_code now points at the host-owned runtime, activation, type-mapper, and validate-time consumer without calling them partial scaffolds.\n\n2. §0.5 Implementation Status now marks the runtime module, helper binding, manifest helper-set pins, and `env.NOW` determinism honestly. Tier-A/Tier-B and the standard helper set remain `partial` only where behavior is still incomplete (`fn.sortBy` macro semantics, automatic git probing, static CEL typing).\n\n3. §11 Acceptance Criteria evidence now reflects the shipped mapper, activation, helper binding, and helper-set pin rejection path instead of the old pre-implementation gaps.\n\n4. §14 Migration step 1 now records the real remaining gaps: bound caps, a closed 8-category runtime enum, and full `fn.sortBy` macro semantics.\n\n5. The rendered spec produced from this generator is intended to match the implementation status asserted by the focused runtime/plugin tests and the spec-build determinism test in the same revision.\n\nThe source-of-truth script is now aligned with the repository state instead of describing the previous audit baseline.",
       affected_sections: ["§0", "§0.5", "§11", "§14", "§19"],
       kind: "patch",
     },
@@ -1593,9 +1593,9 @@ const revisions: PrimitiveSpec[] = [
     fields: {
       version: "0.1.4",
       date: "2026-05-04",
-      title: "Implementation-status reconciliation against cli/src/core/expr/.",
+      title: "Implementation-status reconciliation against fdpm-cli/src/core/expr/.",
       notes:
-        "No architectural change. The Core expression-runtime module has partially landed and the SPEC text was overstating shipped state. This revision realigns the SPEC against actual disk state:\n\n1. New §0.5 Implementation Status section maps every load-bearing claim to shipped / partial / not_shipped with file:line evidence. Tier-A surface, Tier-B gates, helper bodies, type mapper, bound caps, and the 8-category error enum are honestly marked not-yet-shipped; the ExpressionRuntime, helper registry, program cache, helper-id namespacing rule, helper-set inventory (ids + version), and graph helpers are honestly marked shipped.\n\n2. §0 companion_code points at cli/src/core/expr/runtime.ts (the real ExpressionRuntime) and cli/src/core/expr/std.ts (the helper inventory) plus cli/src/core/validation/pipeline.ts (the validate-time consumer). The earlier wording (\"today's evaluator surface\") was a placeholder from before the module landed.\n\n3. §11 Acceptance Criteria 1, 2, 5 moved from `open` to `in_progress` with `evidence_refs` listing the shipped files and the explicit gaps. Criteria 3, 4, 6 remain `open` as no consumer or manifest work has shipped.\n\n4. §13 spec:chg:expr-module moved from `not_started` to `in_progress` with the change-text rewritten to enumerate shipped vs. unshipped pieces. Other §13 rows unchanged.\n\n5. §14 Migration step 1 action text now flags PARTIAL AS OF 0.1.4 and cross-references §0.5 so readers can see what step 1 still owes.\n\n6. §16 Open Question 1 (CEL revision pin) updated to cite the disk reality: cli/src/core/expr/std.ts ships `EXPR_CEL_REVISION = \"TBD\"` and the host embeds @marcbachmann/cel-js. The SPEC-amendment that closes the question must update std.ts in the same patch.\n\nNo claims were softened or deferred — every gap is named and pointed at a file. This is the audit baseline subsequent revisions can be measured against.",
+        "No architectural change. The Core expression-runtime module has partially landed and the SPEC text was overstating shipped state. This revision realigns the SPEC against actual disk state:\n\n1. New §0.5 Implementation Status section maps every load-bearing claim to shipped / partial / not_shipped with file:line evidence. Tier-A surface, Tier-B gates, helper bodies, type mapper, bound caps, and the 8-category error enum are honestly marked not-yet-shipped; the ExpressionRuntime, helper registry, program cache, helper-id namespacing rule, helper-set inventory (ids + version), and graph helpers are honestly marked shipped.\n\n2. §0 companion_code points at fdpm-cli/src/core/expr/runtime.ts (the real ExpressionRuntime) and fdpm-cli/src/core/expr/std.ts (the helper inventory) plus fdpm-cli/src/core/validation/pipeline.ts (the validate-time consumer). The earlier wording (\"today's evaluator surface\") was a placeholder from before the module landed.\n\n3. §11 Acceptance Criteria 1, 2, 5 moved from `open` to `in_progress` with `evidence_refs` listing the shipped files and the explicit gaps. Criteria 3, 4, 6 remain `open` as no consumer or manifest work has shipped.\n\n4. §13 spec:chg:expr-module moved from `not_started` to `in_progress` with the change-text rewritten to enumerate shipped vs. unshipped pieces. Other §13 rows unchanged.\n\n5. §14 Migration step 1 action text now flags PARTIAL AS OF 0.1.4 and cross-references §0.5 so readers can see what step 1 still owes.\n\n6. §16 Open Question 1 (CEL revision pin) updated to cite the disk reality: fdpm-cli/src/core/expr/std.ts ships `EXPR_CEL_REVISION = \"TBD\"` and the host embeds @marcbachmann/cel-js. The SPEC-amendment that closes the question must update std.ts in the same patch.\n\nNo claims were softened or deferred — every gap is named and pointed at a file. This is the audit baseline subsequent revisions can be measured against.",
       affected_sections: ["§0", "§0.5 (new)", "§11", "§13", "§14", "§16", "§19"],
       kind: "patch",
     },
@@ -1671,22 +1671,22 @@ const sections: PrimitiveSpec[] = [
         "",
         "| Area | Claim location | Status | Evidence |",
         "| --- | --- | --- | --- |",
-        "| Core expression runtime module exists | §15 ADR-EXPR-001 Decision; §13 spec:chg:expr-module | shipped | `cli/src/core/expr/{runtime,std,activation,evaluator,helpers,errors,types}.ts` exists. The module now includes the §M1 mapper (`types.ts`) plus the host-owned runtime/activation path. |",
-        "| `ExpressionRuntime` with helper registry + program cache | §M14 helper-set semver | shipped | `cli/src/core/expr/runtime.ts` ships `ExpressionRuntime`, `registerHelper`, `unregisterPluginHelpers`, expression-string-keyed `programCache`, standard-helper registration, and activation-context assembly. Cache is in-memory per Host instance (matches §17 Future Work). |",
+        "| Core expression runtime module exists | §15 ADR-EXPR-001 Decision; §13 spec:chg:expr-module | shipped | `fdpm-cli/src/core/expr/{runtime,std,activation,evaluator,helpers,errors,types}.ts` exists. The module now includes the §M1 mapper (`types.ts`) plus the host-owned runtime/activation path. |",
+        "| `ExpressionRuntime` with helper registry + program cache | §M14 helper-set semver | shipped | `fdpm-cli/src/core/expr/runtime.ts` ships `ExpressionRuntime`, `registerHelper`, `unregisterPluginHelpers`, expression-string-keyed `programCache`, standard-helper registration, and activation-context assembly. Cache is in-memory per Host instance (matches §17 Future Work). |",
         "| Plugin helpers namespaced under `fn.<plugin-id>.*` | §M7 Tier C | shipped | `runtime.ts` enforces `^fn\\.[a-z0-9-]+(?:\\.[a-z0-9-]+)+$` and `helperId.startsWith('fn.<pluginId>.')` at registration time. |",
         "| Tier-A activation surface `{ doc, project, env, host, fn }` | §M7 | partial | `activation.ts` now binds `doc`, `project`, `env`, and `host` while preserving the legacy validation aliases `{ instance, instance_type, profile, graph }` for compatibility. Helper calls under `fn.*` execute through the runtime rewrite/registration path rather than a first-class `fn` object. |",
         "| Tier-B bindings (env.GIT_*, host.os, host.cpu_count) with permission gates | §M7 truth table | shipped | `activation.ts` defines Tier-B fields with permission-gated accessors. `host.os` / `host.cpu_count` resolve from Node host facts, and `env.GIT_*` now probes git automatically when permissions are present and no caller override is supplied. |",
         "| 14 standard helpers (string / collection / date / identity families) | §M14, §6 | shipped | `runtime.ts` registers helper bodies from `helpers.ts`, rewrites `fn.*` calls into evaluator-safe internal names, and evaluates `fn.sortBy` key expressions against the bound iterator variable rather than only supporting path lookups. |",
-        "| `cap:expr-helper` capability | §M7 Tier C, §13 spec:chg:plugin-cap | shipped | Present in `cli/src/plugin/manifest.ts` capability enum and enforced by `cli/src/plugin/context.ts` / `cli/src/plugin/runtime.ts`. |",
+        "| `cap:expr-helper` capability | §M7 Tier C, §13 spec:chg:plugin-cap | shipped | Present in `fdpm-cli/src/plugin/manifest.ts` capability enum and enforced by `fdpm-cli/src/plugin/context.ts` / `fdpm-cli/src/plugin/runtime.ts`. |",
         "| `read:vcs` / `read:os-info` permissions | §M7 Tier B, §13 spec:chg:plugin-cap | shipped | Present in the manifest permission enum; Tier-B activation access consults them at runtime. |",
-        "| `expr_helper_set` manifest pin + `requires_helpers` field | §M14, §M7 Tier C | shipped | Present in the manifest schema and enforced in `cli/src/plugin/runtime.ts` enable/load paths. |",
-        "| FDPM → CEL type mapping (§M1) module | §M1, Principle 1 | shipped | `cli/src/core/expr/types.ts` normalises primitive/relation/project values into CEL-friendly JS data, and `activation.ts` now registers the top-level activation bindings (`instance`, `doc`, `project`, `env`, `host`, etc.) with object schemas instead of leaving the surface wholly `dyn`. |",
-        "| Closed §M2 error category set (8 categories) | §M2 | shipped | `cli/src/core/expr/errors.ts` now exports the closed runtime-code set on `CELValidationError` / `CELRuntimeError`, and `runtime.ts` classifies parse/check/evaluation failures into `unknown-name`, `unknown-helper`, `type-error`, `bound-exceeded`, `arity-error`, `parse-error`, `runtime-error`, and `permission-denied`. |",
+        "| `expr_helper_set` manifest pin + `requires_helpers` field | §M14, §M7 Tier C | shipped | Present in the manifest schema and enforced in `fdpm-cli/src/plugin/runtime.ts` enable/load paths. |",
+        "| FDPM → CEL type mapping (§M1) module | §M1, Principle 1 | shipped | `fdpm-cli/src/core/expr/types.ts` normalises primitive/relation/project values into CEL-friendly JS data, and `activation.ts` now registers the top-level activation bindings (`instance`, `doc`, `project`, `env`, `host`, etc.) with object schemas instead of leaving the surface wholly `dyn`. |",
+        "| Closed §M2 error category set (8 categories) | §M2 | shipped | `fdpm-cli/src/core/expr/errors.ts` now exports the closed runtime-code set on `CELValidationError` / `CELRuntimeError`, and `runtime.ts` classifies parse/check/evaluation failures into `unknown-name`, `unknown-helper`, `type-error`, `bound-exceeded`, `arity-error`, `parse-error`, `runtime-error`, and `permission-denied`. |",
         "| Bound caps (list-iter 1000, nesting 32, arity 8, output 65 536 codepoints) | Principle 4, §17 | shipped | `activation.ts` configures CEL parse limits for nesting and arity, while `runtime.ts` enforces list-iteration and output-string caps and surfaces each breach as `bound-exceeded`. |",
         "| `env.NOW` captured-at-start determinism | §17 Invariant `spec:inv:env-now-frozen` | shipped | `runtime.ts` captures `envNow` once per runtime instance and binds it through `activation.ts`; focused tests assert the value is stable within one host/runtime. |",
-        "| CEL spec / cel-js version pin | §M14, §16 Open Question 1 | not_shipped | `EXPR_CEL_REVISION = \"TBD\"` in `cli/src/core/expr/std.ts`. The package.json pins a cel-js version (`@marcbachmann/cel-js`) but the SPEC-amendment record cites neither the cel-spec git revision nor the cel-js version. |",
-        "| Validate-time consumer wired through `cli/src/core/expr/` | §13 spec:chg:cel-validator-amend | partial | `cli/src/core/validation/cel/{activation,evaluator,errors}.ts` re-exports from `cli/src/core/expr/`, and `cli/src/core/validation/pipeline.ts` now passes project/fingerprint context into the host-owned runtime. SPEC-CEL-VALIDATOR prose still needs amendment from the legacy inline activation table to §M7. |",
-        "| Render-time consumer wired through `cli/src/core/expr/` | §13 spec:chg:render-dsl-amend | not_shipped | spec_authoring renderer does not consume the runtime. |",
+        "| CEL spec / cel-js version pin | §M14, §16 Open Question 1 | not_shipped | `EXPR_CEL_REVISION = \"TBD\"` in `fdpm-cli/src/core/expr/std.ts`. The package.json pins a cel-js version (`@marcbachmann/cel-js`) but the SPEC-amendment record cites neither the cel-spec git revision nor the cel-js version. |",
+        "| Validate-time consumer wired through `fdpm-cli/src/core/expr/` | §13 spec:chg:cel-validator-amend | partial | `fdpm-cli/src/core/validation/cel/{activation,evaluator,errors}.ts` re-exports from `fdpm-cli/src/core/expr/`, and `fdpm-cli/src/core/validation/pipeline.ts` now passes project/fingerprint context into the host-owned runtime. SPEC-CEL-VALIDATOR prose still needs amendment from the legacy inline activation table to §M7. |",
+        "| Render-time consumer wired through `fdpm-cli/src/core/expr/` | §13 spec:chg:render-dsl-amend | not_shipped | spec_authoring renderer does not consume the runtime. |",
         "",
         "**Migration ordering.** The shipped `ExpressionRuntime` plus the legacy activation surface together support today's predicate use case (sw plugin's 12 CEL rules evaluate via this path; see SPEC-CEL-VALIDATOR §10 acceptance criteria 1-3 marked `met`). Transitioning to the Tier-A surface requires updating both the activation factory and SPEC-CEL-VALIDATOR §6 in the same release; doing so before the helper bodies are bound risks producing rule predicates that reference helpers the runtime cannot resolve.",
         "",
@@ -1704,7 +1704,7 @@ const sections: PrimitiveSpec[] = [
       body_md: [
         "### 1.1 What this document defines",
         "",
-        "This SPEC defines a Core service — `cli/src/core/expr/` — that exposes a single CEL evaluator to all FDPM expression contexts. It defines:",
+        "This SPEC defines a Core service — `fdpm-cli/src/core/expr/` — that exposes a single CEL evaluator to all FDPM expression contexts. It defines:",
         "",
         "- **§M1 Type mapping** — how FDPM field kinds become CEL types.",
         "- **§M2 Error model** — two policies (halt-and-tag for validators, inline-and-continue for renderers), drawing from one closed category set.",

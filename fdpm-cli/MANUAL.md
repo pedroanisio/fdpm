@@ -561,7 +561,7 @@ involved (source + each target), via a shared `request_id`.
 
 ## 15. Plugin administration
 
-Plugins are auto-discovered from `cli/plugins/` (in-tree, `core` trust)
+Plugins are auto-discovered from `fdpm-cli/plugins/` (in-tree, `core` trust)
 and from `$FDPM_PLUGIN_PATH` (filesystem, `community` trust by default).
 The CLI auto-activates `core` and `verified` plugins; `community` /
 `unknown` start `disabled` until you `enable` them.

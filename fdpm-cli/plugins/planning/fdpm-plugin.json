@@ -15,13 +15,35 @@
     "read:projects",
     "read:primitives",
     "read:relations",
-    "render:server"
+    "render:server",
+    "import:project",
+    "export:project"
   ],
   "capabilities": [
     {
       "capability_id": "cap:profile",
       "local_name": "planning",
       "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-install",
+      "entry": "onInstall"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-enable",
+      "entry": "onEnable"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-disable",
+      "entry": "onDisable"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-uninstall",
+      "entry": "onUninstall"
     },
     {
       "capability_id": "cap:renderer",
@@ -54,9 +76,61 @@
       }
     },
     {
-      "capability_id": "cap:lifecycle-hook",
-      "local_name": "on-enable",
-      "entry": "onEnable"
+      "capability_id": "cap:validator",
+      "local_name": "ai-minutes-numeric-bucket",
+      "metadata": {
+        "rule_id": "plan:val:ai-minutes-numeric-bucket",
+        "type_id": "plan:Task"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "iteration-label-non-empty",
+      "metadata": {
+        "rule_id": "plan:val:iteration-label-non-empty",
+        "type_id": "plan:Iteration"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "blocker-opened-not-future",
+      "metadata": {
+        "rule_id": "plan:val:blocker-opened-not-future",
+        "type_id": "plan:Blocker"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "local_name": "minutes-to-hours",
+      "metadata": {
+        "helper_id": "fn.fdpm.planning.minutes-to-hours",
+        "arity": 1
+      }
+    },
+    {
+      "capability_id": "cap:transformer",
+      "local_name": "task-to-ac",
+      "metadata": {
+        "from_type_id": "plan:Task",
+        "to_type_id": "plan:AcceptanceCriterion",
+        "name": "plan:task-to-ac"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "local_name": "plan-jsonl",
+      "metadata": {
+        "format": "plan-jsonl",
+        "description": "JSON Lines bundle of plan:* primitives + relations."
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "local_name": "plan-jsonl",
+      "metadata": {
+        "format": "plan-jsonl",
+        "description": "JSON Lines export filtered to plan:* primitives + relations."
+      }
     }
   ]
 }

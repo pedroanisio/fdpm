@@ -438,7 +438,7 @@ still validate.
 
 ## Installation & activation
 
-The plugin lives under `cli/plugins/software_architecture/` and is loaded
+The plugin lives under `fdpm-cli/plugins/software_architecture/` and is loaded
 by the FDPM CLI host through the standard plugin discovery path. The host:
 
 1. Reads `fdpm-plugin.json`.

@@ -262,6 +262,20 @@ describe("SPEC-UID AC-5 / conformance: v1.1 → v1.2 upcaster is deterministic a
     expect(upcastPayload(op.kind, op.schema_version, op.payload, op)).toEqual(op.payload);
   });
 
+  it("legacy project.create ops upcast by identity", () => {
+    const op: Operation = {
+      op_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      kind: "project.create",
+      project_id: "p",
+      schema_version: "1.1.0",
+      revision: 1,
+      timestamp: "2026-05-04T00:00:00.000Z",
+      request_id: "00000000-0000-7000-8000-000000000000",
+      payload: { project_id: "p", name: "P", profile_id: "test:demo" },
+    };
+    expect(upcastPayload(op.kind, op.schema_version, op.payload, op)).toEqual(op.payload);
+  });
+
   it("two replays of the same log produce identical projections (no uid drift)", async () => {
     const host = await newHost();
     await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });

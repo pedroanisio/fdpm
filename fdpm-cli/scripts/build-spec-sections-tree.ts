@@ -31,7 +31,51 @@ import {
   type PrimitiveSpec,
   type RelationSpec,
 } from "../src/sdk.js";
-import { PROFILE_ID } from "../plugins/spec_authoring/index.js";
+import {
+  PROFILE_ID,
+  // Primitive type ids
+  SPEC_DOCUMENT,
+  SPEC_SECTION,
+  SPEC_TERM,
+  SPEC_STAKEHOLDER,
+  SPEC_QUALITY_ATTRIBUTE,
+  SPEC_INVARIANT,
+  SPEC_OPTION,
+  SPEC_ADR,
+  SPEC_TRADEOFF_AXIS,
+  SPEC_QA_SCENARIO,
+  SPEC_REQUIREMENT,
+  SPEC_ACCEPTANCE_CRITERION,
+  SPEC_CONFORMANCE_ITEM,
+  SPEC_IMPLEMENTATION_CHANGE,
+  SPEC_MIGRATION_STEP,
+  SPEC_RISK,
+  SPEC_MITIGATION,
+  SPEC_OPEN_QUESTION,
+  SPEC_FUTURE_WORK,
+  SPEC_REFERENCE,
+  SPEC_REVISION,
+  // Relation type ids
+  SPEC_REL_HAS_SECTION,
+  SPEC_REL_DEFINES,
+  SPEC_REL_CONSIDERS,
+  SPEC_REL_CHOSE,
+  SPEC_REL_HAS_TRADEOFF,
+  SPEC_REL_TARGETS,
+  SPEC_REL_MITIGATES,
+  SPEC_REL_DEPENDS_ON,
+  SPEC_REL_VERIFIES,
+  SPEC_REL_RESOLVES,
+  SPEC_REL_CITES,
+  SPEC_REL_REQUIRED_READ,
+  SPEC_REL_REVISED_IN,
+} from "../plugins/spec_authoring/index.js";
+import {
+  SPEC_CORE_PATH,
+  SPEC_RENDER_DSL_PATH,
+  SPEC_SECTIONS_TREE_PATH,
+  SPEC_UID_PATH,
+} from "./_spec-paths.js";
 
 const PROJECT_ID = "spec-sections-tree";
 
@@ -46,7 +90,7 @@ function slug(s: string): string {
 
 const documentSpec: PrimitiveSpec = {
   id: "spec:doc:sections-tree",
-  type: "spec:Document",
+  type: SPEC_DOCUMENT,
   fields: {
     title: "SPEC — Sections-as-Tree: Derive Numbering from Graph Position v0.1",
     subtitle:
@@ -60,11 +104,11 @@ const documentSpec: PrimitiveSpec = {
       "CLAUDE.md",
       "PURPOSE.md",
       "DISCLAIMER.md",
-      "docs/specs/SPEC-CORE.md",
-      "docs/specs/SPEC-UID.md",
+      SPEC_CORE_PATH,
+      SPEC_UID_PATH,
     ],
     companion_code: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
-    peer_spec: "docs/specs/SPEC-RENDER-DSL.md",
+    peer_spec: SPEC_RENDER_DSL_PATH,
     disclaimer_path: "../../DISCLAIMER.md",
     pals_banner: true,
     pals_extension:
@@ -86,12 +130,12 @@ const documentSpec: PrimitiveSpec = {
       "FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-sections-tree text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
-      "  -o docs/specs/SPEC-SECTIONS-TREE.md",
+      `  -o ${SPEC_SECTIONS_TREE_PATH}`,
     ].join("\n"),
   },
 };
 
-// ── §3 Definitions (Term primitives) ───────────────────────────────────────
+// ── §5 Definitions (Term primitives) ───────────────────────────────────────
 
 const terms: Array<[string, string, string?]> = [
   [
@@ -122,7 +166,7 @@ const terms: Array<[string, string, string?]> = [
 ];
 const termSpecs: PrimitiveSpec[] = terms.map(([term, definition, synonyms]) => ({
   id: `spec:term:${slug(term)}`,
-  type: "spec:Term",
+  type: SPEC_TERM,
   fields: synonyms ? { term, definition, synonyms } : { term, definition },
 }));
 
@@ -172,7 +216,7 @@ const stakeholders: Array<{
 ];
 const stakeholderSpecs: PrimitiveSpec[] = stakeholders.map((s) => ({
   id: s.id,
-  type: "spec:Stakeholder",
+  type: SPEC_STAKEHOLDER,
   fields: { role: s.role, primary_concern: s.primary_concern, category: s.category },
 }));
 
@@ -210,7 +254,7 @@ const qas: Array<{ id: string; attribute: string; pressure: string; priority: st
 ];
 const qaSpecs: PrimitiveSpec[] = qas.map((q) => ({
   id: q.id,
-  type: "spec:QualityAttribute",
+  type: SPEC_QUALITY_ATTRIBUTE,
   fields: { attribute: q.attribute, pressure: q.pressure, priority: q.priority },
 }));
 
@@ -253,7 +297,7 @@ const principles: Array<{
 ];
 const principleSpecs: PrimitiveSpec[] = principles.map((p) => ({
   id: p.id,
-  type: "spec:Invariant",
+  type: SPEC_INVARIANT,
   fields: { label: p.label, statement: p.statement, enforcement: p.enforcement },
 }));
 
@@ -266,7 +310,7 @@ const principleSpecs: PrimitiveSpec[] = principles.map((p) => ({
 
 const optA: PrimitiveSpec = {
   id: "spec:opt:graph-derived",
-  type: "spec:Option",
+  type: SPEC_OPTION,
   fields: {
     label: "Option A — Graph-derived numbering with `order` field",
     description:
@@ -288,7 +332,7 @@ const optA: PrimitiveSpec = {
 
 const optB: PrimitiveSpec = {
   id: "spec:opt:keep-number",
-  type: "spec:Option",
+  type: SPEC_OPTION,
   fields: {
     label: "Option B — Keep authored `number`, add validator for contiguity",
     description:
@@ -310,7 +354,7 @@ const optB: PrimitiveSpec = {
 
 const optC: PrimitiveSpec = {
   id: "spec:opt:render-dsl-only",
-  type: "spec:Option",
+  type: SPEC_OPTION,
   fields: {
     label: "Option C — Defer to render-DSL section directives",
     description:
@@ -332,14 +376,14 @@ const optC: PrimitiveSpec = {
 
 const adr: PrimitiveSpec = {
   id: "spec:adr:sections-tree-001",
-  type: "spec:ADR",
+  type: SPEC_ADR,
   fields: {
     adr_id: "ADR-SECTIONS-TREE-001",
     title: "Derive section numbering from the spec:HasSection tree",
     status: "proposed",
     date: "2026-05-04",
     context:
-      "Three converging signals: (1) every build-spec-*.ts script hand-authors `number` strings that duplicate the implicit ordering of `spec:HasSection` relations; (2) `spec:HasSection` already supports `Section → Section` per cli/plugins/spec_authoring/relations.ts:15-16, so the tree shape is permissible today, just unused by the renderer; (3) SPEC-UID v0.2 ships `uid` on every primitive and relation, giving us a deterministic tiebreak for sibling ordering.",
+      "Three converging signals: (1) every build-spec-*.ts script hand-authors `number` strings that duplicate the implicit ordering of `spec:HasSection` relations; (2) `spec:HasSection` already supports `Section → Section` per fdpm-cli/plugins/spec_authoring/relations.ts:15-16, so the tree shape is permissible today, just unused by the renderer; (3) SPEC-UID v0.2 ships `uid` on every primitive and relation, giving us a deterministic tiebreak for sibling ordering.",
     decision:
       "Adopt graph-derived numbering. Add `order: int` (optional, default 0) to `spec:HasSection`. Renderer DFS-walks `(Document → Section → Section…)` sorted by `(order, uid)` and assigns §N.M.K from the walk. Authored `number` is honored as a fallback for v0.1 and deprecated; removed in v0.2.",
     consequences: [
@@ -357,7 +401,7 @@ const adr: PrimitiveSpec = {
       },
       {
         polarity: "negative",
-        text: "One-time migration via codemod required for the eight existing build-spec-*.ts scripts.",
+        text: "One-time migration via codemod required for the seven existing build-spec-*.ts scripts.",
       },
       {
         polarity: "neutral",
@@ -375,10 +419,12 @@ const adr: PrimitiveSpec = {
   },
 };
 
+// ── §8 Trade-off Matrix ────────────────────────────────────────────────────
+
 const tradeoffs: PrimitiveSpec[] = [
   {
     id: "spec:tx:author-ergonomics",
-    type: "spec:TradeoffAxis",
+    type: SPEC_TRADEOFF_AXIS,
     fields: {
       axis: "Author ergonomics (insert cost)",
       cells: [
@@ -390,7 +436,7 @@ const tradeoffs: PrimitiveSpec[] = [
   },
   {
     id: "spec:tx:source-of-truth",
-    type: "spec:TradeoffAxis",
+    type: SPEC_TRADEOFF_AXIS,
     fields: {
       axis: "Source of truth",
       cells: [
@@ -402,7 +448,7 @@ const tradeoffs: PrimitiveSpec[] = [
   },
   {
     id: "spec:tx:migration-cost",
-    type: "spec:TradeoffAxis",
+    type: SPEC_TRADEOFF_AXIS,
     fields: {
       axis: "Migration cost",
       cells: [
@@ -414,7 +460,7 @@ const tradeoffs: PrimitiveSpec[] = [
   },
   {
     id: "spec:tx:replay-determinism",
-    type: "spec:TradeoffAxis",
+    type: SPEC_TRADEOFF_AXIS,
     fields: {
       axis: "Replay determinism",
       cells: [
@@ -426,7 +472,7 @@ const tradeoffs: PrimitiveSpec[] = [
   },
   {
     id: "spec:tx:renderer-complexity",
-    type: "spec:TradeoffAxis",
+    type: SPEC_TRADEOFF_AXIS,
     fields: {
       axis: "Renderer complexity",
       cells: [
@@ -443,7 +489,7 @@ const tradeoffs: PrimitiveSpec[] = [
 const scenarios: PrimitiveSpec[] = [
   {
     id: "spec:qas:insert-section",
-    type: "spec:QAScenario",
+    type: SPEC_QA_SCENARIO,
     fields: {
       title: "Author ergonomics — insert a section without renumbering",
       source: "Build-script author maintaining a SPEC-*.ts script.",
@@ -458,7 +504,7 @@ const scenarios: PrimitiveSpec[] = [
   },
   {
     id: "spec:qas:replay-determinism",
-    type: "spec:QAScenario",
+    type: SPEC_QA_SCENARIO,
     fields: {
       title: "Replay determinism — byte-equal SHA-256 across replays",
       source: "Core replay subsystem on Host startup.",
@@ -472,7 +518,7 @@ const scenarios: PrimitiveSpec[] = [
   },
   {
     id: "spec:qas:fallback-legacy-script",
-    type: "spec:QAScenario",
+    type: SPEC_QA_SCENARIO,
     fields: {
       title: "Back-compat — unmigrated script renders byte-equal",
       source: "Operator running an unmigrated build script.",
@@ -499,19 +545,19 @@ const scenarios: PrimitiveSpec[] = [
 const requirements: PrimitiveSpec[] = [
   {
     id: "spec:req:1",
-    type: "spec:Requirement",
+    type: SPEC_REQUIREMENT,
     fields: {
       label: "Add `order` field to spec:HasSection",
       statement:
         "`spec:HasSection` MUST accept an optional `order: int` field. Default value is 0 when absent.",
       strength: "MUST",
       verifiability: "ci_check",
-      verifier_ref: "cli/plugins/spec_authoring/relations.ts; profile schema test.",
+      verifier_ref: "fdpm-cli/plugins/spec_authoring/relations.ts; profile schema test.",
     },
   },
   {
     id: "spec:req:2",
-    type: "spec:Requirement",
+    type: SPEC_REQUIREMENT,
     fields: {
       label: "DFS numbering from the graph",
       statement:
@@ -519,12 +565,12 @@ const requirements: PrimitiveSpec[] = [
       strength: "MUST",
       verifiability: "test",
       verifier_ref:
-        "cli/plugins/spec_authoring/renderers/spec_md.test.ts — DFS fixture for nested sections.",
+        "fdpm-cli/plugins/spec_authoring/renderers/spec_md.test.ts — DFS fixture for nested sections.",
     },
   },
   {
     id: "spec:req:3",
-    type: "spec:Requirement",
+    type: SPEC_REQUIREMENT,
     fields: {
       label: "Fallback to authored number when no order edge present",
       statement:
@@ -536,7 +582,7 @@ const requirements: PrimitiveSpec[] = [
   },
   {
     id: "spec:req:4",
-    type: "spec:Requirement",
+    type: SPEC_REQUIREMENT,
     fields: {
       label: "Deprecation finding on mixed-mode projects",
       statement:
@@ -548,7 +594,7 @@ const requirements: PrimitiveSpec[] = [
   },
   {
     id: "spec:req:5",
-    type: "spec:Requirement",
+    type: SPEC_REQUIREMENT,
     fields: {
       label: "Migration codemod ships with the SPEC",
       statement:
@@ -556,12 +602,12 @@ const requirements: PrimitiveSpec[] = [
       strength: "MUST",
       verifiability: "ci_check",
       verifier_ref:
-        "Codemod run against all eight existing build-spec-*.ts; resulting SPECs render byte-equal.",
+        "Codemod run against all seven existing build-spec-*.ts; resulting SPECs render byte-equal.",
     },
   },
   {
     id: "spec:req:6",
-    type: "spec:Requirement",
+    type: SPEC_REQUIREMENT,
     fields: {
       label: "Remove authored `number` field in v0.2",
       statement:
@@ -578,49 +624,49 @@ const requirements: PrimitiveSpec[] = [
 const acceptances: PrimitiveSpec[] = [
   {
     id: "spec:ac:1",
-    type: "spec:AcceptanceCriterion",
+    type: SPEC_ACCEPTANCE_CRITERION,
     fields: {
       ordinal: 1,
       criterion: "`spec:HasSection.order` field is registered and accepts non-negative integers.",
       status: "open",
-      evidence_refs: ["cli/plugins/spec_authoring/relations.ts"],
+      evidence_refs: ["fdpm-cli/plugins/spec_authoring/relations.ts"],
     },
   },
   {
     id: "spec:ac:2",
-    type: "spec:AcceptanceCriterion",
+    type: SPEC_ACCEPTANCE_CRITERION,
     fields: {
       ordinal: 2,
       criterion: "Rendering a project with `order` edges produces correct §N.M.K headings via DFS.",
       status: "open",
-      evidence_refs: ["cli/plugins/spec_authoring/renderers/spec_md.test.ts"],
+      evidence_refs: ["fdpm-cli/plugins/spec_authoring/renderers/spec_md.test.ts"],
     },
   },
   {
     id: "spec:ac:3",
-    type: "spec:AcceptanceCriterion",
+    type: SPEC_ACCEPTANCE_CRITERION,
     fields: {
       ordinal: 3,
       criterion:
-        "All eight existing build-spec-*.ts scripts render byte-equal output before and after the renderer change, when the migration codemod has not been run.",
+        "All seven existing build-spec-*.ts scripts render byte-equal output before and after the renderer change, when the migration codemod has not been run.",
       status: "open",
       evidence_refs: ["fdpm-cli/scripts/", "Differential CI test"],
     },
   },
   {
     id: "spec:ac:4",
-    type: "spec:AcceptanceCriterion",
+    type: SPEC_ACCEPTANCE_CRITERION,
     fields: {
       ordinal: 4,
       criterion:
-        "After running the codemod, all eight existing build-spec-*.ts scripts no longer set `number` on any `spec:Section` and still render byte-equal output.",
+        "After running the codemod, all seven existing build-spec-*.ts scripts no longer set `number` on any `spec:Section` and still render byte-equal output.",
       status: "open",
       evidence_refs: ["fdpm-cli/scripts/migrate-section-numbers.ts", "Differential CI test"],
     },
   },
   {
     id: "spec:ac:5",
-    type: "spec:AcceptanceCriterion",
+    type: SPEC_ACCEPTANCE_CRITERION,
     fields: {
       ordinal: 5,
       criterion:
@@ -636,7 +682,7 @@ const acceptances: PrimitiveSpec[] = [
 const conformance: PrimitiveSpec[] = [
   {
     id: "spec:conf:1",
-    type: "spec:ConformanceItem",
+    type: SPEC_CONFORMANCE_ITEM,
     fields: {
       ordinal: 1,
       name: "DFS numbering matches the document tree",
@@ -648,18 +694,18 @@ const conformance: PrimitiveSpec[] = [
   },
   {
     id: "spec:conf:2",
-    type: "spec:ConformanceItem",
+    type: SPEC_CONFORMANCE_ITEM,
     fields: {
       ordinal: 2,
       name: "Fallback to authored number produces zero diff",
       procedure:
-        "Run the eight existing build-spec-*.ts scripts before and after the renderer change with the codemod NOT applied; diff the rendered Markdown.",
+        "Run the seven existing build-spec-*.ts scripts before and after the renderer change with the codemod NOT applied; diff the rendered Markdown.",
       expected: "diff exits 0 for every script.",
     },
   },
   {
     id: "spec:conf:3",
-    type: "spec:ConformanceItem",
+    type: SPEC_CONFORMANCE_ITEM,
     fields: {
       ordinal: 3,
       name: "Tiebreak determinism on identical order",
@@ -676,9 +722,9 @@ const conformance: PrimitiveSpec[] = [
 const changes: PrimitiveSpec[] = [
   {
     id: "spec:chg:relations-order",
-    type: "spec:ImplementationChange",
+    type: SPEC_IMPLEMENTATION_CHANGE,
     fields: {
-      area: "cli/plugins/spec_authoring/relations.ts",
+      area: "fdpm-cli/plugins/spec_authoring/relations.ts",
       change:
         "Add `order: int` (optional, default 0) to the `spec:HasSection` field list. No cardinality changes.",
       complexity: "XS",
@@ -687,9 +733,9 @@ const changes: PrimitiveSpec[] = [
   },
   {
     id: "spec:chg:renderer-dfs",
-    type: "spec:ImplementationChange",
+    type: SPEC_IMPLEMENTATION_CHANGE,
     fields: {
-      area: "cli/plugins/spec_authoring/renderers/spec_md.ts",
+      area: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
       change:
         "Replace `renderSections` flat-filter with a DFS rooted at the document, sorting children by `(order, uid)`. Introduce `deriveNumber(path: number[]): string`.",
       complexity: "M",
@@ -698,9 +744,9 @@ const changes: PrimitiveSpec[] = [
   },
   {
     id: "spec:chg:fallback-detection",
-    type: "spec:ImplementationChange",
+    type: SPEC_IMPLEMENTATION_CHANGE,
     fields: {
-      area: "cli/plugins/spec_authoring/renderers/spec_md.ts",
+      area: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
       change:
         "Detect 'no `order` edges in project' and route through the legacy `compareSectionNumbers` path; emit deprecation findings on mixed-mode projects.",
       complexity: "S",
@@ -709,7 +755,7 @@ const changes: PrimitiveSpec[] = [
   },
   {
     id: "spec:chg:codemod",
-    type: "spec:ImplementationChange",
+    type: SPEC_IMPLEMENTATION_CHANGE,
     fields: {
       area: "fdpm-cli/scripts/migrate-section-numbers.ts",
       change:
@@ -720,9 +766,9 @@ const changes: PrimitiveSpec[] = [
   },
   {
     id: "spec:chg:tests",
-    type: "spec:ImplementationChange",
+    type: SPEC_IMPLEMENTATION_CHANGE,
     fields: {
-      area: "cli/plugins/spec_authoring/renderers/spec_md.test.ts",
+      area: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.test.ts",
       change:
         "Three new fixtures: (a) pure graph-derived; (b) pure authored-number fallback; (c) mixed-mode with deprecation findings.",
       complexity: "S",
@@ -731,9 +777,9 @@ const changes: PrimitiveSpec[] = [
   },
   {
     id: "spec:chg:profile-schema",
-    type: "spec:ImplementationChange",
+    type: SPEC_IMPLEMENTATION_CHANGE,
     fields: {
-      area: "cli/plugins/spec_authoring/primitives/document.ts",
+      area: "fdpm-cli/plugins/spec_authoring/primitives/document.ts",
       change:
         "Mark the `number` field on `spec:Section` as deprecated in its description. No structural change in v0.1; field is removed in v0.2.",
       complexity: "XS",
@@ -747,54 +793,54 @@ const changes: PrimitiveSpec[] = [
 const migration: PrimitiveSpec[] = [
   {
     id: "spec:mig:1",
-    type: "spec:MigrationStep",
+    type: SPEC_MIGRATION_STEP,
     fields: {
       ordinal: 1,
       label: "Land `order` field + DFS renderer (back-compat)",
       action:
         "Ship CHG-1, CHG-2, CHG-3, CHG-5. Renderer derives numbering from graph when `order != 0` is present anywhere in the project; otherwise falls back. Zero existing build script changes required.",
       affected_paths: [
-        "cli/plugins/spec_authoring/relations.ts",
-        "cli/plugins/spec_authoring/renderers/spec_md.ts",
-        "cli/plugins/spec_authoring/renderers/spec_md.test.ts",
+        "fdpm-cli/plugins/spec_authoring/relations.ts",
+        "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
+        "fdpm-cli/plugins/spec_authoring/renderers/spec_md.test.ts",
       ],
     },
   },
   {
     id: "spec:mig:2",
-    type: "spec:MigrationStep",
+    type: SPEC_MIGRATION_STEP,
     fields: {
       ordinal: 2,
       label: "Ship the codemod",
       action:
-        "CHG-4. Run against all eight existing build-spec-*.ts; commit the migrated forms in a separate PR. Each migrated SPEC re-renders byte-equal.",
+        "CHG-4. Run against all seven existing build-spec-*.ts; commit the migrated forms in a separate PR. Each migrated SPEC re-renders byte-equal.",
       affected_paths: ["fdpm-cli/scripts/migrate-section-numbers.ts", "fdpm-cli/scripts/build-spec-*.ts"],
       depends_on: ["spec:mig:1"],
     },
   },
   {
     id: "spec:mig:3",
-    type: "spec:MigrationStep",
+    type: SPEC_MIGRATION_STEP,
     fields: {
       ordinal: 3,
       label: "Mark `number` deprecated in profile docs",
       action:
         "CHG-6. Description-only change; no behaviour change. Operators see the deprecation when they consult `fdpm profile inspect`.",
-      affected_paths: ["cli/plugins/spec_authoring/primitives/document.ts"],
+      affected_paths: ["fdpm-cli/plugins/spec_authoring/primitives/document.ts"],
       depends_on: ["spec:mig:2"],
     },
   },
   {
     id: "spec:mig:4",
-    type: "spec:MigrationStep",
+    type: SPEC_MIGRATION_STEP,
     fields: {
       ordinal: 4,
       label: "Remove `number` field in SPEC v0.2",
       action:
         "Tracked separately. Once all callers are migrated and one minor release has passed, remove the field from `spec:Section` and the fallback path from the renderer.",
       affected_paths: [
-        "cli/plugins/spec_authoring/primitives/document.ts",
-        "cli/plugins/spec_authoring/renderers/spec_md.ts",
+        "fdpm-cli/plugins/spec_authoring/primitives/document.ts",
+        "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
       ],
       depends_on: ["spec:mig:3"],
     },
@@ -806,7 +852,7 @@ const migration: PrimitiveSpec[] = [
 const risks: PrimitiveSpec[] = [
   {
     id: "spec:risk:dfs-bug",
-    type: "spec:Risk",
+    type: SPEC_RISK,
     fields: {
       label: "DFS bug on deep or cyclic graphs",
       description:
@@ -817,7 +863,7 @@ const risks: PrimitiveSpec[] = [
   },
   {
     id: "spec:risk:codemod-loss",
-    type: "spec:Risk",
+    type: SPEC_RISK,
     fields: {
       label: "Codemod silent loss",
       description:
@@ -828,7 +874,7 @@ const risks: PrimitiveSpec[] = [
   },
   {
     id: "spec:risk:order-collisions",
-    type: "spec:Risk",
+    type: SPEC_RISK,
     fields: {
       label: "Order collisions and uid-order surprise",
       description:
@@ -839,7 +885,7 @@ const risks: PrimitiveSpec[] = [
   },
   {
     id: "spec:risk:render-perf",
-    type: "spec:Risk",
+    type: SPEC_RISK,
     fields: {
       label: "Render-time perf regression on large docs",
       description: "DFS over large documents (>500 sections) increases render time noticeably.",
@@ -852,7 +898,7 @@ const risks: PrimitiveSpec[] = [
 const mitigations: PrimitiveSpec[] = [
   {
     id: "spec:mit:dfs-test",
-    type: "spec:Mitigation",
+    type: SPEC_MITIGATION,
     fields: {
       strategy:
         "Property-test the DFS against a reference outline-numbering implementation across 1000 random trees. Reject cycles at validate time (HasSection is already declared transitive but cycles are not allowed).",
@@ -861,7 +907,7 @@ const mitigations: PrimitiveSpec[] = [
   },
   {
     id: "spec:mit:codemod-diff-gate",
-    type: "spec:Mitigation",
+    type: SPEC_MITIGATION,
     fields: {
       strategy:
         "Codemod is gated by a per-SPEC differential test: if rendered output diverges by even one byte before/after migration, the codemod refuses to write the file.",
@@ -870,7 +916,7 @@ const mitigations: PrimitiveSpec[] = [
   },
   {
     id: "spec:mit:lint-sparse-order",
-    type: "spec:Mitigation",
+    type: SPEC_MITIGATION,
     fields: {
       strategy:
         "Add a `spec:val:section-order-sparse` advisory validator that emits an `info` finding when any sibling group has more than two ties. Documents the 10/20/30 convention.",
@@ -879,7 +925,7 @@ const mitigations: PrimitiveSpec[] = [
   },
   {
     id: "spec:mit:perf-baseline",
-    type: "spec:Mitigation",
+    type: SPEC_MITIGATION,
     fields: {
       strategy:
         "Benchmark render time on the largest existing SPEC (SPEC-DNIS, ~120 sections); fail CI if it exceeds 2× the pre-change baseline.",
@@ -893,7 +939,7 @@ const mitigations: PrimitiveSpec[] = [
 const openQuestions: PrimitiveSpec[] = [
   {
     id: "spec:q:order-type",
-    type: "spec:OpenQuestion",
+    type: SPEC_OPEN_QUESTION,
     fields: {
       ordinal: 1,
       question:
@@ -905,7 +951,7 @@ const openQuestions: PrimitiveSpec[] = [
   },
   {
     id: "spec:q:depth-field",
-    type: "spec:OpenQuestion",
+    type: SPEC_OPEN_QUESTION,
     fields: {
       ordinal: 2,
       question:
@@ -917,7 +963,7 @@ const openQuestions: PrimitiveSpec[] = [
   },
   {
     id: "spec:q:cross-doc-numbers",
-    type: "spec:OpenQuestion",
+    type: SPEC_OPEN_QUESTION,
     fields: {
       ordinal: 3,
       question:
@@ -934,7 +980,7 @@ const openQuestions: PrimitiveSpec[] = [
 const futureWork: PrimitiveSpec[] = [
   {
     id: "spec:fw:remove-number",
-    type: "spec:FutureWork",
+    type: SPEC_FUTURE_WORK,
     fields: {
       label: "Remove `number` field on spec:Section in v0.2",
       description:
@@ -945,7 +991,7 @@ const futureWork: PrimitiveSpec[] = [
   },
   {
     id: "spec:fw:section-kind-registry",
-    type: "spec:FutureWork",
+    type: SPEC_FUTURE_WORK,
     fields: {
       label: "Promote `kind` from closed enum to plugin-extensible registry",
       description:
@@ -956,7 +1002,7 @@ const futureWork: PrimitiveSpec[] = [
   },
   {
     id: "spec:fw:render-dsl-integration",
-    type: "spec:FutureWork",
+    type: SPEC_FUTURE_WORK,
     fields: {
       label: "Once render-DSL stabilises, allow body_md to be a DSL fragment",
       description:
@@ -972,7 +1018,7 @@ const futureWork: PrimitiveSpec[] = [
 const references: PrimitiveSpec[] = [
   {
     id: "spec:ref:claude-md",
-    type: "spec:Reference",
+    type: SPEC_REFERENCE,
     fields: {
       kind: "repo_file",
       citation: "CLAUDE.md — Project Guidelines (this repository, root).",
@@ -984,7 +1030,7 @@ const references: PrimitiveSpec[] = [
   },
   {
     id: "spec:ref:purpose",
-    type: "spec:Reference",
+    type: SPEC_REFERENCE,
     fields: {
       kind: "repo_file",
       citation: "PURPOSE.md (this repository, root).",
@@ -996,11 +1042,11 @@ const references: PrimitiveSpec[] = [
   },
   {
     id: "spec:ref:spec-core",
-    type: "spec:Reference",
+    type: SPEC_REFERENCE,
     fields: {
       kind: "spec",
       citation: "SPEC-CORE — Replay determinism (§5.5.3).",
-      locator: "docs/specs/SPEC-CORE.md",
+      locator: SPEC_CORE_PATH,
       verification: "verified",
       verification_note:
         "Read §5.5.3. The DFS-over-(order, uid) numbering preserves the byte-equal-replay property because both `order` and `uid` are immutable post-creation.",
@@ -1008,11 +1054,11 @@ const references: PrimitiveSpec[] = [
   },
   {
     id: "spec:ref:spec-uid",
-    type: "spec:Reference",
+    type: SPEC_REFERENCE,
     fields: {
       kind: "spec",
       citation: "SPEC-UID — Universal Identifiers (§10 invariants).",
-      locator: "docs/specs/SPEC-UID.md",
+      locator: SPEC_UID_PATH,
       verification: "verified",
       verification_note:
         "Read §10. Confirms uid is minted once and never changes — the necessary precondition for using uid as a stable tiebreak in this SPEC's DFS.",
@@ -1020,11 +1066,11 @@ const references: PrimitiveSpec[] = [
   },
   {
     id: "spec:ref:relations-ts",
-    type: "spec:Reference",
+    type: SPEC_REFERENCE,
     fields: {
       kind: "repo_file",
       citation: "spec_authoring/relations.ts — HasSection definition.",
-      locator: "cli/plugins/spec_authoring/relations.ts",
+      locator: "fdpm-cli/plugins/spec_authoring/relations.ts",
       verification: "verified",
       verification_note:
         "Read lines 11-21. Confirms `source_types: [\"spec:Document\", \"spec:Section\"]` already permits the tree shape; this SPEC adds the `order` field, not the tree itself.",
@@ -1032,11 +1078,11 @@ const references: PrimitiveSpec[] = [
   },
   {
     id: "spec:ref:spec-md-renderer",
-    type: "spec:Reference",
+    type: SPEC_REFERENCE,
     fields: {
       kind: "repo_file",
       citation: "spec_md.ts — current spec:SpecMarkdownRenderer implementation.",
-      locator: "cli/plugins/spec_authoring/renderers/spec_md.ts",
+      locator: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
       verification: "verified",
       verification_note:
         "Read lines 705-769. `KIND_RENDERERS` is the closed dispatch table; `renderSections` is the function this SPEC modifies; `compareSectionNumbers` is the lexicographic sort that becomes obsolete.",
@@ -1044,11 +1090,11 @@ const references: PrimitiveSpec[] = [
   },
   {
     id: "spec:ref:spec-render-dsl",
-    type: "spec:Reference",
+    type: SPEC_REFERENCE,
     fields: {
       kind: "spec",
       citation: "SPEC-RENDER-DSL — Render-Time DSL for FDPM Document Templates.",
-      locator: "docs/specs/SPEC-RENDER-DSL.md",
+      locator: SPEC_RENDER_DSL_PATH,
       verification: "verified",
       verification_note:
         "Read §1 Purpose. Confirms render-DSL targets template content, not structural metadata — supports the rejection of Option C.",
@@ -1061,14 +1107,14 @@ const references: PrimitiveSpec[] = [
 const revisions: PrimitiveSpec[] = [
   {
     id: "spec:rev:0-1-0",
-    type: "spec:Revision",
+    type: SPEC_REVISION,
     fields: {
       version: "0.1.0",
       date: "2026-05-04",
       title: "Initial Proposal — graph-derived section numbering",
       notes:
         "Captures the dual-source-of-truth bug between `spec:Section.number` and `spec:HasSection` order; proposes graph-derived numbering with sparse `order: int` and `uid` tiebreak; outlines six implementation changes, four migration steps, three QA scenarios, and a one-release deprecation window for authored `number`.",
-      affected_sections: ["§1", "§7", "§8", "§9", "§11", "§14", "§15"],
+      affected_sections: ["all"],
       kind: "minor",
     },
   },
@@ -1086,7 +1132,7 @@ const revisions: PrimitiveSpec[] = [
 const sections: PrimitiveSpec[] = [
   {
     id: "spec:sec:1",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "1",
       title: "Purpose and Scope",
@@ -1108,14 +1154,14 @@ const sections: PrimitiveSpec[] = [
         "Three converging signals:",
         "",
         "1. **Every existing `fdpm-cli/scripts/build-spec-*.ts` hand-authors `number` strings.** Inserting one section means renumbering all downstream siblings — a real, repeated source of churn.",
-        "2. **`spec:HasSection` already supports `Section → Section`** (cli/plugins/spec_authoring/relations.ts:15-16). The tree is already representable; the renderer just doesn't use the tree shape.",
+        "2. **`spec:HasSection` already supports `Section → Section`** (fdpm-cli/plugins/spec_authoring/relations.ts:15-16). The tree is already representable; the renderer just doesn't use the tree shape.",
         "3. **SPEC-UID v0.2 ships `uid` on every primitive and relation**, giving us the deterministic, replay-stable tiebreak this SPEC needs for `(order, uid)` sibling ordering.",
       ].join("\n"),
     },
   },
   {
     id: "spec:sec:2",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "2",
       title: "Stakeholders and Concerns",
@@ -1126,7 +1172,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:3",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "3",
       title: "Quality Attributes in Tension",
@@ -1137,7 +1183,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:4",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "4",
       title: "Architectural Principles",
@@ -1147,7 +1193,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:5",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "5",
       title: "Definitions",
@@ -1158,7 +1204,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:6",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "6",
       title: "Decision Summary",
@@ -1169,7 +1215,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:7",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "7",
       title: "Architecture Decision Record",
@@ -1179,7 +1225,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:8",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "8",
       title: "Trade-off Matrix",
@@ -1190,7 +1236,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:9",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "9",
       title: "Quality-Attribute Scenarios",
@@ -1201,18 +1247,18 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:10",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "10",
       title: "Invariants",
       kind: "prose",
       body_md:
-        "Four invariants the renderer MUST maintain for graph-derived numbering to be sound. Each invariant is checked by a conformance item (§13).",
+        "The four `spec:Invariant` primitives enumerated in §4 (Architectural Principles) ARE this SPEC's invariants — `graph-is-truth`, `sparse-order`, `deterministic-tiebreak`, and `authored-number-deprecated`. The plugin currently models both architectural principles and stated invariants as one primitive type, so they appear under §4. Each is checked by a conformance item in §13.",
     },
   },
   {
     id: "spec:sec:11",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "11",
       title: "Requirements",
@@ -1223,7 +1269,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:12",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "12",
       title: "Acceptance Criteria",
@@ -1234,7 +1280,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:13",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "13",
       title: "Conformance",
@@ -1245,7 +1291,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:14",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "14",
       title: "Required Changes to Existing Code",
@@ -1256,7 +1302,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:15",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "15",
       title: "Migration Plan",
@@ -1267,7 +1313,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:16",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "16",
       title: "Risks and Mitigations",
@@ -1278,7 +1324,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:17",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "17",
       title: "Open Questions",
@@ -1289,7 +1335,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:18",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "18",
       title: "Future Work",
@@ -1300,7 +1346,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:19",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "19",
       title: "References",
@@ -1311,7 +1357,7 @@ const sections: PrimitiveSpec[] = [
   },
   {
     id: "spec:sec:20",
-    type: "spec:Section",
+    type: SPEC_SECTION,
     fields: {
       number: "20",
       title: "Revision History",
@@ -1327,7 +1373,7 @@ const relations: RelationSpec[] = [
   // Sections under the document
   ...sections.map((s, i) => ({
     id: `rel:doc-has-sec-${i + 1}`,
-    type: "spec:HasSection",
+    type: SPEC_REL_HAS_SECTION,
     from: documentSpec.id,
     to: s.id,
   })),
@@ -1335,23 +1381,23 @@ const relations: RelationSpec[] = [
   // Document defines each Term
   ...termSpecs.map((t, i) => ({
     id: `rel:doc-defines-${i + 1}`,
-    type: "spec:Defines",
+    type: SPEC_REL_DEFINES,
     from: documentSpec.id,
     to: t.id,
   })),
 
   // ADR considers each option
-  { id: "rel:adr-considers-graph", type: "spec:Considers", from: adr.id, to: optA.id },
-  { id: "rel:adr-considers-keep", type: "spec:Considers", from: adr.id, to: optB.id },
-  { id: "rel:adr-considers-dsl", type: "spec:Considers", from: adr.id, to: optC.id },
+  { id: "rel:adr-considers-graph", type: SPEC_REL_CONSIDERS, from: adr.id, to: optA.id },
+  { id: "rel:adr-considers-keep", type: SPEC_REL_CONSIDERS, from: adr.id, to: optB.id },
+  { id: "rel:adr-considers-dsl", type: SPEC_REL_CONSIDERS, from: adr.id, to: optC.id },
 
   // ADR chose Option A
-  { id: "rel:adr-chose-graph", type: "spec:Chose", from: adr.id, to: optA.id },
+  { id: "rel:adr-chose-graph", type: SPEC_REL_CHOSE, from: adr.id, to: optA.id },
 
   // ADR has trade-off axes
   ...tradeoffs.map((t, i) => ({
     id: `rel:adr-tradeoff-${i + 1}`,
-    type: "spec:HasTradeoff",
+    type: SPEC_REL_HAS_TRADEOFF,
     from: adr.id,
     to: t.id,
   })),
@@ -1359,66 +1405,66 @@ const relations: RelationSpec[] = [
   // QA scenarios target quality attributes
   {
     id: "rel:qas-insert-targets-ergonomics",
-    type: "spec:Targets",
+    type: SPEC_REL_TARGETS,
     from: "spec:qas:insert-section",
     to: "spec:qa:author-ergonomics",
   },
   {
     id: "rel:qas-replay-targets-determinism",
-    type: "spec:Targets",
+    type: SPEC_REL_TARGETS,
     from: "spec:qas:replay-determinism",
     to: "spec:qa:replay-determinism",
   },
   {
     id: "rel:qas-fallback-targets-back-compat",
-    type: "spec:Targets",
+    type: SPEC_REL_TARGETS,
     from: "spec:qas:fallback-legacy-script",
     to: "spec:qa:back-compat",
   },
 
   // Mitigations cover risks
-  { id: "rel:mit-dfs-mitigates", type: "spec:Mitigates", from: "spec:mit:dfs-test", to: "spec:risk:dfs-bug" },
-  { id: "rel:mit-codemod-mitigates", type: "spec:Mitigates", from: "spec:mit:codemod-diff-gate", to: "spec:risk:codemod-loss" },
-  { id: "rel:mit-sparse-mitigates", type: "spec:Mitigates", from: "spec:mit:lint-sparse-order", to: "spec:risk:order-collisions" },
-  { id: "rel:mit-perf-mitigates", type: "spec:Mitigates", from: "spec:mit:perf-baseline", to: "spec:risk:render-perf" },
+  { id: "rel:mit-dfs-mitigates", type: SPEC_REL_MITIGATES, from: "spec:mit:dfs-test", to: "spec:risk:dfs-bug" },
+  { id: "rel:mit-codemod-mitigates", type: SPEC_REL_MITIGATES, from: "spec:mit:codemod-diff-gate", to: "spec:risk:codemod-loss" },
+  { id: "rel:mit-sparse-mitigates", type: SPEC_REL_MITIGATES, from: "spec:mit:lint-sparse-order", to: "spec:risk:order-collisions" },
+  { id: "rel:mit-perf-mitigates", type: SPEC_REL_MITIGATES, from: "spec:mit:perf-baseline", to: "spec:risk:render-perf" },
 
   // Migration step dependencies
-  { id: "rel:mig-2-deps-1", type: "spec:DependsOn", from: "spec:mig:2", to: "spec:mig:1" },
-  { id: "rel:mig-3-deps-2", type: "spec:DependsOn", from: "spec:mig:3", to: "spec:mig:2" },
-  { id: "rel:mig-4-deps-3", type: "spec:DependsOn", from: "spec:mig:4", to: "spec:mig:3" },
+  { id: "rel:mig-2-deps-1", type: SPEC_REL_DEPENDS_ON, from: "spec:mig:2", to: "spec:mig:1" },
+  { id: "rel:mig-3-deps-2", type: SPEC_REL_DEPENDS_ON, from: "spec:mig:3", to: "spec:mig:2" },
+  { id: "rel:mig-4-deps-3", type: SPEC_REL_DEPENDS_ON, from: "spec:mig:4", to: "spec:mig:3" },
 
   // Acceptance criteria verify requirements
-  { id: "rel:ac1-verifies-r1", type: "spec:Verifies", from: "spec:ac:1", to: "spec:req:1" },
-  { id: "rel:ac2-verifies-r2", type: "spec:Verifies", from: "spec:ac:2", to: "spec:req:2" },
-  { id: "rel:ac3-verifies-r3", type: "spec:Verifies", from: "spec:ac:3", to: "spec:req:3" },
-  { id: "rel:ac4-verifies-r5", type: "spec:Verifies", from: "spec:ac:4", to: "spec:req:5" },
-  { id: "rel:ac5-verifies-inv-tiebreak", type: "spec:Verifies", from: "spec:ac:5", to: "spec:inv:deterministic-tiebreak" },
+  { id: "rel:ac1-verifies-r1", type: SPEC_REL_VERIFIES, from: "spec:ac:1", to: "spec:req:1" },
+  { id: "rel:ac2-verifies-r2", type: SPEC_REL_VERIFIES, from: "spec:ac:2", to: "spec:req:2" },
+  { id: "rel:ac3-verifies-r3", type: SPEC_REL_VERIFIES, from: "spec:ac:3", to: "spec:req:3" },
+  { id: "rel:ac4-verifies-r5", type: SPEC_REL_VERIFIES, from: "spec:ac:4", to: "spec:req:5" },
+  { id: "rel:ac5-verifies-inv-tiebreak", type: SPEC_REL_VERIFIES, from: "spec:ac:5", to: "spec:inv:deterministic-tiebreak" },
 
   // Conformance items verify
-  { id: "rel:conf1-verifies-r2", type: "spec:Verifies", from: "spec:conf:1", to: "spec:req:2" },
-  { id: "rel:conf2-verifies-r3", type: "spec:Verifies", from: "spec:conf:2", to: "spec:req:3" },
-  { id: "rel:conf3-verifies-tiebreak", type: "spec:Verifies", from: "spec:conf:3", to: "spec:inv:deterministic-tiebreak" },
+  { id: "rel:conf1-verifies-r2", type: SPEC_REL_VERIFIES, from: "spec:conf:1", to: "spec:req:2" },
+  { id: "rel:conf2-verifies-r3", type: SPEC_REL_VERIFIES, from: "spec:conf:2", to: "spec:req:3" },
+  { id: "rel:conf3-verifies-tiebreak", type: SPEC_REL_VERIFIES, from: "spec:conf:3", to: "spec:inv:deterministic-tiebreak" },
 
   // ADR resolves the blocking question (chose integer over fractional)
-  { id: "rel:adr-resolves-order-type", type: "spec:Resolves", from: adr.id, to: "spec:q:order-type" },
+  { id: "rel:adr-resolves-order-type", type: SPEC_REL_RESOLVES, from: adr.id, to: "spec:q:order-type" },
 
   // Citations
-  { id: "rel:adr-cites-relations", type: "spec:Cites", from: adr.id, to: "spec:ref:relations-ts" },
-  { id: "rel:adr-cites-spec-md", type: "spec:Cites", from: adr.id, to: "spec:ref:spec-md-renderer" },
-  { id: "rel:adr-cites-uid", type: "spec:Cites", from: adr.id, to: "spec:ref:spec-uid" },
-  { id: "rel:adr-cites-core", type: "spec:Cites", from: adr.id, to: "spec:ref:spec-core" },
-  { id: "rel:doc-cites-claude", type: "spec:Cites", from: documentSpec.id, to: "spec:ref:claude-md" },
-  { id: "rel:doc-cites-purpose", type: "spec:Cites", from: documentSpec.id, to: "spec:ref:purpose" },
-  { id: "rel:opt-c-cites-render-dsl", type: "spec:Cites", from: optC.id, to: "spec:ref:spec-render-dsl" },
+  { id: "rel:adr-cites-relations", type: SPEC_REL_CITES, from: adr.id, to: "spec:ref:relations-ts" },
+  { id: "rel:adr-cites-spec-md", type: SPEC_REL_CITES, from: adr.id, to: "spec:ref:spec-md-renderer" },
+  { id: "rel:adr-cites-uid", type: SPEC_REL_CITES, from: adr.id, to: "spec:ref:spec-uid" },
+  { id: "rel:adr-cites-core", type: SPEC_REL_CITES, from: adr.id, to: "spec:ref:spec-core" },
+  { id: "rel:doc-cites-claude", type: SPEC_REL_CITES, from: documentSpec.id, to: "spec:ref:claude-md" },
+  { id: "rel:doc-cites-purpose", type: SPEC_REL_CITES, from: documentSpec.id, to: "spec:ref:purpose" },
+  { id: "rel:opt-c-cites-render-dsl", type: SPEC_REL_CITES, from: optC.id, to: "spec:ref:spec-render-dsl" },
 
   // Required reads
-  { id: "rel:doc-req-claude", type: "spec:RequiredRead", from: documentSpec.id, to: "spec:ref:claude-md" },
-  { id: "rel:doc-req-purpose", type: "spec:RequiredRead", from: documentSpec.id, to: "spec:ref:purpose" },
-  { id: "rel:doc-req-core", type: "spec:RequiredRead", from: documentSpec.id, to: "spec:ref:spec-core" },
-  { id: "rel:doc-req-uid", type: "spec:RequiredRead", from: documentSpec.id, to: "spec:ref:spec-uid" },
+  { id: "rel:doc-req-claude", type: SPEC_REL_REQUIRED_READ, from: documentSpec.id, to: "spec:ref:claude-md" },
+  { id: "rel:doc-req-purpose", type: SPEC_REL_REQUIRED_READ, from: documentSpec.id, to: "spec:ref:purpose" },
+  { id: "rel:doc-req-core", type: SPEC_REL_REQUIRED_READ, from: documentSpec.id, to: "spec:ref:spec-core" },
+  { id: "rel:doc-req-uid", type: SPEC_REL_REQUIRED_READ, from: documentSpec.id, to: "spec:ref:spec-uid" },
 
   // Document RevisedIn
-  { id: "rel:doc-revised-0-1-0", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-0" },
+  { id: "rel:doc-revised-0-1-0", type: SPEC_REL_REVISED_IN, from: documentSpec.id, to: "spec:rev:0-1-0" },
 ];
 
 // ── Commit ─────────────────────────────────────────────────────────────────
@@ -1473,7 +1519,7 @@ async function main() {
   console.log(
     `    render ${PROJECT_ID} text/markdown --renderer-id spec:SpecMarkdownRenderer \\`,
   );
-  console.log(`    -o docs/specs/SPEC-SECTIONS-TREE.md`);
+  console.log(`    -o ${SPEC_SECTIONS_TREE_PATH}`);
 }
 
 main().catch((e) => {

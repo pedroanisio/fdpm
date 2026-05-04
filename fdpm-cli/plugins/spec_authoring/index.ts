@@ -52,8 +52,10 @@ import { TEMPLATES } from "./templates.js";
 import { RENDERER_BINDINGS } from "./renderer_bindings.js";
 import { renderSpecMarkdown } from "./renderers/spec_md.js";
 import { registerSpecAuthoringValidators } from "./_register_validators.js";
+import { registerSpecAuthoringExtraCapabilities } from "./_capabilities.js";
 
 export { renderSpecMarkdown };
+export * from "./ids.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -107,14 +109,39 @@ export async function activate(ctx: PluginContext): Promise<void> {
     fn: renderSpecMarkdown,
   });
   registerSpecAuthoringValidators(ctx);
+  registerSpecAuthoringExtraCapabilities(ctx);
   ctx.logger.info(
-    `spec-authoring activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} validation rules + ${VALIDATION_RULES.length} cap:validator implementations, 1 renderer (spec:SpecMarkdownRenderer/md)`,
+    `spec-authoring activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} validation rules + ${VALIDATION_RULES.length} cap:validator implementations, 1 renderer (spec:SpecMarkdownRenderer/md), 1 expr-helper, 1 transformer, 1 importer (spec-jsonl), 1 exporter (spec-jsonl)`,
   );
+}
+
+export function onInstall(ctx: PluginContext): void {
+  ctx.logger.debug(`on-install fired for ${ctx.pluginId}`);
 }
 
 export function onEnable(ctx: PluginContext): void {
   ctx.logger.debug(`on-enable fired for ${ctx.pluginId}`);
 }
 
-const entry: PluginEntryModule = { manifest, activate, onEnable };
+export function onDisable(ctx: PluginContext): void {
+  ctx.logger.debug(`on-disable fired for ${ctx.pluginId}`);
+}
+
+export function onUninstall(ctx: PluginContext): void {
+  ctx.logger.debug(`on-uninstall fired for ${ctx.pluginId}`);
+}
+
+export function deactivate(ctx: PluginContext): void {
+  ctx.logger.debug(`deactivate fired for ${ctx.pluginId}`);
+}
+
+const entry: PluginEntryModule = {
+  manifest,
+  activate,
+  onInstall,
+  onEnable,
+  onDisable,
+  onUninstall,
+  deactivate,
+};
 export default entry;

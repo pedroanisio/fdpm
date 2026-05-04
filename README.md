@@ -157,7 +157,7 @@ fdpm log audit demo         # AuditRecord projection (§13.3)
 
 ## Plugin runtime (SPEC-PLUGGABLE-ARCHITECTURE 1.1)
 
-Server-side plugin runtime under `cli/src/plugin/`. Capabilities supported:
+Server-side plugin runtime under `fdpm-cli/src/plugin/`. Capabilities supported:
 
 | Capability ID            | Notes                                          |
 | ------------------------ | ---------------------------------------------- |
@@ -261,7 +261,7 @@ Profile contributions are not unregistered on disable (Core's profile
 registry has no unregister path in v1.1; see "honest gaps" below).
 
 **Trust tiers** (§10.1):
-- `core` — plugins under `cli/plugins/<id>/` (in-tree). Auto-active.
+- `core` — plugins under `fdpm-cli/plugins/<id>/` (in-tree). Auto-active.
 - `verified` — manifest declares `trust.signed_by` matching one of the
   comma-separated keys in `$FDPM_TRUSTED_KEYS`. Auto-active.
 - `community` — discovered, valid manifest, no signature. Starts
@@ -270,7 +270,7 @@ registry has no unregister path in v1.1; see "honest gaps" below).
   filesystem plugin with a valid manifest is at least `community`).
 
 **Discovery** (§6.3):
-1. In-tree built-ins: scan `cli/plugins/` (or `plugins/` from CWD).
+1. In-tree built-ins: scan `fdpm-cli/plugins/` (or `plugins/` from CWD).
 2. Filesystem fallback: scan each directory in `$FDPM_PLUGIN_PATH`
    (colon-separated, default `~/.fdpm/plugins`).
 
@@ -279,12 +279,12 @@ an entry module (`index.js`, `index.mjs`, or `index.ts` for `tsx`).
 
 ## formal_specification plugin (full Python-source port)
 
-In-tree at `cli/plugins/formal_specification/`. Port of
+In-tree at `fdpm-cli/plugins/formal_specification/`. Port of
 `src/fdpm/plugins/formal_specification.py` (3,251 LOC monolithic literal),
 decomposed per SPEC-PLUGGABLE §6.1 / §9.1:
 
 ```
-cli/plugins/formal_specification/
+fdpm-cli/plugins/formal_specification/
 ├── fdpm-plugin.json           # manifest (cap:profile + cap:lifecycle-hook)
 ├── index.ts                   # entry: assembles + exports the DomainProfile
 ├── _common.ts                 # FieldDef helpers (str, text, int, enumOf, ...)
@@ -349,7 +349,7 @@ shape still pass unchanged.
 ## Architecture
 
 ```
-cli/src/
+fdpm-cli/src/
   bin/fdpm.ts              # commander entry
   core/
     models/                # §4 meta-model + §5 instance model (zod)
@@ -372,7 +372,7 @@ cli/src/
     errors.ts              # PluginError → FDPMException mapping
   commands/                # one module per command group (incl. plugin admin)
   persistence/             # JSONL log + profile dir under ~/.fdpm-cli/
-cli/plugins/
+fdpm-cli/plugins/
   formal_specification/    # full Python-source port (32 primitives, etc.)
 ```
 
@@ -443,7 +443,7 @@ Adapted from §13:
 - **#2 Built-ins migrated** — `formal_specification` is a package, not
   a single file; ships its own `fdpm-plugin.json`; loads via the
   discovery path.
-- **#3 Decomposition** — no file in `cli/plugins/formal_specification/`
+- **#3 Decomposition** — no file in `fdpm-cli/plugins/formal_specification/`
   exceeds 600 LOC (largest is `relations.ts` at ~350 LOC).
 - **#5 Admin API** — `fdpm plugin {list,get,manifest,capabilities,
   enable,disable,reload,quarantine-clear}` exist and pass tests.
@@ -453,7 +453,7 @@ Adapted from §13:
 - **#7 Verification gate** — manifest validation and host-compat checks
   exercised in tests; bad manifests are rejected and logged.
 - **#9 No global mutation** — plugins receive `PluginContext`; nothing
-  in `cli/plugins/**` imports the Core store directly.
+  in `fdpm-cli/plugins/**` imports the Core store directly.
 - **#13 Manifest cross-version** — a v1.0.0 manifest loads on the v1.1
   host; v1.x range matching enforced via `host_compatibility.fdpm`.
 - **#14 Lifecycle hooks** — the four-event dispatch is wired

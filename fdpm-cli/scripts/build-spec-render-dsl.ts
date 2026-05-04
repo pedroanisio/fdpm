@@ -493,7 +493,7 @@ const adr: PrimitiveSpec = {
     status: "proposed",
     date: "2026-05-04",
     context:
-      "Two recent observations push toward formalising a render-time DSL. (1) The GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings that contain literal project ids — the natural form is `${doc.spec_id}` (a Tier-A binding). (2) The renderer in cli/plugins/spec_authoring/renderers/spec_md.ts has ~20 small TS helpers (renderADRs, renderRevisions, renderRisks, renderReferences, ...) each doing the same shape: filter primitives by type_id, sort by some field, project specific columns. That shape is exactly what a CEL list comprehension expresses. CLAUDE.md's PALS-LAW posture also penalises silently-empty output — the right time to formalise the evaluator's behaviour on undefined names is now, before authors come to depend on the silent-coerce behaviour. SPEC-EXPRESSION-RUNTIME defines the evaluator contract this SPEC consumes; type mapping (M1), error model (M2), activation tiers (M7), and helper-set versioning (M14) are inherited verbatim.",
+      "Two recent observations push toward formalising a render-time DSL. (1) The GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings that contain literal project ids — the natural form is `${doc.spec_id}` (a Tier-A binding). (2) The renderer in fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts has ~20 small TS helpers (renderADRs, renderRevisions, renderRisks, renderReferences, ...) each doing the same shape: filter primitives by type_id, sort by some field, project specific columns. That shape is exactly what a CEL list comprehension expresses. CLAUDE.md's PALS-LAW posture also penalises silently-empty output — the right time to formalise the evaluator's behaviour on undefined names is now, before authors come to depend on the silent-coerce behaviour. SPEC-EXPRESSION-RUNTIME defines the evaluator contract this SPEC consumes; type mapping (M1), error model (M2), activation tiers (M7), and helper-set versioning (M14) are inherited verbatim.",
     decision:
       "Adopt a CEL-only render-time DSL. The render-DSL adds NOTHING to CEL beyond a thin placeholder envelope (`${...}`) and three directive keywords (`if:`, `endif`, `include:`). Iteration over the project graph uses CEL list comprehensions (`project.primitives.filter(p, p.type_id == \"spec:ADR\")`). The activation surface — `{ doc, project, env, host, fn }` — is defined by SPEC-EXPRESSION-RUNTIME §M7; adding a binding is a SPEC amendment there. The closed helper inventory (§6.4) is the SPEC-EXPRESSION-RUNTIME standard set; this SPEC names the subset rendering uses but defines no new helpers.",
     consequences: [
@@ -608,7 +608,7 @@ const scenarios: PrimitiveSpec[] = [
       source: "Security reviewer.",
       stimulus:
         "Static review of every host-bound helper plus a fuzz harness supplying adversarial templates (deeply nested, very long literals, type-mismatched arguments).",
-      environment: "Source review tooling on cli/src/core/expr/*.ts and any render-time template glue.",
+      environment: "Source review tooling on fdpm-cli/src/core/expr/*.ts and any render-time template glue.",
       artifact: "Helper bindings under `fn.*`.",
       response:
         "No helper performs filesystem, network, child-process, or vm operations. Fuzzed templates either evaluate to a value or surface a `render-error` finding via the §7.1 step-6 exception barrier.",
@@ -629,7 +629,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         `An expression that references a name not in the Tier-A surface \`${ACTIVATION_TIER_A_LIST}\` (or a permission-held Tier-B / opt-in Tier-C path per SPEC-EXPRESSION-RUNTIME §M7) MUST produce a \`render-error\` finding. There is no fall-through to undefined / null / empty-string.`,
       enforcement: "ci_check",
-      scope_ref: "cli/src/core/expr/activation.ts",
+      scope_ref: "fdpm-cli/src/core/expr/activation.ts",
     },
   },
   {
@@ -640,7 +640,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         "A helper not enumerated in §6.4 MUST surface as a `render-error`. Adding a helper requires a SPEC amendment.",
       enforcement: "ci_check",
-      scope_ref: "cli/src/core/expr/std.ts and cli/src/core/expr/runtime.ts (CI check against §6.4 inventory)",
+      scope_ref: "fdpm-cli/src/core/expr/std.ts and fdpm-cli/src/core/expr/runtime.ts (CI check against §6.4 inventory)",
     },
   },
   {
@@ -651,7 +651,7 @@ const invariants: PrimitiveSpec[] = [
       statement:
         "The shared host runtime enforces expression nesting cap 32, list-iteration cap 1000 (hard cap 100 000), helper argument count cap 8, and string coercion cap 65 536. Exceeding any cap surfaces a `render-error` with the cap that fired.",
       enforcement: "runtime_check",
-      scope_ref: "cli/src/core/expr/runtime.ts",
+      scope_ref: "fdpm-cli/src/core/expr/runtime.ts",
     },
   },
 ];
@@ -663,10 +663,10 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Reuse SPEC-CEL-VALIDATOR's evaluator",
       statement:
-        "The render-time DSL MUST evaluate via the shared host CEL runtime owned by `cli/src/core/expr/` and specified by SPEC-EXPRESSION-RUNTIME. A second engine is forbidden.",
+        "The render-time DSL MUST evaluate via the shared host CEL runtime owned by `fdpm-cli/src/core/expr/` and specified by SPEC-EXPRESSION-RUNTIME. A second engine is forbidden.",
       strength: "MUST",
       verifiability: "review",
-      verifier_ref: "render-time evaluation must consume cli/src/core/expr/ rather than embedding a second evaluator or importing cel-js directly",
+      verifier_ref: "render-time evaluation must consume fdpm-cli/src/core/expr/ rather than embedding a second evaluator or importing cel-js directly",
     },
   },
   {
@@ -678,7 +678,7 @@ const requirements: PrimitiveSpec[] = [
         "`${a.b.c}` MUST resolve via successive property access on the activation root. Missing intermediate keys MUST produce a `render-error` (Principle 4).",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/render.test.ts and cli/tests/error-render.test.ts",
+      verifier_ref: "fdpm-cli/tests/render.test.ts and fdpm-cli/tests/error-render.test.ts",
     },
   },
   {
@@ -690,7 +690,7 @@ const requirements: PrimitiveSpec[] = [
         "Render-time CEL list-comprehension expressions and helper calls MUST never produce side effects. Iteration over `project.primitives` / `project.relations` is read-only; the DSL MUST NOT introduce mutation forms.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/render.test.ts",
+      verifier_ref: "fdpm-cli/tests/render.test.ts",
     },
   },
   {
@@ -702,7 +702,7 @@ const requirements: PrimitiveSpec[] = [
         "Every `${if: …}` MUST have a matching `${endif}` in the same template. Unbalanced templates MUST produce a parse-time `render-error`.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/error-render.test.ts",
+      verifier_ref: "fdpm-cli/tests/error-render.test.ts",
     },
   },
   {
@@ -714,7 +714,7 @@ const requirements: PrimitiveSpec[] = [
         "Given identical project state and identical template, two render invocations MUST produce byte-identical output. Implementations MUST NOT depend on Map iteration order for output assembly.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "cli/tests/render-dsl-determinism.test.ts",
+      verifier_ref: "fdpm-cli/tests/render-dsl-determinism.test.ts",
     },
   },
 ];
@@ -728,12 +728,12 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 1,
       criterion:
-        "DSL evaluator wired into the render-time path through the shared host-owned `cli/src/core/expr/` runtime.",
+        "DSL evaluator wired into the render-time path through the shared host-owned `fdpm-cli/src/core/expr/` runtime.",
       status: "met",
       evidence_refs: [
-        "cli/src/core/render/template.ts",
-        "cli/src/plugin/runtime.ts",
-        "cli/src/commands/render.ts",
+        "fdpm-cli/src/core/render/template.ts",
+        "fdpm-cli/src/plugin/runtime.ts",
+        "fdpm-cli/src/commands/render.ts",
       ],
     },
   },
@@ -745,7 +745,7 @@ const acceptances: PrimitiveSpec[] = [
       criterion:
         "spec:SpecMarkdownRenderer ships at least one template-driven section (`renderADRs` or `renderReferences`) replacing its hand-coded TS function.",
       status: "met",
-      evidence_refs: ["cli/plugins/spec_authoring/renderers/spec_md.ts"],
+      evidence_refs: ["fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts"],
     },
   },
   {
@@ -755,7 +755,7 @@ const acceptances: PrimitiveSpec[] = [
       ordinal: 3,
       criterion: "Determinism harness runs in CI and asserts byte-identical output across two renders.",
       status: "in_progress",
-      evidence_refs: ["cli/tests/render-dsl.test.ts"],
+      evidence_refs: ["fdpm-cli/tests/render-dsl.test.ts"],
     },
   },
   {
@@ -764,7 +764,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 4,
       criterion:
-        "Helper-purity static check (no fs / net / child_process / vm imports under cli/src/core/expr/ and any render-time template glue) wired into CI.",
+        "Helper-purity static check (no fs / net / child_process / vm imports under fdpm-cli/src/core/expr/ and any render-time template glue) wired into CI.",
       status: "open",
     },
   },
@@ -823,7 +823,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:dsl-module",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/src/core/render/ template glue + cli/src/core/expr/",
+      area: "fdpm-cli/src/core/render/ template glue + fdpm-cli/src/core/expr/",
       change:
         "New module: `template-lexer.ts` (split text vs. `${...}` placeholders + recognise the 3 directive keywords), thin glue to the host CEL evaluator from SPEC-EXPRESSION-RUNTIME for everything inside placeholders. NO CEL parser of our own.",
       complexity: "L",
@@ -834,7 +834,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:renderer-wire",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/plugins/spec_authoring/renderers/spec_md.ts",
+      area: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
       change:
         "Migrate one of the kind renderers (start with `renderReferences` — simplest projection) to a CEL-driven template using `project.primitives.filter(...)` plus the closed `fn.*` helper set. Keep all others on the TS path until parity is proven.",
       complexity: "M",
@@ -845,7 +845,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:tests",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/tests/render-dsl-*.test.ts",
+      area: "fdpm-cli/tests/render-dsl-*.test.ts",
       change:
         "Extend the live render suites (`render.test.ts`, `error-render.test.ts`) with render-DSL variable, iteration, conditional, include, helper, determinism, and error-path coverage.",
       complexity: "M",
@@ -856,7 +856,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:fuzz",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/tests/fuzz/render-dsl.fuzz.ts",
+      area: "fdpm-cli/tests/fuzz/render-dsl.fuzz.ts",
       change:
         "Adversarial templates: deeply nested if-blocks, oversized literals, type-mismatched helper args, malformed query syntax. Assert no host crash, no untaxonomised errors.",
       complexity: "M",
@@ -884,7 +884,7 @@ const migration: PrimitiveSpec[] = [
       ordinal: 1,
       label: "Wait for shared host expression runtime adoption point",
       action:
-        "This SPEC depends on the shared host-owned runtime contract in `cli/src/core/expr/`. Block until render-time glue can consume that service directly.",
+        "This SPEC depends on the shared host-owned runtime contract in `fdpm-cli/src/core/expr/`. Block until render-time glue can consume that service directly.",
       affected_paths: [],
     },
   },
@@ -895,8 +895,8 @@ const migration: PrimitiveSpec[] = [
       ordinal: 2,
       label: "Land DSL parser + evaluator",
       action:
-        "Ship render-time template parsing/glue that consumes cli/src/core/expr/ for every expression inside placeholders. No renderer migrations yet.",
-      affected_paths: ["cli/src/core/expr/", "cli/src/core/render/"],
+        "Ship render-time template parsing/glue that consumes fdpm-cli/src/core/expr/ for every expression inside placeholders. No renderer migrations yet.",
+      affected_paths: ["fdpm-cli/src/core/expr/", "fdpm-cli/src/core/render/"],
       depends_on: ["spec:mig:1"],
     },
   },
@@ -908,7 +908,7 @@ const migration: PrimitiveSpec[] = [
       label: "Migrate renderReferences",
       action:
         "Smallest projection in spec_md.ts; replace its hand-coded TS with a template using CEL filtering/sorting over `project.primitives`. Validates the iteration path on a function with trivial sort and no row-template logic.",
-      affected_paths: ["cli/plugins/spec_authoring/renderers/spec_md.ts"],
+      affected_paths: ["fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts"],
       depends_on: ["spec:mig:2"],
     },
   },
@@ -920,7 +920,7 @@ const migration: PrimitiveSpec[] = [
       label: "Migrate progressively, blocked by parity tests",
       action:
         "renderRevisions → renderRisks → renderAcceptanceCriteria → renderImplementationPlan → renderMigration → renderOpenQuestions. Each migration ships with a parity test against the pre-DSL output on the SPEC-CEL-VALIDATOR fixture.",
-      affected_paths: ["cli/plugins/spec_authoring/renderers/spec_md.ts"],
+      affected_paths: ["fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts"],
       depends_on: ["spec:mig:3"],
     },
   },
@@ -1002,7 +1002,7 @@ const mitigations: PrimitiveSpec[] = [
     type: "spec:Mitigation",
     fields: {
       strategy:
-        "Type-system invariant in the shared activation/runtime path (`cli/src/core/expr/activation.ts` plus render-time glue): every name lookup returns `Value | RenderError`, never `undefined`. The renderer surface refuses to render if any RenderError is present.",
+        "Type-system invariant in the shared activation/runtime path (`fdpm-cli/src/core/expr/activation.ts` plus render-time glue): every name lookup returns `Value | RenderError`, never `undefined`. The renderer surface refuses to render if any RenderError is present.",
       status: "planned",
     },
   },
@@ -1162,7 +1162,7 @@ const references: PrimitiveSpec[] = [
     fields: {
       kind: "repo_file",
       citation: "spec_authoring renderer — the hand-coded TS this SPEC proposes to replace.",
-      locator: "cli/plugins/spec_authoring/renderers/spec_md.ts",
+      locator: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
       verification: "verified",
       verification_note: "Read at SPEC-authoring time; ~20 small kind-renderer functions.",
     },
@@ -1188,7 +1188,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Source-of-truth cleanup: remove stale SQL query surface and repoint architecture references to core/expr.",
       notes:
-        "No intended surface expansion. This patch removes contradictions and stale path references in the generator itself:\n\n1. SQL-shaped `${query: SELECT …}` examples, requirements, conformance text, and migration steps are removed. The source now consistently describes a CEL-only render-time DSL with iteration expressed as list comprehensions over `project.primitives` / `project.relations`.\n\n2. ADR consequences no longer claim renderer helpers collapse into `${query: ...}` forms; they now describe CEL expressions plus the closed `fn.*` helper set.\n\n3. The helper-count claim now derives from the shared inventory (`STANDARD_HELPER_COUNT`) instead of hard-coding an obsolete value.\n\n4. Implementation references and migration steps now point at the host-owned runtime in `cli/src/core/expr/` and render-time glue that consumes it, instead of the old `cli/src/core/render/dsl/` / `cli/src/core/validation/cel/` paths.\n\n5. The row-template and cross-project future-work notes no longer reintroduce the removed SQL surface.",
+        "No intended surface expansion. This patch removes contradictions and stale path references in the generator itself:\n\n1. SQL-shaped `${query: SELECT …}` examples, requirements, conformance text, and migration steps are removed. The source now consistently describes a CEL-only render-time DSL with iteration expressed as list comprehensions over `project.primitives` / `project.relations`.\n\n2. ADR consequences no longer claim renderer helpers collapse into `${query: ...}` forms; they now describe CEL expressions plus the closed `fn.*` helper set.\n\n3. The helper-count claim now derives from the shared inventory (`STANDARD_HELPER_COUNT`) instead of hard-coding an obsolete value.\n\n4. Implementation references and migration steps now point at the host-owned runtime in `fdpm-cli/src/core/expr/` and render-time glue that consumes it, instead of the old `fdpm-cli/src/core/render/dsl/` / `fdpm-cli/src/core/validation/cel/` paths.\n\n5. The row-template and cross-project future-work notes no longer reintroduce the removed SQL surface.",
       affected_sections: ["§15", "§17", "§18", "§19", "Future Work", "Migration"],
       kind: "patch",
     },
@@ -1201,7 +1201,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Ship the first live render-DSL execution path through core/expr.",
       notes:
-        "Surface expansion is still intentionally narrow, but the implementation is now live instead of purely specified:\n\n1. New host-owned render-template glue lives under `cli/src/core/render/template.ts` and evaluates `${...}` / `${if: ...}` / `${include: ...}` through the shared `cli/src/core/expr/` runtime rather than a renderer-local evaluator.\n\n2. `fdpm render --strict` now preserves rendered bytes while changing the exit code when render findings are present, matching the v0.1 error-policy contract.\n\n3. `spec:SpecMarkdownRenderer` now renders the References section through a template-driven path, making one shipped section consume the render DSL instead of hand-coded string assembly.\n\n4. New tests cover variable interpolation, conditional rendering, located render findings with inline markers, deterministic renderer output, and strict-mode command semantics.",
+        "Surface expansion is still intentionally narrow, but the implementation is now live instead of purely specified:\n\n1. New host-owned render-template glue lives under `fdpm-cli/src/core/render/template.ts` and evaluates `${...}` / `${if: ...}` / `${include: ...}` through the shared `fdpm-cli/src/core/expr/` runtime rather than a renderer-local evaluator.\n\n2. `fdpm render --strict` now preserves rendered bytes while changing the exit code when render findings are present, matching the v0.1 error-policy contract.\n\n3. `spec:SpecMarkdownRenderer` now renders the References section through a template-driven path, making one shipped section consume the render DSL instead of hand-coded string assembly.\n\n4. New tests cover variable interpolation, conditional rendering, located render findings with inline markers, deterministic renderer output, and strict-mode command semantics.",
       affected_sections: ["§7", "§13", "§18", "§19"],
       kind: "patch",
     },
@@ -1214,7 +1214,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Align render-time policy, rollout ownership, bounds, and verifier refs with core/expr.",
       notes:
-        "No intended surface expansion. This patch fixes four source-of-truth drifts in the generator:\n\n1. Render-time error policy now matches SPEC-EXPRESSION-RUNTIME §M2: default CLI emits bytes with inline markers and records `RenderFinding[]`; `--strict` changes exit semantics, not byte emission.\n\n2. Dependency and rollout wording no longer claims SPEC-CEL-VALIDATOR owns the evaluator. The owner is the shared host runtime in `cli/src/core/expr/`; SPEC-CEL-VALIDATOR is a consumer.\n\n3. Bounded-execution text now names the shipped shared-runtime caps (nesting 32, list iteration 1000, arity 8, string output 65 536) instead of stale query-era `LIMIT` / conditional-nesting wording.\n\n4. Requirement and implementation verifier references now point at the live render test suites instead of nonexistent `render-dsl-*.test.ts` files.",
+        "No intended surface expansion. This patch fixes four source-of-truth drifts in the generator:\n\n1. Render-time error policy now matches SPEC-EXPRESSION-RUNTIME §M2: default CLI emits bytes with inline markers and records `RenderFinding[]`; `--strict` changes exit semantics, not byte emission.\n\n2. Dependency and rollout wording no longer claims SPEC-CEL-VALIDATOR owns the evaluator. The owner is the shared host runtime in `fdpm-cli/src/core/expr/`; SPEC-CEL-VALIDATOR is a consumer.\n\n3. Bounded-execution text now names the shipped shared-runtime caps (nesting 32, list iteration 1000, arity 8, string output 65 536) instead of stale query-era `LIMIT` / conditional-nesting wording.\n\n4. Requirement and implementation verifier references now point at the live render test suites instead of nonexistent `render-dsl-*.test.ts` files.",
       affected_sections: ["§4", "§9", "§10", "§11", "§12", "§13", "§14", "§19"],
       kind: "patch",
     },

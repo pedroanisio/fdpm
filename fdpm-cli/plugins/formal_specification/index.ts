@@ -39,6 +39,7 @@ import { TEMPLATES } from "./templates.js";
 import { renderMarkdown } from "./renderers/markdown.js";
 import { renderHtml } from "./renderers/html.js";
 import { renderPdf } from "./renderers/pdf.js";
+import { registerFormalSpecificationCapabilities } from "./_capabilities.js";
 
 export { renderMarkdown, renderHtml, renderPdf };
 
@@ -116,14 +117,39 @@ export async function activate(ctx: PluginContext): Promise<void> {
     rendererId: "fs:SpecPdfRenderer",
     fn: renderPdf,
   });
+  registerFormalSpecificationCapabilities(ctx);
   ctx.logger.info(
-    `formal-specification activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} validators, 3 renderers (md/html/pdf)`,
+    `formal-specification activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} CEL rules + 3 cap:validator implementations, 3 renderers (md/html/pdf), 1 expr-helper, 1 transformer, 1 importer (fs-jsonl), 1 exporter (fs-jsonl)`,
   );
+}
+
+export function onInstall(ctx: PluginContext): void {
+  ctx.logger.debug(`on-install fired for ${ctx.pluginId}`);
 }
 
 export function onEnable(ctx: PluginContext): void {
   ctx.logger.debug(`on-enable fired for ${ctx.pluginId}`);
 }
 
-const entry: PluginEntryModule = { manifest, activate, onEnable };
+export function onDisable(ctx: PluginContext): void {
+  ctx.logger.debug(`on-disable fired for ${ctx.pluginId}`);
+}
+
+export function onUninstall(ctx: PluginContext): void {
+  ctx.logger.debug(`on-uninstall fired for ${ctx.pluginId}`);
+}
+
+export function deactivate(ctx: PluginContext): void {
+  ctx.logger.debug(`deactivate fired for ${ctx.pluginId}`);
+}
+
+const entry: PluginEntryModule = {
+  manifest,
+  activate,
+  onInstall,
+  onEnable,
+  onDisable,
+  onUninstall,
+  deactivate,
+};
 export default entry;

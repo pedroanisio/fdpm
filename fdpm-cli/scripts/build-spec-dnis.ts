@@ -1082,7 +1082,7 @@ const references: PrimitiveSpec[] = [
       locator: "docs/specs/SPEC-UID.md",
       verification: "verified",
       verification_note:
-        "Cited in §1.3. SPEC-UID's mintUidFromSeed deterministic-mint pattern (cli/src/core/identity/uid.ts) is directly applicable to DNIS implementations migrating legacy logs.",
+        "Cited in §1.3. SPEC-UID's mintUidFromSeed deterministic-mint pattern (fdpm-cli/src/core/identity/uid.ts) is directly applicable to DNIS implementations migrating legacy logs.",
     },
   },
   {

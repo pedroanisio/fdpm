@@ -12,13 +12,35 @@
     "read:projects",
     "read:primitives",
     "read:relations",
-    "render:server"
+    "render:server",
+    "import:project",
+    "export:project"
   ],
   "capabilities": [
     {
       "capability_id": "cap:profile",
       "local_name": "software-architecture",
       "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-install",
+      "entry": "onInstall"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-enable",
+      "entry": "onEnable"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-disable",
+      "entry": "onDisable"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-uninstall",
+      "entry": "onUninstall"
     },
     {
       "capability_id": "cap:renderer",
@@ -41,9 +63,61 @@
       }
     },
     {
-      "capability_id": "cap:lifecycle-hook",
-      "local_name": "on-enable",
-      "entry": "onEnable"
+      "capability_id": "cap:validator",
+      "local_name": "http-method-canonical",
+      "metadata": {
+        "rule_id": "sw:val:http-method-canonical",
+        "type_id": "sw:Endpoint"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "deprecated-since-required",
+      "metadata": {
+        "rule_id": "sw:val:deprecated-since-required",
+        "type_id": "sw:Endpoint"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "proposed-no-decided-at",
+      "metadata": {
+        "rule_id": "sw:val:proposed-no-decided-at",
+        "type_id": "sw:Decision"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "local_name": "endpoint-route",
+      "metadata": {
+        "helper_id": "fn.fdpm.software-architecture.endpoint-route",
+        "arity": 2
+      }
+    },
+    {
+      "capability_id": "cap:transformer",
+      "local_name": "capability-to-endpoint",
+      "metadata": {
+        "from_type_id": "sw:Capability",
+        "to_type_id": "sw:Endpoint",
+        "name": "sw:capability-to-endpoint"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "local_name": "sw-jsonl",
+      "metadata": {
+        "format": "sw-jsonl",
+        "description": "JSON Lines bundle of sw:* primitives + relations."
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "local_name": "sw-jsonl",
+      "metadata": {
+        "format": "sw-jsonl",
+        "description": "JSON Lines export filtered to sw:* primitives + relations."
+      }
     }
   ]
 }
