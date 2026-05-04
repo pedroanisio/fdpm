@@ -33,6 +33,7 @@ export {
   runTestSuite,
 } from "./core/host-extra.js";
 export { buildAuditRecord, type AuditRecord } from "./core/audit/projection.js";
+export * from "./core/dnis/index.js";
 
 // SDK — programmatic facade for embedding (see src/sdk.ts docstring
 // for the design rationale and stability contract).
@@ -40,6 +41,10 @@ export {
   openHost,
   defineProject,
   ProjectBuilder,
+  patchPrimitive,
+  patchRelation,
+  deletePrimitive,
+  deleteRelation,
   renderProject,
   type HostOptions,
   type ProjectHeader,
@@ -47,7 +52,11 @@ export {
   type RelationSpec,
   type CommitOptions,
   type CommitResult,
+  type PartialCommitFailure,
+  type PatchPrimitiveInput,
+  type PatchRelationInput,
+  type PatchResult,
+  type DeleteResult,
   type RenderOptions,
   type RenderResult,
 } from "./sdk.js";
-export * from "./core/dnis/index.js";

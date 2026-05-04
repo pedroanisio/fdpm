@@ -376,6 +376,15 @@ fdpm-cli/plugins/
   formal_specification/    # full Python-source port (32 primitives, etc.)
 ```
 
+```sh
+rm -rf /tmp/fdpm-spec-mcp
+FDPM_DATA_DIR=/tmp/fdpm-spec-mcp npx tsx fdpm-cli/scripts/build-spec-mcp-server.ts
+FDPM_DATA_DIR=/tmp/fdpm-spec-mcp npx tsx fdpm-cli/src/bin/fdpm.ts \
+  render spec-mcp-server text/markdown \
+  --renderer-id spec:SpecMarkdownRenderer \
+  -o docs/specs/SPEC-MCP-SERVER.md
+```
+
 ### Architectural decisions
 
 The recorded ADRs live at [docs/adrs/decisions.md](docs/adrs/decisions.md) and

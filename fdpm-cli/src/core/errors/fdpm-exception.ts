@@ -31,9 +31,13 @@ export class FDPMException extends Error {
   constructor(
     category: ErrorCategory,
     message: string,
-    extras?: { evidence?: Record<string, unknown>; findings?: unknown[] },
+    extras?: {
+      evidence?: Record<string, unknown>;
+      findings?: unknown[];
+      cause?: unknown;
+    },
   ) {
-    super(message);
+    super(message, extras?.cause !== undefined ? { cause: extras.cause } : undefined);
     this.name = "FDPMException";
     this.category = category;
     if (extras?.evidence) this.evidence = extras.evidence;

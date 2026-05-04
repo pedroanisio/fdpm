@@ -2,7 +2,7 @@
  * @fdpm/cli SDK — thin programmatic facade over Host.
  *
  * The Host class is the source of truth and remains directly callable
- * for advanced use. The SDK adds three things:
+ * for advanced use. The SDK adds:
  *
  *   1. `openHost(opts)` — convenience opener that awaits load() so
  *      consumers don't forget the bootstrap step.
@@ -11,12 +11,49 @@
  *      and N relations as a sequence of validated Host calls, with
  *      naming aliases (`type` for type_id, `from` / `to` for source_id
  *      / target_id, `fields` for field_values, and `scope` for
- *      scope_id) that match how operators talk about the domain. NOT
- *      transactional — see `commit()` for the validation/atomicity
- *      trade-off.
- *   3. `renderProject(host, {project, target, ...})` — flat-args
+ *      scope_id) that match how operators talk about the domain. The
+ *      builder is append-only and intended for greenfield project
+ *      construction. NOT transactional — see `commit()` for the
+ *      validation/atomicity trade-off.
+ *   3. Edit helpers: `patchPrimitive`, `deletePrimitive`,
+ *      `patchRelation`, `deleteRelation` — flat-args wrappers around
+ *      the Host's edit/delete methods that share the same
+ *      operator-friendly aliases as `defineProject`. Use these for
+ *      modifying an existing project after it has been built.
+ *   4. `renderProject(host, {project, target, ...})` — flat-args
  *      wrapper around `host.plugins.runRenderer` so callers don't have
  *      to assemble the renderer input envelope themselves.
+ *
+ * For structural / batch / time-travel operations — `batchEdit`,
+ * `undo`, `rebuildFromLog`, `splitProject`, `cloneProject`,
+ * `exportTransfer` / `importTransfer`, `createTemplate` /
+ * `applyTemplate`, `createTestSuite` / `runTestSuite` — use the
+ * functions re-exported from the package root (see
+ * `src/core/host-extra.ts`). They take the Host as their first
+ * argument and don't have SDK-flavoured aliases; the surface is small
+ * enough that re-skinning them adds noise without value.
+ *
+ * Naming convention (alias layer):
+ *   The SDK exposes operator-friendly names for arguments the Host
+ *   spells with `_id` / suffix-heavy domain terms. Every INPUT shape
+ *   in this file follows the same rules so callers can predict the
+ *   alias without consulting the docs:
+ *
+ *     - Drop the `_id` / `Id` suffix on inputs:
+ *         `project_id`         → `project`
+ *         `type_id`            → `type`
+ *         `scope_id`           → `scope`
+ *         `source_id`          → `from`
+ *         `target_id`          → `to`
+ *         `rendererId`         → `renderer`
+ *     - Rename `field_values` → `fields` (operator vocabulary).
+ *     - Snake-case Host fields become camelCase on SDK inputs:
+ *         `expected_revision`  → `expectedRevision`
+ *
+ *   OUTPUT shapes (CommitResult, RenderResult, PartialCommitFailure)
+ *   keep the Host-flavoured names because they document provenance
+ *   precisely (`pluginId`, `rendererId`, `project_id`). Stripping the
+ *   suffix on outputs would lose meaning.
  *
  * Stability contract: SDK helpers forward to Host methods; they don't
  * reimplement them. The Host API remains the contract of record. The
@@ -25,6 +62,7 @@
 
 import { Host, type HostOptions } from "./core/host.js";
 import { FDPMException } from "./core/errors/fdpm-exception.js";
+import type { ValidationReport } from "./core/models/instance.js";
 import type { RendererOutput } from "./plugin/types.js";
 
 // Re-export HostOptions so SDK consumers don't need to reach into
@@ -60,26 +98,38 @@ export interface ProjectHeader {
 /**
  * Builder-friendly primitive spec.
  *
- * `fields` is `Record<string, unknown>` because field shapes are
- * profile-defined and validated at commit time by the §7 pipeline.
- * The runtime validator is the type-safety net here; per-profile
- * compile-time factory shims ("Layer 2" of the SDK proposal) would
- * narrow this further but are not yet shipped.
+ * `fields` defaults to `Record<string, unknown>` because field shapes
+ * are profile-defined and validated at commit time by the §7 pipeline.
+ * The runtime validator is the type-safety net here.
+ *
+ * Profile-aware callers can narrow the field type by parameterising
+ * the generic — for example a profile module can declare:
+ *
+ * ```ts
+ * type SectionSpec = PrimitiveSpec<{ title: string; number: number }>;
+ * ```
+ *
+ * and get TS-level field-name + value-type checking at the call site.
+ * The runtime pipeline is still the source of truth — generic
+ * narrowing is an IDE convenience, not a security boundary.
  */
-export interface PrimitiveSpec {
+export interface PrimitiveSpec<F extends Record<string, unknown> = Record<string, unknown>> {
   id: string;
   type: string;
-  fields: Record<string, unknown>;
+  fields: F;
   scope?: string;
 }
 
-/** Builder-friendly relation spec. See `PrimitiveSpec.fields` re: typing. */
-export interface RelationSpec {
+/**
+ * Builder-friendly relation spec. See `PrimitiveSpec` re: the generic
+ * field-type parameter — same trade-off applies.
+ */
+export interface RelationSpec<F extends Record<string, unknown> = Record<string, unknown>> {
   id: string;
   type: string;
   from: string;
   to: string;
-  fields?: Record<string, unknown>;
+  fields?: F;
 }
 
 /** Options for `ProjectBuilder.commit`. */
@@ -100,6 +150,30 @@ export interface CommitResult {
   revision: number;
   primitives_created: number;
   relations_created: number;
+}
+
+/**
+ * Shape attached to `FDPMException.evidence.partial_commit` when
+ * `commit()` fails partway through without rollback. Lets embedders
+ * inspect what persisted before the failure without walking the host
+ * slice manually. Always present on the error envelope when at least
+ * one create call succeeded before the failure.
+ */
+export interface PartialCommitFailure {
+  project_id: string;
+  /** Number of primitives that successfully persisted before the failure. */
+  primitives_created: number;
+  /** Number of relations that successfully persisted before the failure. */
+  relations_created: number;
+  /**
+   * Where the failure happened. `project` means createProject itself
+   * failed; `primitive` means a createPrimitive call failed; `relation`
+   * means a createRelation call failed; `preflight` means a queue-time
+   * referential check failed before any host call.
+   */
+  failed_at: "project" | "primitive" | "relation" | "preflight";
+  /** Id of the spec that triggered the failure, when applicable. */
+  failed_id?: string;
 }
 
 /**
@@ -127,8 +201,15 @@ export class ProjectBuilder {
    * Append primitives to the pending batch. May be called multiple
    * times. Detects duplicate ids across all calls and rejects
    * immediately rather than waiting for the host to fail mid-commit.
+   *
+   * The optional generic parameter `F` narrows the `fields` shape per
+   * call so a single builder can mix primitives of different types
+   * without losing IDE-level field-name checking. Defaults to the
+   * untyped `Record<string, unknown>`.
    */
-  primitives(specs: ReadonlyArray<PrimitiveSpec>): this {
+  primitives<F extends Record<string, unknown> = Record<string, unknown>>(
+    specs: ReadonlyArray<PrimitiveSpec<F>>,
+  ): this {
     this.assertNotCommitted();
     if (!Array.isArray(specs)) {
       throw new FDPMException(
@@ -152,9 +233,12 @@ export class ProjectBuilder {
 
   /**
    * Append relations to the pending batch. May be called multiple
-   * times. Detects duplicate ids across all calls.
+   * times. Detects duplicate ids across all calls. See `primitives`
+   * re: the generic `F` parameter.
    */
-  relations(specs: ReadonlyArray<RelationSpec>): this {
+  relations<F extends Record<string, unknown> = Record<string, unknown>>(
+    specs: ReadonlyArray<RelationSpec<F>>,
+  ): this {
     this.assertNotCommitted();
     if (!Array.isArray(specs)) {
       throw new FDPMException(
@@ -210,6 +294,30 @@ export class ProjectBuilder {
     this.assertNotCommitted();
     this.committed = true;
 
+    // Pre-flight: referential integrity for queued relations. The
+    // host's createRelation will fail with a validation finding if
+    // `from` or `to` doesn't resolve, but failing here means we can
+    // do it BEFORE createProject runs — no project to roll back, no
+    // partial state, and we can report all dangling refs at once
+    // instead of one per host round-trip.
+    const dangling = this.collectDanglingRelationRefs();
+    if (dangling.length > 0) {
+      const partial: PartialCommitFailure = {
+        project_id: this.header.id,
+        primitives_created: 0,
+        relations_created: 0,
+        failed_at: "preflight",
+        failed_id: dangling[0]!.relation_id,
+      };
+      throw new FDPMException(
+        "verification",
+        `relation(s) reference unknown primitive ids: ${dangling.map((d) => `${d.relation_id} -> ${d.missing}`).join(", ")}`,
+        {
+          evidence: { partial_commit: partial, dangling_refs: dangling },
+        },
+      );
+    }
+
     const projectInput: {
       project_id: string;
       name: string;
@@ -223,10 +331,21 @@ export class ProjectBuilder {
     if (this.header.description !== undefined) {
       projectInput.description = this.header.description;
     }
-    await this.host.createProject(projectInput);
+    try {
+      await this.host.createProject(projectInput);
+    } catch (err) {
+      throw decorateWithPartialCommit(err, {
+        project_id: this.header.id,
+        primitives_created: 0,
+        relations_created: 0,
+        failed_at: "project",
+      });
+    }
 
     let primitivesCreated = 0;
     let relationsCreated = 0;
+    let failedAt: "primitive" | "relation" | undefined;
+    let failedId: string | undefined;
     try {
       for (const p of this._primitives) {
         const input: {
@@ -236,36 +355,79 @@ export class ProjectBuilder {
           scope_id?: string;
         } = { id: p.id, type_id: p.type, field_values: p.fields };
         if (p.scope !== undefined) input.scope_id = p.scope;
-        await this.host.createPrimitive(this.header.id, input);
+        try {
+          await this.host.createPrimitive(this.header.id, input);
+        } catch (err) {
+          failedAt = "primitive";
+          failedId = p.id;
+          throw err;
+        }
         primitivesCreated++;
       }
       for (const r of this._relations) {
-        await this.host.createRelation(this.header.id, {
-          id: r.id,
-          type_id: r.type,
-          source_id: r.from,
-          target_id: r.to,
-          field_values: r.fields ?? {},
-        });
+        try {
+          await this.host.createRelation(this.header.id, {
+            id: r.id,
+            type_id: r.type,
+            source_id: r.from,
+            target_id: r.to,
+            field_values: r.fields ?? {},
+          });
+        } catch (err) {
+          failedAt = "relation";
+          failedId = r.id;
+          throw err;
+        }
         relationsCreated++;
       }
     } catch (err) {
+      const partial: PartialCommitFailure = {
+        project_id: this.header.id,
+        primitives_created: primitivesCreated,
+        relations_created: relationsCreated,
+        failed_at: failedAt ?? "primitive",
+        ...(failedId !== undefined ? { failed_id: failedId } : {}),
+      };
+      const decorated = decorateWithPartialCommit(err, partial);
       if (opts?.rollbackOnError === true) {
         // Best-effort rollback: deleteProject removes the partially-
         // built project so the caller sees pre-commit state. If the
         // delete itself fails (e.g. the host's projection has gone
-        // sideways), we surface BOTH errors via the cause chain.
+        // sideways), we surface BOTH errors — the original error is
+        // attached via Error.cause, and structured findings/evidence
+        // from the original validation failure are preserved on the
+        // wrapping exception so type-narrowing on FDPMException stays
+        // useful. Partial-commit evidence is preserved through the
+        // wrap so embedders still see what persisted before rollback
+        // attempted to undo it.
         try {
           await this.host.deleteProject(this.header.id);
         } catch (rollbackErr) {
+          const orig = decorated as Error & {
+            evidence?: Record<string, unknown>;
+            findings?: unknown[];
+          };
+          const wrapped: {
+            evidence: Record<string, unknown>;
+            findings?: unknown[];
+            cause: unknown;
+          } = {
+            evidence: {
+              original_error: orig.message,
+              rollback_error: (rollbackErr as Error).message,
+              ...(orig.evidence ?? {}),
+            },
+            cause: decorated,
+          };
+          if (orig.findings !== undefined) wrapped.findings = orig.findings;
           throw new FDPMException(
             "internal",
-            `commit failed AND rollback failed for ${this.header.id}: ${(err as Error).message} | rollback: ${(rollbackErr as Error).message}`,
-            { evidence: { original_error: (err as Error).message } },
+            `commit failed AND rollback failed for ${this.header.id}: ${orig.message} | rollback: ${(rollbackErr as Error).message}`,
+            wrapped,
           );
         }
       }
-      throw err;
+      throw decorated;
     }
 
     const slice = this.host.getProject(this.header.id);
@@ -297,6 +459,73 @@ export class ProjectBuilder {
       );
     }
   }
+
+  /**
+   * Find any queued relation whose `from` or `to` doesn't resolve to a
+   * queued primitive. Used by `commit()` to fail BEFORE createProject
+   * runs so embedders don't have to deal with rollback for what is
+   * fundamentally a typed-data wiring mistake.
+   *
+   * Note: only checks against queued primitives. The project doesn't
+   * exist yet at commit start, so there are no pre-existing primitives
+   * to consult — and the builder is greenfield-only by design (see the
+   * class docstring). For edits to an existing project, embedders use
+   * the standalone `patchPrimitive` / `patchRelation` helpers, which
+   * delegate referential checks to the host's §7 pipeline.
+   */
+  private collectDanglingRelationRefs(): Array<{
+    relation_id: string;
+    missing: string;
+    side: "from" | "to";
+  }> {
+    const queuedPrimIds = this._seenPrimitiveIds;
+    const dangling: Array<{
+      relation_id: string;
+      missing: string;
+      side: "from" | "to";
+    }> = [];
+    for (const r of this._relations) {
+      if (!queuedPrimIds.has(r.from)) {
+        dangling.push({ relation_id: r.id, missing: r.from, side: "from" });
+      }
+      if (!queuedPrimIds.has(r.to)) {
+        dangling.push({ relation_id: r.id, missing: r.to, side: "to" });
+      }
+    }
+    return dangling;
+  }
+}
+
+/**
+ * Attach a `partial_commit` evidence block to an exception thrown
+ * during commit() so embedders can read what persisted before the
+ * failure without walking the host slice manually. Mutates the
+ * exception's evidence in place when it's an FDPMException; otherwise
+ * wraps it in a new FDPMException carrying the original via Error.cause.
+ */
+function decorateWithPartialCommit(
+  err: unknown,
+  partial: PartialCommitFailure,
+): Error {
+  if (err instanceof FDPMException) {
+    // FDPMException.evidence is `readonly` at the TS level but a
+    // plain instance property at runtime. We narrow the cast to the
+    // single field we mutate so the bypass is small and reviewable.
+    const mut = err as { evidence?: Record<string, unknown> };
+    if (mut.evidence === undefined) {
+      mut.evidence = { partial_commit: partial };
+    } else {
+      mut.evidence["partial_commit"] = partial;
+    }
+    return err;
+  }
+  // Non-FDPM error — wrap so the partial-commit envelope is still
+  // reachable, while preserving the original via Error.cause.
+  return new FDPMException(
+    "internal",
+    `commit failed: ${(err as Error).message ?? String(err)}`,
+    { evidence: { partial_commit: partial }, cause: err },
+  );
 }
 
 /** Start a new ProjectBuilder. See `ProjectBuilder` for the chain. */
@@ -304,15 +533,158 @@ export function defineProject(host: Host, header: ProjectHeader): ProjectBuilder
   return new ProjectBuilder(host, header);
 }
 
-/** Flat-args options for `renderProject`. */
+// -- Edit helpers ------------------------------------------------------
+//
+// Standalone, flat-args wrappers around Host.patchX / Host.deleteX that
+// share the operator-friendly aliases used by `defineProject` (`fields`
+// for field_values, `scope` for scope_id, `expectedRevision` for
+// expected_revision). They are NOT methods on ProjectBuilder by design:
+// the builder is documented as append-only and intended for greenfield
+// project construction. Edits to a persisted project belong to a
+// different workflow and live as separate top-level functions so the
+// two paths don't blur.
+
+/** Flat-args input for `patchPrimitive`. */
+export interface PatchPrimitiveInput {
+  project: string;
+  id: string;
+  fields: Record<string, unknown>;
+  scope?: string;
+  /** If set, fail with `conflict` when the stored revision differs. */
+  expectedRevision?: number;
+  /**
+   * Force whole-record validation. Default is touched-paths validation
+   * (the §7.5 default), which lets you patch a field even when an
+   * unrelated field has a pre-existing violation.
+   */
+  fullValidate?: boolean;
+}
+
+/** Result returned by `patchPrimitive` and `patchRelation`. */
+export interface PatchResult {
+  /** Project revision after the patch was appended. */
+  revision: number;
+  /** §7 validation report for the touched record. */
+  report: ValidationReport;
+}
+
+/** Result returned by `deletePrimitive` and `deleteRelation`. */
+export interface DeleteResult {
+  /** Project revision after the delete was appended. */
+  revision: number;
+}
+
+/**
+ * Patch a primitive's fields (and optionally its scope).
+ *
+ * Thin wrapper around `host.patchPrimitive`. Validation runs on the
+ * touched paths only by default — see `fullValidate` for the stricter
+ * whole-record semantic. The original Host method's exceptions
+ * (`not_found`, `conflict`, `validation`) propagate unchanged.
+ */
+export async function patchPrimitive(
+  host: Host,
+  input: PatchPrimitiveInput,
+): Promise<PatchResult> {
+  const patch: {
+    id: string;
+    field_values: Record<string, unknown>;
+    scope_id?: string;
+    expected_revision?: number;
+    fullValidate?: boolean;
+  } = { id: input.id, field_values: input.fields };
+  if (input.scope !== undefined) patch.scope_id = input.scope;
+  if (input.expectedRevision !== undefined)
+    patch.expected_revision = input.expectedRevision;
+  if (input.fullValidate !== undefined) patch.fullValidate = input.fullValidate;
+  const out = await host.patchPrimitive(input.project, patch);
+  return { revision: out.append.project_revision, report: out.report };
+}
+
+/** Flat-args input for `patchRelation`. */
+export interface PatchRelationInput {
+  project: string;
+  id: string;
+  fields: Record<string, unknown>;
+  expectedRevision?: number;
+  fullValidate?: boolean;
+}
+
+/**
+ * Patch a relation's fields. Same semantics as `patchPrimitive`;
+ * relations don't have a scope so the alias set is smaller.
+ */
+export async function patchRelation(
+  host: Host,
+  input: PatchRelationInput,
+): Promise<PatchResult> {
+  const patch: {
+    id: string;
+    field_values: Record<string, unknown>;
+    expected_revision?: number;
+    fullValidate?: boolean;
+  } = { id: input.id, field_values: input.fields };
+  if (input.expectedRevision !== undefined)
+    patch.expected_revision = input.expectedRevision;
+  if (input.fullValidate !== undefined) patch.fullValidate = input.fullValidate;
+  const out = await host.patchRelation(input.project, patch);
+  return { revision: out.append.project_revision, report: out.report };
+}
+
+/**
+ * Delete a primitive by id. The Host enforces referential integrity —
+ * dangling relations cascade per §7. Throws `not_found` if the
+ * primitive doesn't exist on the project.
+ */
+export async function deletePrimitive(
+  host: Host,
+  args: { project: string; id: string },
+): Promise<DeleteResult> {
+  const out = await host.deletePrimitive(args.project, args.id);
+  return { revision: out.project_revision };
+}
+
+/**
+ * Delete a relation by id. Throws `not_found` if the relation doesn't
+ * exist on the project.
+ */
+export async function deleteRelation(
+  host: Host,
+  args: { project: string; id: string },
+): Promise<DeleteResult> {
+  const out = await host.deleteRelation(args.project, args.id);
+  return { revision: out.project_revision };
+}
+
+/**
+ * Flat-args options for `renderProject`.
+ *
+ * Naming follows the SDK alias convention (see the file-level
+ * docstring): `project` rather than `project_id`, and `renderer`
+ * rather than `rendererId` — `_id` / `Id` suffixes are dropped on
+ * INPUT shapes throughout the SDK. `target` keeps its bare name
+ * because it's already operator-vocabulary (a MIME type or symbolic
+ * id, see `RendererRegistration.target`) and has no `_id` suffix to
+ * strip.
+ */
 export interface RenderOptions {
   project: string;
   target: string;
-  /** Disambiguate when more than one renderer matches the target. */
-  rendererId?: string;
+  /**
+   * Disambiguate when more than one renderer matches `target`.
+   * Renamed from `rendererId` for alias-convention consistency
+   * (no `Id` suffix on SDK input shapes).
+   */
+  renderer?: string;
 }
 
-/** Renderer result, with the plugin and renderer ids that produced it. */
+/**
+ * Renderer result, with the plugin and renderer ids that produced
+ * it. The `Id` suffixes are kept here because this is a provenance
+ * envelope (an OUTPUT), not an input alias — the suffix communicates
+ * "the id assigned by the plugin runtime" and pruning it would lose
+ * meaning. The SDK alias convention applies to inputs only.
+ */
 export interface RenderResult extends RendererOutput {
   rendererId: string;
   pluginId: string;
@@ -377,7 +749,7 @@ export async function renderProject(
       templates: Object.values(slice.templates),
       profile,
     },
-    opts.rendererId !== undefined ? { rendererId: opts.rendererId } : {},
+    opts.renderer !== undefined ? { rendererId: opts.renderer } : {},
   );
   return result;
 }

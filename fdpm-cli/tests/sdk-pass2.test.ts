@@ -113,6 +113,24 @@ describe("commit({ rollbackOnError: true })", () => {
     }
   });
 
+  // P0 regression: rollback path runs `deleteProject` on a project
+  // whose primitive batch failed on the very first op — meaning the
+  // project was created but ZERO primitives were persisted. Earlier
+  // rollback test failed on the *second* primitive, so this empty-
+  // project edge case was uncovered.
+  it("rolls back a project whose first primitive failed (zero primitives persisted)", async () => {
+    const host = await newHostWithProfile();
+    await expect(
+      defineProject(host, { id: "p-empty", name: "P", profile: "test:demo" })
+        .primitives([
+          { id: "section:bad", type: "test:section", fields: { title: "x".repeat(300), number: 1 } },
+          { id: "section:ok", type: "test:section", fields: { title: "OK", number: 2 } },
+        ])
+        .commit({ rollbackOnError: true }),
+    ).rejects.toThrow(FDPMException);
+    expect(() => host.getProject("p-empty")).toThrow(/not found|not_found/i);
+  });
+
   it("CommitOptions type is exported and accepts rollbackOnError", () => {
     // Type-only assertion: this just compiles.
     const _opts: CommitOptions = { rollbackOnError: true };
@@ -176,6 +194,94 @@ describe("openHost / HostOptions re-export", () => {
     const opts: HostOptions = { dataDir: null, noPlugins: true };
     const host = await openHost(opts);
     expect(host).toBeInstanceOf(Host);
+  });
+});
+
+// -- P0 regressions: double-commit guard + cause-chain preservation ----
+
+describe("ProjectBuilder.commit double-commit guard", () => {
+  it("throws when commit() is called twice on the same builder", async () => {
+    const host = await newHostWithProfile();
+    const b = defineProject(host, { id: "p-once", name: "P", profile: "test:demo" })
+      .primitives([
+        { id: "section:a", type: "test:section", fields: { title: "A", number: 1 } },
+      ]);
+    const first = await b.commit();
+    expect(first.primitives_created).toBe(1);
+    await expect(b.commit()).rejects.toThrow(/already been committed/);
+  });
+
+  it("throws when commit() is called twice after a rolled-back failure", async () => {
+    const host = await newHostWithProfile();
+    const b = defineProject(host, { id: "p-roll-once", name: "P", profile: "test:demo" })
+      .primitives([
+        { id: "section:bad", type: "test:section", fields: { title: "x".repeat(300), number: 1 } },
+      ]);
+    await expect(b.commit({ rollbackOnError: true })).rejects.toThrow(FDPMException);
+    // Second attempt must be refused even though the first never persisted state.
+    await expect(b.commit({ rollbackOnError: true })).rejects.toThrow(/already been committed/);
+  });
+
+  it("rejects primitives() / relations() after commit", async () => {
+    const host = await newHostWithProfile();
+    const b = defineProject(host, { id: "p-sealed", name: "P", profile: "test:demo" });
+    await b.commit();
+    expect(() =>
+      b.primitives([
+        { id: "section:a", type: "test:section", fields: { title: "A", number: 1 } },
+      ]),
+    ).toThrow(/already been committed/);
+    expect(() =>
+      b.relations([
+        { id: "rel:1", type: "test:rel:contains", from: "x", to: "y", fields: {} },
+      ]),
+    ).toThrow(/already been committed/);
+  });
+});
+
+describe("commit rollback-failure error preserves cause chain", () => {
+  it("attaches original error via Error.cause and preserves findings/evidence", async () => {
+    const host = await newHostWithProfile();
+    // Force the rollback's deleteProject to fail so we hit the
+    // wrapped-internal-error path. The first primitive will fail
+    // validation; deleteProject will then throw our injected error.
+    const rollbackBoom = new Error("simulated rollback failure");
+    const original = host.deleteProject.bind(host);
+    host.deleteProject = async () => {
+      // Restore so test cleanup (if any) isn't affected.
+      host.deleteProject = original;
+      throw rollbackBoom;
+    };
+
+    let caught: unknown;
+    try {
+      await defineProject(host, { id: "p-cause", name: "P", profile: "test:demo" })
+        .primitives([
+          { id: "section:bad", type: "test:section", fields: { title: "x".repeat(300), number: 1 } },
+        ])
+        .commit({ rollbackOnError: true });
+      throw new Error("should have thrown");
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught).toBeInstanceOf(FDPMException);
+    const wrapped = caught as FDPMException & { cause?: unknown };
+    expect(wrapped.category).toBe("internal");
+    expect(wrapped.message).toMatch(/commit failed AND rollback failed/);
+
+    // The original validation error must be reachable via Error.cause.
+    expect(wrapped.cause).toBeInstanceOf(FDPMException);
+    expect((wrapped.cause as FDPMException).category).toBe("validation");
+
+    // Structured findings from the original error must survive on the wrapper.
+    expect(Array.isArray(wrapped.findings)).toBe(true);
+    expect((wrapped.findings as unknown[]).length).toBeGreaterThan(0);
+
+    // Both error messages should be available via evidence.
+    expect(wrapped.evidence).toBeDefined();
+    expect(wrapped.evidence!["original_error"]).toEqual(expect.any(String));
+    expect(wrapped.evidence!["rollback_error"]).toBe("simulated rollback failure");
   });
 });
 
