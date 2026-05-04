@@ -31,6 +31,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Host } from "../src/core/host.js";
+import { mintUidFromSeed } from "../src/core/identity/uid.js";
 import type {
   PrimitiveInstance,
   RelationInstance,
@@ -125,10 +126,16 @@ async function findKnownInvalid(transfer: Transfer): Promise<{
   // both the per-primitive validate pass (no use today, but cheap)
   // and the per-relation validate pass (endpoint-existence and
   // endpoint-type checks rely on it).
+  // Pre-flight only validates shape; it never persists. Mint a
+  // deterministic placeholder uid from the stable id (matching the
+  // SPEC-UID upcaster pattern in src/core/operations/upcast.ts) so the
+  // PrimitiveInstance schema's required-uid contract is satisfied
+  // without coupling pre-flight to runtime uid minting.
   const primMap = new Map<string, PrimitiveInstance>();
   for (const p of transfer.primitives) {
     const inst: PrimitiveInstance = {
       id: p.id,
+      uid: mintUidFromSeed(p.id),
       type_id: p.type_id,
       field_values: p.field_values,
       revision: 0,
@@ -145,6 +152,7 @@ async function findKnownInvalid(transfer: Transfer): Promise<{
   for (const r of transfer.relations) {
     const proposed: RelationInstance = {
       id: r.id,
+      uid: mintUidFromSeed(r.id),
       type_id: r.type_id,
       source_id: r.source_id,
       target_id: r.target_id,

@@ -49,6 +49,40 @@ export interface HostOptions {
   cwd?: string;
 }
 
+/**
+ * Typed intent for `Host.appendBatchWithCausation`. Each variant
+ * mirrors the shape its single-entry counterpart accepts.
+ */
+export type DnisBatchIntent =
+  | {
+      kind: "primitive.create";
+      primitive: {
+        id: string;
+        type_id: string;
+        field_values: Record<string, unknown>;
+        scope_id?: string;
+      };
+    }
+  | {
+      kind: "primitive.replace";
+      primitive: {
+        id: string;
+        type_id: string;
+        field_values: Record<string, unknown>;
+        scope_id?: string;
+      };
+    }
+  | {
+      kind: "relation.create";
+      relation: {
+        id: string;
+        type_id: string;
+        source_id: string;
+        target_id: string;
+        field_values?: Record<string, unknown>;
+      };
+    };
+
 export class Host {
   readonly store: Store;
   readonly profiles: ProfileRegistry;
@@ -565,6 +599,167 @@ export class Host {
       for (const o of out) await this.persistence.appendOp(o.op);
     }
     return out;
+  }
+
+  /**
+   * Atomic batch with shared `causation_op_id` and per-entry §7
+   * validation (SPEC-CORE §5.6.2 batch atomicity).
+   *
+   * The caller passes a list of typed "intents" describing what each
+   * entry should do (`primitive.create`, `primitive.replace`,
+   * `relation.create`). The method:
+   *
+   *   1. Pre-mints a fresh ULID for every intent's `op_id` so the lead
+   *      entry's id can be set as every entry's `causation_op_id`.
+   *   2. Runs the same §7 validation pipeline that the equivalent
+   *      single-entry `createPrimitive`/`replacePrimitive`/`createRelation`
+   *      methods run, raising `FDPMException("validation", ...)` with
+   *      structured findings if any entry is rejected.
+   *   3. Calls `store.appendBatch`, which provides single-project
+   *      atomicity with rollback if any append fails (see store.ts
+   *      `appendBatch`).
+   *   4. Persists every committed op to the JSONL log.
+   *
+   * The validation pass is interleaved with synthesis so the projection
+   * snapshot the validator sees reflects the prior intent's state for
+   * graph-traversal predicates. (Two intents creating two nodes that
+   * reference each other still validate correctly because we walk the
+   * intent list in order.)
+   *
+   * The DNIS host adapter is the only intended caller for now.
+   */
+  async appendBatchWithCausation(
+    project_id: string,
+    intents: DnisBatchIntent[],
+  ): Promise<{ outputs: AppendOutput[]; reports: ValidationReport[] }> {
+    if (intents.length === 0) {
+      return { outputs: [], reports: [] };
+    }
+    const request_id = uuidv7();
+    const op_ids = intents.map(() => mintUid());
+    const lead_op_id = op_ids[0]!;
+    const profile = this.requireResolvedProfile(project_id);
+
+    // Interleave validation with synthesis: each entry validates
+    // against the projection that already includes prior entries. If
+    // any entry fails, restore the entire pre-batch projection AND
+    // log slice (matching store.appendBatch's rollback contract).
+    const beforeLog = [...this.store.getOperationLog(project_id)];
+    const beforeSnapshot = this.store.snapshotProjectForRollback(project_id);
+
+    const outputs: AppendOutput[] = [];
+    const reports: ValidationReport[] = [];
+
+    try {
+      for (let i = 0; i < intents.length; i += 1) {
+        const intent = intents[i]!;
+        const op_id = op_ids[i]!;
+        const causation_op_id = i === 0 ? null : lead_op_id;
+        const buildInput = (
+          kind: AppendInput["kind"],
+          payload: Record<string, unknown>,
+        ): AppendInput => ({
+          kind,
+          project_id,
+          payload,
+          op_id,
+          request_id,
+          causation_op_id,
+        });
+
+        let report: ValidationReport;
+        let input: AppendInput;
+        const ctx = this.validationContext(project_id);
+
+        switch (intent.kind) {
+          case "primitive.create": {
+            const uid = mintUid();
+            const proposed: PrimitiveInstance = {
+              id: intent.primitive.id,
+              uid,
+              type_id: intent.primitive.type_id,
+              field_values: intent.primitive.field_values,
+              revision: 0,
+              ...(intent.primitive.scope_id != null && {
+                scope_id: intent.primitive.scope_id,
+              }),
+            };
+            report = this.pipeline.runPrimitive(proposed, profile, ctx);
+            input = buildInput("primitive.create", { ...intent.primitive, uid });
+            break;
+          }
+          case "primitive.replace": {
+            const slice = this.store.getProject(project_id);
+            const existing = slice.primitives[intent.primitive.id];
+            if (!existing)
+              throw new FDPMException(
+                "not_found",
+                `primitive not found: ${intent.primitive.id}`,
+              );
+            if (existing.type_id !== intent.primitive.type_id)
+              throw new FDPMException("conflict", "type_id is immutable");
+            const proposed: PrimitiveInstance = {
+              ...existing,
+              field_values: intent.primitive.field_values,
+              ...(intent.primitive.scope_id != null && {
+                scope_id: intent.primitive.scope_id,
+              }),
+            };
+            report = this.pipeline.runPrimitive(proposed, profile, ctx);
+            input = buildInput("primitive.replace", intent.primitive);
+            break;
+          }
+          case "relation.create": {
+            const uid = mintUid();
+            const proposed: RelationInstance = {
+              id: intent.relation.id,
+              uid,
+              type_id: intent.relation.type_id,
+              source_id: intent.relation.source_id,
+              target_id: intent.relation.target_id,
+              field_values: intent.relation.field_values ?? {},
+              revision: 0,
+            };
+            const slice = this.store.getProject(project_id);
+            const prims = new Map(Object.entries(slice.primitives));
+            report = this.pipeline.runRelation(proposed, profile, prims);
+            input = buildInput("relation.create", { ...intent.relation, uid });
+            break;
+          }
+          default: {
+            const _exhaustive: never = intent;
+            throw new FDPMException(
+              "verification",
+              `unsupported batch intent kind: ${(_exhaustive as { kind: string }).kind}`,
+            );
+          }
+        }
+
+        if (!report.accepted) {
+          throw new FDPMException(
+            "validation",
+            `validation failed for batch entry ${i} (${intent.kind})`,
+            { findings: report.findings },
+          );
+        }
+        reports.push(report);
+
+        // Append immediately so subsequent entries see this one in the
+        // projection (e.g. the dnis:DerivedFrom relation needs the new
+        // dnis:Node primitives to already exist).
+        outputs.push(this.store.append(input));
+      }
+    } catch (err) {
+      // Roll back: restore log + projection. We do NOT persist anything
+      // until the entire batch succeeds, so JSONL is still consistent.
+      this.store.restoreFromBatchSnapshot(project_id, beforeLog, beforeSnapshot);
+      throw err;
+    }
+
+    if (this.persistence) {
+      for (const o of outputs) await this.persistence.appendOp(o.op);
+    }
+    return { outputs, reports };
   }
 
   getProject(id: string): ProjectStateSlice {

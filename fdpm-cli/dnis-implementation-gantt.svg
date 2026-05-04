@@ -52,52 +52,52 @@
 <line class="now-line" x1="240" y1="72" x2="240" y2="464" />
 <text class="now-label" x="244" y="478">now</text>
 <text class="row-label" x="8" y="96">task:contract-audit</text>
-<rect class="bar-either" x="240" y="82" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:contract-audit — contract-audit
-In_review / Either
+<rect class="bar-either" x="240" y="82" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:contract-audit — contract-audit
+Done / Either
 2026-05-04 → 2026-05-04</title></rect>
 <text class="row-label" x="8" y="120">task:data-model</text>
-<rect class="bar-either" x="264" y="106" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:data-model — data-model
-In_review / Either
+<rect class="bar-either" x="264" y="106" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:data-model — data-model
+Done / Either
 2026-05-05 → 2026-05-05</title></rect>
 <text class="row-label" x="8" y="144">task:position-engine</text>
-<rect class="bar-either" x="288" y="130" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:position-engine — position-engine
-In_review / Either
+<rect class="bar-either" x="288" y="130" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:position-engine — position-engine
+Done / Either
 2026-05-06 → 2026-05-06</title></rect>
 <text class="row-label" x="8" y="168">task:operation-core</text>
-<rect class="bar-either" x="312" y="154" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:operation-core — operation-core
-In_review / Either
+<rect class="bar-either" x="312" y="154" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:operation-core — operation-core
+Done / Either
 2026-05-07 → 2026-05-07</title></rect>
 <text class="row-label" x="8" y="192">task:compact-operation</text>
-<rect class="bar-either" x="336" y="178" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:compact-operation — compact-operation
-In_review / Either
+<rect class="bar-either" x="336" y="178" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:compact-operation — compact-operation
+Done / Either
 2026-05-08 → 2026-05-08</title></rect>
 <text class="row-label" x="8" y="216">task:operation-lineage</text>
-<rect class="bar-either" x="336" y="202" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:operation-lineage — operation-lineage
-In_review / Either
+<rect class="bar-either" x="336" y="202" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:operation-lineage — operation-lineage
+Done / Either
 2026-05-08 → 2026-05-08</title></rect>
 <text class="row-label" x="8" y="240">task:idempotency-log</text>
-<rect class="bar-either" x="360" y="226" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:idempotency-log — idempotency-log
-In_review / Either
+<rect class="bar-either" x="360" y="226" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:idempotency-log — idempotency-log
+Done / Either
 2026-05-09 → 2026-05-09</title></rect>
 <text class="row-label" x="8" y="264">task:hashing-canonicalization</text>
-<rect class="bar-either" x="432" y="250" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:hashing-canonicalization — hashing-canonicalization
-In_review / Either
+<rect class="bar-either" x="432" y="250" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:hashing-canonicalization — hashing-canonicalization
+Done / Either
 2026-05-12 → 2026-05-12</title></rect>
 <text class="row-label" x="8" y="288">task:reference-resolution</text>
-<rect class="bar-either" x="432" y="274" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:reference-resolution — reference-resolution
-In_review / Either
+<rect class="bar-either" x="432" y="274" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:reference-resolution — reference-resolution
+Done / Either
 2026-05-12 → 2026-05-12</title></rect>
 <text class="row-label" x="8" y="312">task:tv-l1-harness</text>
-<rect class="bar-either" x="456" y="298" width="48" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:tv-l1-harness — tv-l1-harness
-In_review / Either
+<rect class="bar-either" x="456" y="298" width="48" height="20" fill="#6b7280" rx="2" ry="2"><title>task:tv-l1-harness — tv-l1-harness
+Done / Either
 2026-05-13 → 2026-05-14</title></rect>
 <text class="row-label" x="8" y="336">task:level2-concurrency</text>
-<rect class="bar-either" x="504" y="322" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:level2-concurrency — level2-concurrency
-In_review / Either
+<rect class="bar-either" x="504" y="322" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:level2-concurrency — level2-concurrency
+Done / Either
 2026-05-15 → 2026-05-15</title></rect>
 <text class="row-label" x="8" y="360">task:tv-l2-harness</text>
-<rect class="bar-either" x="528" y="346" width="24" height="20" fill="#f59e0b" rx="2" ry="2"><title>task:tv-l2-harness — tv-l2-harness
-In_review / Either
+<rect class="bar-either" x="528" y="346" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:tv-l2-harness — tv-l2-harness
+Done / Either
 2026-05-16 → 2026-05-16</title></rect>
 <text class="row-label" x="8" y="384">task:security-privacy-boundary</text>
 <rect class="bar-either" x="600" y="370" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:security-privacy-boundary — security-privacy-boundary
@@ -108,8 +108,8 @@ Backlog / Either
 Backlog / Human
 2026-05-20 → 2026-05-20</title></rect>
 <text class="row-label" x="8" y="432">task:spec-feedback-loop</text>
-<rect class="bar-either" x="624" y="418" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:spec-feedback-loop — spec-feedback-loop
-Backlog / Either
+<rect class="bar-either" x="624" y="418" width="24" height="20" fill="#6b7280" rx="2" ry="2"><title>task:spec-feedback-loop — spec-feedback-loop
+Done / Either
 2026-05-20 → 2026-05-20</title></rect>
 <text class="row-label" x="8" y="456">task:rollout-review</text>
 <rect class="bar-human" x="648" y="442" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:rollout-review — rollout-review

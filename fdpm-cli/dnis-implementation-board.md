@@ -1,6 +1,6 @@
 # plan-dnis-implementation — Agent Board
 
-> Profile: `profile:planning:0.1` v0.1.0. 16 tasks. Generated at 2026-05-04T19:02:41.620Z.
+> Profile: `profile:planning:0.1` v0.1.0. 16 tasks. Generated at 2026-05-04T23:52:36.449Z.
 
 ## 🎯 Available to claim
 
@@ -10,7 +10,11 @@ _No tasks available. Either every Ready task is claimed (and within its lease) o
 
 ## 👤 actor:Bot:Builder
 
-### In_review (12)
+### Backlog (1)
+
+- `task:security-privacy-boundary` _(Either/P1)_ — Document and enforce the real trust boundary: agent auth is external, purge is operator-gated, timestamp authority is server-side, and NIDs are never treated as secrets.
+
+### Done (13)
 
 - `task:contract-audit` _(Either/P0)_ — Translate DNIS into an executable contract matrix: exact Level 1 scope, Level 2 additions, explicit non-goals, and the proof mapping from TV-1..TV-6 to code and docs.
 - `task:data-model` _(Either/P0)_ — Implement the DNIS Document, Node, Operation union, and OperationResult persistence shape with the readonly and branded-field invariants preserved at runtime.
@@ -19,16 +23,12 @@ _No tasks available. Either every Ready task is claimed (and within its lease) o
 - `task:operation-lineage` _(Either/P0)_ — Implement split, merge, and retire with lineage recording, retired-node resolution compatibility, and atomic multi-node mutation semantics.
 - `task:compact-operation` _(Either/P0)_ — Implement compact as a first-class operation that rebalances positions without bumping per-node revision or mutating audit fields.
 - `task:idempotency-log` _(Either/P0)_ — Persist the OperationId to OperationResult map atomically with state mutation, including snapshot-on-first-apply retry semantics and payload mismatch handling.
-- `task:hashing-canonicalization` _(Either/P0)_ — Implement document-wide hashAlgorithm selection, algo:hex encoding, and deterministic canonicalization for JSON content at minimum.
+- `task:hashing-canonicalization` _(Either/P0)_ — Implement document-wide hashAlgorithm selection, algo:hex encoding, and deterministic canonicalization for JSON content at minimum. SHA-256 is implemented and document-wide; BLAKE3 is OPTIONAL per §9.1 and intentionally not implemented.
 - `task:reference-resolution` _(Either/P0)_ — Implement the five-outcome resolver for active, retired, evolved-via-lineage, purged, and not-found, including transitive lineage walk.
 - `task:tv-l1-harness` _(Either/P0)_ — Encode TV-1, TV-2, TV-3, TV-4, and TV-6 as executable tests, including retry snapshot behavior, split lineage, move locality, and compact audit semantics.
-- `task:level2-concurrency` _(Either/P1)_ — Add Level 2 optimistic-concurrency enforcement: expectedRevision on single-target operations and Mode A expectedRevisions for merge.
+- `task:level2-concurrency` _(Either/P1)_ — Level 2 optimistic concurrency: expectedRevision on single-target ops and Mode A merge. TV-5 and TV-7 pass. SPEC-DNIS v0.1.7 §10.1.2 evidence shape met by both InMemoryDnisStore and the host adapter; Level 2 conformance now claimable for FDPM-CLI hosts.
 - `task:tv-l2-harness` _(Either/P1)_ — Encode TV-5 as executable concurrency proof: stale writes reject cleanly, merge Mode A checks per-target revisions, and stale attempts do not mutate state.
-
-### Backlog (2)
-
-- `task:security-privacy-boundary` _(Either/P1)_ — Document and enforce the real trust boundary: agent auth is external, purge is operator-gated, timestamp authority is server-side, and NIDs are never treated as secrets.
-- `task:spec-feedback-loop` _(Either/P1)_ — Feed implementation evidence back into DNIS: mark what is now proven, tighten any ambiguous clauses discovered during coding, and keep Level 3 explicitly deferred rather than implied.
+- `task:spec-feedback-loop` _(Either/P1)_ — Feed implementation evidence back into DNIS. Done in SPEC-DNIS v0.1.7: TV-7 added and met, §1.3 superseded by SPEC-CORE 1.2 §5.6 (MUST integration), §15 cites the host adapter as the §5.6.6 reference fixture, Level 2 conformance claimable.
 
 ## 👤 actor:Person:Maintainer
 

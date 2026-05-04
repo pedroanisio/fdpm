@@ -17,6 +17,7 @@ import { buildRenderCommand } from "../commands/render.js";
 import { buildValidateCommand } from "../commands/validate.js";
 import { buildDiffCommand } from "../commands/diff.js";
 import { buildMigrateCommand } from "../commands/migrate.js";
+import { buildDnisCommand } from "../commands/dnis.js";
 import {
   buildCompletionsCommand,
   renderRootAfterHelp,
@@ -35,7 +36,7 @@ async function main(): Promise<void> {
   program
     .description(
       [
-        "FDPM — full CLI implementation of SPEC-CORE v1.1",
+        "FDPM — full CLI implementation of SPEC-CORE v1.2",
         "",
         "Environment variables:",
         ...renderEnvVarHelpLines(),
@@ -100,6 +101,7 @@ async function main(): Promise<void> {
   program.addCommand(buildValidateCommand(host));
   program.addCommand(buildDiffCommand(host));
   program.addCommand(buildMigrateCommand(host));
+  program.addCommand(buildDnisCommand(host));
 
   try {
     await program.parseAsync(process.argv);

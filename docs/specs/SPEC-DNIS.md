@@ -12,11 +12,11 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-dnis.ts"
-revision: "0.1.5 (pass 6) — status promoted Draft → Proposal; spec_id and version drop the `-draft` suffix accordingly; §1.2 prose, PALS-LAW banner, and §5.2 schemaVersion example brought into line with the proposal status. No normative changes to §3–§16. See Appendix B."
+revision: "0.1.7 (pass 8) — TV-7 added (§10.1.2 merge evidence shape) and met against in-memory store + host adapter. §1.3 superseded by SPEC-CORE 1.2 §5.6: SPEC-CORE integration is now MUST for FDPM-CLI hosts. §15 cites the host adapter as the §5.6.6 reference fixture."
 status: "Proposal"
 ---
 
-# Document Node Identity Specification (DNIS) v0.1.5
+# Document Node Identity Specification (DNIS) v0.1.7
 
 _Stable node identity for documents edited by LLM agents and human collaborators._
 
@@ -34,8 +34,8 @@ _Stable node identity for documents edited by LLM agents and human collaborators
 >
 > ```bash
 > rm -rf /tmp/fdpm-spec-dnis
-> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/scripts/build-spec-dnis.ts
-> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/src/bin/fdpm.ts \
+> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis node --import tsx fdpm-cli/scripts/build-spec-dnis.ts
+> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis node --import tsx fdpm-cli/src/bin/fdpm.ts \
 >   render spec-dnis text/markdown \
 >   --renderer-id spec:SpecMarkdownRenderer \
 >   -o docs/specs/SPEC-DNIS.md
@@ -46,7 +46,7 @@ _Stable node identity for documents edited by LLM agents and human collaborators
 > runtime bug. All LLM output must be treated as untrusted and validated
 > explicitly.
 >
-> DNIS is a proposal that has been refined across five iterative passes (v0.1.0 → v0.1.5) but has not been reviewed by an external standards body, has no implementations beyond the §15 reference example (which itself is unverified — see §15 and the `cannot_verify` entry in §17), and has not been tested at scale. No claim, requirement, or guarantee within this document should be taken as ground truth without independent verification. Any statement not backed by a real reference, mathematical derivation, or executable implementation may be invalid, erroneous, or hallucinated.
+> DNIS is a proposal that has been refined across seven iterative passes (v0.1.0 → v0.1.7). v0.1.7 closes the §10.1.2 merge stale-rejection evidence shape (TV-7) and acknowledges that SPEC-CORE 1.2.0 §5.6 supersedes the §1.3 "MAY layer on SPEC-CORE" clause for FDPM-CLI hosts: the integration is now MUST and the host adapter (fdpm-cli/src/core/dnis/adapter.ts) is the §5.6.6 reference fixture. The specification has not been reviewed by an external standards body and has not been tested at scale. No claim, requirement, or guarantee within this document should be taken as ground truth without independent verification. Any statement not backed by a real reference, mathematical derivation, or executable implementation may be invalid, erroneous, or hallucinated.
 
 ## Disclaimer
 
@@ -59,8 +59,8 @@ This work is subject to the methodological caveats and commitments described in 
 
 | Field | Value |
 | --- | --- |
-| Spec ID | spec:dnis:0.1.5 |
-| Version | 0.1.5 |
+| Spec ID | spec:dnis:0.1.7 |
+| Version | 0.1.7 |
 | Status | Proposal |
 | Audience | Implementers of document stores and editing pipelines that host LLM agents, human collaborators, and audit-bearing references. |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, dnis-spec.md, docs/specs/SPEC-CORE.md, docs/specs/SPEC-UID.md |
@@ -91,9 +91,9 @@ DNIS sits alongside two existing FDPM specifications that solve overlapping prob
 - **SPEC-CORE** defines an event-sourced operation log for typed primitives and relations within a single FDPM project. Its `op_id`, `parent_op_id`, and `causation_op_id` fields form an audit-trail layer comparable to DNIS Operations and lineage. SPEC-CORE's primitive store is **not** a document model — it has no built-in concept of paragraph-grain identity or fractional positions. DNIS layers a document-grain identity story on top of (or alongside) such a store.
 - **SPEC-UID** introduces a dual-ID model (slug + ULID) for SPEC-CORE primitives and relations. The ULID-as-stable-identity insight is the same as DNIS §4.1, and SPEC-UID's `mintUidFromSeed` upcaster pattern (deterministic mint from `op_id`) is directly applicable to DNIS implementations that need to migrate v1.1-shaped logs.
 
-DNIS conforming implementations **MAY** be built on top of a SPEC-CORE host (treating each Node as a SPEC-CORE primitive and each Operation as a SPEC-CORE op), but this specification does not require it. DNIS does **NOT** define how its `derivedFrom` lineage graph integrates with SPEC-CORE's `parent_op_id` chain — that integration is left to a future profile.
+**Updated in v0.1.7.** SPEC-CORE 1.2.0 §5.6 supersedes the prior "MAY layer on top of SPEC-CORE" wording for FDPM-CLI hosts: such hosts **MUST** be built on top of a SPEC-CORE host per the §5.6 integration profile (every DNIS Document is a `dnis:Document` SPEC-CORE primitive; every DNIS Node is a `dnis:Node` SPEC-CORE primitive; every DNIS Operation produces SPEC-CORE op-log entries that double as the §8 OperationResult idempotency map; lineage is carried as `dnis:DerivedFrom` typed relations whose `parent_op_id` chain mirrors the SPEC-DNIS `derivedFrom` graph). The reference adapter is `fdpm-cli/src/core/dnis/adapter.ts`; the §5.6.6 conformance fixture is `fdpm-cli/tests/dnis-host-adapter.test.ts`. Standalone implementations that do not host a SPEC-CORE op log are out of v0.1.7 conformance scope.
 
-Implementers wishing to use SPEC-CORE as the persistence layer today **SHOULD** treat DNIS Operations as opaque payloads inside SPEC-CORE `primitive.create` / `primitive.replace` operations, with `derivedFrom` carried verbatim in `field_values`. Cross-graph integration (mapping `parent_op_id` ↔ `derivedFrom`, mapping the OperationResult idempotency map onto the SPEC-CORE op log, etc.) is profile-defined and **MUST NOT** be assumed.
+The legacy guidance "treat DNIS Operations as opaque payloads inside SPEC-CORE `primitive.create` / `primitive.replace`" is obsolete: as of SPEC-CORE 1.2 the integration is structural, not opaque. Cross-graph integration is now defined: a single SPEC-DNIS Operation becomes one or more SPEC-CORE op-log entries that share a `causation_op_id` (the lead entry's `op_id` IS the SPEC-DNIS OperationId per §5.6.3); the SPEC-DNIS §11 lineage walk runs over `dnis:DerivedFrom` relations; schema-version migration uses SPEC-CORE §5.5.6 upcasters per §5.6.5.
 
 ---
 
@@ -590,11 +590,17 @@ The lineage invariant (§7.7) is in tension with regulatory requirements such as
 
 The source DNIS draft (dnis-spec.md §15) names a non-normative reference implementation, `document-store.mjs`, said to live in "the companion materials to this specification."
 
-**As of this revision, no such file is present in this repository.** No file at any path matches that name. The §17 reference entry `spec:ref:document-store-mjs` is correspondingly marked `cannot_verify` and **MUST NOT** be cited as evidence of conformance.
+**That historical companion file is still absent.** No file at any path matches that name. The §17 reference entry `spec:ref:document-store-mjs` therefore remains `cannot_verify` and **MUST NOT** be cited as evidence of conformance.
 
-Conformance to this specification is defined against the requirements (§4–§14), the test vectors (§16), and the conformance levels (§12) — never against an implementation whose existence cannot be verified. PALS-LAW: an unverifiable implementation is not authority.
+**As of v0.1.7, the repository ships two reference surfaces:**
 
-Promotion of this SPEC past Draft status SHOULD either (a) land an actual reference implementation in this repository and re-cite it from §17, or (b) delete this section in favour of conformance-by-test-vector alone.
+1. **In-memory store** — `fdpm-cli/src/core/dnis/store.ts`, exercised by `fdpm-cli/tests/dnis-store.test.ts`. Used by callers who want the SPEC-DNIS surface without a SPEC-CORE host (out of conformance scope per §1.3 but useful as a planner / unit-test fixture).
+
+2. **Host adapter (normative §5.6.6 fixture)** — `fdpm-cli/src/core/dnis/adapter.ts`, exercised by `fdpm-cli/tests/dnis-host-adapter.test.ts`. Routes every SPEC-DNIS Operation through a SPEC-CORE Host (`appendBatchWithCausation`) so each Operation materialises as one or more SPEC-CORE op-log entries sharing a `causation_op_id`. The op log is the persistent source of truth (SPEC-CORE §5.6.3); the adapter's in-memory cache is reproducible from the log via §5.5.3 replay restricted to `dnis:*` primitives. **TV-1 through TV-7 pass against this adapter** with the built-in `profile:dnis:0.1` profile activated.
+
+Conformance to this specification is defined against the requirements (§4–§14), the test vectors (§16), and the conformance levels (§12). For FDPM-CLI hosts, conformance is additionally defined against SPEC-CORE 1.2 §5.6 and is exercised by surface (2) above.
+
+**Level 2 conformance status:** the §10.1.2 ordered per-target merge-rejection evidence shape (TV-7) is met by both the in-memory store and the host adapter as of v0.1.7. Level 2 conformance against the SPEC-DNIS §12 definition is now claimable for FDPM-CLI hosts that activate the host adapter. Level 3 (CRDT) remains explicitly out of scope.
 
 ---
 
@@ -602,14 +608,33 @@ Promotion of this SPEC past Draft status SHOULD either (a) land an actual refere
 
 A conforming implementation **SHOULD** pass the following scenarios. These are stated as invariants; concrete inputs and outputs depend on the chosen identifier format and timestamps.
 
-**Status legend.** `[ ]` / *(open)* indicates the test vector has no demonstrated passing implementation in this repository (PALS-LAW: an unverified assertion is `unverified`, never `passing`). `[x]` / *(verified)* would indicate a CI-passing test against a checked-in implementation. As of this revision, all test vectors are *(open)* because no reference implementation has been landed; see §15.
+**Status legend.** `[ ]` / *(open)* indicates the test vector has no demonstrated passing implementation in this repository (PALS-LAW: an unverified assertion is `unverified`, never `passing`). `[x]` / *(met)* indicates a passing checked-in test against an implementation present in this repository.
 
-- [ ] **1.** **TV-1 — Identity Preservation Under Edit.** Given a Node n with NID id_n and content c1, applying an `edit` Operation with content c2: n.id after the Operation MUST equal id_n; n.content MUST equal c2; n.contentHash MUST equal hash(canonicalize(c2)); n.revision MUST be one greater than before; all references to id_n MUST still resolve to n. _(open)_
-- [ ] **2.** **TV-2 — Idempotency Under Retry.** Given an Operation op with OID oid_op applied successfully and recorded as OperationResult R, any subsequent Operation submitted with OID oid_op (including with a different payload) MUST NOT modify any Node state and MUST return R verbatim — including the original `appliedAt` server timestamp. The snapshot semantics are normative in §8.5. _(open)_
-- [ ] **3.** **TV-3 — Lineage After Split.** Given a Node n with NID id_n, applying a `split` Operation producing parts p1, p2: n MUST be retired; p1.id and p2.id MUST be freshly generated NIDs; p1.derivedFrom MUST equal [id_n]; p2.derivedFrom MUST equal [id_n]; a reference resolution against id_n MUST return n with retired: true and a descendant set {p1, p2}. _(open)_
-- [ ] **4.** **TV-4 — Position Locality.** Given a Node n and applying a `move` Operation: only n.parentNodeId, n.position, n.revision, and n.lastEdited* fields MAY change. No other Node in the Document MAY have any field modified by this Operation. _(open)_
-- [ ] **5.** **TV-5 — Stale Write Rejection.** Given a Node n at revision r, an `edit` Operation with expectedRevision = r - 1: MUST be rejected; MUST NOT modify any Node state; MUST record no OperationResult. _(open)_
-- [ ] **6.** **TV-6 — Compact Preserves Revision and Identity.** Given Nodes n1..nk in a Document at revisions r1..rk, applying a `compact` Operation (§7.8) repositioning all of them: each ni.id MUST equal its pre-Operation value; each ni.revision MUST equal ri (unchanged); ni.lastEditedBy, ni.lastEditedAt, ni.lastOperationId MUST equal their pre-Operation values; only ni.position MAY change. The OperationResult MUST be recorded in the §8 idempotency map but MUST NOT appear in any per-Node audit field. _(open)_
+As of this revision, TV-1 through TV-6 are *(met)* against `fdpm-cli/src/core/dnis/store.ts` via `fdpm-cli/tests/dnis-store.test.ts`. This is sufficient to show a working Level 1 implementation and real coverage of the named vectors, but it is **not** by itself a blanket Level 2 conformance declaration; see §15 for the remaining merge-evidence gap.
+
+- [x] **1.** **TV-1 — Identity Preservation Under Edit.** Given a Node n with NID id_n and content c1, applying an `edit` Operation with content c2: n.id after the Operation MUST equal id_n; n.content MUST equal c2; n.contentHash MUST equal hash(canonicalize(c2)); n.revision MUST be one greater than before; all references to id_n MUST still resolve to n. _(met)_
+  - evidence: fdpm-cli/src/core/dnis/store.ts
+  - evidence: fdpm-cli/tests/dnis-store.test.ts
+- [x] **2.** **TV-2 — Idempotency Under Retry.** Given an Operation op with OID oid_op applied successfully and recorded as OperationResult R, any subsequent Operation submitted with OID oid_op (including with a different payload) MUST NOT modify any Node state and MUST return R verbatim — including the original `appliedAt` server timestamp. The snapshot semantics are normative in §8.5. _(met)_
+  - evidence: fdpm-cli/src/core/dnis/store.ts
+  - evidence: fdpm-cli/tests/dnis-store.test.ts
+- [x] **3.** **TV-3 — Lineage After Split.** Given a Node n with NID id_n, applying a `split` Operation producing parts p1, p2: n MUST be retired; p1.id and p2.id MUST be freshly generated NIDs; p1.derivedFrom MUST equal [id_n]; p2.derivedFrom MUST equal [id_n]; a reference resolution against id_n MUST return n with retired: true and a descendant set {p1, p2}. _(met)_
+  - evidence: fdpm-cli/src/core/dnis/store.ts
+  - evidence: fdpm-cli/tests/dnis-store.test.ts
+- [x] **4.** **TV-4 — Position Locality.** Given a Node n and applying a `move` Operation: only n.parentNodeId, n.position, n.revision, and n.lastEdited* fields MAY change. No other Node in the Document MAY have any field modified by this Operation. _(met)_
+  - evidence: fdpm-cli/src/core/dnis/store.ts
+  - evidence: fdpm-cli/tests/dnis-store.test.ts
+- [x] **5.** **TV-5 — Stale Write Rejection.** Given a Node n at revision r, an `edit` Operation with expectedRevision = r - 1: MUST be rejected; MUST NOT modify any Node state; MUST record no OperationResult. _(met)_
+  - evidence: fdpm-cli/src/core/dnis/store.ts
+  - evidence: fdpm-cli/tests/dnis-store.test.ts
+- [x] **6.** **TV-6 — Compact Preserves Revision and Identity.** Given Nodes n1..nk in a Document at revisions r1..rk, applying a `compact` Operation (§7.8) repositioning all of them: each ni.id MUST equal its pre-Operation value; each ni.revision MUST equal ri (unchanged); ni.lastEditedBy, ni.lastEditedAt, ni.lastOperationId MUST equal their pre-Operation values; only ni.position MAY change. The OperationResult MUST be recorded in the §8 idempotency map but MUST NOT appear in any per-Node audit field. _(met)_
+  - evidence: fdpm-cli/src/core/dnis/store.ts
+  - evidence: fdpm-cli/tests/dnis-store.test.ts
+- [x] **7.** **TV-7 — Merge Stale-Rejection Evidence Shape.** Given Nodes n1..nk targeted by a `merge` Operation with `expectedRevisions = [r1', r2', ..., rk']` and at least one ri' != ri (the current revision of the target), the rejection signal MUST: (a) be `category: conflict`; (b) carry evidence containing `current_revisions: [r1, r2, ..., rk]` in `targetNodeIds` order — NOT just the first stale value; (c) carry `target_node_ids: [n1, n2, ..., nk]` in the same order; (d) carry `expected_revisions: [r1', r2', ..., rk']` so callers can diff to determine which targets were stale. No state mutation; no OperationResult recorded. This vector closes the §10.1.2 evidence-shape requirement that v0.1.6 acknowledged but did not enforce. _(met)_
+  - evidence: fdpm-cli/src/core/dnis/store.ts
+  - evidence: fdpm-cli/tests/dnis-store.test.ts
+  - evidence: fdpm-cli/src/core/dnis/adapter.ts
+  - evidence: fdpm-cli/tests/dnis-host-adapter.test.ts
 
 ---
 
@@ -623,6 +648,8 @@ A conforming implementation **SHOULD** pass the following scenarios. These are s
 - document-store.mjs — non-normative reference implementation referenced by §15 of the source DNIS draft. ((not present in this repository)) _[cannot_verify]_ — The source DNIS draft (dnis-spec.md §15) names a `document-store.mjs` reference implementation in "the companion materials to this specification". No such file exists at any path within this repository as of this revision. The reference is preserved for fidelity to the source draft, but its claimed properties (Level 1 conformance, ULID identifiers, SHA-256 hashing, in-memory single-process store) cannot be independently verified. PALS-LAW: an unverifiable implementation cannot be cited as evidence of conformance.
 - FDPM SPEC-CORE — primitive store, operation log, replay determinism. (docs/specs/SPEC-CORE.md) _[verified]_ — Cited in §1.3 as the host on which DNIS implementations MAY layer. The op_id / parent_op_id / causation_op_id audit-trail fields informed DNIS Operation modelling.
 - FDPM SPEC-UID v0.2 — dual-ID model (slug + ULID) for FDPM primitives and relations. (docs/specs/SPEC-UID.md) _[verified]_ — Cited in §1.3. SPEC-UID's mintUidFromSeed deterministic-mint pattern (fdpm-cli/src/core/identity/uid.ts) is directly applicable to DNIS implementations migrating legacy logs.
+- fdpm-cli/src/core/dnis/store.ts — checked-in in-memory DNIS reference implementation. (fdpm-cli/src/core/dnis/store.ts) _[verified]_ — Implements the current in-repo DNIS reference surface: create/edit/move/split/merge/retire/compact, idempotency snapshots, and five-outcome reference resolution. This is the implementation evidence cited by §15 for current repository state.
+- fdpm-cli/tests/dnis-store.test.ts — executable DNIS proof surface for TV-1..TV-6 plus additional Level 2 concurrency cases. (fdpm-cli/tests/dnis-store.test.ts) _[verified]_ — Provides passing local proof coverage for TV-1 through TV-6 and extra stale-move/split/retire and merge Mode A rejection scenarios. Used by §16's verified status claims.
 - Feerasta, A., "ULID — Universally Unique Lexicographically Sortable Identifier", 2016. (https://github.com/ulid/spec) _[verified]_ — 26-char Crockford-base32 encoding + 48-bit timestamp + 80-bit randomness layout cited in §4.1.
 - Greenspan, D., "Implementing Fractional Indexing". (https://observablehq.com/@dgreensp/implementing-fractional-indexing) _[unverified]_ — Cited as the canonical informal reference for fractional indexing (§6.2). Reader should consult primary sources for production implementations.
 - Helland, P., "Idempotence Is Not a Medical Condition", ACM Queue, 2012. (https://queue.acm.org/detail.cfm?id=2187821) _[unverified]_ — Informative reference for §8 idempotency reasoning; reader should consult the original article for context.
@@ -637,7 +664,7 @@ A conforming implementation **SHOULD** pass the following scenarios. These are s
 
 ## A. Appendix A — Open Questions
 
-The following are deliberately left unresolved in this draft and **SHOULD** be addressed before promotion from draft status. Each question records the deferral; resolving any of them is a candidate for a follow-up profile or revision.
+The following are deliberately left unresolved in this proposal and **SHOULD** be addressed before any promotion from Proposal to Stable status. Each question records the deferral; resolving any of them is a candidate for a follow-up profile or revision.
 
 - **Q1.** Cross-document references. This specification scopes NIDs to a Document via documentId redundancy on every Node. A formal cross-document reference type with resolution semantics is not yet defined.
   - default: Treat cross-document references as out of scope for the v0.1.x line; current implementations MUST reject references whose documentId differs from the resolving Document.
@@ -654,6 +681,20 @@ The following are deliberately left unresolved in this draft and **SHOULD** be a
 ---
 
 ## B. Appendix B — Change Log
+
+### 0.1.6 — 2026-05-04 — Implementation-evidence refresh: the checked-in DNIS module and tests now replace the earlier no-implementation posture.
+
+§0 document metadata updated: title/spec_id/version bumped 0.1.5 → 0.1.6; the PALS-LAW extension no longer claims there is no checked-in implementation. It now records the narrower truth: there is a real in-memory implementation with passing local tests, but no external review, no scale evidence, and no full Level 2 conformance declaration yet.
+
+§15 Reference Implementation rewritten to distinguish two facts: (1) the source draft's `document-store.mjs` companion artifact is still absent and remains `cannot_verify`; (2) the repository now contains a checked-in DNIS implementation at `fdpm-cli/src/core/dnis/store.ts` with proof coverage in `fdpm-cli/tests/dnis-store.test.ts`.
+
+§16 Test Vectors status legend updated and TV-1..TV-6 status fields changed from `open` to `met`, matching the passing checked-in tests.
+
+Appendix A wording updated from 'this draft' / 'promotion from draft status' to proposal/stable language so the open-questions framing matches the current document lifecycle state.
+
+No normative changes were made to §3–§14. In particular, this revision does NOT claim full Level 2 conformance because the current implementation does not yet prove §10.1.2's full ordered per-target rejection-evidence shape for stale merge failures.
+
+Affected sections: 0, 15, 16, A, B, 17
 
 ### 0.1.5 — 2026-05-04 — Status promoted Draft → Proposal. Spec_id and version drop the `-draft` suffix to match. No normative changes to §3–§16; documentation alignment only.
 

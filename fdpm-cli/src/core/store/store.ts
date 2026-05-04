@@ -27,6 +27,17 @@ export interface AppendInput {
   causation_op_id?: string | null;
   request_id?: string;
   expected_project_revision?: number;
+  /**
+   * Pre-minted op_id. If provided, the store uses this instead of
+   * minting a fresh one. Used by SPEC-CORE §5.6.2 batch atomicity:
+   * the DNIS host adapter mints ULIDs for every entry of a multi-op
+   * DNIS Operation up front so each entry's `causation_op_id` can be
+   * set to the lead entry's `op_id` before any append runs. The id
+   * MUST be a fresh ULID; the store does not re-validate uniqueness
+   * across a project log because op_ids are globally unique by
+   * construction.
+   */
+  op_id?: string;
 }
 
 export interface AppendOutput {
@@ -96,7 +107,7 @@ export class Store {
     }
 
     const op: Operation = {
-      op_id: mintUid(),
+      op_id: input.op_id ?? mintUid(),
       kind: input.kind,
       project_id: input.project_id,
       payload: input.payload,
@@ -186,6 +197,45 @@ export class Store {
       delete this.state.test_suites[project_id];
       delete this.state.scope_membership[project_id];
     }
+  }
+
+  /**
+   * Snapshot a project's slice + scope_membership for rollback by an
+   * outer orchestrator (e.g. `Host.appendBatchWithCausation`, which
+   * appends entries one at a time so each can validate against the
+   * projection that includes prior entries). The complementary restore
+   * is `restoreFromBatchSnapshot`.
+   *
+   * The returned snapshot is fully detached from live state.
+   */
+  snapshotProjectForRollback(project_id: string): {
+    slice: ProjectStateSlice | null;
+    membership: Record<string, string[]> | undefined;
+  } {
+    const slice = sliceProject(this.state, project_id);
+    const membership = this.state.scope_membership[project_id]
+      ? structuredClone(this.state.scope_membership[project_id]!)
+      : undefined;
+    return { slice, membership };
+  }
+
+  /**
+   * Inverse of `snapshotProjectForRollback` plus a log restore. Used by
+   * `Host.appendBatchWithCausation` to undo a partially-applied batch
+   * when a later entry fails validation. Persistence is not touched
+   * because the orchestrator only persists after the in-memory batch
+   * succeeds end-to-end.
+   */
+  restoreFromBatchSnapshot(
+    project_id: string,
+    beforeLog: Operation[],
+    snapshot: {
+      slice: ProjectStateSlice | null;
+      membership: Record<string, string[]> | undefined;
+    },
+  ): void {
+    this.restoreSlice(project_id, snapshot.slice, snapshot.membership);
+    this.state.operation_log[project_id] = [...beforeLog];
   }
 
   // -- Read API --------------------------------------------------------

@@ -904,6 +904,123 @@ describe("InMemoryDnisStore", () => {
       expect(afterFirst.lastOperationId).not.toBe(compact.operationId);
       expect(afterSecond.lastOperationId).not.toBe(compact.operationId);
     });
+
+    it("TV-7 surfaces the full per-target revision array on stale merge rejection", () => {
+      // SPEC-DNIS §10.1.2 Mode A requires the rejection signal to carry
+      // "the per-target current revisions in the order corresponding to
+      // targetNodeIds". A short-circuit-on-first-mismatch implementation
+      // is non-conformant. This vector is the §5.6.6 conformance test
+      // for that evidence-shape requirement.
+      const store = newStore();
+      const document = createDocument(store);
+
+      const firstId = store.apply({
+        id: "TV7CREATE000000000000000001" as OperationId,
+        type: "create",
+        documentId: document.id,
+        agentId: AGENT,
+        issuedAt: "2026-05-04T12:00:00.000Z",
+        payload: {
+          kind: "paragraph",
+          content: { text: "left" },
+          parentNodeId: null,
+          position: positionBetween(null, null),
+        },
+      }).affectedNodeIds[0]!;
+      const secondId = store.apply({
+        id: "TV7CREATE000000000000000002" as OperationId,
+        type: "create",
+        documentId: document.id,
+        agentId: AGENT,
+        issuedAt: "2026-05-04T12:00:01.000Z",
+        payload: {
+          kind: "paragraph",
+          content: { text: "middle" },
+          parentNodeId: null,
+          position: positionBetween(store.getNode(firstId).position, null),
+        },
+      }).affectedNodeIds[0]!;
+      const thirdId = store.apply({
+        id: "TV7CREATE000000000000000003" as OperationId,
+        type: "create",
+        documentId: document.id,
+        agentId: AGENT,
+        issuedAt: "2026-05-04T12:00:02.000Z",
+        payload: {
+          kind: "paragraph",
+          content: { text: "right" },
+          parentNodeId: null,
+          position: positionBetween(store.getNode(secondId).position, null),
+        },
+      }).affectedNodeIds[0]!;
+
+      // Make the second AND third targets stale; first is still at rev 0.
+      store.apply({
+        id: "TV7EDIT0000000000000000002" as OperationId,
+        type: "edit",
+        documentId: document.id,
+        agentId: AGENT,
+        issuedAt: "2026-05-04T12:00:03.000Z",
+        targetNodeId: secondId,
+        expectedRevision: 0,
+        payload: { content: { text: "middle-fresh" } },
+      });
+      store.apply({
+        id: "TV7EDIT0000000000000000003" as OperationId,
+        type: "edit",
+        documentId: document.id,
+        agentId: AGENT,
+        issuedAt: "2026-05-04T12:00:04.000Z",
+        targetNodeId: thirdId,
+        expectedRevision: 0,
+        payload: { content: { text: "right-fresh" } },
+      });
+
+      const firstBefore = store.getNode(firstId);
+      const secondBefore = store.getNode(secondId);
+      const thirdBefore = store.getNode(thirdId);
+
+      try {
+        store.apply({
+          id: "TV7MERGE000000000000000001" as OperationId,
+          type: "merge",
+          documentId: document.id,
+          agentId: AGENT,
+          issuedAt: "2026-05-04T12:00:05.000Z",
+          targetNodeIds: [firstId, secondId, thirdId],
+          payload: {
+            content: { text: "joined" },
+            expectedRevisions: [0, 0, 0],
+          },
+        });
+        throw new Error("expected stale merge rejection");
+      } catch (error) {
+        expect(error).toBeInstanceOf(FDPMException);
+        const fdpm = error as FDPMException;
+        expect(fdpm.category).toBe("conflict");
+        // The evidence MUST carry the per-target current revisions in the
+        // order corresponding to targetNodeIds. A short-circuit
+        // implementation that only reported the first stale target would
+        // omit firstId and thirdId here.
+        expect(fdpm.evidence).toMatchObject({
+          current_revisions: [
+            firstBefore.revision,
+            secondBefore.revision,
+            thirdBefore.revision,
+          ],
+          target_node_ids: [firstId, secondId, thirdId],
+        });
+      }
+
+      // No state mutated, no result recorded.
+      expect(store.getNode(firstId)).toEqual(firstBefore);
+      expect(store.getNode(secondId)).toEqual(secondBefore);
+      expect(store.getNode(thirdId)).toEqual(thirdBefore);
+      expect(
+        store.getOperationResult("TV7MERGE000000000000000001" as OperationId),
+      ).toBeNull();
+      expect(store.listActiveNodes(document.id)).toHaveLength(3);
+    });
   });
 
   describe("Level 2 concurrency proofs", () => {
@@ -1184,8 +1301,14 @@ describe("InMemoryDnisStore", () => {
       } catch (error) {
         expect(error).toBeInstanceOf(FDPMException);
         expect((error as FDPMException).category).toBe("conflict");
+        // Per SPEC-DNIS §10.1.2 Mode A (closed by TV-7), stale merge
+        // rejection MUST surface the per-target current revisions in
+        // `targetNodeIds` order — see the TV-7 vector for the
+        // normative shape.
         expect((error as FDPMException).evidence).toMatchObject({
-          current_revision: beforeSecond.revision,
+          current_revisions: [beforeFirst.revision, beforeSecond.revision],
+          target_node_ids: [firstId, secondId],
+          expected_revisions: [0, 0],
         });
       }
 

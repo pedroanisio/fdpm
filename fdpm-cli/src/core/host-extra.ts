@@ -18,6 +18,7 @@ import type { Operation } from "./operations/operation.js";
 import type { AppendOutput, AppendInput } from "./store/store.js";
 import { v7 as uuidv7 } from "uuid";
 import { mintUid } from "./identity/uid.js";
+import { SPEC_CORE_VERSION } from "./version/spec.js";
 
 /**
  * Higher-level operations layered on Host: split, clone, undo,
@@ -499,7 +500,7 @@ export function runTestSuite(host: Host, project_id: string, suite_id: string): 
 export function exportTransfer(host: Host, project_id: string): ProjectTransfer {
   const slice = host.getProject(project_id);
   return {
-    spec_core: "1.1",
+    spec_core: SPEC_CORE_VERSION,
     project: slice.project,
     primitives: Object.values(slice.primitives),
     relations: Object.values(slice.relations),

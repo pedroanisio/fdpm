@@ -27,6 +27,7 @@
 import {
   openHost,
   defineProject,
+  patchPrimitive,
   type PrimitiveSpec,
   type RelationSpec,
 } from "../src/sdk.js";
@@ -251,7 +252,7 @@ const tasks: Task[] = [
     kind: "Investigation",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-04",
     planned_finish: "2026-05-04",
@@ -266,7 +267,7 @@ const tasks: Task[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 60,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-05",
     planned_finish: "2026-05-05",
@@ -280,7 +281,7 @@ const tasks: Task[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 60,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-06",
     planned_finish: "2026-05-06",
@@ -294,7 +295,7 @@ const tasks: Task[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-07",
     planned_finish: "2026-05-07",
@@ -308,7 +309,7 @@ const tasks: Task[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-08",
     planned_finish: "2026-05-08",
@@ -322,7 +323,7 @@ const tasks: Task[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 30,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-08",
     planned_finish: "2026-05-08",
@@ -336,7 +337,7 @@ const tasks: Task[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-09",
     planned_finish: "2026-05-09",
@@ -346,11 +347,11 @@ const tasks: Task[] = [
     id: "task:hashing-canonicalization",
     name: "hashing-canonicalization",
     summary:
-      "Implement document-wide hashAlgorithm selection, algo:hex encoding, and deterministic canonicalization for JSON content at minimum.",
+      "Implement document-wide hashAlgorithm selection, algo:hex encoding, and deterministic canonicalization for JSON content at minimum. SHA-256 is implemented and document-wide; BLAKE3 is OPTIONAL per §9.1 and intentionally not implemented.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-12",
     planned_finish: "2026-05-12",
@@ -364,7 +365,7 @@ const tasks: Task[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-12",
     planned_finish: "2026-05-12",
@@ -378,7 +379,7 @@ const tasks: Task[] = [
     kind: "Test",
     executor: "Either",
     ai_minutes: 60,
-    status: "In_review",
+    status: "Done",
     priority: "P0",
     planned_start: "2026-05-13",
     planned_finish: "2026-05-14",
@@ -388,11 +389,11 @@ const tasks: Task[] = [
     id: "task:level2-concurrency",
     name: "level2-concurrency",
     summary:
-      "Add Level 2 optimistic-concurrency enforcement: expectedRevision on single-target operations and Mode A expectedRevisions for merge.",
+      "Level 2 optimistic concurrency: expectedRevision on single-target ops and Mode A merge. TV-5 and TV-7 pass. SPEC-DNIS v0.1.7 §10.1.2 evidence shape met by both InMemoryDnisStore and the host adapter; Level 2 conformance now claimable for FDPM-CLI hosts.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P1",
     planned_start: "2026-05-15",
     planned_finish: "2026-05-15",
@@ -406,7 +407,7 @@ const tasks: Task[] = [
     kind: "Test",
     executor: "Either",
     ai_minutes: 45,
-    status: "In_review",
+    status: "Done",
     priority: "P1",
     planned_start: "2026-05-16",
     planned_finish: "2026-05-16",
@@ -430,11 +431,11 @@ const tasks: Task[] = [
     id: "task:spec-feedback-loop",
     name: "spec-feedback-loop",
     summary:
-      "Feed implementation evidence back into DNIS: mark what is now proven, tighten any ambiguous clauses discovered during coding, and keep Level 3 explicitly deferred rather than implied.",
+      "Feed implementation evidence back into DNIS. Done in SPEC-DNIS v0.1.7: TV-7 added and met, §1.3 superseded by SPEC-CORE 1.2 §5.6 (MUST integration), §15 cites the host adapter as the §5.6.6 reference fixture, Level 2 conformance claimable.",
     kind: "Documentation",
     executor: "Either",
     ai_minutes: 45,
-    status: "Backlog",
+    status: "Done",
     priority: "P1",
     planned_start: "2026-05-20",
     planned_finish: "2026-05-20",
@@ -470,6 +471,16 @@ const tasks: Task[] = [
   },
 ];
 
+// The plan:val:done-task-has-ac CEL rule rejects creating a Task at status
+// "Done" unless it already has an outgoing plan:Verifies edge. The SDK
+// commits primitives strictly before relations (src/sdk.ts:350-382), so a
+// Done task in the initial primitives batch sees an empty graph and the
+// rule fires before the corresponding rel:verifies-* edge can exist.
+//
+// Commit Done tasks as "In_review" (their truthful prior state) and flip
+// them to "Done" via patchPrimitive after relations land. Touched-paths
+// validation re-evaluates the rule on the patched status against the
+// now-populated graph, so the patch succeeds.
 const taskSpecs: PrimitiveSpec[] = tasks.map((t) => ({
   id: t.id,
   type: "plan:Task",
@@ -479,7 +490,7 @@ const taskSpecs: PrimitiveSpec[] = tasks.map((t) => ({
     summary: t.summary,
     kind: t.kind,
     executor_kind: t.executor,
-    status: t.status,
+    status: t.status === "Done" ? "In_review" : t.status,
     priority: t.priority,
     is_root: true,
     ...(t.ai_minutes !== undefined ? { ai_minutes: t.ai_minutes } : {}),
@@ -578,6 +589,20 @@ async function main() {
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);
+
+  // Phase 2 — promote tasks declared Done to "Done" now that their
+  // plan:Verifies edges exist. See the comment on taskSpecs above for
+  // why this is split from the initial commit.
+  const doneTasks = tasks.filter((t) => t.status === "Done");
+  for (const t of doneTasks) {
+    await patchPrimitive(host, {
+      project: PROJECT_ID,
+      id: t.id,
+      fields: { status: "Done" },
+    });
+  }
+  console.log("  promoted:  ", doneTasks.length, "task(s) → Done");
+
   process.exit(0);
 }
 

@@ -387,8 +387,31 @@ export class InMemoryDnisStore {
           "merge expectedRevisions must align 1:1 with targetNodeIds",
         );
       }
-      for (const [index, target] of targets.entries()) {
-        this.assertExpectedRevision(target, operation.payload.expectedRevisions[index]);
+      // SPEC-DNIS §10.1.2 Mode A — TV-7. The rejection signal MUST carry
+      // the per-target current revisions in `targetNodeIds` order. Do
+      // NOT short-circuit on the first mismatch via assertExpectedRevision:
+      // collect the full ordered evidence first, then either raise once
+      // with the array or proceed.
+      const expected = operation.payload.expectedRevisions;
+      const currentRevisions = targets.map((t) => t.revision);
+      const targetNodeIds = targets.map((t) => t.id);
+      const anyStale = targets.some(
+        (target, index) => target.revision !== expected[index],
+      );
+      if (anyStale) {
+        throw new FDPMException(
+          "conflict",
+          `merge expectedRevisions mismatch on ${targetNodeIds
+            .filter((_, i) => currentRevisions[i] !== expected[i])
+            .join(", ")}`,
+          {
+            evidence: {
+              current_revisions: currentRevisions,
+              target_node_ids: targetNodeIds,
+              expected_revisions: [...expected],
+            },
+          },
+        );
       }
     }
 

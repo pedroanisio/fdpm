@@ -19,7 +19,7 @@ describe("transfer + templates + test-suites", () => {
       field_values: { title: "A", number: 1 },
     });
     const transfer = exportTransfer(a, "p1");
-    expect(transfer.spec_core).toBe("1.1");
+    expect(transfer.spec_core).toBe("1.2");
 
     const b = await newHost();
     // Re-target the transfer's project id for the destination host.

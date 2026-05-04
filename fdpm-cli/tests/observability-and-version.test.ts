@@ -40,8 +40,9 @@ describe("§13 observability and audit", () => {
 
 describe("§12.2 versioning", () => {
   it("core-versioning-001: spec_core is major.minor; spec_core_revision is the doc revision", () => {
-    expect(SPEC_CORE_VERSION).toBe("1.1");
-    expect(SPEC_CORE_REVISION).toMatch(/^1\.1\.\d+$/);
+    // SPEC-CORE 1.2 (this revision) bumps the minor for §5.6 SPEC-DNIS adoption.
+    expect(SPEC_CORE_VERSION).toBe("1.2");
+    expect(SPEC_CORE_REVISION).toMatch(/^1\.2\.\d+$/);
     expect(HOST_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
