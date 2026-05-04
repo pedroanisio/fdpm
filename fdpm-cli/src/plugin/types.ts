@@ -1,0 +1,180 @@
+import type { DomainProfile } from "../core/models/meta.js";
+import type {
+  PrimitiveInstance,
+  RelationInstance,
+  Project,
+  ProjectTemplate,
+  ProjectTransfer,
+  ValidationFinding,
+} from "../core/models/instance.js";
+import type { RenderDslFacade, RenderFinding } from "../core/render/template.js";
+import type { Permission, PluginManifest } from "./manifest.js";
+export type { ExprHelperRegistration } from "../core/expr/runtime.js";
+import type { ExprHelperRegistration } from "../core/expr/runtime.js";
+
+/**
+ * §6.2 PluginContext — the only object a plugin's activate() receives.
+ * Read-only views are gated by the corresponding `read:*` permission.
+ *
+ * The CLI runtime does not provide `register_router` (no HTTP server).
+ * It does not provide `cap:ui:*` register methods (no frontend).
+ */
+export interface PluginContext {
+  pluginId: string;
+  pluginVersion: string;
+  permissions: ReadonlySet<Permission>;
+  config: Readonly<Record<string, unknown>>;
+  logger: PluginLogger;
+
+  // Server-side registrations
+  registerProfile(profile: DomainProfile): void;
+  registerValidator(reg: ValidatorRegistration): void;
+  registerRenderer(reg: RendererRegistration): void;
+  registerExprHelper(reg: ExprHelperRegistration): void;
+  registerTransformer(reg: TransformerRegistration): void;
+  registerImporter(reg: ImporterRegistration): void;
+  registerExporter(reg: ExporterRegistration): void;
+
+  // Read-only views (each requires a permission)
+  listProfiles(): readonly DomainProfile[];
+  getProfile(id: string): DomainProfile | undefined;
+  listProjects(): readonly { id: string; name: string; profile_id: string; revision: number }[];
+  getProject(id: string): Project | undefined;
+  listPrimitives(projectId: string): readonly PrimitiveInstance[];
+  getPrimitive(projectId: string, id: string): PrimitiveInstance | undefined;
+  listRelations(projectId: string): readonly RelationInstance[];
+  getRelation(projectId: string, id: string): RelationInstance | undefined;
+}
+
+export interface PluginLogger {
+  info(message: string, meta?: Record<string, unknown>): void;
+  warn(message: string, meta?: Record<string, unknown>): void;
+  error(message: string, meta?: Record<string, unknown>): void;
+  debug(message: string, meta?: Record<string, unknown>): void;
+}
+
+/**
+ * Optional 4th parameter handed to validators by the pipeline. Carries
+ * data the validator may need beyond the instance — today only
+ * `relations` (so graph predicates like `has_incoming` / `has_outgoing`
+ * / `acyclic` can run). The argument is OPTIONAL on the signature so
+ * an existing single-arg validator keeps working unchanged.
+ */
+export interface ValidatorContext {
+  relations: readonly RelationInstance[];
+}
+
+export type ValidatorFn = (
+  instance: PrimitiveInstance | RelationInstance,
+  type?: unknown,
+  profile?: unknown,
+  context?: ValidatorContext,
+) => ValidationFinding[] | Promise<ValidationFinding[]>;
+
+export interface ValidatorRegistration {
+  type_id: string;
+  rule_id: string;
+  fn: ValidatorFn;
+}
+
+export interface RendererInput {
+  projectId: string;
+  project?: Project;
+  primitives: readonly PrimitiveInstance[];
+  relations: readonly RelationInstance[];
+  templates?: readonly ProjectTemplate[];
+  profile: DomainProfile;
+  renderDsl?: RenderDslFacade;
+}
+export type RendererFn = (input: RendererInput) => Promise<RendererOutput> | RendererOutput;
+export interface RendererOutput {
+  bytes: Uint8Array;
+  contentType: string;
+  filename?: string;
+  findings?: RenderFinding[];
+}
+export interface RendererRegistration {
+  target: string; // mime type or symbolic id
+  rendererId: string;
+  fn: RendererFn;
+}
+
+export interface TransformerInput {
+  projectId: string;
+  source: PrimitiveInstance | RelationInstance;
+  profile: DomainProfile;
+}
+export interface TransformerOpEmission {
+  kind: string; // operation kind (must be in Core's closed set)
+  payload: Record<string, unknown>;
+}
+export type TransformerFn = (
+  input: TransformerInput,
+) => Promise<TransformerOpEmission[]> | TransformerOpEmission[];
+export interface TransformerRegistration {
+  fromTypeId: string;
+  toTypeId: string;
+  name: string;
+  fn: TransformerFn;
+}
+
+export interface ImporterOptions {
+  /** Caller-supplied project id (importer formats without an embedded project envelope use this). */
+  projectId?: string;
+  /** Caller-supplied project display name. */
+  projectName?: string;
+  /** Caller-supplied project description. */
+  projectDescription?: string;
+  /** Format-specific options forwarded by the CLI / API caller. */
+  extra?: Record<string, unknown>;
+}
+export type ImporterFn = (
+  raw: unknown,
+  options?: ImporterOptions,
+) => Promise<ProjectTransfer> | ProjectTransfer;
+export interface ImporterRegistration {
+  format: string;
+  fn: ImporterFn;
+}
+
+export type ExporterFn = (
+  transfer: ProjectTransfer,
+) => Promise<Uint8Array> | Uint8Array;
+export interface ExporterRegistration {
+  format: string;
+  fn: ExporterFn;
+}
+
+/**
+ * §10.1 trust tiers — a plugin's tier governs default activation state.
+ */
+export type TrustTier = "core" | "verified" | "community" | "unknown";
+
+/**
+ * §6.4 lifecycle states.
+ */
+export type LifecycleState =
+  | "discovered"
+  | "rejected"
+  | "registered"
+  | "active"
+  | "disabled"
+  | "quarantined";
+
+export interface PluginEntryModule {
+  manifest: PluginManifest;
+  activate(ctx: PluginContext): void | Promise<void>;
+  deactivate?(ctx: PluginContext): void | Promise<void>;
+  /** Optional lifecycle hooks per §4.4. */
+  onInstall?(ctx: PluginContext): void | Promise<void>;
+  onEnable?(ctx: PluginContext): void | Promise<void>;
+  onDisable?(ctx: PluginContext): void | Promise<void>;
+  onUninstall?(ctx: PluginContext): void | Promise<void>;
+}
+
+/**
+ * Source of a plugin (filesystem path or built-in symbolic id).
+ */
+export type PluginSource =
+  | { kind: "filesystem"; root: string; manifestPath: string; builtin?: boolean }
+  | { kind: "builtin"; id: string };

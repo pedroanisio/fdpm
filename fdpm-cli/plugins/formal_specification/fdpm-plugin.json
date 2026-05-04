@@ -1,0 +1,59 @@
+{
+  "id": "fdpm.formal-specification",
+  "version": "3.1.0",
+  "spec_version": "1.1.0",
+  "kind": "server",
+  "name": "Formal Specification",
+  "description": "Primitives, relations, validation rules, and renderers (markdown / html / pdf) for modeling formal specifications, technical papers, and typed execution roadmaps.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": { "fdpm": ">=1.1,<2" },
+  "permissions": [
+    "read:projects",
+    "read:primitives",
+    "read:relations",
+    "render:server"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "formal-specification",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-enable",
+      "entry": "onEnable"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "spec-md",
+      "entry": "renderMarkdown",
+      "metadata": {
+        "renderer_id": "fs:SpecRenderer",
+        "output_format": "text/markdown",
+        "output_path": "spec.md"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "spec-html",
+      "entry": "renderHtml",
+      "metadata": {
+        "renderer_id": "fs:SpecHtmlRenderer",
+        "output_format": "text/html",
+        "output_path": "spec.html"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "spec-pdf",
+      "entry": "renderPdf",
+      "metadata": {
+        "renderer_id": "fs:SpecPdfRenderer",
+        "output_format": "application/pdf",
+        "output_path": "spec.pdf"
+      }
+    }
+  ]
+}

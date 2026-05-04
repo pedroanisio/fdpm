@@ -1,0 +1,62 @@
+{
+  "id": "fdpm.planning",
+  "version": "0.1.0",
+  "spec_version": "1.1.0",
+  "kind": "server",
+  "name": "Planning",
+  "description": "Planning-and-tracking profile for software implementation and testing workflows. Covers work breakdown, per-task acceptance criteria (free-text and CEL-evaluable), dependency and blocker management, descriptive Gantt scheduling, and concurrent execution by humans and multiple AI agents working in parallel. AI-task durations are bounded to [5,60] minutes in 5-minute steps.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2",
+    "expr_helper_set": ">=1.1.0,<2"
+  },
+  "permissions": [
+    "read:projects",
+    "read:primitives",
+    "read:relations",
+    "render:server"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "planning",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "roadmap",
+      "entry": "renderRoadmap",
+      "metadata": {
+        "renderer_id": "plan:RoadmapRenderer",
+        "target": "text/markdown",
+        "output_path": "roadmap.md"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "gantt",
+      "entry": "renderGantt",
+      "metadata": {
+        "renderer_id": "plan:GanttSvgRenderer",
+        "target": "image/svg+xml",
+        "output_path": "gantt.svg"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "agent-board",
+      "entry": "renderAgentBoard",
+      "metadata": {
+        "renderer_id": "plan:AgentBoardRenderer",
+        "target": "text/markdown",
+        "output_path": "board.md"
+      }
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-enable",
+      "entry": "onEnable"
+    }
+  ]
+}

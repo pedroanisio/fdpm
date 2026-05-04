@@ -1,0 +1,49 @@
+{
+  "id": "fdpm.software-architecture",
+  "version": "1.0.0",
+  "spec_version": "1.1.0",
+  "kind": "server",
+  "name": "Software Architecture",
+  "description": "Primitives, relations, and validation rules for documenting software systems including domain models, services, APIs, state machines, decisions, and operational behavior. Port of src/fdpm/plugins/software_architecture.py.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": { "fdpm": ">=1.1,<2" },
+  "permissions": [
+    "read:projects",
+    "read:primitives",
+    "read:relations",
+    "render:server"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "software-architecture",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "openapi",
+      "entry": "renderOpenApi",
+      "metadata": {
+        "renderer_id": "sw:OpenAPIRenderer",
+        "target": "application/x-yaml",
+        "output_path": "openapi.yaml"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "adr",
+      "entry": "renderAdr",
+      "metadata": {
+        "renderer_id": "sw:ADRRenderer",
+        "target": "text/markdown",
+        "output_path": "decisions.md"
+      }
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-enable",
+      "entry": "onEnable"
+    }
+  ]
+}
