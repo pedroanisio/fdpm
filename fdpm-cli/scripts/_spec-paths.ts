@@ -34,6 +34,9 @@ export const SPEC_RENDER_DSL_PATH = `${SPEC_DIR}/SPEC-RENDER-DSL.md` as const;
 export const SPEC_SECTIONS_TREE_PATH =
   `${SPEC_DIR}/SPEC-SECTIONS-TREE.md` as const;
 export const SPEC_UID_PATH = `${SPEC_DIR}/SPEC-UID.md` as const;
+export const SPEC_MCP_SERVER_PATH =
+  `${SPEC_DIR}/SPEC-MCP-SERVER.md` as const;
+export const SPEC_REPL_PATH = `${SPEC_DIR}/SPEC-REPL.md` as const;
 
 export const SPEC_PATHS = {
   CORE: SPEC_CORE_PATH,
@@ -44,4 +47,47 @@ export const SPEC_PATHS = {
   RENDER_DSL: SPEC_RENDER_DSL_PATH,
   SECTIONS_TREE: SPEC_SECTIONS_TREE_PATH,
   UID: SPEC_UID_PATH,
+  MCP_SERVER: SPEC_MCP_SERVER_PATH,
+  REPL: SPEC_REPL_PATH,
 } as const;
+
+// ── Build-script paths ─────────────────────────────────────────────────────
+//
+// One `build-spec-<slug>.ts` per regenerable SPEC. Useful as
+// `evidence_refs` in plan/spec primitives that point at the source of
+// truth rather than the rendered artifact. SPEC-PLUGGABLE-ARCHITECTURE
+// has no build script and is intentionally absent.
+
+const BUILD_SPEC_DIR = "fdpm-cli/scripts" as const;
+
+export const BUILD_SPEC_CORE_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-core.ts` as const;
+export const BUILD_SPEC_CEL_VALIDATOR_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-cel-validator.ts` as const;
+export const BUILD_SPEC_DNIS_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-dnis.ts` as const;
+export const BUILD_SPEC_EXPRESSION_RUNTIME_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-expression-runtime.ts` as const;
+export const BUILD_SPEC_RENDER_DSL_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-render-dsl.ts` as const;
+export const BUILD_SPEC_SECTIONS_TREE_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-sections-tree.ts` as const;
+export const BUILD_SPEC_UID_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-uid.ts` as const;
+export const BUILD_SPEC_MCP_SERVER_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-mcp-server.ts` as const;
+export const BUILD_SPEC_REPL_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-repl.ts` as const;
+
+/** All existing `build-spec-*.ts` scripts (no PLUGGABLE_ARCHITECTURE). */
+export const ALL_BUILD_SPEC_PATHS: readonly string[] = [
+  BUILD_SPEC_CORE_PATH,
+  BUILD_SPEC_CEL_VALIDATOR_PATH,
+  BUILD_SPEC_DNIS_PATH,
+  BUILD_SPEC_EXPRESSION_RUNTIME_PATH,
+  BUILD_SPEC_RENDER_DSL_PATH,
+  BUILD_SPEC_SECTIONS_TREE_PATH,
+  BUILD_SPEC_UID_PATH,
+  BUILD_SPEC_MCP_SERVER_PATH,
+  BUILD_SPEC_REPL_PATH,
+] as const;

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 472" width="496" height="472" font-family="sans-serif" font-size="12">
+<title>plan-sections-tree-implementation — Gantt</title>
+<desc>Profile: profile:planning:0.1 v0.1.0. 15 scheduled, 0 unscheduled.</desc>
+<style><![CDATA[
+  .grid { stroke: #e5e7eb; stroke-width: 1; }
+  .axis-label { fill: #6b7280; font-size: 10px; }
+  .row-label { fill: #111827; font-size: 12px; }
+  .row-label-summary { fill: #6b7280; font-size: 10px; }
+  .now-line { stroke: #dc2626; stroke-width: 1.5; stroke-dasharray: 4 2; }
+  .now-label { fill: #dc2626; font-size: 10px; font-weight: bold; }
+  .title { fill: #111827; font-size: 16px; font-weight: bold; }
+  .subtitle { fill: #6b7280; font-size: 11px; }
+  .bar-text { fill: #ffffff; font-size: 10px; pointer-events: none; }
+  .bar-ai { stroke: #2563eb; stroke-width: 2; }
+  .bar-human { stroke: #059669; stroke-width: 2; }
+  .bar-either { stroke: #7c3aed; stroke-width: 2; }
+  .unscheduled-header { fill: #111827; font-size: 12px; font-weight: bold; }
+  .unscheduled-row { fill: #6b7280; font-size: 11px; }
+]]></style>
+<text class="title" x="240" y="24">plan-sections-tree-implementation — Gantt</text>
+<text class="subtitle" x="240" y="42">15 scheduled, 0 unscheduled · profile profile:planning:0.1 v0.1.0</text>
+<line class="grid" x1="240" y1="72" x2="240" y2="440" />
+<text class="axis-label" x="242" y="68">2026-05-04</text>
+<line class="grid" x1="264" y1="72" x2="264" y2="440" />
+<text class="axis-label" x="266" y="68">2026-05-05</text>
+<line class="grid" x1="288" y1="72" x2="288" y2="440" />
+<text class="axis-label" x="290" y="68">2026-05-06</text>
+<line class="grid" x1="312" y1="72" x2="312" y2="440" />
+<text class="axis-label" x="314" y="68">2026-05-07</text>
+<line class="grid" x1="336" y1="72" x2="336" y2="440" />
+<text class="axis-label" x="338" y="68">2026-05-08</text>
+<line class="grid" x1="360" y1="72" x2="360" y2="440" />
+<text class="axis-label" x="362" y="68">2026-05-09</text>
+<line class="grid" x1="384" y1="72" x2="384" y2="440" />
+<text class="axis-label" x="386" y="68">2026-05-10</text>
+<line class="grid" x1="408" y1="72" x2="408" y2="440" />
+<text class="axis-label" x="410" y="68">2026-05-11</text>
+<line class="grid" x1="432" y1="72" x2="432" y2="440" />
+<text class="axis-label" x="434" y="68">2026-05-12</text>
+<line class="grid" x1="456" y1="72" x2="456" y2="440" />
+<text class="axis-label" x="458" y="68">2026-05-13</text>
+<line class="grid" x1="480" y1="72" x2="480" y2="440" />
+<text class="axis-label" x="482" y="68">2026-05-14</text>
+<line class="now-line" x1="240" y1="72" x2="240" y2="440" />
+<text class="now-label" x="244" y="454">now</text>
+<text class="row-label" x="8" y="96">task:relations-order</text>
+<rect class="bar-either" x="240" y="82" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:relations-order — relations-order
+Ready / Either
+2026-05-04 → 2026-05-04</title></rect>
+<text class="row-label" x="8" y="120">task:renderer-dfs</text>
+<rect class="bar-either" x="264" y="106" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:renderer-dfs — renderer-dfs
+Ready / Either
+2026-05-05 → 2026-05-05</title></rect>
+<text class="row-label" x="8" y="144">task:fallback-detection</text>
+<rect class="bar-either" x="288" y="130" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:fallback-detection — fallback-detection
+Ready / Either
+2026-05-06 → 2026-05-06</title></rect>
+<text class="row-label" x="8" y="168">task:tests-dfs-fixture</text>
+<rect class="bar-either" x="288" y="154" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:tests-dfs-fixture — tests-dfs-fixture
+Ready / Either
+2026-05-06 → 2026-05-06</title></rect>
+<text class="row-label" x="8" y="192">task:tests-fallback-fixture</text>
+<rect class="bar-either" x="288" y="178" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:tests-fallback-fixture — tests-fallback-fixture
+Ready / Either
+2026-05-06 → 2026-05-06</title></rect>
+<text class="row-label" x="8" y="216">task:tests-determinism</text>
+<rect class="bar-either" x="312" y="202" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:tests-determinism — tests-determinism
+Ready / Either
+2026-05-07 → 2026-05-07</title></rect>
+<text class="row-label" x="8" y="240">task:tests-mixed-mode</text>
+<rect class="bar-either" x="312" y="226" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:tests-mixed-mode — tests-mixed-mode
+Ready / Either
+2026-05-07 → 2026-05-07</title></rect>
+<text class="row-label" x="8" y="264">task:codemod</text>
+<rect class="bar-either" x="336" y="250" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:codemod — codemod
+Ready / Either
+2026-05-08 → 2026-05-08</title></rect>
+<text class="row-label" x="8" y="288">task:codemod-diff-gate</text>
+<rect class="bar-either" x="336" y="274" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:codemod-diff-gate — codemod-diff-gate
+Ready / Either
+2026-05-08 → 2026-05-08</title></rect>
+<text class="row-label" x="8" y="312">task:codemod-apply</text>
+<rect class="bar-either" x="360" y="298" width="24" height="20" fill="#3b82f6" rx="2" ry="2"><title>task:codemod-apply — codemod-apply
+Ready / Either
+2026-05-09 → 2026-05-09</title></rect>
+<text class="row-label" x="8" y="336">task:rollout-review</text>
+<rect class="bar-human" x="384" y="322" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:rollout-review — rollout-review
+Backlog / Human
+2026-05-10 → 2026-05-10</title></rect>
+<text class="row-label" x="8" y="360">task:lint-sparse-order</text>
+<rect class="bar-either" x="408" y="346" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:lint-sparse-order — lint-sparse-order
+Backlog / Either
+2026-05-11 → 2026-05-11</title></rect>
+<text class="row-label" x="8" y="384">task:deprecate-number-field</text>
+<rect class="bar-either" x="432" y="370" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:deprecate-number-field — deprecate-number-field
+Backlog / Either
+2026-05-12 → 2026-05-12</title></rect>
+<text class="row-label" x="8" y="408">task:perf-baseline</text>
+<rect class="bar-either" x="432" y="394" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:perf-baseline — perf-baseline
+Backlog / Either
+2026-05-12 → 2026-05-12</title></rect>
+<text class="row-label" x="8" y="432">task:spec-status-flip</text>
+<rect class="bar-either" x="456" y="418" width="24" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:spec-status-flip — spec-status-flip
+Backlog / Either
+2026-05-13 → 2026-05-13</title></rect>
+</svg>

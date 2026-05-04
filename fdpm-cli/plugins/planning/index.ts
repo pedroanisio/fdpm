@@ -42,6 +42,7 @@ import { renderAgentBoard } from "./renderers/agent_board.js";
 import { registerPlanningCapabilities } from "./_capabilities.js";
 
 export { renderRoadmap, renderGantt, renderAgentBoard };
+export * from "./ids.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
