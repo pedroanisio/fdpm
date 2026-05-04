@@ -50,13 +50,13 @@ import type { ValidationRuleDef } from "../../src/core/models/meta.js";
  *      replaced off once a parent edge exists.
  *
  *   4. For batch authoring of tens-to-hundreds of tasks at once, prefer
- *      host-extra `batchEdit` (cli/src/core/host-extra.ts) — it skips
+ *      host-extra `batchEdit` (fdpm-cli/src/core/host-extra.ts) — it skips
  *      per-op validation entirely and the operator runs validateProject
  *      after the batch closes. This is the only path that lets a Done
  *      task be committed without splitting the operation across
  *      create + replace.
  *
- * The seed at cli/scripts/build-planning-self.ts demonstrates patterns 2
+ * The seed at fdpm-cli/scripts/build-planning-self.ts demonstrates patterns 2
  * and 3 within the SDK's defineProject/.commit() flow.
  */
 

@@ -11,7 +11,7 @@ generated:
     This document is generated. Edits made directly to this file will
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
-  source_script: "cli/scripts/build-spec-dnis.ts"
+  source_script: "fdpm-cli/scripts/build-spec-dnis.ts"
 revision: "0.1.5 (pass 6) — status promoted Draft → Proposal; spec_id and version drop the `-draft` suffix accordingly; §1.2 prose, PALS-LAW banner, and §5.2 schemaVersion example brought into line with the proposal status. No normative changes to §3–§16. See Appendix B."
 status: "Proposal"
 ---
@@ -28,14 +28,14 @@ _Stable node identity for documents edited by LLM agents and human collaborators
 > direct edits will be silently overwritten on the next render and
 > will not round-trip through the build pipeline.
 >
-> **Source of truth:** `cli/scripts/build-spec-dnis.ts`
+> **Source of truth:** `fdpm-cli/scripts/build-spec-dnis.ts`
 >
 > **Regenerate with:**
 >
 > ```bash
 > rm -rf /tmp/fdpm-spec-dnis
-> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx cli/scripts/build-spec-dnis.ts
-> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx cli/src/bin/fdpm.ts \
+> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/scripts/build-spec-dnis.ts
+> FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/src/bin/fdpm.ts \
 >   render spec-dnis text/markdown \
 >   --renderer-id spec:SpecMarkdownRenderer \
 >   -o docs/specs/SPEC-DNIS.md

@@ -15,10 +15,10 @@
  *
  * Run with:
  *   rm -rf /tmp/fdpm-spec-core
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx cli/scripts/build-spec-core.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx fdpm-cli/scripts/build-spec-core.ts
  *
  * Render with:
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-core text/markdown \
  *     --renderer-id spec:SpecMarkdownRenderer \
  *     -o docs/specs/SPEC-CORE.md
@@ -64,11 +64,11 @@ const documentSpec: PrimitiveSpec = {
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
       "1.1.1 — final-pass cleanup: §15.1 env-var declarations, §18 v1.1 alignment; see §24.",
-    source_script: "cli/scripts/build-spec-core.ts",
+    source_script: "fdpm-cli/scripts/build-spec-core.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-core",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx cli/scripts/build-spec-core.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx fdpm-cli/scripts/build-spec-core.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-core npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-core text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-CORE.md",

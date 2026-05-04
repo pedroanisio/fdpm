@@ -7,16 +7,16 @@
  * Run:
  *   rm -rf /tmp/fdpm-planning-self
  *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx \
- *     cli/scripts/build-planning-self.ts
+ *     fdpm-cli/scripts/build-planning-self.ts
  *
  * Render outputs:
- *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render planning-self text/markdown \
  *     --renderer-id plan:RoadmapRenderer -o docs/planning/roadmap.md
- *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render planning-self image/svg+xml \
  *     --renderer-id plan:GanttSvgRenderer -o docs/planning/gantt.svg
- *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render planning-self text/markdown \
  *     --renderer-id plan:AgentBoardRenderer -o docs/planning/board.md
  */
@@ -78,7 +78,7 @@ const acSpecs: PrimitiveSpec[] = [
       criterion: "Plugin discovery loads the planning profile alongside sw and fs.",
       expression: 'graph.exists("plan:Task")',
       status: "open",
-      evidence_refs: ["cli/tests/planning-content.test.ts"],
+      evidence_refs: ["fdpm-cli/tests/planning-content.test.ts"],
     },
   },
   {
@@ -89,7 +89,7 @@ const acSpecs: PrimitiveSpec[] = [
       criterion: "All 10 CEL rules evaluate end-to-end.",
       expression: 'graph.exists("plan:Task")',
       status: "open",
-      evidence_refs: ["cli/tests/planning-rules.test.ts"],
+      evidence_refs: ["fdpm-cli/tests/planning-rules.test.ts"],
     },
   },
   {
@@ -100,7 +100,7 @@ const acSpecs: PrimitiveSpec[] = [
       criterion: "Roadmap, Gantt SVG, AgentBoard renderers produce well-formed output.",
       expression: 'graph.exists("plan:Task")',
       status: "open",
-      evidence_refs: ["cli/tests/planning-renderers.test.ts"],
+      evidence_refs: ["fdpm-cli/tests/planning-renderers.test.ts"],
     },
   },
 ];

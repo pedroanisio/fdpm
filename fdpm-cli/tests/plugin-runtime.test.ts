@@ -395,7 +395,7 @@ describe("plugin runtime — CWD-independent built-in discovery", () => {
    * discovery module's own filesystem location, which makes built-in
    * loading CWD-independent.
    */
-  it("loads in-tree formal_specification + fs-v3-importer when invoked from /tmp", async () => {
+  it("loads in-tree formal_specification when invoked from /tmp", async () => {
     const previous = process.cwd();
     try {
       process.chdir("/tmp");
@@ -403,7 +403,6 @@ describe("plugin runtime — CWD-independent built-in discovery", () => {
       await host.load();
       const ids = host.plugins.list().map((r) => r.id).sort();
       expect(ids).toContain("fdpm.formal-specification");
-      expect(ids).toContain("fdpm.fs-v3-importer");
       expect(host.profiles.has(PROFILE_ID)).toBe(true);
     } finally {
       process.chdir(previous);

@@ -446,22 +446,56 @@ for authoritative flag reference):
 
 ```bash
 # Create a project bound to this profile
-fdpm project init my-spec --profile profile:formal-specification:3.0
+fdpm project create --id my-spec --name "My Spec" \
+  --profile profile:formal-specification:3.0 --json
 
 # Add primitives
-fdpm primitive add fs:Phase --field name="Discovery" --field question="What problem are we solving?"
-fdpm primitive add fs:Invariant --field statement="X must hold" --field enforcement=hard
+cat <<'JSON' | fdpm primitive create my-spec -f - --json
+{
+  "id": "phase:discovery",
+  "type_id": "fs:Phase",
+  "scope_id": "scope:fs:execution",
+  "field_values": {
+    "number": 1,
+    "name": "Discovery",
+    "question": "What problem are we solving?",
+    "inputs": ["problem statement"],
+    "outputs": ["validated problem framing"],
+    "procedure": ["collect evidence", "state assumptions"],
+    "exit_condition": "The problem statement is explicit."
+  }
+}
+JSON
+
+cat <<'JSON' | fdpm primitive create my-spec -f - --json
+{
+  "id": "inv:core-soundness",
+  "type_id": "fs:Invariant",
+  "field_values": {
+    "statement": "Every emitted artifact must trace back to a validated primitive.",
+    "enforcement": "Runtime"
+  }
+}
+JSON
 
 # Connect with relations
-fdpm relation add fs:OccursIn --source <failure_id> --target <phase_id>
+cat <<'JSON' | fdpm relation create my-spec -f - --json
+{
+  "id": "rel:phase-improves-invariant",
+  "type_id": "fs:Improves",
+  "source_id": "phase:discovery",
+  "target_id": "inv:core-soundness",
+  "field_values": {}
+}
+JSON
 
 # Validate (runs all 23 validators)
-fdpm validate
+fdpm validate my-spec --json
 
 # Render
-fdpm render --target text/markdown --renderer fs:SpecRenderer --output spec.md
-fdpm render --target text/html     --renderer fs:SpecHtmlRenderer --output spec.html
-fdpm render --target application/pdf --renderer fs:SpecPdfRenderer --output spec.pdf
+fdpm render my-spec text/markdown --renderer-id fs:SpecRenderer -o spec.md
+fdpm render my-spec text/html --renderer-id fs:SpecHtmlRenderer -o spec.html
+fdpm render my-spec application/pdf --renderer-id fs:SpecPdfRenderer -o spec.pdf
 ```
 
 ---

@@ -5,16 +5,16 @@
  * Run:
  *   rm -rf /tmp/fdpm-plan-render-dsl
  *   FDPM_DATA_DIR=/tmp/fdpm-plan-render-dsl npx tsx \
- *     cli/scripts/build-plan-render-dsl-implementation.ts
+ *     fdpm-cli/scripts/build-plan-render-dsl-implementation.ts
  *
  * Render outputs:
- *   FDPM_DATA_DIR=/tmp/fdpm-plan-render-dsl npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-plan-render-dsl npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render plan-render-dsl-implementation text/markdown \
  *     --renderer-id plan:RoadmapRenderer -o docs/planning/render-dsl-roadmap.md
- *   FDPM_DATA_DIR=/tmp/fdpm-plan-render-dsl npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-plan-render-dsl npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render plan-render-dsl-implementation image/svg+xml \
  *     --renderer-id plan:GanttSvgRenderer -o docs/planning/render-dsl-gantt.svg
- *   FDPM_DATA_DIR=/tmp/fdpm-plan-render-dsl npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-plan-render-dsl npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render plan-render-dsl-implementation text/markdown \
  *     --renderer-id plan:AgentBoardRenderer -o docs/planning/render-dsl-board.md
  */
@@ -101,7 +101,7 @@ const acSpecs: PrimitiveSpec[] = [
     scope: SCOPE_IDS.project,
     fields: {
       criterion:
-        "Render-time placeholder evaluation consumes the host-owned cli/src/core/expr runtime; no second evaluator or direct cel-js import exists in render-time glue.",
+        "Render-time placeholder evaluation consumes the host-owned fdpm-cli/src/core/expr runtime; no second evaluator or direct cel-js import exists in render-time glue.",
       expression: 'graph.exists("task:runtime-glue")',
       status: "open",
       evidence_refs: ["scripts/build-spec-render-dsl.ts", "src/core/expr/runtime.ts"],
@@ -219,7 +219,7 @@ const tasks: Task[] = [
     id: "task:runtime-glue",
     name: "runtime-glue",
     summary:
-      "Wire placeholder evaluation through cli/src/core/expr/ with the closed activation surface and helper inventory defined by SPEC-EXPRESSION-RUNTIME.",
+      "Wire placeholder evaluation through fdpm-cli/src/core/expr/ with the closed activation surface and helper inventory defined by SPEC-EXPRESSION-RUNTIME.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 60,
@@ -404,7 +404,7 @@ async function main() {
     name: "Render DSL implementation rollout",
     profile: PROFILE_ID,
     description:
-      "Executable plan for implementing the CEL-only render-time DSL specified by scripts/build-spec-render-dsl.ts using the shared host-owned cli/src/core/expr runtime.",
+      "Executable plan for implementing the CEL-only render-time DSL specified by scripts/build-spec-render-dsl.ts using the shared host-owned fdpm-cli/src/core/expr runtime.",
   })
     .primitives([
       ...iterationSpecs,

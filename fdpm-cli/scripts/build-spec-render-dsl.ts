@@ -12,8 +12,8 @@
  *
  * Run:
  *   rm -rf /tmp/fdpm-spec-render-dsl
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx cli/scripts/build-spec-render-dsl.ts
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx fdpm-cli/scripts/build-spec-render-dsl.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-render-dsl text/markdown \
  *     --renderer-id spec:SpecMarkdownRenderer \
  *     -o docs/specs/SPEC-RENDER-DSL.md
@@ -68,7 +68,7 @@ const documentSpec: PrimitiveSpec = {
       "docs/specs/SPEC-EXPRESSION-RUNTIME.md",
       "docs/specs/SPEC-CEL-VALIDATOR.md",
     ],
-    companion_code: "cli/plugins/spec_authoring/renderers/spec_md.ts",
+    companion_code: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
     peer_spec: "docs/specs/SPEC-CEL-VALIDATOR.md",
     disclaimer_path: "../../DISCLAIMER.md",
     pals_banner: true,
@@ -81,11 +81,11 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note: "0.1.5 — ships the first host-owned render-DSL execution path, strict-mode exit semantics, and a template-driven references section. See §19.",
-    source_script: "cli/scripts/build-spec-render-dsl.ts",
+    source_script: "fdpm-cli/scripts/build-spec-render-dsl.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-render-dsl",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx cli/scripts/build-spec-render-dsl.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx fdpm-cli/scripts/build-spec-render-dsl.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-render-dsl text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-RENDER-DSL.md",
@@ -342,7 +342,7 @@ function buildHelperInventoryBody(): string {
   const lines: string[] = [
     `// Standard helper set v${HELPER_SET_VERSION}, inventory authoritative in`,
     `// SPEC-EXPRESSION-RUNTIME §M14. The shape below is generated from`,
-    `// cli/scripts/_spec-shared.ts so this SPEC and EXPR-RT cannot drift.`,
+    `// fdpm-cli/scripts/_spec-shared.ts so this SPEC and EXPR-RT cannot drift.`,
     "",
   ];
   // Pad signatures to a column so the arrows align.
@@ -1227,7 +1227,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Pass-3 stabilization: fix three internal contradictions; share canonical inventories with SPEC-EXPRESSION-RUNTIME.",
       notes:
-        "No surface changes. Stabilization-pass corrections:\n\n1. The activation surface listed in §3 Definitions, §4 Principle 3, and the closed-activation Invariant carried a stale binding name from the SQL-sugar draft. ADR-DSL-001 already had the correct list (per EXPR-RT §M7). All three sites now read from cli/scripts/_spec-shared.ts and emit the canonical form.\n\n2. §3 'Variable expression' and §6 dsl:variable description used a placeholder example whose name is not a real binding. Replaced with concrete Tier-A bindings (doc.title, host.fdpm_version) and a Tier-B example (env.GIT_SHA, with permission requirement called out).\n\n3. §1.3 'Why now' prose mentioned an invented env.* binding. Removed.\n\n4. §1.1 prose says 'four surface forms' but §6 capability table had five rows. Helper-call is NOT a separate surface form; it lives inside any of the four. Dropped the dsl:helper capability row; the helper inventory remains in §6.4 where it belongs.\n\n5. §6.4 helper inventory now generated from cli/scripts/_spec-shared.ts. Drift between this SPEC and EXPR-RT §M14 is structurally impossible. Pass-2 caught one such drift (fn.hash semantics); pass-3 prevents the next.\n\n6. Two positional Open-Question references replaced with id-based references (spec:q:else-block, spec:q:nested-placeholders). Reordering OQ doesn't break cross-references.\n\n7. New regression test (cli/tests/spec-builds-determinism.test.ts) asserts cross-SPEC drift cannot recur.",
+        "No surface changes. Stabilization-pass corrections:\n\n1. The activation surface listed in §3 Definitions, §4 Principle 3, and the closed-activation Invariant carried a stale binding name from the SQL-sugar draft. ADR-DSL-001 already had the correct list (per EXPR-RT §M7). All three sites now read from fdpm-cli/scripts/_spec-shared.ts and emit the canonical form.\n\n2. §3 'Variable expression' and §6 dsl:variable description used a placeholder example whose name is not a real binding. Replaced with concrete Tier-A bindings (doc.title, host.fdpm_version) and a Tier-B example (env.GIT_SHA, with permission requirement called out).\n\n3. §1.3 'Why now' prose mentioned an invented env.* binding. Removed.\n\n4. §1.1 prose says 'four surface forms' but §6 capability table had five rows. Helper-call is NOT a separate surface form; it lives inside any of the four. Dropped the dsl:helper capability row; the helper inventory remains in §6.4 where it belongs.\n\n5. §6.4 helper inventory now generated from fdpm-cli/scripts/_spec-shared.ts. Drift between this SPEC and EXPR-RT §M14 is structurally impossible. Pass-2 caught one such drift (fn.hash semantics); pass-3 prevents the next.\n\n6. Two positional Open-Question references replaced with id-based references (spec:q:else-block, spec:q:nested-placeholders). Reordering OQ doesn't break cross-references.\n\n7. New regression test (fdpm-cli/tests/spec-builds-determinism.test.ts) asserts cross-SPEC drift cannot recur.",
       affected_sections: ["§3", "§4", "§6", "§6.4", "§17", "§19"],
       kind: "patch",
     },
@@ -1590,7 +1590,7 @@ async function main() {
   console.log("");
   console.log("Render to Markdown:");
   console.log(
-    `  FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx cli/src/bin/fdpm.ts \\`,
+    `  FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx fdpm-cli/src/bin/fdpm.ts \\`,
   );
   console.log(
     `    render ${PROJECT_ID} text/markdown --renderer-id spec:SpecMarkdownRenderer \\`,

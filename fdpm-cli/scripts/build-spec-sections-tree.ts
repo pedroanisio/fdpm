@@ -12,10 +12,10 @@
  *
  * Run with:
  *   rm -rf /tmp/fdpm-spec-sections-tree
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx cli/scripts/build-spec-sections-tree.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/scripts/build-spec-sections-tree.ts
  *
  * Then render the SPEC to disk:
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-sections-tree text/markdown \
  *     --renderer-id spec:SpecMarkdownRenderer \
  *     -o docs/specs/SPEC-SECTIONS-TREE.md
@@ -55,7 +55,7 @@ const documentSpec: PrimitiveSpec = {
     version: "0.1.0",
     status: "Proposal",
     audience:
-      "FDPM core maintainers, spec_authoring plugin maintainers, and any author of a `cli/scripts/build-spec-*.ts` script who has had to renumber sections after inserting one.",
+      "FDPM core maintainers, spec_authoring plugin maintainers, and any author of a `fdpm-cli/scripts/build-spec-*.ts` script who has had to renumber sections after inserting one.",
     required_reads: [
       "CLAUDE.md",
       "PURPOSE.md",
@@ -63,7 +63,7 @@ const documentSpec: PrimitiveSpec = {
       "docs/specs/SPEC-CORE.md",
       "docs/specs/SPEC-UID.md",
     ],
-    companion_code: "cli/plugins/spec_authoring/renderers/spec_md.ts",
+    companion_code: "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
     peer_spec: "docs/specs/SPEC-RENDER-DSL.md",
     disclaimer_path: "../../DISCLAIMER.md",
     pals_banner: true,
@@ -79,11 +79,11 @@ const documentSpec: PrimitiveSpec = {
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
       "0.1.0 — initial proposal. Derive numbering from `spec:HasSection` edges sorted by a new `order: int` field; keep author-supplied `number` as a deprecated fallback for one minor release.",
-    source_script: "cli/scripts/build-spec-sections-tree.ts",
+    source_script: "fdpm-cli/scripts/build-spec-sections-tree.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-sections-tree",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx cli/scripts/build-spec-sections-tree.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/scripts/build-spec-sections-tree.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-sections-tree text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-SECTIONS-TREE.md",
@@ -477,7 +477,7 @@ const scenarios: PrimitiveSpec[] = [
       title: "Back-compat — unmigrated script renders byte-equal",
       source: "Operator running an unmigrated build script.",
       stimulus:
-        "Run `npx tsx cli/scripts/build-spec-uid.ts` (still using authored `number` strings) against a v0.1 host.",
+        "Run `npx tsx fdpm-cli/scripts/build-spec-uid.ts` (still using authored `number` strings) against a v0.1 host.",
       environment: "v0.1 sections-tree-enabled host with deprecation warnings active.",
       artifact: "The rendered Markdown plus the findings list emitted alongside it.",
       response:
@@ -552,7 +552,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Migration codemod ships with the SPEC",
       statement:
-        "A migration codemod MUST be shipped as `cli/scripts/migrate-section-numbers.ts` that converts existing build-spec-*.ts scripts to the `order`-based form.",
+        "A migration codemod MUST be shipped as `fdpm-cli/scripts/migrate-section-numbers.ts` that converts existing build-spec-*.ts scripts to the `order`-based form.",
       strength: "MUST",
       verifiability: "ci_check",
       verifier_ref:
@@ -604,7 +604,7 @@ const acceptances: PrimitiveSpec[] = [
       criterion:
         "All eight existing build-spec-*.ts scripts render byte-equal output before and after the renderer change, when the migration codemod has not been run.",
       status: "open",
-      evidence_refs: ["cli/scripts/", "Differential CI test"],
+      evidence_refs: ["fdpm-cli/scripts/", "Differential CI test"],
     },
   },
   {
@@ -615,7 +615,7 @@ const acceptances: PrimitiveSpec[] = [
       criterion:
         "After running the codemod, all eight existing build-spec-*.ts scripts no longer set `number` on any `spec:Section` and still render byte-equal output.",
       status: "open",
-      evidence_refs: ["cli/scripts/migrate-section-numbers.ts", "Differential CI test"],
+      evidence_refs: ["fdpm-cli/scripts/migrate-section-numbers.ts", "Differential CI test"],
     },
   },
   {
@@ -711,7 +711,7 @@ const changes: PrimitiveSpec[] = [
     id: "spec:chg:codemod",
     type: "spec:ImplementationChange",
     fields: {
-      area: "cli/scripts/migrate-section-numbers.ts",
+      area: "fdpm-cli/scripts/migrate-section-numbers.ts",
       change:
         "New script: parses existing build-spec-*.ts, replaces `number: \"N\"` literals with `fields: { order: N * 10 }` on the corresponding `spec:HasSection`, drops the `number` from the `spec:Section` payload.",
       complexity: "M",
@@ -768,7 +768,7 @@ const migration: PrimitiveSpec[] = [
       label: "Ship the codemod",
       action:
         "CHG-4. Run against all eight existing build-spec-*.ts; commit the migrated forms in a separate PR. Each migrated SPEC re-renders byte-equal.",
-      affected_paths: ["cli/scripts/migrate-section-numbers.ts", "cli/scripts/build-spec-*.ts"],
+      affected_paths: ["fdpm-cli/scripts/migrate-section-numbers.ts", "fdpm-cli/scripts/build-spec-*.ts"],
       depends_on: ["spec:mig:1"],
     },
   },
@@ -1107,7 +1107,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "Three converging signals:",
         "",
-        "1. **Every existing `cli/scripts/build-spec-*.ts` hand-authors `number` strings.** Inserting one section means renumbering all downstream siblings — a real, repeated source of churn.",
+        "1. **Every existing `fdpm-cli/scripts/build-spec-*.ts` hand-authors `number` strings.** Inserting one section means renumbering all downstream siblings — a real, repeated source of churn.",
         "2. **`spec:HasSection` already supports `Section → Section`** (cli/plugins/spec_authoring/relations.ts:15-16). The tree is already representable; the renderer just doesn't use the tree shape.",
         "3. **SPEC-UID v0.2 ships `uid` on every primitive and relation**, giving us the deterministic, replay-stable tiebreak this SPEC needs for `(order, uid)` sibling ordering.",
       ].join("\n"),
@@ -1468,7 +1468,7 @@ async function main() {
   console.log("");
   console.log("Render to Markdown:");
   console.log(
-    `  FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx cli/src/bin/fdpm.ts \\`,
+    `  FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/src/bin/fdpm.ts \\`,
   );
   console.log(
     `    render ${PROJECT_ID} text/markdown --renderer-id spec:SpecMarkdownRenderer \\`,

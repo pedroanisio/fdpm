@@ -11,7 +11,7 @@ generated:
     This document is generated. Edits made directly to this file will
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
-  source_script: "cli/scripts/build-spec-cel-validator.ts"
+  source_script: "fdpm-cli/scripts/build-spec-cel-validator.ts"
 revision: "0.2.0 — implementation landed in commit 130a25e. ADR moved from `proposed` to `accepted`; per-plugin CEL evaluation and program-cache mitigations marked `implemented`. Two ACs remain open: helper-purity static check and the perf benchmark."
 status: "Stable"
 ---
@@ -28,14 +28,14 @@ _Adopt CEL (Common Expression Language) as the canonical predicate language for 
 > direct edits will be silently overwritten on the next render and
 > will not round-trip through the build pipeline.
 >
-> **Source of truth:** `cli/scripts/build-spec-cel-validator.ts`
+> **Source of truth:** `fdpm-cli/scripts/build-spec-cel-validator.ts`
 >
 > **Regenerate with:**
 >
 > ```bash
 > rm -rf /tmp/fdpm-spec-cel
-> FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx cli/scripts/build-spec-cel-validator.ts
-> FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx cli/src/bin/fdpm.ts \
+> FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx fdpm-cli/scripts/build-spec-cel-validator.ts
+> FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx fdpm-cli/src/bin/fdpm.ts \
 >   render spec-cel-validator text/markdown \
 >   --renderer-id spec:SpecMarkdownRenderer \
 >   -o docs/specs/SPEC-CEL-VALIDATOR.md

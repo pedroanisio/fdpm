@@ -11,7 +11,7 @@ generated:
     This document is generated. Edits made directly to this file will
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
-  source_script: "cli/scripts/build-spec-render-dsl.ts"
+  source_script: "fdpm-cli/scripts/build-spec-render-dsl.ts"
 revision: "0.1.5 — ships the first host-owned render-DSL execution path, strict-mode exit semantics, and a template-driven references section. See §19."
 status: "Proposal"
 ---
@@ -28,14 +28,14 @@ _A small, sandboxed expression language evaluated at render time. Variables, pro
 > direct edits will be silently overwritten on the next render and
 > will not round-trip through the build pipeline.
 >
-> **Source of truth:** `cli/scripts/build-spec-render-dsl.ts`
+> **Source of truth:** `fdpm-cli/scripts/build-spec-render-dsl.ts`
 >
 > **Regenerate with:**
 >
 > ```bash
 > rm -rf /tmp/fdpm-spec-render-dsl
-> FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx cli/scripts/build-spec-render-dsl.ts
-> FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx cli/src/bin/fdpm.ts \
+> FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx fdpm-cli/scripts/build-spec-render-dsl.ts
+> FDPM_DATA_DIR=/tmp/fdpm-spec-render-dsl npx tsx fdpm-cli/src/bin/fdpm.ts \
 >   render spec-render-dsl text/markdown \
 >   --renderer-id spec:SpecMarkdownRenderer \
 >   -o docs/specs/SPEC-RENDER-DSL.md
@@ -186,7 +186,7 @@ _Note: the renderer's `kind: "schema"` section currently emits **all** spec:Sche
 ```ad_hoc
 // Standard helper set v1.1.0, inventory authoritative in
 // SPEC-EXPRESSION-RUNTIME §M14. The shape below is generated from
-// cli/scripts/_spec-shared.ts so this SPEC and EXPR-RT cannot drift.
+// fdpm-cli/scripts/_spec-shared.ts so this SPEC and EXPR-RT cannot drift.
 
 // string family
 fn.upper(s)                → uppercase (Unicode).
@@ -553,7 +553,7 @@ Affected sections: §15, §17, §18, §19, Future Work, Migration
 
 No surface changes. Stabilization-pass corrections:
 
-1. The activation surface listed in §3 Definitions, §4 Principle 3, and the closed-activation Invariant carried a stale binding name from the SQL-sugar draft. ADR-DSL-001 already had the correct list (per EXPR-RT §M7). All three sites now read from cli/scripts/_spec-shared.ts and emit the canonical form.
+1. The activation surface listed in §3 Definitions, §4 Principle 3, and the closed-activation Invariant carried a stale binding name from the SQL-sugar draft. ADR-DSL-001 already had the correct list (per EXPR-RT §M7). All three sites now read from fdpm-cli/scripts/_spec-shared.ts and emit the canonical form.
 
 2. §3 'Variable expression' and §6 dsl:variable description used a placeholder example whose name is not a real binding. Replaced with concrete Tier-A bindings (doc.title, host.fdpm_version) and a Tier-B example (env.GIT_SHA, with permission requirement called out).
 
@@ -561,7 +561,7 @@ No surface changes. Stabilization-pass corrections:
 
 4. §1.1 prose says 'four surface forms' but §6 capability table had five rows. Helper-call is NOT a separate surface form; it lives inside any of the four. Dropped the dsl:helper capability row; the helper inventory remains in §6.4 where it belongs.
 
-5. §6.4 helper inventory now generated from cli/scripts/_spec-shared.ts. Drift between this SPEC and EXPR-RT §M14 is structurally impossible. Pass-2 caught one such drift (fn.hash semantics); pass-3 prevents the next.
+5. §6.4 helper inventory now generated from fdpm-cli/scripts/_spec-shared.ts. Drift between this SPEC and EXPR-RT §M14 is structurally impossible. Pass-2 caught one such drift (fn.hash semantics); pass-3 prevents the next.
 
 6. Two positional Open-Question references replaced with id-based references (spec:q:else-block, spec:q:nested-placeholders). Reordering OQ doesn't break cross-references.
 

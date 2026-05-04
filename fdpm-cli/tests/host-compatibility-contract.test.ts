@@ -7,7 +7,6 @@ import { EXPR_HELPER_SET_VERSION } from "../src/core/expr/std.js";
 
 const PLUGIN_MANIFESTS = [
   "plugins/formal_specification/fdpm-plugin.json",
-  "plugins/fs_v3_importer/fdpm-plugin.json",
   "plugins/planning/fdpm-plugin.json",
   "plugins/software_architecture/fdpm-plugin.json",
   "plugins/spec_authoring/fdpm-plugin.json",

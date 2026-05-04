@@ -12,8 +12,8 @@
  * Run:
  *   rm -rf /tmp/fdpm-spec-expr-rt
  *   FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx \
- *     cli/scripts/build-spec-expression-runtime.ts
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx cli/src/bin/fdpm.ts \
+ *     fdpm-cli/scripts/build-spec-expression-runtime.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-expression-runtime text/markdown \
  *     --renderer-id spec:SpecMarkdownRenderer \
  *     -o docs/specs/SPEC-EXPRESSION-RUNTIME.md
@@ -112,11 +112,11 @@ const documentSpec: PrimitiveSpec = {
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
       "0.1.7 — core runtime gaps closed. Bound caps, the closed 8-code runtime enum, full fn.sortBy key-expression semantics, automatic Tier-B git probing, and typed top-level CEL bindings are now shipped. See §0.5 and §19.",
-    source_script: "cli/scripts/build-spec-expression-runtime.ts",
+    source_script: "fdpm-cli/scripts/build-spec-expression-runtime.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-expr-rt",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx cli/scripts/build-spec-expression-runtime.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx fdpm-cli/scripts/build-spec-expression-runtime.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-expression-runtime text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-EXPRESSION-RUNTIME.md",
@@ -575,7 +575,7 @@ const m14Versioning: PrimitiveSpec = {
       "//    guards by string comparison in v0.1.",
       "",
       `// Standard helper set v${HELPER_SET_VERSION} inventory (generated from`,
-      "// cli/scripts/_spec-shared.ts; same source as SPEC-RENDER-DSL §6.4):",
+      "// fdpm-cli/scripts/_spec-shared.ts; same source as SPEC-RENDER-DSL §6.4):",
       ...(() => {
         // Group by family for readability while preserving canonical
         // order. The shared module guarantees stable ordering.
@@ -1621,7 +1621,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Pass-3 stabilization: extract drift-prone duplications into a shared module.",
       notes:
-        "Architecture unchanged. Stabilization-pass changes:\n\n1. Activation Tier-A and Tier-B tables in §M7 now generated from cli/scripts/_spec-shared.ts. Same module is consumed by SPEC-RENDER-DSL. Changing a binding is a one-edit change in the shared file plus matching SPEC text here.\n\n2. Standard helper inventory in §M14 generated from the same shared module. Both SPECs read the inventory from one place; drift between the two is now structurally impossible.\n\n3. host.cel_revision Tier-A note clarified: it's bound for diagnostic/audit use, NOT for template-time version branches. Manifest-pin enforcement (expr_helper_set) is the v0.1 capability gate. Cross-references the existing Future Work spec:fw:semver-helper.\n\n4. §6 prose now admits the spec_authoring renderer's `kind: \"schema\"` workaround explicitly (matches SPEC-RENDER-DSL §6.4 honesty about the same limitation).\n\n5. New regression test cli/tests/spec-builds-determinism.test.ts asserts: zero validate findings, byte-identical determinism across two runs, every Tier-A/B binding name appears in the rendered EXPR-RT, every helper name appears in BOTH SPECs, and no stale RENDER-DSL forms (query binding, ${VERSION}, env.DATA_DIR) survive. 10 tests, ~38s on local CI.",
+        "Architecture unchanged. Stabilization-pass changes:\n\n1. Activation Tier-A and Tier-B tables in §M7 now generated from fdpm-cli/scripts/_spec-shared.ts. Same module is consumed by SPEC-RENDER-DSL. Changing a binding is a one-edit change in the shared file plus matching SPEC text here.\n\n2. Standard helper inventory in §M14 generated from the same shared module. Both SPECs read the inventory from one place; drift between the two is now structurally impossible.\n\n3. host.cel_revision Tier-A note clarified: it's bound for diagnostic/audit use, NOT for template-time version branches. Manifest-pin enforcement (expr_helper_set) is the v0.1 capability gate. Cross-references the existing Future Work spec:fw:semver-helper.\n\n4. §6 prose now admits the spec_authoring renderer's `kind: \"schema\"` workaround explicitly (matches SPEC-RENDER-DSL §6.4 honesty about the same limitation).\n\n5. New regression test fdpm-cli/tests/spec-builds-determinism.test.ts asserts: zero validate findings, byte-identical determinism across two runs, every Tier-A/B binding name appears in the rendered EXPR-RT, every helper name appears in BOTH SPECs, and no stale RENDER-DSL forms (query binding, ${VERSION}, env.DATA_DIR) survive. 10 tests, ~38s on local CI.",
       affected_sections: ["§M7", "§M14", "§6 (prose)", "§19"],
       kind: "patch",
     },
@@ -1690,7 +1690,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "**Migration ordering.** The shipped `ExpressionRuntime` plus the legacy activation surface together support today's predicate use case (sw plugin's 12 CEL rules evaluate via this path; see SPEC-CEL-VALIDATOR §10 acceptance criteria 1-3 marked `met`). Transitioning to the Tier-A surface requires updating both the activation factory and SPEC-CEL-VALIDATOR §6 in the same release; doing so before the helper bodies are bound risks producing rule predicates that reference helpers the runtime cannot resolve.",
         "",
-        "**Source of truth.** The constants in `cli/scripts/_spec-shared.ts` (Tier-A binding paths, Tier-B binding paths, standard helper inventory, helper-set version) are the SPEC's authoritative manifest; mismatches between that file and the rendered §M7 / §M14 fail `cli/tests/spec-builds-determinism.test.ts`. The constants in `cli/src/core/expr/std.ts` are the runtime's authoritative manifest; mismatches between the two ARE the drift this section exists to surface. As of this revision, `STANDARD_HELPER_IDS` (runtime) and `STANDARD_HELPERS` (SPEC source) agree on all 14 ids; `EXPR_HELPER_SET_VERSION` and `HELPER_SET_VERSION` agree at `1.1.0`; `EXPR_CEL_REVISION` (`\"TBD\"`) is honest about the unpinned state Open Question 1 tracks.",
+        "**Source of truth.** The constants in `fdpm-cli/scripts/_spec-shared.ts` (Tier-A binding paths, Tier-B binding paths, standard helper inventory, helper-set version) are the SPEC's authoritative manifest; mismatches between that file and the rendered §M7 / §M14 fail `fdpm-cli/tests/spec-builds-determinism.test.ts`. The constants in `fdpm-cli/src/core/expr/std.ts` are the runtime's authoritative manifest; mismatches between the two ARE the drift this section exists to surface. As of this revision, `STANDARD_HELPER_IDS` (runtime) and `STANDARD_HELPERS` (SPEC source) agree on all 14 ids; `EXPR_HELPER_SET_VERSION` and `HELPER_SET_VERSION` agree at `1.1.0`; `EXPR_CEL_REVISION` (`\"TBD\"`) is honest about the unpinned state Open Question 1 tracks.",
       ].join("\n"),
     },
   },
@@ -2006,7 +2006,7 @@ async function main() {
   console.log("  revision:  ", result.revision);
   console.log("");
   console.log("Render to Markdown:");
-  console.log(`  FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx cli/src/bin/fdpm.ts \\`);
+  console.log(`  FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx fdpm-cli/src/bin/fdpm.ts \\`);
   console.log(`    render ${PROJECT_ID} text/markdown --renderer-id spec:SpecMarkdownRenderer \\`);
   console.log(`    -o docs/specs/SPEC-EXPRESSION-RUNTIME.md`);
 }

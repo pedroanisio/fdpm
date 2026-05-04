@@ -31,7 +31,7 @@ describe("FDPM env contract", () => {
   it("keeps .env.example, README.md, and MANUAL.md in sync with the env contract", () => {
     const surfaces = [
       readFileSync(join(process.cwd(), ".env.example"), "utf8"),
-      readFileSync(join(process.cwd(), "README.md"), "utf8"),
+      readFileSync(join(process.cwd(), "..", "README.md"), "utf8"),
       readFileSync(join(process.cwd(), "MANUAL.md"), "utf8"),
     ];
     for (const spec of FDPM_ENV_VARS) {

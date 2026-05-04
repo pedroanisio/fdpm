@@ -312,19 +312,19 @@ const failureSpecs: PrimitiveSpec[] = [
 // ── Evidence ───────────────────────────────────────────────────────────────
 const evidenceSpecs: PrimitiveSpec[] = [
   { id: "evidence:test:sw-arch-e2e", type: "sw:Evidence",
-    fields: { kind: "Test", source: "cli/tests/software-architecture-e2e.test.ts",
+    fields: { kind: "Test", source: "fdpm-cli/tests/software-architecture-e2e.test.ts",
       description: "End-to-end test that exercises every sw: primitive shape through Host.createPrimitive + ValidationPipeline." } },
   { id: "evidence:ref:host-source", type: "sw:Evidence",
-    fields: { kind: "Reference", source: "cli/src/core/host.ts",
+    fields: { kind: "Reference", source: "fdpm-cli/src/core/host.ts",
       description: "Host class — composes Store, ProfileRegistry, ValidationPipeline, persistence, and PluginRuntime." } },
   { id: "evidence:ref:plugin-runtime", type: "sw:Evidence",
-    fields: { kind: "Reference", source: "cli/src/plugin/runtime.ts",
+    fields: { kind: "Reference", source: "fdpm-cli/src/plugin/runtime.ts",
       description: "PluginRuntime — discovery, activation, capability registration, lifecycle hooks." } },
   { id: "evidence:ref:cli-bin", type: "sw:Evidence",
-    fields: { kind: "Reference", source: "cli/src/bin/fdpm.ts",
+    fields: { kind: "Reference", source: "fdpm-cli/src/bin/fdpm.ts",
       description: "CLI entry point — Commander wiring and command dispatch." } },
   { id: "evidence:ref:manual", type: "sw:Evidence",
-    fields: { kind: "Reference", source: "cli/MANUAL.md",
+    fields: { kind: "Reference", source: "fdpm-cli/MANUAL.md",
       description: "User-facing CLI manual; authoritative for flag and subcommand reference." } },
 ];
 

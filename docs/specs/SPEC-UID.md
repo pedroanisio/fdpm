@@ -11,7 +11,7 @@ generated:
     This document is generated. Edits made directly to this file will
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
-  source_script: "cli/scripts/build-spec-uid.ts"
+  source_script: "fdpm-cli/scripts/build-spec-uid.ts"
 revision: "0.2.0 — implementation landed: dual-ID schema, Core mint site, deterministic upcaster (op_id-seeded), uid_index, --by-uid CLI surface, and three-mode transfer.import dedup. 506 tests pass."
 status: "Stable"
 ---
@@ -28,14 +28,14 @@ _Mint a ULID alongside every primitive and relation, treat it as the canonical r
 > direct edits will be silently overwritten on the next render and
 > will not round-trip through the build pipeline.
 >
-> **Source of truth:** `cli/scripts/build-spec-uid.ts`
+> **Source of truth:** `fdpm-cli/scripts/build-spec-uid.ts`
 >
 > **Regenerate with:**
 >
 > ```bash
 > rm -rf /tmp/fdpm-spec-uid
-> FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx cli/scripts/build-spec-uid.ts
-> FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx cli/src/bin/fdpm.ts \
+> FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx fdpm-cli/scripts/build-spec-uid.ts
+> FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx fdpm-cli/src/bin/fdpm.ts \
 >   render spec-uid text/markdown \
 >   --renderer-id spec:SpecMarkdownRenderer \
 >   -o docs/specs/SPEC-UID.md

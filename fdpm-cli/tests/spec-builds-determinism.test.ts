@@ -30,8 +30,8 @@ import {
  * This is acceptable for a reproducibility gate that runs in CI.
  */
 
-const REPO_ROOT = join(__dirname, "..", "..");
-const TSX = join(REPO_ROOT, "cli", "node_modules", ".bin", "tsx");
+const REPO_ROOT = join(__dirname, "..");
+const TSX = join(REPO_ROOT, "node_modules", ".bin", "tsx");
 
 function runScript(scriptPath: string, dataDir: string): string {
   // Returns stdout. Throws on non-zero exit.
@@ -51,7 +51,7 @@ function runScript(scriptPath: string, dataDir: string): string {
 function runCli(args: string[], dataDir: string): string {
   return execFileSync(
     TSX,
-    ["cli/src/bin/fdpm.ts", ...args],
+    ["src/bin/fdpm.ts", ...args],
     {
       cwd: REPO_ROOT,
       env: { ...process.env, FDPM_DATA_DIR: dataDir },
@@ -83,7 +83,7 @@ function buildAndValidate(scriptPath: string, projectId: string): {
     const rendered = execFileSync(
       TSX,
       [
-        "cli/src/bin/fdpm.ts",
+        "src/bin/fdpm.ts",
         "render",
         projectId,
         "text/markdown",
@@ -106,12 +106,12 @@ function buildAndValidate(scriptPath: string, projectId: string): {
 const SPECS = [
   {
     name: "SPEC-EXPRESSION-RUNTIME",
-    script: "cli/scripts/build-spec-expression-runtime.ts",
+    script: "scripts/build-spec-expression-runtime.ts",
     projectId: "spec-expression-runtime",
   },
   {
     name: "SPEC-RENDER-DSL",
-    script: "cli/scripts/build-spec-render-dsl.ts",
+    script: "scripts/build-spec-render-dsl.ts",
     projectId: "spec-render-dsl",
   },
 ];

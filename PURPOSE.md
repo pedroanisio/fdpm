@@ -1,53 +1,46 @@
-# FDPM - Formal Documentation Primitive Model
-
-## Why We Built This
-
-We believe that knowledge — whether it lives in a formal proof, an architecture document, or a story — deserves better than scattered free-form text.
-
-Today, the assumptions behind a theorem are buried in prose. The traits of a character are described differently every time they appear. The constraints on a software system exist only in one engineer's memory. When knowledge lacks structure, it drifts. Inconsistencies creep in silently. New contributors inherit context through folklore, not through verifiable artifacts. And when AI agents interact with this knowledge, they hallucinate confidently because no one made the ground truth explicit.
-
-The cost is real: documentation that contradicts itself, stories that lose their thread, proofs that hide their weakest links, and systems that no one fully understands — including the people who built them.
-
+---
+disclaimer:
+  notice: >-
+    No information within this document should be taken for granted.
+    Any statement or premise not backed by a real logical definition
+    or verifiable reference may be invalid, erroneous, or a hallucination.
+  generated_by: "GPT-5 Codex via OpenAI Codex"
+  date: "2026-05-04"
 ---
 
-## How We Approach This
+# Repository Purpose
 
-- **Primitives over prose** — Every piece of knowledge is decomposed into typed, atomic units with a single source of truth. Define once, reference everywhere. If it can't be expressed as a primitive with validated fields, it isn't understood yet.
+## Disclaimer
 
-- **Relationships are explicit** — Connections between ideas are not implied by proximity in a document. They are typed, directed edges with cardinality, constraints, and validation. Hidden dependencies surface as first-class structure.
+This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](./DISCLAIMER.md).
+> No statement or premise not backed by a real logical definition or verifiable reference should be taken for granted.
 
-- **Domains are pluggable, not hardcoded** — Software architecture, narrative storytelling, and formal theorem analysis are all vocabularies over the same primitive model. New domains register their own types, relations, and validation rules without changing the framework.
+## Why This Repository Exists
 
-- **Validation at every layer** — Structural integrity, field-level type checking, and domain-specific semantic rules run automatically. Consistency is enforced, not hoped for.
+This repository exists to package FDPM Core as a local, auditable operator
+tool. The executable runtime lives under [`fdpm-cli/`](./fdpm-cli/), where the
+event-sourced core, validation pipeline, transfer surface, and plugin runtime
+are assembled into a TypeScript CLI.
 
-- **Generation from structure, not decoration on top** — Prose, diagrams, and documentation are projections of the underlying graph. Change a primitive, and every output that references it updates. The structure is the source of truth; the rendered output is a view.
+The point of the repository is not to describe the core abstractly. It is to
+ship an executable host, the supporting specs, and the regression suite needed
+to keep the operator surface aligned with the underlying contracts.
 
-- **Honest about limits** — When something is uncomputable, undetermined, or blocked, the system says so explicitly rather than papering over gaps. Confidence is measured, not assumed.
+## What It Provides
 
----
+- A CLI runtime for creating, inspecting, validating, diffing, migrating, transferring, and rendering FDPM projects.
+- Bundled plugin content that exercises the host against real domains such as formal specification, planning, software architecture, and spec authoring.
+- Project-level specs and references that make the implementation auditable against its stated contracts.
+- A persistence and replay surface where the operation log remains the source of truth.
 
-## What It Does
+## Who It Is For
 
-### Core Capabilities
+- **FDPM core maintainers** who need an executable host for the core contracts.
+- **Plugin authors** who need a real runtime for profile, validator, renderer, importer, and exporter work.
+- **Operators and automation** that need local, scriptable access to FDPM projects without standing up an HTTP service.
 
-- A universal primitive model where any knowledge domain can define its own vocabulary of types, relations, scopes, and validation rules
-- A formal methodology for stress-testing theorems and impossibility results through structured decomposition, evaluation, and gap analysis
-- NLP-powered compilation of structured narrative schemas into prose, with voice fingerprinting, sentiment analysis, and creative validation
-- Multi-format rendering of the same underlying knowledge graph as markdown, JSON, Mermaid diagrams, or tables
-- A REST API for all operations: creating primitives, defining relations, validating projects, rendering views, and compiling output
+## Non-Goals
 
-### What This Is Not
-
-This project does **not**:
-- Replace writing with automation — it structures the thinking behind writing; humans and LLMs still craft the prose
-- Prove theorems — it maps where proofs are strong, where they are weak, and what breakthroughs would look like
-- Enforce a single way to document — it provides the primitive model; each domain defines its own vocabulary and rules
-
----
-
-## Who This Is For
-
-- **Researchers** — Surface hidden assumptions in formal results; map the frontier between what is known and what is blocked
-- **Writers** — Define characters, themes, and conflicts once; compile consistent prose through a validated pipeline
-- **Architects** — Document software systems as typed, validated knowledge graphs instead of stale wiki pages
-- **AI agents** — Operate on structured primitives with explicit constraints instead of inferring intent from ambiguous text
+- This repository is not an HTTP server deployment.
+- It is not a general NLP or story-generation product surface.
+- It does not redefine FDPM separately from the core and companion specs it ships.

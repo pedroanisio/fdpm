@@ -84,3 +84,7 @@ registerUpcaster("relation.create", "1.1.0", "1.2.0", (payload, op) => ({
   ...payload,
   uid: mintUidFromSeed(op.op_id),
 }));
+// transfer.import is an audit/header operation. v1.2.0 added uid fields
+// to the child primitive/relation create payloads, not to this wrapper
+// payload itself. Legacy logs therefore upcast by identity.
+registerUpcaster("transfer.import", "1.1.0", "1.2.0", (payload) => payload);

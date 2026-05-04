@@ -11,7 +11,7 @@ generated:
     This document is generated. Edits made directly to this file will
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
-  source_script: "cli/scripts/build-spec-sections-tree.ts"
+  source_script: "fdpm-cli/scripts/build-spec-sections-tree.ts"
 revision: "0.1.0 — initial proposal. Derive numbering from `spec:HasSection` edges sorted by a new `order: int` field; keep author-supplied `number` as a deprecated fallback for one minor release."
 status: "Proposal"
 ---
@@ -28,14 +28,14 @@ _Stop hand-authoring `number` on every spec:Section. Order subsections by a nume
 > direct edits will be silently overwritten on the next render and
 > will not round-trip through the build pipeline.
 >
-> **Source of truth:** `cli/scripts/build-spec-sections-tree.ts`
+> **Source of truth:** `fdpm-cli/scripts/build-spec-sections-tree.ts`
 >
 > **Regenerate with:**
 >
 > ```bash
 > rm -rf /tmp/fdpm-spec-sections-tree
-> FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx cli/scripts/build-spec-sections-tree.ts
-> FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx cli/src/bin/fdpm.ts \
+> FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/scripts/build-spec-sections-tree.ts
+> FDPM_DATA_DIR=/tmp/fdpm-spec-sections-tree npx tsx fdpm-cli/src/bin/fdpm.ts \
 >   render spec-sections-tree text/markdown \
 >   --renderer-id spec:SpecMarkdownRenderer \
 >   -o docs/specs/SPEC-SECTIONS-TREE.md
@@ -62,7 +62,7 @@ This work is subject to the methodological caveats and commitments described in 
 | Spec ID | spec:fdpm:sections-tree:0.1 |
 | Version | 0.1.0 |
 | Status | Proposal |
-| Audience | FDPM core maintainers, spec_authoring plugin maintainers, and any author of a `cli/scripts/build-spec-*.ts` script who has had to renumber sections after inserting one. |
+| Audience | FDPM core maintainers, spec_authoring plugin maintainers, and any author of a `fdpm-cli/scripts/build-spec-*.ts` script who has had to renumber sections after inserting one. |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, docs/specs/SPEC-CORE.md, docs/specs/SPEC-UID.md |
 | Companion code | cli/plugins/spec_authoring/renderers/spec_md.ts |
 | Peer SPEC | docs/specs/SPEC-RENDER-DSL.md |
@@ -86,7 +86,7 @@ This SPEC defines a change to the `spec_authoring` profile and its companion ren
 
 Three converging signals:
 
-1. **Every existing `cli/scripts/build-spec-*.ts` hand-authors `number` strings.** Inserting one section means renumbering all downstream siblings — a real, repeated source of churn.
+1. **Every existing `fdpm-cli/scripts/build-spec-*.ts` hand-authors `number` strings.** Inserting one section means renumbering all downstream siblings — a real, repeated source of churn.
 2. **`spec:HasSection` already supports `Section → Section`** (cli/plugins/spec_authoring/relations.ts:15-16). The tree is already representable; the renderer just doesn't use the tree shape.
 3. **SPEC-UID v0.2 ships `uid` on every primitive and relation**, giving us the deterministic, replay-stable tiebreak this SPEC needs for `(order, uid)` sibling ordering.
 
@@ -275,7 +275,7 @@ Three SEI-format scenarios pin the most consequential behaviours: insert-without
 
 ```
 [Source]            Operator running an unmigrated build script.
-[Stimulus]          Run `npx tsx cli/scripts/build-spec-uid.ts` (still using authored `number` strings) against a v0.1 host.
+[Stimulus]          Run `npx tsx fdpm-cli/scripts/build-spec-uid.ts` (still using authored `number` strings) against a v0.1 host.
 [Environment]       v0.1 sections-tree-enabled host with deprecation warnings active.
 [Artifact]          The rendered Markdown plus the findings list emitted alongside it.
 [Response]          Renderer falls back to authored `number`. Output matches pre-SPEC byte-for-byte. A deprecation finding is emitted per Section without an incoming HasSection that carries `order`.
@@ -305,10 +305,10 @@ Five acceptance criteria. AC-3 (zero diff before migration) and AC-4 (zero diff 
 - [ ] **2.** Rendering a project with `order` edges produces correct §N.M.K headings via DFS. _(open)_
   - evidence: cli/plugins/spec_authoring/renderers/spec_md.test.ts
 - [ ] **3.** All eight existing build-spec-*.ts scripts render byte-equal output before and after the renderer change, when the migration codemod has not been run. _(open)_
-  - evidence: cli/scripts/
+  - evidence: fdpm-cli/scripts/
   - evidence: Differential CI test
 - [ ] **4.** After running the codemod, all eight existing build-spec-*.ts scripts no longer set `number` on any `spec:Section` and still render byte-equal output. _(open)_
-  - evidence: cli/scripts/migrate-section-numbers.ts
+  - evidence: fdpm-cli/scripts/migrate-section-numbers.ts
   - evidence: Differential CI test
 - [ ] **5.** Replay determinism: byte-equal SHA-256 across two consecutive replays of any sections-tree project's log. _(open)_
   - evidence: Replay determinism harness from SPEC-UID coverage, extended for order
@@ -337,7 +337,7 @@ Six implementation changes spanning the profile schema (1), the renderer (2 edit
 | cli/plugins/spec_authoring/relations.ts | Add `order: int` (optional, default 0) to the `spec:HasSection` field list. No cardinality changes. | XS | not_started |
 | cli/plugins/spec_authoring/renderers/spec_md.ts | Replace `renderSections` flat-filter with a DFS rooted at the document, sorting children by `(order, uid)`. Introduce `deriveNumber(path: number[]): string`. | M | not_started |
 | cli/plugins/spec_authoring/renderers/spec_md.ts | Detect 'no `order` edges in project' and route through the legacy `compareSectionNumbers` path; emit deprecation findings on mixed-mode projects. | S | not_started |
-| cli/scripts/migrate-section-numbers.ts | New script: parses existing build-spec-*.ts, replaces `number: "N"` literals with `fields: { order: N * 10 }` on the corresponding `spec:HasSection`, drops the `number` from the `spec:Section` payload. | M | not_started |
+| fdpm-cli/scripts/migrate-section-numbers.ts | New script: parses existing build-spec-*.ts, replaces `number: "N"` literals with `fields: { order: N * 10 }` on the corresponding `spec:HasSection`, drops the `number` from the `spec:Section` payload. | M | not_started |
 | cli/plugins/spec_authoring/renderers/spec_md.test.ts | Three new fixtures: (a) pure graph-derived; (b) pure authored-number fallback; (c) mixed-mode with deprecation findings. | S | not_started |
 | cli/plugins/spec_authoring/primitives/document.ts | Mark the `number` field on `spec:Section` as deprecated in its description. No structural change in v0.1; field is removed in v0.2. | XS | not_started |
 
@@ -352,8 +352,8 @@ Four sequenced steps: ship back-compat → ship codemod → mark deprecated → 
    - touches: `cli/plugins/spec_authoring/renderers/spec_md.ts`
    - touches: `cli/plugins/spec_authoring/renderers/spec_md.test.ts`
 2. **Ship the codemod** — CHG-4. Run against all eight existing build-spec-*.ts; commit the migrated forms in a separate PR. Each migrated SPEC re-renders byte-equal.
-   - touches: `cli/scripts/migrate-section-numbers.ts`
-   - touches: `cli/scripts/build-spec-*.ts`
+   - touches: `fdpm-cli/scripts/migrate-section-numbers.ts`
+   - touches: `fdpm-cli/scripts/build-spec-*.ts`
 3. **Mark `number` deprecated in profile docs** — CHG-6. Description-only change; no behaviour change. Operators see the deprecation when they consult `fdpm profile inspect`.
    - touches: `cli/plugins/spec_authoring/primitives/document.ts`
 4. **Remove `number` field in SPEC v0.2** — Tracked separately. Once all callers are migrated and one minor release has passed, remove the field from `spec:Section` and the fallback path from the renderer.

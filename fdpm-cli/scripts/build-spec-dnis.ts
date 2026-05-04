@@ -17,10 +17,10 @@
  *
  * Run with:
  *   rm -rf /tmp/fdpm-spec-dnis
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx cli/scripts/build-spec-dnis.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/scripts/build-spec-dnis.ts
  *
  * Render with:
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-dnis text/markdown \
  *     --renderer-id spec:SpecMarkdownRenderer \
  *     -o docs/specs/SPEC-DNIS.md
@@ -79,11 +79,11 @@ const documentSpec: PrimitiveSpec = {
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
       "0.1.5 (pass 6) — status promoted Draft → Proposal; spec_id and version drop the `-draft` suffix accordingly; §1.2 prose, PALS-LAW banner, and §5.2 schemaVersion example brought into line with the proposal status. No normative changes to §3–§16. See Appendix B.",
-    source_script: "cli/scripts/build-spec-dnis.ts",
+    source_script: "fdpm-cli/scripts/build-spec-dnis.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-dnis",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx cli/scripts/build-spec-dnis.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/scripts/build-spec-dnis.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-dnis text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-DNIS.md",
@@ -2029,7 +2029,7 @@ async function main(): Promise<void> {
   console.log(
     `  FDPM_DATA_DIR=${process.env["FDPM_DATA_DIR"] ?? "~/.fdpm-cli"} \\`,
   );
-  console.log("    npx tsx cli/src/bin/fdpm.ts \\");
+  console.log("    npx tsx fdpm-cli/src/bin/fdpm.ts \\");
   console.log("    render spec-dnis text/markdown \\");
   console.log("    --renderer-id spec:SpecMarkdownRenderer \\");
   console.log("    -o docs/specs/SPEC-DNIS.md");

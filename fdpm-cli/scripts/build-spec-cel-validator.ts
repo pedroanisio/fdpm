@@ -11,10 +11,10 @@
  * primitives joined by typed relations.
  *
  * Run with:
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx cli/scripts/build-spec-cel-validator.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx fdpm-cli/scripts/build-spec-cel-validator.ts
  *
  * Then render the SPEC to disk:
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-cel-validator --renderer-id spec:SpecMarkdownRenderer \
  *     --target text/markdown --out docs/specs/SPEC-CEL-VALIDATOR.md
  *
@@ -63,7 +63,7 @@ const documentSpec: PrimitiveSpec = {
       "docs/specs/SPEC-CORE.md",
       "docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md",
     ],
-    companion_code: "cli/src/core/validation/pipeline.ts",
+    companion_code: "fdpm-cli/src/core/validation/pipeline.ts",
     peer_spec: "docs/specs/SPEC-CORE.md",
     disclaimer_path: "../../DISCLAIMER.md",
     pals_banner: true,
@@ -75,11 +75,11 @@ const documentSpec: PrimitiveSpec = {
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
       "0.2.0 — implementation landed in commit 130a25e. ADR moved from `proposed` to `accepted`; per-plugin CEL evaluation and program-cache mitigations marked `implemented`. Two ACs remain open: helper-purity static check and the perf benchmark.",
-    source_script: "cli/scripts/build-spec-cel-validator.ts",
+    source_script: "fdpm-cli/scripts/build-spec-cel-validator.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-cel",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx cli/scripts/build-spec-cel-validator.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx fdpm-cli/scripts/build-spec-cel-validator.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-cel npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-cel-validator text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-CEL-VALIDATOR.md",
@@ -1391,7 +1391,7 @@ async function main() {
   console.log("");
   console.log("Render to Markdown:");
   console.log(
-    `  npx tsx cli/src/bin/fdpm.ts render ${PROJECT_ID} --renderer-id spec:SpecMarkdownRenderer --target text/markdown --out docs/specs/SPEC-CEL-VALIDATOR.md`,
+    `  npx tsx fdpm-cli/src/bin/fdpm.ts render ${PROJECT_ID} --renderer-id spec:SpecMarkdownRenderer --target text/markdown --out docs/specs/SPEC-CEL-VALIDATOR.md`,
   );
 }
 

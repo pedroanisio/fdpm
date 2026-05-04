@@ -12,10 +12,10 @@
  *
  * Run with:
  *   rm -rf /tmp/fdpm-spec-uid
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx cli/scripts/build-spec-uid.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx fdpm-cli/scripts/build-spec-uid.ts
  *
  * Then render the SPEC to disk:
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-uid text/markdown \
  *     --renderer-id spec:SpecMarkdownRenderer \
  *     -o docs/specs/SPEC-UID.md
@@ -64,7 +64,7 @@ const documentSpec: PrimitiveSpec = {
       "DISCLAIMER.md",
       "docs/specs/SPEC-CORE.md",
     ],
-    companion_code: "cli/src/core/models/instance.ts",
+    companion_code: "fdpm-cli/src/core/models/instance.ts",
     peer_spec: "docs/specs/SPEC-CORE.md",
     disclaimer_path: "../../DISCLAIMER.md",
     pals_banner: true,
@@ -78,11 +78,11 @@ const documentSpec: PrimitiveSpec = {
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
       "0.2.0 — implementation landed: dual-ID schema, Core mint site, deterministic upcaster (op_id-seeded), uid_index, --by-uid CLI surface, and three-mode transfer.import dedup. 506 tests pass.",
-    source_script: "cli/scripts/build-spec-uid.ts",
+    source_script: "fdpm-cli/scripts/build-spec-uid.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-uid",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx cli/scripts/build-spec-uid.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx fdpm-cli/scripts/build-spec-uid.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-uid npx tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-uid text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-UID.md",
@@ -1870,7 +1870,7 @@ async function main(): Promise<void> {
   console.log(
     `  FDPM_DATA_DIR=${process.env["FDPM_DATA_DIR"] ?? "~/.fdpm-cli"} \\`,
   );
-  console.log("    npx tsx cli/src/bin/fdpm.ts \\");
+  console.log("    npx tsx fdpm-cli/src/bin/fdpm.ts \\");
   console.log("    render spec-uid text/markdown \\");
   console.log("    --renderer-id spec:SpecMarkdownRenderer \\");
   console.log("    -o docs/specs/SPEC-UID.md");

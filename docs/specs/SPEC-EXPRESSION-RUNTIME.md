@@ -11,7 +11,7 @@ generated:
     This document is generated. Edits made directly to this file will
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
-  source_script: "cli/scripts/build-spec-expression-runtime.ts"
+  source_script: "fdpm-cli/scripts/build-spec-expression-runtime.ts"
 revision: "0.1.7 — core runtime gaps closed. Bound caps, the closed 8-code runtime enum, full fn.sortBy key-expression semantics, automatic Tier-B git probing, and typed top-level CEL bindings are now shipped. See §0.5 and §19."
 status: "Proposal"
 ---
@@ -28,14 +28,14 @@ _One CEL-based engine for every expression in FDPM. Validate-time predicates, re
 > direct edits will be silently overwritten on the next render and
 > will not round-trip through the build pipeline.
 >
-> **Source of truth:** `cli/scripts/build-spec-expression-runtime.ts`
+> **Source of truth:** `fdpm-cli/scripts/build-spec-expression-runtime.ts`
 >
 > **Regenerate with:**
 >
 > ```bash
 > rm -rf /tmp/fdpm-spec-expr-rt
-> FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx cli/scripts/build-spec-expression-runtime.ts
-> FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx cli/src/bin/fdpm.ts \
+> FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx fdpm-cli/scripts/build-spec-expression-runtime.ts
+> FDPM_DATA_DIR=/tmp/fdpm-spec-expr-rt npx tsx fdpm-cli/src/bin/fdpm.ts \
 >   render spec-expression-runtime text/markdown \
 >   --renderer-id spec:SpecMarkdownRenderer \
 >   -o docs/specs/SPEC-EXPRESSION-RUNTIME.md
@@ -96,7 +96,7 @@ This SPEC describes a target architecture; the implementation is partially shipp
 
 **Migration ordering.** The shipped `ExpressionRuntime` plus the legacy activation surface together support today's predicate use case (sw plugin's 12 CEL rules evaluate via this path; see SPEC-CEL-VALIDATOR §10 acceptance criteria 1-3 marked `met`). Transitioning to the Tier-A surface requires updating both the activation factory and SPEC-CEL-VALIDATOR §6 in the same release; doing so before the helper bodies are bound risks producing rule predicates that reference helpers the runtime cannot resolve.
 
-**Source of truth.** The constants in `cli/scripts/_spec-shared.ts` (Tier-A binding paths, Tier-B binding paths, standard helper inventory, helper-set version) are the SPEC's authoritative manifest; mismatches between that file and the rendered §M7 / §M14 fail `cli/tests/spec-builds-determinism.test.ts`. The constants in `cli/src/core/expr/std.ts` are the runtime's authoritative manifest; mismatches between the two ARE the drift this section exists to surface. As of this revision, `STANDARD_HELPER_IDS` (runtime) and `STANDARD_HELPERS` (SPEC source) agree on all 14 ids; `EXPR_HELPER_SET_VERSION` and `HELPER_SET_VERSION` agree at `1.1.0`; `EXPR_CEL_REVISION` (`"TBD"`) is honest about the unpinned state Open Question 1 tracks.
+**Source of truth.** The constants in `fdpm-cli/scripts/_spec-shared.ts` (Tier-A binding paths, Tier-B binding paths, standard helper inventory, helper-set version) are the SPEC's authoritative manifest; mismatches between that file and the rendered §M7 / §M14 fail `fdpm-cli/tests/spec-builds-determinism.test.ts`. The constants in `fdpm-cli/src/core/expr/std.ts` are the runtime's authoritative manifest; mismatches between the two ARE the drift this section exists to surface. As of this revision, `STANDARD_HELPER_IDS` (runtime) and `STANDARD_HELPERS` (SPEC source) agree on all 14 ids; `EXPR_HELPER_SET_VERSION` and `HELPER_SET_VERSION` agree at `1.1.0`; `EXPR_CEL_REVISION` (`"TBD"`) is honest about the unpinned state Open Question 1 tracks.
 
 ---
 
@@ -889,7 +889,7 @@ Affected sections: §M14, §7, §11, §15, §19
 
 Architecture unchanged. Stabilization-pass changes:
 
-1. Activation Tier-A and Tier-B tables in §M7 now generated from cli/scripts/_spec-shared.ts. Same module is consumed by SPEC-RENDER-DSL. Changing a binding is a one-edit change in the shared file plus matching SPEC text here.
+1. Activation Tier-A and Tier-B tables in §M7 now generated from fdpm-cli/scripts/_spec-shared.ts. Same module is consumed by SPEC-RENDER-DSL. Changing a binding is a one-edit change in the shared file plus matching SPEC text here.
 
 2. Standard helper inventory in §M14 generated from the same shared module. Both SPECs read the inventory from one place; drift between the two is now structurally impossible.
 

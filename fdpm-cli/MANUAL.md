@@ -63,30 +63,28 @@ see [`README.md`](README.md). For the SPEC, see
 cd /path/to/repo
 
 # 1. Install once.
-npm --prefix cli install
+npm --prefix fdpm-cli install
 
 # 2. Pick a data dir (this is where the operation log lives — keep it).
-export FDPM_DATA_DIR=$HOME/.fdpm/data
+export FDPM_DATA_DIR=$HOME/.fdpm-cli
 
-# 3. Run the CLI via tsx (development) — use `npm --prefix cli run build`
-#    and the bin shim for production.
+# 3. Build once and point `fdpm` at the generated CLI entrypoint.
 #
-# Development alias. `npx --prefix` is NOT a real flag; pin tsx to the
-# CLI workspace by changing into it (or use `npm --prefix cli run dev`):
-alias fdpm='(cd /path/to/repo/cli && npx tsx src/bin/fdpm.ts)'
-# Equivalent:
-# alias fdpm='npm --prefix /path/to/repo/cli run dev --silent --'
+npm --prefix fdpm-cli run build
+alias fdpm='node /path/to/repo/fdpm-cli/dist/src/bin/fdpm.js'
 
 # 4. Smoke test.
 fdpm version --json
 # => { "spec_core": "1.1", "spec_core_revision": "1.1.1",
-#      "host": "fdpm", "host_version": "1.1.0" }
+#      "host": "fdpm-cli", "host_version": "1.1.0" }
 
 fdpm health readyz
 # => ready profiles=N
 
 fdpm profile list --json | jq '.profiles | map(.id)'
-# => ["core:empty", "profile:formal-specification:3.0"]
+# => ["core:empty", "profile:formal-specification:3.0",
+#      "profile:planning:0.1", "profile:software-architecture:1.0",
+#      "profile:spec-authoring:0.1"]
 
 # 5. Create your first project against the formal-specification profile.
 fdpm project create --json \
@@ -128,7 +126,7 @@ Three ways to choose the data dir, in order of precedence:
 ```sh
 fdpm --data-dir /tmp/scratch project list   # 1. CLI flag
 FDPM_DATA_DIR=/tmp/scratch fdpm project list # 2. Env var
-fdpm project list                            # 3. Default: $HOME/.fdpm/data
+fdpm project list                            # 3. Default: $HOME/.fdpm-cli
 ```
 
 For ephemeral runs (tests, scratch experiments), use in-memory mode:

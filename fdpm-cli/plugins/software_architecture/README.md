@@ -461,23 +461,80 @@ authoritative flag reference):
 
 ```bash
 # Create a project bound to this profile
-fdpm project init my-system --profile profile:software-architecture:1.0
+fdpm project create --id my-system --name "My System" \
+  --profile profile:software-architecture:1.0 --json
 
 # Add primitives
-fdpm primitive add sw:Entity   --field kind=Service --field name="OrderService" --field lifecycle=Active --field description="Owns order lifecycle"
-fdpm primitive add sw:Decision --field status=Accepted --field title="Use Postgres" --field rationale="..." --field consequences="..."
-fdpm primitive add sw:Endpoint --field name=PlaceOrder --field protocol=HTTP --field method=POST --field path=/orders
+cat <<'JSON' | fdpm primitive create my-system -f - --json
+{
+  "id": "entity:order-service",
+  "type_id": "sw:Entity",
+  "scope_id": "scope:sw:runtime",
+  "field_values": {
+    "kind": "Service",
+    "name": "OrderService",
+    "lifecycle": "Active",
+    "description": "Owns order lifecycle."
+  }
+}
+JSON
+
+cat <<'JSON' | fdpm primitive create my-system -f - --json
+{
+  "id": "endpoint:place-order",
+  "type_id": "sw:Endpoint",
+  "field_values": {
+    "name": "PlaceOrder",
+    "protocol": "HTTP",
+    "method": "POST",
+    "path": "/orders"
+  }
+}
+JSON
+
+cat <<'JSON' | fdpm primitive create my-system -f - --json
+{
+  "id": "decision:postgres",
+  "type_id": "sw:Decision",
+  "scope_id": "scope:sw:domain",
+  "field_values": {
+    "status": "Accepted",
+    "title": "Use Postgres",
+    "context": "Relational consistency is a hard requirement.",
+    "rationale": "The domain needs transactional integrity.",
+    "alternatives": [
+      {
+        "name": "Document store",
+        "reason_rejected": "Weak fit for cross-aggregate transactions."
+      }
+    ],
+    "consequences": "Operational complexity is accepted for stronger consistency."
+  }
+}
+JSON
 
 # Connect with relations
-fdpm relation add sw:Exposes  --source <entity_id>   --target <endpoint_id>
-fdpm relation add sw:Implements --source <entity_id> --target <contract_id>
+cat <<'JSON' | fdpm relation create my-system -f - --json
+{
+  "id": "rel:order-service-exposes-place-order",
+  "type_id": "sw:Exposes",
+  "source_id": "entity:order-service",
+  "target_id": "endpoint:place-order",
+  "field_values": {}
+}
+JSON
 
-# Validate (declarative rules — see caveats above; effective only with a
-# host/extension that evaluates the legacy predicate DSL)
-fdpm validate
+# Validate
+fdpm validate my-system --json
+
+# Render
+fdpm render my-system application/x-yaml --renderer-id sw:OpenAPIRenderer -o openapi.yaml
+fdpm render my-system text/markdown --renderer-id sw:ADRRenderer -o adr.md
 ```
 
-> **Rendering note.** Because this plugin ships no executable renderers,
+> **Rendering note.** This plugin ships two executable renderers:
+> `sw:OpenAPIRenderer` for `application/x-yaml` and `sw:ADRRenderer` for
+> `text/markdown`.
 ## File layout
 
 ```

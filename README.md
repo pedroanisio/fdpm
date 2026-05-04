@@ -12,7 +12,7 @@ disclaimer:
 
 ## Disclaimer
 
-This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](../DISCLAIMER.md).
+This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](./DISCLAIMER.md).
 > No statement or premise not backed by a real logical definition or verifiable reference should be taken for granted.
 
 ---
@@ -23,9 +23,9 @@ This work is subject to the methodological caveats and commitments described in 
 > explicitly.
 
 A from-scratch TypeScript CLI implementation of the FDPM Core SPEC v1.1
-([../docs/specs/SPEC-CORE.md](../docs/specs/SPEC-CORE.md)) **and** the
+([docs/specs/SPEC-CORE.md](docs/specs/SPEC-CORE.md)) **and** the
 companion Pluggable Architecture SPEC v1.1
-([../docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](../docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md))
+([docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md))
 on the server side. Independent of the existing Python `src/fdpm/` server.
 Includes a faithful port of the `formal_specification` plugin (32 primitive
 types, 30 relation types, 23 validation rules, 3 renderer bindings,
@@ -62,10 +62,10 @@ implemented.
 ## Install / build
 
 ```bash
-npm install
-npm run build              # tsc → dist/
-npm test                   # vitest run
-npm run dev -- version     # tsx, no build needed
+npm --prefix fdpm-cli install
+npm --prefix fdpm-cli run build              # tsc → fdpm-cli/dist/
+npm --prefix fdpm-cli test                   # vitest run
+npm --prefix fdpm-cli run dev -- version     # tsx, no build needed
 ```
 
 ## Environment variables
@@ -89,6 +89,9 @@ npm run dev -- version     # tsx, no build needed
 ## Quick start (zero plugins)
 
 ```bash
+# Enter the CLI package once, or keep using --prefix fdpm-cli from repo root.
+cd fdpm-cli
+
 # Inspect SPEC version
 fdpm version --json
 
@@ -534,8 +537,8 @@ Same as the parent project (see [../LICENSE](../LICENSE) if present).
 
 ## See also
 
-- [../docs/specs/SPEC-CORE.md](../docs/specs/SPEC-CORE.md) — the SPEC this implements.
-- [../docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](../docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) — companion SPEC; server-side capabilities implemented (see "Plugin runtime" above).
-- [../src/fdpm/plugins/formal_specification.py](../src/fdpm/plugins/formal_specification.py) — the Python source the formal_specification plugin ports.
-- [../CLAUDE.md](../CLAUDE.md) — project-level engineering rules.
-- [../PURPOSE.md](../PURPOSE.md) — universality mandate.
+- [docs/specs/SPEC-CORE.md](docs/specs/SPEC-CORE.md) — the SPEC this implements.
+- [docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) — companion SPEC; server-side capabilities implemented (see "Plugin runtime" above).
+- [fdpm-cli/references/python-sources/formal_specification.py](fdpm-cli/references/python-sources/formal_specification.py) — the Python source the formal_specification plugin ports.
+- [CLAUDE.md](CLAUDE.md) — project-level engineering rules.
+- [PURPOSE.md](PURPOSE.md) — repository purpose and non-goals.
