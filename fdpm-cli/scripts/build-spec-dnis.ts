@@ -17,10 +17,10 @@
  *
  * Run with:
  *   rm -rf /tmp/fdpm-spec-dnis
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/scripts/build-spec-dnis.ts
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis node --import tsx fdpm-cli/scripts/build-spec-dnis.ts
  *
  * Render with:
- *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=/tmp/fdpm-spec-dnis node --import tsx fdpm-cli/src/bin/fdpm.ts \
  *     render spec-dnis text/markdown \
  *     --renderer-id spec:SpecMarkdownRenderer \
  *     -o docs/specs/SPEC-DNIS.md
@@ -52,11 +52,11 @@ const documentSpec: PrimitiveSpec = {
   id: "spec:doc:dnis",
   type: "spec:Document",
   fields: {
-    title: "Document Node Identity Specification (DNIS) v0.1.5",
+    title: "Document Node Identity Specification (DNIS) v0.1.6",
     subtitle:
       "Stable node identity for documents edited by LLM agents and human collaborators.",
-    spec_id: "spec:dnis:0.1.5",
-    version: "0.1.5",
+    spec_id: "spec:dnis:0.1.6",
+    version: "0.1.6",
     status: "Proposal",
     audience:
       "Implementers of document stores and editing pipelines that host LLM agents, human collaborators, and audit-bearing references.",
@@ -72,18 +72,18 @@ const documentSpec: PrimitiveSpec = {
     disclaimer_path: "../../DISCLAIMER.md",
     pals_banner: true,
     pals_extension:
-      "DNIS is a proposal that has been refined across five iterative passes (v0.1.0 → v0.1.5) but has not been reviewed by an external standards body, has no implementations beyond the §15 reference example (which itself is unverified — see §15 and the `cannot_verify` entry in §17), and has not been tested at scale. " +
+      "DNIS is a proposal that has been refined across six iterative passes (v0.1.0 → v0.1.6). The repository now contains a checked-in in-memory implementation and passing local tests for TV-1 through TV-6, but the specification has not been reviewed by an external standards body, has not been tested at scale, and does not yet demonstrate every detail needed for a clean Level 2 conformance declaration. " +
       "No claim, requirement, or guarantee within this document should be taken as ground truth without independent verification. " +
       "Any statement not backed by a real reference, mathematical derivation, or executable implementation may be invalid, erroneous, or hallucinated.",
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "0.1.5 (pass 6) — status promoted Draft → Proposal; spec_id and version drop the `-draft` suffix accordingly; §1.2 prose, PALS-LAW banner, and §5.2 schemaVersion example brought into line with the proposal status. No normative changes to §3–§16. See Appendix B.",
+      "0.1.6 (pass 7) — implementation-evidence refresh. §0, §15, §16, and Appendix A now reflect the checked-in DNIS module and tests; TV-1..TV-6 are marked verified. No normative changes to §3–§14.",
     source_script: "fdpm-cli/scripts/build-spec-dnis.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-dnis",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/scripts/build-spec-dnis.ts",
-      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis npx tsx fdpm-cli/src/bin/fdpm.ts \\",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis node --import tsx fdpm-cli/scripts/build-spec-dnis.ts",
+      "FDPM_DATA_DIR=/tmp/fdpm-spec-dnis node --import tsx fdpm-cli/src/bin/fdpm.ts \\",
       "  render spec-dnis text/markdown \\",
       "  --renderer-id spec:SpecMarkdownRenderer \\",
       "  -o docs/specs/SPEC-DNIS.md",
@@ -590,37 +590,43 @@ const acceptances: PrimitiveSpec[] = [
     1,
     "tv-1-identity-preservation-under-edit",
     "**TV-1 — Identity Preservation Under Edit.** Given a Node n with NID id_n and content c1, applying an `edit` Operation with content c2: n.id after the Operation MUST equal id_n; n.content MUST equal c2; n.contentHash MUST equal hash(canonicalize(c2)); n.revision MUST be one greater than before; all references to id_n MUST still resolve to n.",
-    "open",
+    "met",
+    ["fdpm-cli/src/core/dnis/store.ts", "fdpm-cli/tests/dnis-store.test.ts"],
   ),
   ac(
     2,
     "tv-2-idempotency-under-retry",
     "**TV-2 — Idempotency Under Retry.** Given an Operation op with OID oid_op applied successfully and recorded as OperationResult R, any subsequent Operation submitted with OID oid_op (including with a different payload) MUST NOT modify any Node state and MUST return R verbatim — including the original `appliedAt` server timestamp. The snapshot semantics are normative in §8.5.",
-    "open",
+    "met",
+    ["fdpm-cli/src/core/dnis/store.ts", "fdpm-cli/tests/dnis-store.test.ts"],
   ),
   ac(
     3,
     "tv-3-lineage-after-split",
     "**TV-3 — Lineage After Split.** Given a Node n with NID id_n, applying a `split` Operation producing parts p1, p2: n MUST be retired; p1.id and p2.id MUST be freshly generated NIDs; p1.derivedFrom MUST equal [id_n]; p2.derivedFrom MUST equal [id_n]; a reference resolution against id_n MUST return n with retired: true and a descendant set {p1, p2}.",
-    "open",
+    "met",
+    ["fdpm-cli/src/core/dnis/store.ts", "fdpm-cli/tests/dnis-store.test.ts"],
   ),
   ac(
     4,
     "tv-4-position-locality",
     "**TV-4 — Position Locality.** Given a Node n and applying a `move` Operation: only n.parentNodeId, n.position, n.revision, and n.lastEdited* fields MAY change. No other Node in the Document MAY have any field modified by this Operation.",
-    "open",
+    "met",
+    ["fdpm-cli/src/core/dnis/store.ts", "fdpm-cli/tests/dnis-store.test.ts"],
   ),
   ac(
     5,
     "tv-5-stale-write-rejection",
     "**TV-5 — Stale Write Rejection.** Given a Node n at revision r, an `edit` Operation with expectedRevision = r - 1: MUST be rejected; MUST NOT modify any Node state; MUST record no OperationResult.",
-    "open",
+    "met",
+    ["fdpm-cli/src/core/dnis/store.ts", "fdpm-cli/tests/dnis-store.test.ts"],
   ),
   ac(
     6,
     "tv-6-compact-preserves-revision",
     "**TV-6 — Compact Preserves Revision and Identity.** Given Nodes n1..nk in a Document at revisions r1..rk, applying a `compact` Operation (§7.8) repositioning all of them: each ni.id MUST equal its pre-Operation value; each ni.revision MUST equal ri (unchanged); ni.lastEditedBy, ni.lastEditedAt, ni.lastOperationId MUST equal their pre-Operation values; only ni.position MAY change. The OperationResult MUST be recorded in the §8 idempotency map but MUST NOT appear in any per-Node audit field.",
-    "open",
+    "met",
+    ["fdpm-cli/src/core/dnis/store.ts", "fdpm-cli/tests/dnis-store.test.ts"],
   ),
 ];
 
@@ -629,11 +635,17 @@ function ac(
   id: string,
   criterion: string,
   status: string,
+  evidence_refs?: string[],
 ): PrimitiveSpec {
   return {
     id: `spec:ac:${id}`,
     type: "spec:AcceptanceCriterion",
-    fields: { ordinal: ord, criterion, status },
+    fields: {
+      ordinal: ord,
+      criterion,
+      status,
+      ...(evidence_refs ? { evidence_refs } : {}),
+    },
   };
 }
 
@@ -1061,6 +1073,32 @@ const references: PrimitiveSpec[] = [
     },
   },
   {
+    id: "spec:ref:dnis-store-ts",
+    type: "spec:Reference",
+    fields: {
+      kind: "repo_file",
+      citation:
+        "fdpm-cli/src/core/dnis/store.ts — checked-in in-memory DNIS reference implementation.",
+      locator: "fdpm-cli/src/core/dnis/store.ts",
+      verification: "verified",
+      verification_note:
+        "Implements the current in-repo DNIS reference surface: create/edit/move/split/merge/retire/compact, idempotency snapshots, and five-outcome reference resolution. This is the implementation evidence cited by §15 for current repository state.",
+    },
+  },
+  {
+    id: "spec:ref:dnis-store-tests",
+    type: "spec:Reference",
+    fields: {
+      kind: "repo_file",
+      citation:
+        "fdpm-cli/tests/dnis-store.test.ts — executable DNIS proof surface for TV-1..TV-6 plus additional Level 2 concurrency cases.",
+      locator: "fdpm-cli/tests/dnis-store.test.ts",
+      verification: "verified",
+      verification_note:
+        "Provides passing local proof coverage for TV-1 through TV-6 and extra stale-move/split/retire and merge Mode A rejection scenarios. Used by §16's verified status claims.",
+    },
+  },
+  {
     id: "spec:ref:spec-core",
     type: "spec:Reference",
     fields: {
@@ -1114,6 +1152,29 @@ const references: PrimitiveSpec[] = [
 // ── Appendix B — Change Log ───────────────────────────────────────────────
 
 const revisions: PrimitiveSpec[] = [
+  {
+    id: "spec:rev:0-1-6",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.6",
+      date: "2026-05-04",
+      title:
+        "Implementation-evidence refresh: the checked-in DNIS module and tests now replace the earlier no-implementation posture.",
+      notes: [
+        "§0 document metadata updated: title/spec_id/version bumped 0.1.5 → 0.1.6; the PALS-LAW extension no longer claims there is no checked-in implementation. It now records the narrower truth: there is a real in-memory implementation with passing local tests, but no external review, no scale evidence, and no full Level 2 conformance declaration yet.",
+        "",
+        "§15 Reference Implementation rewritten to distinguish two facts: (1) the source draft's `document-store.mjs` companion artifact is still absent and remains `cannot_verify`; (2) the repository now contains a checked-in DNIS implementation at `fdpm-cli/src/core/dnis/store.ts` with proof coverage in `fdpm-cli/tests/dnis-store.test.ts`.",
+        "",
+        "§16 Test Vectors status legend updated and TV-1..TV-6 status fields changed from `open` to `met`, matching the passing checked-in tests.",
+        "",
+        "Appendix A wording updated from 'this draft' / 'promotion from draft status' to proposal/stable language so the open-questions framing matches the current document lifecycle state.",
+        "",
+        "No normative changes were made to §3–§14. In particular, this revision does NOT claim full Level 2 conformance because the current implementation does not yet prove §10.1.2's full ordered per-target rejection-evidence shape for stale merge failures.",
+      ].join("\n"),
+      affected_sections: ["0", "15", "16", "A", "B", "17"],
+      kind: "patch",
+    },
+  },
   {
     id: "spec:rev:0-1-5",
     type: "spec:Revision",
@@ -1851,11 +1912,13 @@ const sections: PrimitiveSpec[] = [
       body_md: [
         "The source DNIS draft (dnis-spec.md §15) names a non-normative reference implementation, `document-store.mjs`, said to live in \"the companion materials to this specification.\"",
         "",
-        "**As of this revision, no such file is present in this repository.** No file at any path matches that name. The §17 reference entry `spec:ref:document-store-mjs` is correspondingly marked `cannot_verify` and **MUST NOT** be cited as evidence of conformance.",
+        "**That historical companion file is still absent.** No file at any path matches that name. The §17 reference entry `spec:ref:document-store-mjs` therefore remains `cannot_verify` and **MUST NOT** be cited as evidence of conformance.",
         "",
-        "Conformance to this specification is defined against the requirements (§4–§14), the test vectors (§16), and the conformance levels (§12) — never against an implementation whose existence cannot be verified. PALS-LAW: an unverifiable implementation is not authority.",
+        "However, the repository now contains a checked-in DNIS implementation at `fdpm-cli/src/core/dnis/store.ts` and executable proof coverage at `fdpm-cli/tests/dnis-store.test.ts`. Those artifacts demonstrate a working in-memory Level 1 implementation and substantial Level 2 behavior, including passing local tests for TV-1 through TV-6.",
         "",
-        "Promotion of this SPEC past Draft status SHOULD either (a) land an actual reference implementation in this repository and re-cite it from §17, or (b) delete this section in favour of conformance-by-test-vector alone.",
+        "Conformance to this specification is defined against the requirements (§4–§14), the test vectors (§16), and the conformance levels (§12). The checked-in implementation is valid evidence because it exists and can be exercised locally; the historical `document-store.mjs` companion is not.",
+        "",
+        "This revision does **NOT** claim full Level 2 conformance. The current implementation still needs to prove §10.1.2's full ordered per-target rejection-evidence shape for stale merge failures before such a declaration would be accurate.",
       ].join("\n"),
     },
   },
@@ -1869,7 +1932,9 @@ const sections: PrimitiveSpec[] = [
       body_md: [
         "A conforming implementation **SHOULD** pass the following scenarios. These are stated as invariants; concrete inputs and outputs depend on the chosen identifier format and timestamps.",
         "",
-        "**Status legend.** `[ ]` / *(open)* indicates the test vector has no demonstrated passing implementation in this repository (PALS-LAW: an unverified assertion is `unverified`, never `passing`). `[x]` / *(verified)* would indicate a CI-passing test against a checked-in implementation. As of this revision, all test vectors are *(open)* because no reference implementation has been landed; see §15.",
+        "**Status legend.** `[ ]` / *(open)* indicates the test vector has no demonstrated passing implementation in this repository (PALS-LAW: an unverified assertion is `unverified`, never `passing`). `[x]` / *(met)* indicates a passing checked-in test against an implementation present in this repository.",
+        "",
+        "As of this revision, TV-1 through TV-6 are *(met)* against `fdpm-cli/src/core/dnis/store.ts` via `fdpm-cli/tests/dnis-store.test.ts`. This is sufficient to show a working Level 1 implementation and real coverage of the named vectors, but it is **not** by itself a blanket Level 2 conformance declaration; see §15 for the remaining merge-evidence gap.",
       ].join("\n"),
     },
   },
@@ -1891,7 +1956,7 @@ const sections: PrimitiveSpec[] = [
       title: "Appendix A — Open Questions",
       kind: "open_questions",
       body_md:
-        "The following are deliberately left unresolved in this draft and **SHOULD** be addressed before promotion from draft status. Each question records the deferral; resolving any of them is a candidate for a follow-up profile or revision.",
+        "The following are deliberately left unresolved in this proposal and **SHOULD** be addressed before any promotion from Proposal to Stable status. Each question records the deferral; resolving any of them is a candidate for a follow-up profile or revision.",
     },
   },
   {
@@ -1961,6 +2026,8 @@ const relations: RelationSpec[] = [
   rel("rel:doc-cites-crdt", "spec:Cites", documentSpec.id, "spec:ref:crdt-shapiro"),
   rel("rel:doc-cites-helland", "spec:Cites", documentSpec.id, "spec:ref:helland-idempotence"),
   rel("rel:doc-cites-document-store-mjs", "spec:Cites", documentSpec.id, "spec:ref:document-store-mjs"),
+  rel("rel:doc-cites-dnis-store-ts", "spec:Cites", documentSpec.id, "spec:ref:dnis-store-ts"),
+  rel("rel:doc-cites-dnis-store-tests", "spec:Cites", documentSpec.id, "spec:ref:dnis-store-tests"),
   rel("rel:doc-cites-spec-core", "spec:Cites", documentSpec.id, "spec:ref:spec-core"),
   rel("rel:doc-cites-spec-uid", "spec:Cites", documentSpec.id, "spec:ref:spec-uid"),
   rel("rel:doc-cites-claude-md", "spec:Cites", documentSpec.id, "spec:ref:claude-md"),
@@ -1974,8 +2041,9 @@ const relations: RelationSpec[] = [
 
   // Document was introduced in revision 0.1.0-draft, refined in 0.1.1-draft,
   // defect-fixed in 0.1.2-draft, refined again in 0.1.3-draft,
-  // review-fixed in 0.1.4-draft (pass 5), and promoted Draft → Proposal
-  // in 0.1.5 (pass 6, no-suffix from this revision onward).
+  // review-fixed in 0.1.4-draft (pass 5), promoted Draft → Proposal
+  // in 0.1.5 (pass 6), and implementation-state-aligned in 0.1.6 (pass 7).
+  rel("rel:doc-revised-0-1-6", "spec:RevisedIn", documentSpec.id, "spec:rev:0-1-6"),
   rel("rel:doc-revised-0-1-5", "spec:RevisedIn", documentSpec.id, "spec:rev:0-1-5"),
   rel("rel:doc-revised-0-1-4", "spec:RevisedIn", documentSpec.id, "spec:rev:0-1-4-draft"),
   rel("rel:doc-revised-0-1-3", "spec:RevisedIn", documentSpec.id, "spec:rev:0-1-3-draft"),
@@ -2029,7 +2097,7 @@ async function main(): Promise<void> {
   console.log(
     `  FDPM_DATA_DIR=${process.env["FDPM_DATA_DIR"] ?? "~/.fdpm-cli"} \\`,
   );
-  console.log("    npx tsx fdpm-cli/src/bin/fdpm.ts \\");
+  console.log("    node --import tsx fdpm-cli/src/bin/fdpm.ts \\");
   console.log("    render spec-dnis text/markdown \\");
   console.log("    --renderer-id spec:SpecMarkdownRenderer \\");
   console.log("    -o docs/specs/SPEC-DNIS.md");
