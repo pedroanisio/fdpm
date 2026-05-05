@@ -37,6 +37,8 @@ export const SPEC_UID_PATH = `${SPEC_DIR}/SPEC-UID.md` as const;
 export const SPEC_MCP_SERVER_PATH =
   `${SPEC_DIR}/SPEC-MCP-SERVER.md` as const;
 export const SPEC_REPL_PATH = `${SPEC_DIR}/SPEC-REPL.md` as const;
+export const SPEC_WORKSPACE_PATH =
+  `${SPEC_DIR}/SPEC-WORKSPACE.md` as const;
 
 export const SPEC_PATHS = {
   CORE: SPEC_CORE_PATH,
@@ -49,6 +51,7 @@ export const SPEC_PATHS = {
   UID: SPEC_UID_PATH,
   MCP_SERVER: SPEC_MCP_SERVER_PATH,
   REPL: SPEC_REPL_PATH,
+  WORKSPACE: SPEC_WORKSPACE_PATH,
 } as const;
 
 // ── Build-script paths ─────────────────────────────────────────────────────
@@ -78,6 +81,8 @@ export const BUILD_SPEC_MCP_SERVER_PATH =
   `${BUILD_SPEC_DIR}/build-spec-mcp-server.ts` as const;
 export const BUILD_SPEC_REPL_PATH =
   `${BUILD_SPEC_DIR}/build-spec-repl.ts` as const;
+export const BUILD_SPEC_WORKSPACE_PATH =
+  `${BUILD_SPEC_DIR}/build-spec-workspace.ts` as const;
 
 /** All existing `build-spec-*.ts` scripts (no PLUGGABLE_ARCHITECTURE). */
 export const ALL_BUILD_SPEC_PATHS: readonly string[] = [
@@ -90,4 +95,5 @@ export const ALL_BUILD_SPEC_PATHS: readonly string[] = [
   BUILD_SPEC_UID_PATH,
   BUILD_SPEC_MCP_SERVER_PATH,
   BUILD_SPEC_REPL_PATH,
+  BUILD_SPEC_WORKSPACE_PATH,
 ] as const;
