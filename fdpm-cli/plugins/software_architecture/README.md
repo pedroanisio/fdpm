@@ -628,3 +628,68 @@ omission, not a workflow shortcut.
   - [`../formal_specification/`](../formal_specification/) — formal-specification profile (full executable validators + Markdown / HTML / PDF renderers)
   - [`../fs_v3_importer/`](../fs_v3_importer/) — importer for legacy v3 documents
 - Project root: [`../../../README.md`](../../../README.md), [`../../../PURPOSE.md`](../../../PURPOSE.md), [`../../../DISCLAIMER.md`](../../../DISCLAIMER.md)
+
+---
+
+## Changelog
+
+### v1.1.0 — Threatens, EmbodiedBy, Rust schemas, larger evidence bodies
+
+Driven by defects surfaced reviewing the `sw-arch-rust-cli-greet` exemplar.
+All changes are additive: existing v1.0.0 models load unchanged.
+
+**New relation types**
+
+- `sw:Threatens: sw:FailureMode → [sw:Guarantee | sw:Invariant | sw:Constraint]` —
+  inverse intuition of `sw:Mitigates`. Closes the gap where authors who
+  want to say "this failure endangers X" inverted `sw:Mitigates` and
+  produced a backwards graph.
+- `sw:EmbodiedBy: sw:Stakeholder → sw:Actor` — links the
+  concern-bearing identity to the runtime-invoking identity. Lets a
+  consumer answer "is this stakeholder also a runtime actor?" from the
+  graph.
+
+**New validation rules**
+
+- `sw:comp:failure-threatens-something` (warning) — every `sw:FailureMode`
+  should declare what it threatens.
+- `sw:val:custom-schema-has-version` (error) — `sw:Schema` with
+  `format="Custom"` must declare a non-empty `version`.
+
+**Field changes**
+
+- `sw:Schema.format` enum gains `"Rust"` (alongside `JSONSchema`,
+  `Protobuf`, `Avro`, `TypeScript`, `Custom`). Reflects that Rust scalar
+  types (`u32`, `bool`, enums) are a legitimate schema lingua franca for
+  CLI / library tools.
+- `sw:Evidence.description` `maxLength` raised from 280 → 2000. The 280-
+  char cap blocked useful Proof citations (e.g. function signature plus
+  list of forbidden imports).
+
+**Migration from v1.0.0**
+
+- Profile id is **unchanged** (`profile:software-architecture:1.0`) per
+  the §Versioning policy: id pins at `:1.0` for additive changes; only
+  `:2.0` bumps the id. The plugin / manifest `version` advances to
+  `1.1.0`.
+- No primitive shapes were renamed or removed; v1.0.0 documents load
+  against this version with no rewrites.
+- One new validation rule (`sw:val:custom-schema-has-version`) is at
+  `error` level. Existing models with `format="Custom"` schemas missing
+  a `version` field will start failing validation. Either backfill the
+  version field or, if the schema is intentionally unversioned, change
+  it to a different `format` value.
+
+**Known gaps deferred to v1.2 / v2.0**
+
+- `sw:val:non-terminal-state-has-transition` is still a no-op. Fixing
+  it requires either modelling Transitions as relations (v2.0 break) or
+  adding `sw:HasOutgoingTransition` / `sw:HasIncomingTransition`
+  relations (v1.2 additive).
+- `sw:HasConcern` remains polysemous over Decisions / QualityAttributes /
+  Risks. Splitting into `sw:HasQualityConcern` / `sw:OwnsRisk` /
+  `sw:Authored` is queued for v1.2 with a deprecated alias.
+- The `state:{entity}:{name}` and `failure:{entity}:{name}` ID templates
+  cannot represent multi-segment entity IDs (e.g.
+  `deployment:Component:greet-bin`). Template-language change queued
+  for v2.0.

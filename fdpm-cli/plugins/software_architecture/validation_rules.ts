@@ -182,4 +182,38 @@ export const VALIDATION_RULES: ValidationRuleDef[] = [
     'has(instance.field_values.deprecated) && instance.field_values.deprecated == true ? graph.outgoing("sw:DeprecatedBy").size() >= 1 : true',
     "Endpoints with deprecated=true should have at least one outgoing sw:DeprecatedBy relation pointing at the replacement.",
   ),
+
+  // -------------------------------------------------------------------------
+  // v1.1 rules — pair with the v1.1 relation additions so every new edge
+  // is enforceable.
+  // -------------------------------------------------------------------------
+
+  // v1.1 #1 — Every FailureMode should name what it threatens. Without the
+  // edge a FailureMode is floating prose: the maintainer cannot answer
+  // 'which guarantee fails when this failure fires?' from the graph.
+  // Warning, not error: legitimate intermediate states exist where a
+  // FailureMode is recorded before its target guarantee is modelled.
+  rule(
+    "sw:comp:failure-threatens-something",
+    "FailureMode should declare what it threatens",
+    "warning",
+    ["sw:FailureMode"],
+    'has_outgoing("sw:Threatens")',
+    'graph.outgoing("sw:Threatens").size() >= 1',
+    "Every FailureMode should have at least one sw:Threatens edge to the guarantee, invariant, or constraint it endangers — otherwise the failure is documented but ungrounded in the rest of the model.",
+  ),
+
+  // v1.1 #4 — Schemas with format=Custom must carry a non-empty version
+  // string so downstream consumers have something to pin against. Custom
+  // schemas without a version are unusable as a contract surface; raising
+  // this to error matches sw:val:contract-has-conditions in spirit.
+  rule(
+    "sw:val:custom-schema-has-version",
+    "Custom-format schema must declare a version",
+    "error",
+    ["sw:Schema"],
+    'when(field("format") == "Custom", non_trivial(version))',
+    'instance.field_values.format == "Custom" ? (has(instance.field_values.version) && instance.field_values.version.trim().size() > 0) : true',
+    "A sw:Schema with format=\"Custom\" must declare a non-empty version field; without it the schema is unpinnable and cannot serve as a contract surface.",
+  ),
 ];

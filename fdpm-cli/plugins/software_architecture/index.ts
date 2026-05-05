@@ -66,7 +66,7 @@ export const SCOPE_IDS = {
 
 export const PROFILE: DomainProfile = {
   id: PROFILE_ID,
-  version: "1.0.0",
+  version: "1.1.0",
   name: "Software Architecture",
   label: "Software Architecture",
   description:
@@ -102,7 +102,7 @@ export async function activate(ctx: PluginContext): Promise<void> {
   });
   registerSoftwareArchitectureCapabilities(ctx);
   ctx.logger.info(
-    `software-architecture activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} CEL rules + 3 cap:validator implementations, 2 renderers (sw:OpenAPIRenderer/yaml, sw:ADRRenderer/md), 1 expr-helper, 1 transformer, 1 importer (sw-jsonl), 1 exporter (sw-jsonl)`,
+    `software-architecture v${PROFILE.version} activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} CEL rules + 3 cap:validator implementations, 2 renderers (sw:OpenAPIRenderer/yaml, sw:ADRRenderer/md), 1 expr-helper, 1 transformer, 1 importer (sw-jsonl), 1 exporter (sw-jsonl)`,
   );
 }
 

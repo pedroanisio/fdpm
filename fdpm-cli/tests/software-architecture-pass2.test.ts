@@ -511,8 +511,8 @@ describe("gap #13 — provenance: last_reviewed_at on Decision/Assumption/Constr
 // fails loudly here.
 // ---------------------------------------------------------------------------
 describe("gap #14 — sw rules carry CEL expressions and are wired through the §7 pipeline", () => {
-  it("PROFILE ships the 7 Python-source rules plus 5 pass-2 rules in CEL form", () => {
-    expect(PROFILE.validation_rules).toHaveLength(12);
+  it("PROFILE ships the 7 Python-source rules + 5 pass-2 rules + 2 v1.1 rules in CEL form", () => {
+    expect(PROFILE.validation_rules).toHaveLength(14);
   });
 
   it("every sw rule has a non-empty CEL `expression` field (post SPEC-CEL-VALIDATOR migration)", () => {

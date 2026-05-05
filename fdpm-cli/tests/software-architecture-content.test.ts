@@ -85,9 +85,16 @@ const PASS2_RELATION_IDS = [
   "sw:DeprecatedBy",   // gap #12 — Endpoint/Schema → Endpoint/Schema
 ];
 
+// v1.1 relation additions. Driven by sw-arch-rust-cli-greet review.
+const V1_1_RELATION_IDS = [
+  "sw:Threatens",      // v1.1 — FailureMode → Guarantee/Invariant/Constraint
+  "sw:EmbodiedBy",     // v1.1 — Stakeholder → Actor
+];
+
 const EXPECTED_RELATION_IDS = [
   ...PYTHON_SOURCE_RELATION_IDS,
   ...PASS2_RELATION_IDS,
+  ...V1_1_RELATION_IDS,
 ];
 
 async function loadHostWithPlugin(): Promise<Host> {
@@ -131,17 +138,21 @@ describe("software_architecture — content parity with Python source", () => {
     const host = await loadHostWithPlugin();
     const profile = host.profiles.getResolved(PROFILE_ID);
     // The 7 Python-source rules ported byte-faithfully (now CEL-form per
-    // SPEC-CEL-VALIDATOR) plus 5 pass-2 rules covering Decision chain
+    // SPEC-CEL-VALIDATOR), plus 5 pass-2 rules covering Decision chain
     // integrity, Risk impact, Capability realization, Entity deployment,
-    // and Endpoint deprecation.
-    expect(profile.validation_rules).toHaveLength(12);
+    // and Endpoint deprecation, plus 2 v1.1 rules (FailureMode/Threatens
+    // and Custom-schema/version) driven by the sw-arch-rust-cli-greet
+    // review.
+    expect(profile.validation_rules).toHaveLength(14);
     const ids = profile.validation_rules.map((r) => r.id).sort();
     expect(ids).toEqual([
       "sw:comp:active-entity-constrained",
       "sw:comp:active-entity-deployed",
       "sw:comp:capability-realized",
+      "sw:comp:failure-threatens-something",
       "sw:val:assumption-has-invalidation",
       "sw:val:contract-has-conditions",
+      "sw:val:custom-schema-has-version",
       "sw:val:decision-has-alternatives",
       "sw:val:decision-has-rationale",
       "sw:val:decision-superseded-has-successor",

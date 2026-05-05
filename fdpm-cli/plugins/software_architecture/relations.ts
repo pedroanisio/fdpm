@@ -316,4 +316,43 @@ export const RELATIONS: RelationTypeDef[] = [
     symmetric: false,
     transitive: true,
   },
+
+  // ---------------------------------------------------------------------
+  // v1.1 additions — close the inverse-of-Mitigates gap and the
+  // Stakeholder-Actor identity gap surfaced by the rust-cli-greet review.
+  // ---------------------------------------------------------------------
+
+  // v1.1 #1 — failure-side of the FailureMode/Guarantee link. Authors
+  // routinely reach for sw:Mitigates in the wrong direction when wiring a
+  // failure to the guarantee it endangers. Without an inverse predicate
+  // they either invert sw:Mitigates (semantic bug) or drop the edge
+  // (graph hole). sw:Threatens makes the threat side a first-class edge.
+  {
+    id: "sw:Threatens",
+    name: "Threatens",
+    description:
+      "Failure mode endangers a stated guarantee, invariant, or constraint. Inverse intuition of sw:Mitigates: Mitigates says 'this failure is handled in a way that preserves X'; Threatens says 'this failure, if unhandled, would violate X'.",
+    source_types: ["sw:FailureMode"],
+    target_types: ["sw:Guarantee", "sw:Invariant", "sw:Constraint"],
+    fields: [],
+    symmetric: false,
+    transitive: false,
+  },
+
+  // v1.1 #6 — close the loop between concern-bearing Stakeholders and
+  // runtime-invoking Actors. The two often coincide (an end user is both
+  // a stakeholder and an actor) but until v1.1 nothing in the graph said
+  // so. sw:EmbodiedBy answers the query 'is this stakeholder also a
+  // runtime actor?' from the relations alone.
+  {
+    id: "sw:EmbodiedBy",
+    name: "EmbodiedBy",
+    description:
+      "Stakeholder is embodied at runtime by an Actor. Distinct from sw:HasConcern (which links a stakeholder to what they care about); EmbodiedBy links a stakeholder to who-they-are when interacting with the system.",
+    source_types: ["sw:Stakeholder"],
+    target_types: ["sw:Actor"],
+    fields: [],
+    symmetric: false,
+    transitive: false,
+  },
 ];

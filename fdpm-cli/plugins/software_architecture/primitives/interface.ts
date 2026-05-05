@@ -97,6 +97,7 @@ export const INTERFACE_PRIMITIVES: PrimitiveTypeDef[] = [
         "Protobuf",
         "Avro",
         "TypeScript",
+        "Rust",
         "Custom",
       ]),
       // gap-pass-2 #12 — versioning + deprecation.

@@ -26,7 +26,7 @@ export const EVIDENCE_PRIMITIVES: PrimitiveTypeDef[] = [
       ]),
       str("source", "Where the evidence comes from."),
       iso("timestamp", "When the evidence was last verified.", { required: false }),
-      text("description", "What this evidence demonstrates.", { maxLength: 280 }),
+      text("description", "What this evidence demonstrates.", { maxLength: 2000 }),
     ],
   }),
 ];
