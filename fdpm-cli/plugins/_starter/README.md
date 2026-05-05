@@ -90,14 +90,24 @@ fdpm plugin list | grep starter
 # 2. See its registered profile.
 fdpm profile get profile:starter:0.1 --json
 
-# 3. Make a workbook and add data.
+# 3. Build the example workbook (3 recipes, 4 ingredients, 12 relations).
+#    The seed script doubles as a worked example of the SDK's
+#    defineProject().commit() pattern — read it before authoring your own.
+npx tsx fdpm-cli/scripts/build-starter-recipes.ts
+
+# 4. Render the shopping list — see ingredient quantities aggregated
+#    across recipes (tomato 1300g = 300 from caprese + 1000 from soup).
+fdpm render starter-recipes-example text/markdown \
+  --renderer-id recipe:ShoppingListRenderer
+```
+
+If you'd rather seed by hand to learn the create flow:
+
+```bash
 fdpm workbook create --id my-recipes --name "My Recipes" \
   --profile profile:starter:0.1
 echo '{"id":"ingredient:tomato","type_id":"recipe:Ingredient","scope_id":"scope:starter:workbook","field_values":{"name":"Tomatoes","default_unit":"g","allergens":[]}}' \
   | fdpm primitive create my-recipes -f -
-
-# 4. Render the shopping list.
-fdpm render my-recipes text/markdown --renderer-id recipe:ShoppingListRenderer
 ```
 
 ## Source map

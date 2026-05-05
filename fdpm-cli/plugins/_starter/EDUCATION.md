@@ -37,6 +37,10 @@ This file is the **operator's manual** for forking and extending it.
    registrations for everything that isn't part of a `DomainProfile`.
 10. **[`tests/starter-plugin.test.ts`](../../tests/starter-plugin.test.ts)** —
     the test pattern. Three tiers: activation, validation, renderer.
+11. **[`scripts/build-starter-recipes.ts`](../../scripts/build-starter-recipes.ts)** —
+    the worked-example seed. Uses the SDK's `defineProject().commit()`
+    pattern to author 9 primitives + 12 relations atomically. Copy
+    this when you need to populate your own plugin's example workbook.
 
 ## Forking workflow
 
