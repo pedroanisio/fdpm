@@ -23,7 +23,10 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  ListResourcesRequestSchema,
+  ListResourceTemplatesRequestSchema,
   ListToolsRequestSchema,
+  ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
 import { Host } from "../core/host.js";
@@ -36,6 +39,11 @@ import type { DispatchCtx } from "../mcp/types.js";
 import { McpAuditLog } from "../persistence/mcp-audit-log.js";
 import { HOST_VERSION } from "../core/version/spec.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
+import {
+  dispatchRead,
+  listResources,
+  listTemplates,
+} from "../mcp/resources/registry.js";
 
 interface ParsedFlags {
   dataDir: string;
@@ -197,8 +205,12 @@ async function main(): Promise<void> {
     {
       capabilities: {
         tools: {},
+        // Resources surface (slice 1: render only). `subscribe: false`
+        // is implicit via omission — slice 2 will add it once the
+        // freshness-watcher polling loop is in place.
+        resources: {},
       },
-      instructions: `FDPM MCP server v0.1 (manifest ${MCP_TOOL_MANIFEST_VERSION}). Tier 1 + Tier 2 advertised; Tier 3 destructive deletes opt-in via --enable-destructive.`,
+      instructions: `FDPM MCP server v0.1 (manifest ${MCP_TOOL_MANIFEST_VERSION}). Tier 1 + Tier 2 advertised; Tier 3 destructive deletes opt-in via --enable-destructive. Resources: fdpm://project/{id}/render/{target}.`,
     },
   );
 
@@ -234,6 +246,56 @@ async function main(): Promise<void> {
     return result as unknown as Record<string, unknown>;
   });
 
+  // -- Resources surface (slice 1: render only) -----------------------
+  // Read-only addressable views of project state. `resources/list`
+  // walks every (project, registered renderer target) pair so clients
+  // can pin specific outputs without calling tools. `resources/read`
+  // dispatches through the provider registry; the render provider
+  // runs SPEC-REPL §10.2 lenient tail-replay before invoking the
+  // renderer.
+  //
+  // Provider failures (FDPMException + others) propagate up to the
+  // SDK which surfaces them as JSON-RPC errors per the MCP spec —
+  // matches the dispatcher's existing error contract for tools.
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    return {
+      resources: listResources(host).map((entry) => ({
+        uri: entry.uri,
+        name: entry.name,
+        ...(entry.description !== undefined && { description: entry.description }),
+        ...(entry.mimeType !== undefined && { mimeType: entry.mimeType }),
+        ...(entry.size !== undefined && { size: entry.size }),
+      })),
+    };
+  });
+
+  server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
+    return {
+      resourceTemplates: listTemplates(host).map((tpl) => ({
+        uriTemplate: tpl.uriTemplate,
+        name: tpl.name,
+        ...(tpl.description !== undefined && { description: tpl.description }),
+        ...(tpl.mimeType !== undefined && { mimeType: tpl.mimeType }),
+      })),
+    };
+  });
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const uri = request.params.uri;
+    const result = await dispatchRead(host, uri);
+    // MCP's ReadResourceResult carries a `contents[]` array; each
+    // entry is either a TextResourceContents or BlobResourceContents.
+    // We always emit exactly one — the URI addresses one render.
+    const content: Record<string, unknown> = {
+      uri: result.uri,
+      mimeType: result.mimeType,
+    };
+    if (result.text !== undefined) content["text"] = result.text;
+    if (result.blob !== undefined) content["blob"] = result.blob;
+    return { contents: [content] };
+  });
+
   // -- Signals & lifecycle --------------------------------------------
   let shuttingDown = false;
   const shutdown = (signal: string): void => {
@@ -255,8 +317,9 @@ async function main(): Promise<void> {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  const resourceCount = listResources(host).length;
   process.stderr.write(
-    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s)\n`,
+    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s), ${resourceCount} resource(s)\n`,
   );
 }
 

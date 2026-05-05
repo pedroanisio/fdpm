@@ -219,6 +219,98 @@ metadata registry (`src/commands/index.ts` exports
 `ALL_COMMAND_METADATA`) with the REPL. See `src/mcp/` for the
 in-progress manifest, classification gate, and dispatch shape.
 
+### Resources surface
+
+Beyond the tool list, `fdpm-mcp` advertises **resources** —
+read-only addressable views of project state that an agent can pin
+to context without burning a tool call. Slice 1 ships the **render**
+provider:
+
+```
+fdpm://project/{project_id}/render/{target}[#{renderer_id}]
+```
+
+| Segment | Meaning |
+|---|---|
+| `project_id` | A project visible via `host.listProjects()` |
+| `target` | A renderer target (MIME type or symbolic id, e.g. `text/markdown`, `text/html`, `application/pdf`) |
+| `#{renderer_id}` | **Optional** disambiguator — only required when more than one registered renderer advertises the same `target` (e.g. both `fs:SpecRenderer` and `spec:SpecMarkdownRenderer` register `text/markdown`). `resources/list` emits the fragment automatically when needed. |
+
+The `target` segment may itself contain `/` (most renderer targets
+are MIME types). The URI parser treats everything after `/render/`
+as one opaque target, splitting at `#` for the optional fragment.
+
+#### `resources/list`
+
+Returns one entry per `(project, registered renderer target)` pair.
+For collisions (multiple plugins advertising the same target), each
+entry carries the disambiguating fragment. The response shape per
+the MCP spec:
+
+```json
+{
+  "resources": [
+    {
+      "uri": "fdpm://project/spec-core/render/text/markdown",
+      "name": "spec-core → text/markdown",
+      "description": "spec:SpecMarkdownRenderer (plugin fdpm.spec-authoring) rendering of project spec-core",
+      "mimeType": "text/markdown"
+    }
+  ]
+}
+```
+
+#### `resources/read`
+
+Invokes the renderer against the project's current state. Before
+running the renderer, the server runs a **lenient tail-replay**
+(SPEC-REPL §10.2): if another process has appended to the project's
+log on disk since this server last read it, the new ops are
+incrementally applied first. Read is read-only, so no
+`staleStateException` is thrown — the freshest available state is
+rendered. (A `host_compat` throw from `reloadProjectTail` —
+truncated or rewritten log — propagates verbatim.)
+
+Response shape:
+
+```json
+{
+  "contents": [
+    {
+      "uri": "fdpm://project/spec-core/render/text/markdown",
+      "mimeType": "text/markdown",
+      "text": "# spec-core\n\n> Profile: ..."
+    }
+  ]
+}
+```
+
+For binary outputs (`application/pdf`, `image/svg+xml`, etc.) the
+content carries `blob` (base64-encoded) instead of `text`. The MCP
+SDK serialises both correctly.
+
+#### Error envelopes
+
+| Category | Cause |
+|---|---|
+| `not_found` | Unknown URI shape, unknown project, unknown renderer target |
+| `host_compat` | The project's log was truncated or rewritten (SPEC-REPL §10.2 divergent-log path) |
+| Other categories | Propagated verbatim from the renderer (e.g. `verification` from a renderer that rejects malformed primitives) |
+
+#### What's deferred
+
+- **Subscriptions.** `notifications/resources/updated` would let the
+  server push fresh renders when a project changes. The freshness
+  primitives are already in place; a watcher loop is slice 2 work.
+- **Other resource families.** Project transfer, validate report,
+  per-primitive views are obvious next providers. Each is ~50 lines
+  added under `src/mcp/resources/<name>.ts` plus one entry in the
+  registry.
+- **Defensive `fdpm.render` tool.** Some MCP clients only know
+  tools, not resources. Claude Code supports resources; if a
+  resource-blind client materialises, a tool wrapper around the
+  same `dispatchRead` is straightforward to add.
+
 ---
 
 ## Project guidelines
