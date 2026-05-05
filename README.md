@@ -8,7 +8,7 @@ disclaimer:
   date: "2026-05-04"
 ---
 
-# fdpm — Full CLI implementation of SPEC-CORE v1.1 + plugin runtime + formal_specification port
+# fdpm — Full CLI implementation of SPEC-CORE v1.2 + plugin runtime + formal_specification port
 
 ## Disclaimer
 
@@ -22,7 +22,7 @@ This work is subject to the methodological caveats and commitments described in 
 > runtime bug. All LLM output must be treated as untrusted and validated
 > explicitly.
 
-A from-scratch TypeScript CLI implementation of the FDPM Core SPEC v1.1
+A from-scratch TypeScript CLI implementation of the FDPM Core SPEC v1.2
 ([docs/specs/SPEC-CORE.md](docs/specs/SPEC-CORE.md)) **and** the
 companion Pluggable Architecture SPEC v1.1
 ([docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md))
@@ -30,6 +30,13 @@ on the server side. Independent of the existing Python `src/fdpm/` server.
 Includes a faithful port of the `formal_specification` plugin (32 primitive
 types, 30 relation types, 23 validation rules, 3 renderer bindings,
 3 templates) decomposed per SPEC-PLUGGABLE §6.1 / §9.1.
+
+SPEC-CORE 1.2 adopts SPEC-DNIS
+([docs/specs/SPEC-DNIS.md](docs/specs/SPEC-DNIS.md)) as a normative
+extension via the new §5.6 "Document Node Identity" — the Core ships
+a built-in `profile:dnis:0.1` plus the composition profile
+`profile:spec-authoring-dnis:0.1`, the `DnisHostAdapter` runtime,
+and an `fdpm dnis` CLI surface. See "SPEC-DNIS adoption" below.
 
 The HTTP-only Layer 7 (frontend shell, §10) is omitted because a CLI is the
 operator surface; the §9.1 endpoint table maps directly to subcommands. The
@@ -40,24 +47,48 @@ implemented.
 
 ## Status
 
-- **SPEC-CORE 1.1.1** — `spec_core` 1.1, document revision 1.1.1.
+- **SPEC-CORE 1.2.0** — `spec_core` 1.2, document revision 1.2.0;
+  §5.6 SPEC-DNIS adoption is normative.
+- **SPEC-DNIS 0.1.7** — Document Node Identity Specification adopted
+  by SPEC-CORE 1.2 §5.6 (was a peer "MAY layer" proposal pre-1.2).
+  TV-1..TV-7 pass against both the in-memory store and the host
+  adapter (the §5.6.6 reference fixture).
 - **SPEC-PLUGGABLE 1.1.1** — server-side capabilities; companion SPEC.
-- **63 acceptance tests passing** across 10 test files:
-  - Core: meta-model, profile resolution (incl. extends), validation
-    pipeline, verification gate, event-sourced replay, time-travel,
-    undo (per kind), atomic batch rollback, optimistic concurrency,
-    split/clone, transfer round-trip, audit truncation, versioning.
+- **SPEC-RENDER-DSL 0.1.6 / SPEC-EXPRESSION-RUNTIME 0.1.8** — helper-
+  set v1.2.0 ships `fn.section_of(node_id)` for resolving DNIS
+  NodeIds to rendered §N.M.K headings, plus the `doc.section_index`
+  Tier-A binding.
+- **SPEC-SECTIONS-TREE 0.2.0** — adopted DNIS for section identity;
+  SPEC-CORE and SPEC-DNIS are migrated to DNIS-backed sections via
+  `DnisHostAdapter` (codemod gated by byte-equality against the
+  pre-migration rendered output — both pass).
+- **718 tests passing across 77 test files**. Coverage spans:
+  - Core: meta-model, profile resolution (incl. `extends` chains for
+    composition profiles), validation pipeline, verification gate,
+    event-sourced replay, time-travel, undo (per kind), atomic batch
+    rollback, optimistic concurrency, split/clone, transfer round-
+    trip, audit truncation, versioning.
+  - DNIS / SPEC-CORE 1.2 §5.6: TV-1..TV-7 against the in-memory
+    store; §5.6.6 conformance (TV-1, TV-3 with 5-entry split
+    causation chain, TV-5, TV-7 evidence shape, idempotency replay,
+    document round-trip) against a real Host instance via the
+    `DnisHostAdapter`.
+  - Render-DSL: helper-set v1.2.0 `fn.section_of` lookup, opt-in
+    body_md template evaluation, slug-keyed `section_index` with
+    title-collision disambiguation, `number_override` for letter
+    appendices and mid-chain-insert sections.
   - Plugin runtime: discovery, manifest validation, lifecycle states,
-    quarantine on activate-failure, trust-tier inference, forward-compat
-    (v1.0 manifest on v1.1 host), admin lifecycle (enable/disable).
+    quarantine on activate-failure, trust-tier inference, forward-
+    compat (v1.0 manifest on v1.x host), admin lifecycle
+    (enable/disable), profile composition via `extends`.
   - formal_specification content parity: 32/30/23/5/3 counts match
     Python source; primitive ids match `_ALL_PRIMITIVE_IDS`; inline
-    structs (Alternative, Variable, TensorSpec) carry expected fields;
-    end-to-end create-project/create-Section flow + validation
-    rejection on bad enum value.
+    structs (Alternative, Variable, TensorSpec) carry expected
+    fields; end-to-end create-project/create-Section flow +
+    validation rejection on bad enum value.
   - Legacy spec parser: every Python source field-type spec form
-    (string, ConstrainedText, Enum[...], T[], StructField[X][]) round-
-    trips to the CLI's structured `kind` form.
+    (string, ConstrainedText, Enum[...], T[], StructField[X][])
+    round-trips to the CLI's structured `kind` form.
 
 ## Install / build
 
@@ -277,6 +308,82 @@ registry has no unregister path in v1.1; see "honest gaps" below).
 A plugin directory must contain `fdpm-plugin.json` (the manifest) and
 an entry module (`index.js`, `index.mjs`, or `index.ts` for `tsx`).
 
+## SPEC-DNIS adoption (SPEC-CORE 1.2 §5.6)
+
+SPEC-CORE 1.2 normatively adopts SPEC-DNIS as the contract for
+paragraph-grain identity within document-shaped primitives.
+Conformance is **MUST**: any FDPM-CLI host claiming SPEC-CORE 1.2
+conformance MUST register the built-in `profile:dnis:0.1` plus the
+composition profile `profile:spec-authoring-dnis:0.1`, and MUST
+expose the host adapter that maps SPEC-DNIS Operations onto
+SPEC-CORE op-log entries.
+
+**What ships:**
+
+- `plugins/dnis/` — built-in plugin registering `dnis:Document`,
+  `dnis:Node`, `dnis:DerivedFrom`, `dnis:MigratedFrom` per §5.6.1.
+- `plugins/spec_authoring_dnis/` — composition profile that
+  `extends` both `profile:spec-authoring:0.1` and
+  `profile:dnis:0.1`. Build scripts opting into DNIS-backed sections
+  target this profile_id; existing `profile:spec-authoring:0.1`
+  projects are unaffected.
+- `src/core/dnis/` — the SPEC-DNIS surface:
+  - `store.ts` — `InMemoryDnisStore`, the planning/cache layer.
+  - `adapter.ts` — `DnisHostAdapter`, the §5.6.6 reference fixture.
+    Routes SPEC-DNIS Operations through `Host.appendBatchWithCausation`
+    so each Operation materialises as one or more SPEC-CORE op-log
+    entries sharing a `causation_op_id`. The §8 OperationResult
+    idempotency map is a deterministic projection of the op log.
+  - `types.ts`, `position.ts` — branded ids, fractional-index
+    Position with the §6.2 Insertion Property.
+- `fdpm dnis` CLI — `create-doc | create-node | edit | move | list
+  | resolve` subcommands wired through the adapter. The complex
+  multi-target Operations (`split`, `merge`, `compact`) remain
+  SDK-only.
+
+**Section-tree integration (SPEC-SECTIONS-TREE v0.2):**
+
+The `spec:SpecMarkdownRenderer` gains a DNIS-backed section path:
+when a project contains a `dnis:Document` and one or more active
+`dnis:Node` primitives of `kind: "section"`, the renderer DFS-walks
+the dnis:Node graph (parent_node_id, sorted by SPEC-DNIS Position)
+and derives §N.M.K headings from the path. The legacy
+`spec:Section` / `spec:HasSection` path stays available verbatim
+for unmigrated projects; mixed-mode projects emit a
+`spec:render:mixed-mode-sections` warning and the DNIS path wins.
+
+A dnis:Node section's `content` JSON supports four optional fields
+beyond the required `title`/`body_md`:
+- `dispatch_kind` — keys `KIND_RENDERERS` (e.g., `"adr"`,
+  `"references"`, `"open_questions"`).
+- `ref_slug` — author-supplied stable handle for cross-references.
+- `eval_body` — opt-in body_md template evaluation through
+  `ctx.renderDsl.renderTemplate`. Default off preserves byte-equal
+  output for prose containing literal `${…}`.
+- `number_override` — literal §-label that overrides both the
+  rendered heading and the section_index value. Used when DFS
+  can't represent the structure (letter appendices, mid-chain
+  inserts).
+
+**Cross-section references via `fn.section_of`:**
+
+Helper-set v1.2.0 ships `fn.section_of(node_id)` (in
+`SPEC-EXPRESSION-RUNTIME` / `SPEC-RENDER-DSL`). Resolves a
+dnis:Node id (NID, slug-form primitive id, author-supplied
+`section:<ref-slug>`, or title-derived
+`section:<lowercased-hyphenated>` with collision suffixes) to its
+rendered §N.M.K heading via the render-time `doc.section_index`
+Tier-A binding. Throws `unknown-name` on miss — never silently
+coerces to `''`.
+
+**Migration status:**
+
+Both `docs/specs/SPEC-CORE.md` and `docs/specs/SPEC-DNIS.md` are
+built from sources that target `profile:spec-authoring-dnis:0.1`
+and emit their section trees via `DnisHostAdapter`. Migration was
+gated by byte-equality against the pre-migration rendered output;
+both pass (106299 bytes for SPEC-CORE, 69651 bytes for SPEC-DNIS).
+
 ## formal_specification plugin (full Python-source port)
 
 In-tree at `fdpm-cli/plugins/formal_specification/`. Port of
@@ -449,8 +556,8 @@ The CLI is conformant against:
   undo; snapshot equivalence; upcaster table is empty in v1.1
   (correct — only one schema version exists).
 - `core-observability-002` — audit diff truncation + marker.
-- `core-versioning-001` — `spec_core` is `"1.1"`; revision is
-  `"1.1.1"`; both reported by `fdpm version`.
+- `core-versioning-001` — `spec_core` is `"1.2"`; revision is
+  `"1.2.0"`; both reported by `fdpm version`.
 
 Criteria specifically about Layer 7 (`core-fe-*`) are N/A by design —
 the CLI does not have a frontend shell.
@@ -560,6 +667,10 @@ Same as the parent project (see [../LICENSE](../LICENSE) if present).
 ## See also
 
 - [docs/specs/SPEC-CORE.md](docs/specs/SPEC-CORE.md) — the SPEC this implements.
+- [docs/specs/SPEC-DNIS.md](docs/specs/SPEC-DNIS.md) — Document Node Identity Specification; adopted by SPEC-CORE 1.2 §5.6.
+- [docs/specs/SPEC-SECTIONS-TREE.md](docs/specs/SPEC-SECTIONS-TREE.md) — sections-as-DNIS-Nodes proposal; SPEC-CORE / SPEC-DNIS migrated to the DNIS-backed section path.
+- [docs/specs/SPEC-RENDER-DSL.md](docs/specs/SPEC-RENDER-DSL.md) — render-time DSL; helper-set v1.2.0 ships `fn.section_of`.
+- [docs/specs/SPEC-EXPRESSION-RUNTIME.md](docs/specs/SPEC-EXPRESSION-RUNTIME.md) — host CEL runtime + helper-set + Tier-A/B activation.
 - [docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) — companion SPEC; server-side capabilities implemented (see "Plugin runtime" above).
 - [docs/adrs/decisions.md](docs/adrs/decisions.md) — architectural decision records, generated from `sw:Decision` primitives by [fdpm-cli/scripts/build-adrs.ts](fdpm-cli/scripts/build-adrs.ts).
 - [fdpm-cli/references/python-sources/formal_specification.py](fdpm-cli/references/python-sources/formal_specification.py) — the Python source the formal_specification plugin ports.

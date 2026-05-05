@@ -23,6 +23,160 @@ upgrade.
 
 ### Added
 
+#### SPEC-CORE 1.2 — SPEC-DNIS adoption (§5.6)
+
+The Core SPEC is bumped 1.1.1 → 1.2.0. New §5.6 "Document Node
+Identity — SPEC-DNIS adoption" makes SPEC-DNIS a normative extension
+of §5 The Instance Model: an FDPM-CLI host claiming SPEC-CORE 1.2
+conformance MUST register the built-in `profile:dnis:0.1` plus the
+composition profile `profile:spec-authoring-dnis:0.1`, and MUST
+expose the host adapter that maps SPEC-DNIS Operations onto SPEC-CORE
+op-log entries. The integration is structural, not opaque — the
+pre-1.2 "MAY layer on top of SPEC-CORE" wording is superseded.
+
+`SPEC_CORE_VERSION` constant in `src/core/version/spec.ts` is now
+`"1.2"` (was `"1.1"`); `HOST_VERSION` is `"1.2.0"`. `exportTransfer`
+reports the runtime version instead of the previous hardcoded
+`"1.1"`. The `core-versioning-001` regression test asserts the new
+version explicitly.
+
+#### DNIS — `profile:dnis:0.1` and the host adapter
+
+New built-in plugin under `plugins/dnis/` registers `dnis:Document`,
+`dnis:Node`, `dnis:DerivedFrom`, and `dnis:MigratedFrom` types per
+SPEC-DNIS §5.6.1. The runtime adapter at `src/core/dnis/adapter.ts`
+routes SPEC-DNIS Operations through `Host.appendBatchWithCausation`
+(new method on `Host`) so each Operation materialises as one or more
+SPEC-CORE op-log entries sharing a `causation_op_id`. The §8
+OperationResult idempotency map is a deterministic projection of the
+op log — no parallel persistence surface.
+
+Test surface:
+- `tests/dnis-store.test.ts` — TV-1..TV-7 against `InMemoryDnisStore`.
+- `tests/dnis-host-adapter.test.ts` — §5.6.6 conformance fixture:
+  TV-1, TV-3 (with op-log causation chaining + 5-entry split atomic
+  batch), TV-5, TV-7 evidence shape, idempotency replay, document
+  round-trip — all against a real `Host` instance.
+
+CLI: `fdpm dnis create-doc | create-node | edit | move | list |
+resolve` subcommands wired through the adapter. `split`, `merge`,
+`compact` remain SDK-only (their payloads are JSON-shaped and the
+CLI surface would be a thin pass-through).
+
+#### Composition profile — `profile:spec-authoring-dnis:0.1`
+
+New built-in plugin under `plugins/spec_authoring_dnis/` declares a
+profile that `extends` both `profile:spec-authoring:0.1` and
+`profile:dnis:0.1`. Build scripts that opt in get spec-authoring's
+typed primitives AND DNIS's `dnis:Document`/`dnis:Node` registered
+in the same project. The §4.3 profile-resolution merge handles the
+extends chain; existing `profile:spec-authoring:0.1` projects are
+unaffected.
+
+#### SPEC-SECTIONS-TREE v0.2 — sections as DNIS Nodes
+
+The `spec:SpecMarkdownRenderer` gains a DNIS-backed section path:
+when a project contains a `dnis:Document` and one or more active
+`dnis:Node` primitives of `kind: "section"`, the renderer DFS-walks
+the dnis:Node graph (parent_node_id, sorted by SPEC-DNIS Position)
+and derives §N.M.K headings from the path. The legacy
+`spec:Section`/`spec:HasSection` path is preserved verbatim for
+unmigrated projects; mixed-mode projects emit a
+`spec:render:mixed-mode-sections` warning and the DNIS path wins.
+
+The `dnis:Node` `content` JSON shape supports four optional fields
+beyond `title` and `body_md`:
+- `dispatch_kind` — keys into the existing `KIND_RENDERERS` table
+  (e.g. `"adr"`, `"references"`, `"open_questions"`).
+- `depth_override` — explicit heading depth (default: derived from
+  DFS path length).
+- `ref_slug` — author-supplied stable handle for fn.section_of.
+  Survives title rewrites.
+- `eval_body` — opt-in to body_md template evaluation through
+  `ctx.renderDsl.renderTemplate`. Default off preserves byte-equal
+  output for prose containing literal `${…}` documentation.
+- `number_override` — literal §-label that overrides both the
+  rendered heading and the section_index value. Use only when DFS
+  can't represent the structure (letter appendices, mid-chain
+  inserts that must keep stable labels).
+
+#### `fn.section_of` helper (helper-set v1.2.0)
+
+New CEL helper `fn.section_of(node_id)` in the standard inventory.
+Resolves a dnis:Node id (NID, slug-form primitive id, author-
+supplied `section:<ref-slug>`, or title-derived
+`section:<lowercased-hyphenated>`) to its rendered §N.M.K heading
+via the render-time `doc.section_index` Tier-A binding. Throws
+`unknown-name` on miss — never silently coerces to `''` (PALS-LAW
+Principle 4).
+
+Helper-set version 1.1.0 → 1.2.0 (additive minor per §M14 bump
+rules). The Tier-A activation gains `doc.section_index:
+map<string, string>`, populated by the spec_md renderer's DFS at
+render time, empty for validate-time and DNIS-less renders.
+SPEC-RENDER-DSL bumped 0.1.5 → 0.1.6; SPEC-EXPRESSION-RUNTIME bumped
+0.1.7 → 0.1.8.
+
+#### Codemods — SPEC-CORE and SPEC-DNIS migrated to DNIS-backed sections
+
+Both `scripts/build-spec-core.ts` and `scripts/build-spec-dnis.ts`
+now target `profile:spec-authoring-dnis:0.1` and emit their section
+trees via `DnisHostAdapter`. SPEC-CORE §5.6 becomes a child of §5
+with `number_override: "5.6"`; SPEC-DNIS §A and §B carry
+`number_override: "A"` and `"B"`. **Both renders are byte-identical
+to the pre-migration baseline** (106299 bytes for SPEC-CORE, 69651
+bytes for SPEC-DNIS).
+
+The spec_md renderer's closing-references-section detection was
+extended to recognise `dnis:Node` sections of `dispatch_kind:
+"references"` so migrated projects retain their authored references
+section without re-emitting the closing block.
+
+#### `Host.appendBatchWithCausation`
+
+New public method on `Host` for atomic multi-entry SPEC-CORE op-log
+batches with shared `causation_op_id`. Pre-mints `op_id`s, sets the
+lead entry's id as every entry's `causation_op_id`, runs §7
+validation per entry against the in-progress projection (so a later
+entry can validate against earlier entries' commits within the same
+batch), atomic rollback on any failure. The DNIS adapter is the
+intended caller; ordinary plugin/transformer code continues to use
+`createPrimitive` / `createRelation` directly.
+
+`AppendInput.op_id` is now caller-pre-mintable for SPEC-CORE 1.2
+§5.6.1's "uid == NID" pin; ordinary callers leave it undefined.
+
+#### Tooling — scripts/ type-checking
+
+New `tsconfig.scripts.json` extends the project tsconfig and scopes
+`scripts/**/*.ts` under `"types": ["node"]` so build scripts type-
+check (and the IDE stops reporting `process` as undefined). Surfaced
+two real type errors in `scripts/generate-build-from-transfer.ts`
+that the project tsconfig was hiding (`PrimitiveInstance` /
+`RelationInstance` literals were missing `uid`); both fixed by
+seeding via `mintUidFromSeed` (matches the SPEC-UID upcaster
+pattern).
+
+#### Tests
+
+- `tests/expr-section-of-helper.test.ts` (4 tests) — helper-set
+  v1.2.0: NID/slug/ref-slug lookup, unknown-id render-error, empty-
+  index validate-time semantics, end-to-end against a real DNIS
+  document.
+- `tests/spec-md-dnis-sections.test.ts` (6 tests) — DNIS section
+  path coverage including title-collision disambiguation
+  (`section:open-questions` / `-2` / `-3` in DFS order) and
+  `number_override` for letter-appendix + mid-chain-insert cases.
+- `tests/spec-md-body-eval.test.ts` (4 tests) — opt-in body_md
+  template evaluation: default-off preserves literal `${…}`,
+  opt-in resolves `${doc.fields.title}` and
+  `${fn.section_of("section:foo")}`, unknown slug surfaces a
+  render-error finding.
+- `tests/dnis-host-adapter.test.ts` (6 tests) — §5.6.6 conformance
+  against a real Host: TV-1, TV-3 with 5-entry causation chain
+  + shared request_id, TV-5, TV-7 ordered evidence array, retry
+  idempotency, document round-trip.
+
 #### SDK — edit helpers
 
 Standalone, flat-args helpers wrapping the Host's edit / delete
