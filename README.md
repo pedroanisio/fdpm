@@ -5,10 +5,10 @@ disclaimer:
     Any statement or premise not backed by a real logical definition
     or verifiable reference may be invalid, erroneous, or a hallucination.
   generated_by: "Claude Opus 4.7 (1M context) via Claude Code"
-  date: "2026-05-04"
+  date: "2026-05-05"
 ---
 
-# fdpm — Full CLI implementation of SPEC-CORE v1.2 + plugin runtime + formal_specification port
+# fdpm — Agent-driven domain workbench, event-sourced, plugin-extensible
 
 ## Disclaimer
 
@@ -22,7 +22,173 @@ This work is subject to the methodological caveats and commitments described in 
 > runtime bug. All LLM output must be treated as untrusted and validated
 > explicitly.
 
-A from-scratch TypeScript CLI implementation of the FDPM Core SPEC v1.2
+## Who this is for
+
+The primary user of an FDPM workbook is an **LLM agent**, talking to
+the runtime through MCP. Humans are reviewers — they read renders,
+audit the operation log, and (in a future iteration) interact through
+a web UI sitting on the same MCP surface. The CLI exists; it is the
+debug surface and the script-automation surface, not the design
+target. See [PURPOSE.md](PURPOSE.md) for the full framing.
+
+Where the agent surface and the CLI surface conflict, the agent
+surface wins and the CLI inherits the same shape. This is a
+deliberate inversion of the original "CLI for operators" framing.
+
+## How the agent drives a workbook
+
+A plugin ships an installable domain vocabulary in four parts,
+ordered by how a cold agent encounters them:
+
+1. **Verbs (act)** — domain-specific operation kinds.
+   `planning.task.complete`, `fs.assumption.invalidate`,
+   `dnis.node.split`. Each verb is a first-class entry in the
+   operation log: namespaced by plugin, replayable, auditable.
+   Verbs are exposed as per-verb MCP tools so a cold agent can
+   call them by name with typed payloads.
+2. **Resources (read)** — plugin-contributed read-only views of
+   workbook state, addressed by URI
+   (`fdpm://workbook/{id}/render/{target}` ships today;
+   plugin-authored URI schemes are the v2 commitment). Reads go
+   through resources, not through `get_*` tools. This is a
+   structural rule: tools that bloat the catalog with read
+   variants degrade agent attention on tool selection, which is
+   the failure mode the architecture exists to avoid.
+3. **Prompts (orient)** — MCP prompts shipped by each plugin
+   (`planning/triage_iteration`, `fs/audit_assumptions`,
+   `sw/review_decisions`). The user invokes a prompt; the prompt
+   delivers the *how to think* layer that tool descriptions alone
+   cannot. This is what closes the cold-start gap.
+4. **Expressions (compose)** — a filter language exposed through
+   one MCP tool, `workbook.operation(expr)`, that lets the agent
+   compose queries, graph traversals, guards, and verb invocations
+   atomically. The grammar borrows dynamic-array idioms from
+   spreadsheets and PowerQuery M — `FILTER`, `MAP`, `FOR_EACH`,
+   `LET`, structured-table references like
+   `plan:Task[iteration="iter-q2"]` — at the surface; the
+   semantics diverge (verbs are syntactically distinct, fail with
+   structured errors that don't propagate as values, produce
+   auditable ops). Expressions compile down to the same atomic
+   verb ops; the log is the truth, not the expression text.
+
+Cutting across all four: **discovery tools** —
+`list_verbs`, `describe_verb`, `applicable_operations(entity)`,
+`describe_language`, `list_resources`, `workbook.dry_run(expr)` —
+let an agent learn the vocabulary at runtime. To keep the catalog
+small enough that the agent can reason about it, verbs and
+resources are **summarized at connect** and the full surface is
+fetched on demand. This is progressive disclosure, converging on
+the direction MCP Skills (SEP-2640) is taking without locking to
+its draft shape.
+
+**Change notifications** (`notifications/tools/list_changed`,
+`notifications/resources/list_changed`,
+`notifications/prompts/list_changed`) keep long-running agents
+from operating against stale catalogs when another actor edits the
+workbook concurrently.
+
+How humans participate:
+
+- **Renderers** produce the human-readable artifact for a workbook
+  at a given revision. `text/markdown`, `text/html`,
+  `application/pdf`, SVG diagrams — every plugin contributes.
+- **The operation log** records every state change as a typed,
+  plugin-namespaced op with `actor`, `plugin_id`, `request_id`,
+  and `causation_op_id`. A human can replay to any revision,
+  inspect why an agent chose a verb, and undo via inverse ops.
+
+## Implementation status (vs. the design above)
+
+The runtime, plugin model, MCP server, and renderer pipeline below
+are shipped. The verb / resource / prompt / expression surfaces are
+the in-flight architectural direction; they extend the existing
+event-sourced core without breaking it. The architecture is a
+hypothesis, not a finished product — see "Eval design" below.
+
+| Layer | Status |
+| --- | --- |
+| Event-sourced workbook core (replay, time-travel, undo, audit) | Shipped |
+| Plugin runtime (profiles, validators, renderers, transformers, importers, exporters) | Shipped |
+| MCP server (Tier 1/2/3 generic CRUD tools) | Shipped |
+| MCP resource surface (`fdpm://workbook/{id}/render/{target}`) | Shipped |
+| Renderers as the human-review surface (markdown / HTML / PDF / SVG) | Shipped |
+| Plugin-emitted operation kinds (verbs as first-class ops) | v1; SPEC-PLUGIN-VERBS in flight |
+| Per-verb MCP tools, plugin-version migration contract | v1 |
+| `ctx.registerPrompt(reg)` API (no prompts yet) | v1 |
+| Plugin-contributed resource URI schemes (beyond render) | v2 |
+| Discovery tools (`list_verbs`, `describe_verb`, `applicable_operations`, `list_resources`) | v2 |
+| First plugin-shipped MCP prompt (`planning/triage_iteration`) | v2 |
+| Progressive-disclosure / Skills-shaped catalog summarization | v2 |
+| MCP change notifications (`tools`/`resources`/`prompts` list_changed) | v2 |
+| **Three-arm cold-agent eval gate** | **End of v2** |
+| `workbook.operation(expr)` filter language (sources + FILTER + LET) | v3, scoped down |
+| Expression language extras (MAP, FOR_EACH, LAMBDA, transitive closures) | Open-ended; revise after v2 eval result |
+| Web UI (humans on the same MCP surface) | Future |
+| Community plugin distribution, signing, third-party trust hardening | Post-eval; not in current roadmap |
+
+## Eval design (the falsifiable contract)
+
+The verb / resource / prompt / expression architecture is a
+hypothesis. The eval at end of v2 is what tells us whether the
+hypothesis holds.
+
+**Design.** Three arms run in parallel against the same 50-instruction
+test set, on the same model snapshot, with no prior fdpm exposure:
+
+1. **Verbs only** — per-verb MCP tools, no discovery, no prompts.
+2. **Verbs + discovery** — adds `list_verbs`, `describe_verb`,
+   `applicable_operations(entity)`, `list_resources`.
+3. **Verbs + discovery + prompts** — adds the first plugin-shipped
+   MCP prompt and any prompt-layer tooling needed to invoke it.
+
+The differential between arm 2 and arm 3 isolates the marginal
+contribution of prompts. If arm 3 doesn't beat arm 2 by at least
+**15 percentage points** on first-try success, prompts didn't pay
+for themselves and the v3+ work that depends on the prompt thesis
+is reconsidered.
+
+**Pass criteria** for a single instruction (all four required):
+
+1. Terminal workbook state matches the instruction's stated goal.
+2. The audit log replays in isolation against a fresh workbook and
+   produces the same terminal state (proves no hidden environment
+   coupling).
+3. No destructive ops (Tier 3) executed outside the instruction's
+   stated scope.
+4. Verb-sequence length within 2× the human-baseline sequence for
+   the same instruction.
+
+**Test-set composition.** The 50 instructions cover: simple verb
+calls (single-primitive, no graph traversal), multi-step workflows
+(chained verbs across primitives), batch operations (high-cardinality
+matches that an expression would express atomically),
+ambiguity-resolution cases (instructions where the agent must pick
+between several applicable verbs), and refusal cases (instructions
+that should be refused as out-of-scope or destructive).
+
+**What "the eval failed" means.** If arm 3's first-try success rate
+is below the threshold deemed acceptable for the agent product
+case, the entire post-v2 roadmap is reopened. v3 (expression
+language) does not start until v2 produces a number worth
+betting on. This is the kill criterion the roadmap is gated by.
+
+## Trust model (current state)
+
+**In-house authorship only.** Every plugin shipped today is
+treated as `core` trust. The `community` and `verified` tiers
+exist in the manifest schema and in plugin-runtime behavior, but
+the surfaces that need third-party hardening — verb registration,
+prompt registration, expression emission — are not exercised
+against them. Plugin authors today are FDPM contributors; the
+runtime trusts them.
+
+Distribution, signing, sandboxing, and community-tier hardening
+are post-eval work. The architecture has to survive its own eval
+before it's worth opening to third parties. If the eval fails,
+none of this matters; if the eval succeeds, the trust mechanisms
+get designed against a stable substrate rather than a moving one.
+
+A from-scratch TypeScript implementation of the FDPM Core SPEC v1.2
 ([docs/specs/SPEC-CORE.md](docs/specs/SPEC-CORE.md)) **and** the
 companion Pluggable Architecture SPEC v1.1
 ([docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md))
@@ -328,6 +494,14 @@ registry has no unregister path in v1.1; see "honest gaps" below).
   `disabled`; operator runs `fdpm plugin enable <id>`.
 - `unknown` — never reached in v1.1 (anything that lands as a
   filesystem plugin with a valid manifest is at least `community`).
+
+> **Note (current architecture):** the `community` and `verified`
+> tiers exist and behave as documented for the capabilities shipped
+> today (profile / validator / renderer / transformer / importer /
+> exporter). The new surfaces — plugin-emitted operation kinds, MCP
+> prompts, expression emission — are exercised against `core` trust
+> only. Community-tier authorship of those surfaces is post-eval
+> work. See "Trust model (current state)" above.
 
 **Discovery** (§6.3):
 1. In-tree built-ins: scan `fdpm-cli/plugins/` (or `plugins/` from CWD).
