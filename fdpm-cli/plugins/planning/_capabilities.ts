@@ -67,22 +67,33 @@ export function registerPlanningCapabilities(ctx: PluginContext): void {
     },
   });
 
-  // (2) plan:Iteration with explicit name override — a renderer cue.
-  // Iterations declared with empty `label` produce ambiguous gantts.
+  // (2) plan:Iteration `name` must be non-whitespace. The roadmap and
+  // gantt renderers fall back to `it.id` when `name` is missing or
+  // blank; that's a usability degradation worth surfacing as a
+  // warning even though the schema gate (`name` is `required: true`)
+  // catches the literally-missing case.
+  //
+  // History: prior revisions of this validator checked an undeclared
+  // `label` field, which was both wrong (renderers read `name`, not
+  // `label`) and self-defeating (adding `label` to satisfy the
+  // validator triggered the schema gate's `core:field:undeclared`
+  // warning). Renamed from `iteration-label-non-empty` to
+  // `iteration-name-non-empty` in 2026-Q2 to make the field switch
+  // visible in audit logs.
   ctx.registerValidator({
     type_id: "plan:Iteration",
-    rule_id: "plan:val:iteration-label-non-empty",
+    rule_id: "plan:val:iteration-name-non-empty",
     fn: (instance) => {
       const fv = (instance as PrimitiveInstance).field_values;
-      const label = fv["label"];
-      if (typeof label === "string" && label.trim().length > 0) return [];
+      const name = fv["name"];
+      if (typeof name === "string" && name.trim().length > 0) return [];
       return [
         finding(
-          "plan:val:iteration-label-non-empty",
+          "plan:val:iteration-name-non-empty",
           "warning",
           instance.id,
-          "field_values.label",
-          "plan:Iteration.label is empty; gantt and roadmap renderers will render an unnamed band.",
+          "field_values.name",
+          "plan:Iteration.name is empty or whitespace-only; gantt and roadmap renderers will fall back to the iteration id.",
         ),
       ];
     },

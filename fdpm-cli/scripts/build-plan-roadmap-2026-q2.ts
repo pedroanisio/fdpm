@@ -81,14 +81,6 @@ const iterationSpecs: PrimitiveSpec[] = [
     type: PLAN_ITERATION,
     scope: SCOPE_IDS.iteration,
     fields: {
-      // NOTE: plan:val:iteration-label-non-empty fires a warning
-      // because it expects a `label` field, but the plan:Iteration
-      // schema doesn't declare one (only `name`, `start_date`,
-      // `end_date`, `goal`). The warning is a planning-plugin bug
-      // (validator looks at a field the schema has no slot for);
-      // tracking it under p6-plugin-lifecycle audit. Adding `label`
-      // here would just trade one warning for another (`undeclared
-      // field`), so we accept the warning as-is.
       name: "2026-Q2",
       start_date: "2026-05-05",
       end_date: "2026-08-31",

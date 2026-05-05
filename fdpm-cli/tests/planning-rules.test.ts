@@ -1082,3 +1082,101 @@ describe("planning — discoverable as a built-in plugin", () => {
     expect(b).toBeDefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// (12) plan:val:iteration-name-non-empty
+//      (regression for Issue: validator was checking an undeclared `label`
+//       field; renamed from iteration-label-non-empty in 2026-Q2)
+// ---------------------------------------------------------------------------
+
+describe("plan:val:iteration-name-non-empty", () => {
+  it("ACCEPTS a well-named iteration with zero findings from this rule", async () => {
+    const host = await freshHost();
+    await newPlanningProject(host, "p12a");
+    const r = await host.createPrimitive("p12a", {
+      id: "iteration:well-named",
+      type_id: "plan:Iteration",
+      scope_id: "scope:plan:iteration",
+      field_values: {
+        name: "2026-Q2",
+        start_date: "2026-05-05",
+        end_date: "2026-08-31",
+      },
+    });
+    expect(r.report.accepted).toBe(true);
+    const fired = r.report.findings.filter(
+      (f) => f.rule_id === "plan:val:iteration-name-non-empty",
+    );
+    expect(fired).toEqual([]);
+  });
+
+  it("does NOT emit a `core:field:undeclared` warning for a well-formed iteration", async () => {
+    // Regression for the prior bug: callers added `label` to suppress
+    // this rule, which then triggered `core:field:undeclared`. Now
+    // there is no `label` field, no schema mismatch, and no warning.
+    const host = await freshHost();
+    await newPlanningProject(host, "p12b");
+    const r = await host.createPrimitive("p12b", {
+      id: "iteration:no-stray-fields",
+      type_id: "plan:Iteration",
+      scope_id: "scope:plan:iteration",
+      field_values: {
+        name: "2026-Q2",
+        start_date: "2026-05-05",
+        end_date: "2026-08-31",
+      },
+    });
+    expect(r.report.accepted).toBe(true);
+    const undeclared = r.report.findings.filter(
+      (f) => f.rule_id === "core:field:undeclared",
+    );
+    expect(undeclared).toEqual([]);
+  });
+
+  it("WARNS when name is whitespace-only", async () => {
+    const host = await freshHost();
+    await newPlanningProject(host, "p12c");
+    const r = await host.createPrimitive("p12c", {
+      id: "iteration:whitespace",
+      type_id: "plan:Iteration",
+      scope_id: "scope:plan:iteration",
+      field_values: {
+        name: "   ",
+        start_date: "2026-05-05",
+        end_date: "2026-08-31",
+      },
+    });
+    expect(r.report.accepted).toBe(true);
+    const fired = r.report.findings.find(
+      (f) =>
+        f.rule_id === "plan:val:iteration-name-non-empty" &&
+        f.level === "warning",
+    );
+    expect(fired).toBeDefined();
+    expect(fired!.field_path).toBe("field_values.name");
+  });
+
+  it("the prior rule_id `plan:val:iteration-label-non-empty` is no longer registered", async () => {
+    // History note: the validator was renamed in 2026-Q2 from
+    // iteration-label-non-empty → iteration-name-non-empty as part of
+    // fixing the wrong-field bug. This guard ensures the old id
+    // doesn't get accidentally re-introduced (e.g. by a copy-paste
+    // from an older tutorial).
+    const host = await freshHost();
+    await newPlanningProject(host, "p12d");
+    const r = await host.createPrimitive("p12d", {
+      id: "iteration:legacy-id-check",
+      type_id: "plan:Iteration",
+      scope_id: "scope:plan:iteration",
+      field_values: {
+        name: "2026-Q2",
+        start_date: "2026-05-05",
+        end_date: "2026-08-31",
+      },
+    });
+    const old = r.report.findings.filter(
+      (f) => f.rule_id === "plan:val:iteration-label-non-empty",
+    );
+    expect(old).toEqual([]);
+  });
+});

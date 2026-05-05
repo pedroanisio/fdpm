@@ -85,9 +85,9 @@
     },
     {
       "capability_id": "cap:validator",
-      "local_name": "iteration-label-non-empty",
+      "local_name": "iteration-name-non-empty",
       "metadata": {
-        "rule_id": "plan:val:iteration-label-non-empty",
+        "rule_id": "plan:val:iteration-name-non-empty",
         "type_id": "plan:Iteration"
       }
     },
