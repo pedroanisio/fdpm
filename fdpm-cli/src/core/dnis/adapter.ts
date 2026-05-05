@@ -111,6 +111,22 @@ function nodePrimitiveFields(node: Node): Record<string, unknown> {
   return fv;
 }
 
+function parseJsonAny(value: unknown): unknown {
+  if (typeof value !== "string") return value ?? null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+function parseJsonObject(value: unknown): Record<string, unknown> {
+  const parsed = parseJsonAny(value);
+  return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+    ? (parsed as Record<string, unknown>)
+    : {};
+}
+
 function documentPrimitiveFields(doc: Document): Record<string, unknown> {
   return {
     created_at: doc.createdAt,
@@ -134,6 +150,69 @@ export class DnisHostAdapter {
     if (opts.now) cacheOpts.now = opts.now;
     if (opts.mintId) cacheOpts.mintId = opts.mintId;
     this.cache = new InMemoryDnisStore(cacheOpts);
+  }
+
+  /**
+   * Reconstruct the in-memory cache from the host's projected
+   * `dnis:Document` and `dnis:Node` primitives. The op log is the
+   * source of truth (§5.6.3); this is the §5.5.3 replay function
+   * applied to the projected slice — required for any short-lived
+   * adapter (e.g. a CLI invocation) that did not itself author the
+   * Operations.
+   *
+   * Idempotent: calling twice is harmless because `seed()` overwrites.
+   * Operation results are NOT rehydrated — idempotency replay only
+   * works within a single adapter lifetime. CLI calls supply fresh
+   * OperationIds, so this is fine.
+   */
+  hydrate(): void {
+    const slice = this.host.getProject(this.projectId);
+    const documents: Document[] = [];
+    const nodes: Node[] = [];
+    for (const p of Object.values(slice.primitives)) {
+      if (p.type_id === DNIS_DOCUMENT_TYPE) {
+        const fv = p.field_values as Record<string, unknown>;
+        documents.push({
+          id: p.uid as DocumentId,
+          createdAt: String(fv["created_at"] ?? ""),
+          createdBy: String(fv["created_by"] ?? "") as AgentId,
+          schemaVersion: String(fv["schema_version"] ?? ""),
+          hashAlgorithm: (fv["hash_algorithm"] ?? "sha256") as DnisHashAlgorithm,
+          metadata: parseJsonObject(fv["metadata"]),
+        });
+      } else if (p.type_id === DNIS_NODE_TYPE) {
+        const fv = p.field_values as Record<string, unknown>;
+        const parentRaw = String(fv["parent_node_id"] ?? "");
+        const retiredAt = fv["retired_at"];
+        const retiredBy = fv["retired_by"];
+        const node: Node = {
+          id: p.uid as NodeId,
+          documentId: String(fv["document_id"] ?? "") as DocumentId,
+          kind: String(fv["kind"] ?? ""),
+          content: parseJsonAny(fv["content"]),
+          contentHash: String(fv["content_hash"] ?? "") as Node["contentHash"],
+          parentNodeId: parentRaw === "" ? null : (parentRaw as NodeId),
+          position: String(fv["position"] ?? "") as Position,
+          derivedFrom: ((fv["derived_from"] as string[] | undefined) ?? []).map(
+            (s) => s as NodeId,
+          ),
+          createdBy: String(fv["created_by"] ?? "") as AgentId,
+          createdAt: String(fv["created_at"] ?? ""),
+          revision: Number(fv["revision"] ?? 0),
+          lastEditedBy: String(fv["last_edited_by"] ?? "") as AgentId,
+          lastEditedAt: String(fv["last_edited_at"] ?? ""),
+          lastOperationId: String(fv["last_operation_id"] ?? "") as OperationId,
+          ...(retiredAt !== undefined && retiredAt !== null
+            ? { retiredAt: String(retiredAt) }
+            : {}),
+          ...(retiredBy !== undefined && retiredBy !== null
+            ? { retiredBy: String(retiredBy) as AgentId }
+            : {}),
+        };
+        nodes.push(node);
+      }
+    }
+    this.cache.seed(documents, nodes);
   }
 
   /**

@@ -11,19 +11,22 @@
  *                    adapter's projection)
  *   - `dnis resolve` — SPEC-DNIS §11 reference resolution
  *
- * Out of CLI scope (use SDK / DnisHostAdapter directly): `edit`,
- * `move`, `split`, `merge`, `retire`, `compact`. These take payloads
- * complex enough that JSON-on-stdin or scripted callers are the right
- * surface; a CLI form would be little more than a thin JSON-pass-through
- * and would obscure rather than clarify operator intent. SPEC-CORE
- * §5.6.6 conformance is exercised by the test fixture, not by these
- * commands.
+ * Edit/move surface:
+ *   - `dnis edit` — apply a SPEC-DNIS `edit` Operation (replaces content)
+ *   - `dnis move` — apply a SPEC-DNIS `move` Operation; position is
+ *                    chosen via --after/--before sibling pointers and
+ *                    fed through DnisHostAdapter.nextPosition (i.e.
+ *                    SPEC-DNIS §6 fractional-index positionBetween).
+ *
+ * Out of CLI scope (use SDK / DnisHostAdapter directly): `split`,
+ * `merge`, `compact`. These take payloads complex enough that
+ * JSON-on-stdin or scripted callers are the right surface. SPEC-CORE
+ * §5.6.6 conformance is exercised by the test fixture.
  */
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { DnisHostAdapter } from "../core/dnis/adapter.js";
 import {
-  positionBetween,
   type AgentId,
   type DnisHashAlgorithm,
   type DocumentId,
@@ -35,7 +38,15 @@ import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { emit, type OutputContext } from "./util.js";
 
 function adapterFor(host: Host, projectId: string): DnisHostAdapter {
-  return new DnisHostAdapter(host, { projectId });
+  const adapter = new DnisHostAdapter(host, { projectId });
+  // Each CLI invocation is a fresh process — the adapter's in-memory
+  // cache must be rebuilt from the persisted dnis:Document/dnis:Node
+  // primitives before any read-or-mutate command runs. `create-doc`
+  // also calls hydrate() so that subsequent writes within the same
+  // process see the freshly-created document; the adapter's seed()
+  // is idempotent.
+  adapter.hydrate();
+  return adapter;
 }
 
 export function buildDnisCommand(host: Host): Command {
@@ -131,6 +142,111 @@ export function buildDnisCommand(host: Host): Command {
     });
 
   cmd
+    .command("edit")
+    .argument("<project>", "project id")
+    .requiredOption("--document <document-id>", "DocumentId the node belongs to")
+    .requiredOption("--node <node-id>", "NodeId to edit")
+    .requiredOption("--agent <agent>", "AgentId of the operation actor")
+    .requiredOption("--content <json>", "new node content as a JSON string")
+    .option("--expected-revision <n>", "fail unless node revision matches", (v) => Number.parseInt(v, 10))
+    .option("--operation-id <ulid>", "explicit OperationId; minted if omitted")
+    .option("--issued-at <iso>", "operation issuedAt timestamp", new Date().toISOString())
+    .option("--json", "emit JSON")
+    .action(async (project, opts) => {
+      const ctx: OutputContext = { json: !!opts.json };
+      const adapter = adapterFor(host, project);
+      let content: unknown;
+      try {
+        content = JSON.parse(opts.content);
+      } catch (err) {
+        throw new FDPMException(
+          "verification",
+          `--content is not valid JSON: ${(err as Error).message}`,
+        );
+      }
+      const result = await adapter.apply({
+        id: (opts.operationId ?? mintUid()) as OperationId,
+        type: "edit",
+        documentId: opts.document as DocumentId,
+        agentId: opts.agent as AgentId,
+        issuedAt: opts.issuedAt,
+        targetNodeId: opts.node as NodeId,
+        ...(opts.expectedRevision !== undefined ? { expectedRevision: opts.expectedRevision } : {}),
+        payload: { content },
+      });
+      const node = adapter.getNode(opts.node as NodeId);
+      emit(ctx, { result, node }, () =>
+        `${node.id}\trev=${node.revision}\toperation_id=${result.operationId}`,
+      );
+    });
+
+  cmd
+    .command("move")
+    .argument("<project>", "project id")
+    .requiredOption("--document <document-id>", "DocumentId the node belongs to")
+    .requiredOption("--node <node-id>", "NodeId to move")
+    .requiredOption("--agent <agent>", "AgentId of the operation actor")
+    .option("--parent <node-id>", "new parent NodeId; root-level if omitted and neither --after nor --before given")
+    .option("--after <sibling-node-id>", "place immediately after this sibling (parent inferred from sibling)")
+    .option("--before <sibling-node-id>", "place immediately before this sibling (parent inferred from sibling)")
+    .option("--expected-revision <n>", "fail unless node revision matches", (v) => Number.parseInt(v, 10))
+    .option("--operation-id <ulid>", "explicit OperationId; minted if omitted")
+    .option("--issued-at <iso>", "operation issuedAt timestamp", new Date().toISOString())
+    .option("--json", "emit JSON")
+    .action(async (project, opts) => {
+      const ctx: OutputContext = { json: !!opts.json };
+      const adapter = adapterFor(host, project);
+      const documentId = opts.document as DocumentId;
+
+      const after = (opts.after ?? null) as NodeId | null;
+      const before = (opts.before ?? null) as NodeId | null;
+
+      let newParent: NodeId | null = (opts.parent ?? null) as NodeId | null;
+      if (after !== null) {
+        const parentOfAfter = adapter.getNode(after).parentNodeId;
+        if (opts.parent && parentOfAfter !== opts.parent) {
+          throw new FDPMException(
+            "verification",
+            `--after sibling lives under parent=${parentOfAfter ?? "<root>"} but --parent=${opts.parent} was supplied; remove --parent or pick a sibling under it`,
+          );
+        }
+        newParent = parentOfAfter;
+      }
+      if (before !== null) {
+        const parentOfBefore = adapter.getNode(before).parentNodeId;
+        if (after !== null && newParent !== parentOfBefore) {
+          throw new FDPMException(
+            "verification",
+            `--after and --before reference siblings under different parents (${newParent ?? "<root>"} vs ${parentOfBefore ?? "<root>"})`,
+          );
+        }
+        if (opts.parent && parentOfBefore !== opts.parent) {
+          throw new FDPMException(
+            "verification",
+            `--before sibling lives under parent=${parentOfBefore ?? "<root>"} but --parent=${opts.parent} was supplied`,
+          );
+        }
+        newParent = parentOfBefore;
+      }
+
+      const newPosition = adapter.nextPosition(documentId, newParent, after, before);
+      const result = await adapter.apply({
+        id: (opts.operationId ?? mintUid()) as OperationId,
+        type: "move",
+        documentId,
+        agentId: opts.agent as AgentId,
+        issuedAt: opts.issuedAt,
+        targetNodeId: opts.node as NodeId,
+        ...(opts.expectedRevision !== undefined ? { expectedRevision: opts.expectedRevision } : {}),
+        payload: { newParentNodeId: newParent, newPosition },
+      });
+      const node = adapter.getNode(opts.node as NodeId);
+      emit(ctx, { result, node }, () =>
+        `${node.id}\tparent=${node.parentNodeId ?? "<root>"}\tposition=${node.position}\trev=${node.revision}\toperation_id=${result.operationId}`,
+      );
+    });
+
+  cmd
     .command("resolve")
     .argument("<project>", "project id")
     .requiredOption("--document <document-id>", "DocumentId scope of the reference")
@@ -145,12 +261,6 @@ export function buildDnisCommand(host: Host): Command {
       );
       emit(ctx, { resolution }, () => `outcome=${resolution.outcome}`);
     });
-
-  // Use positionBetween import so the symbol stays in scope (the CLI
-  // uses adapter.nextPosition internally, which delegates to this
-  // helper). The void below is a no-op safeguard; the import is kept
-  // for downstream consumers who tree-shake from src/commands/dnis.
-  void positionBetween;
 
   return cmd;
 }

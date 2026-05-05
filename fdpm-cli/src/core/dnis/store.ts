@@ -54,6 +54,24 @@ export class InMemoryDnisStore {
     this.mintId = opts.mintId ?? mintUid;
   }
 
+  /**
+   * Seed the cache from already-projected Document/Node records.
+   *
+   * Used by DnisHostAdapter.hydrate() to reconstruct the cache from
+   * SPEC-CORE primitives loaded out of the persistent op log. Bypasses
+   * `createDocument` (which would assign a fresh `createdAt` and reject
+   * a pre-existing id) and directly inserts the records. Intended for
+   * cache rehydration only — not for normal Operation flow.
+   */
+  seed(documents: ReadonlyArray<Document>, nodes: ReadonlyArray<Node>): void {
+    for (const document of documents) {
+      this.documents.set(document.id, structuredClone(document));
+    }
+    for (const node of nodes) {
+      this.nodes.set(node.id, structuredClone(node));
+    }
+  }
+
   createDocument(input: CreateDocumentInput): Document {
     const id = (input.id ?? this.mintId()) as DocumentId;
     if (this.documents.has(id)) {
