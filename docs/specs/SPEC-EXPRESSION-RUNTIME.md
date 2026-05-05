@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-expression-runtime.ts"
-revision: "0.1.7 — core runtime gaps closed. Bound caps, the closed 8-code runtime enum, full fn.sortBy key-expression semantics, automatic Tier-B git probing, and typed top-level CEL bindings are now shipped. See §0.5 and §19."
+revision: "0.1.8 — helper-set 1.1.0 → 1.2.0: §M14 adds fn.section_of(node_id) for SPEC-SECTIONS-TREE v0.2 cross-section references; §M7 Tier-A adds doc.section_index (render-time only). Both are additive (no existing helper or binding changed). See §19."
 status: "Proposal"
 ---
 
@@ -60,7 +60,7 @@ This work is subject to the methodological caveats and commitments described in 
 | Field | Value |
 | --- | --- |
 | Spec ID | spec:fdpm:expression-runtime:0.1 |
-| Version | 0.1.7 |
+| Version | 0.1.8 |
 | Status | Proposal |
 | Audience | FDPM core maintainers (this defines a Core service), plugin authors (any plugin shipping validators or renderers consumes this), security reviewers (the activation surface is the trust boundary). |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, docs/specs/SPEC-CORE.md, docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md |
@@ -334,6 +334,12 @@ doc                           map             The current target instance (valid
 doc.id                        string          ↳ instance id.
 doc.type_id                   string          ↳ instance type.
 doc.fields                    map             ↳ raw field_values map.
+doc.section_index             map<string, string>↳ render-time only (helper-set v1.2.0). Maps every active
+                                              dnis:Node id (both NID and slug-form like 'dnis:node:01k…')
+                                              to its rendered §N.M.K heading. Empty at validate-time.
+                                              Populated by spec:SpecMarkdownRenderer's DFS over the
+                                              dnis:Node graph per SPEC-SECTIONS-TREE v0.2; consumed by
+                                              `fn.section_of`.
 project                       map             Project-level data.
 project.id                    string          ↳
 project.profile_id            string          ↳
@@ -453,7 +459,7 @@ in its manifest. Without that, the invocation triggers
 //    helper is Future Work; do not implement template-time version
 //    guards by string comparison in v0.1.
 
-// Standard helper set v1.1.0 inventory (generated from
+// Standard helper set v1.2.0 inventory (generated from
 // fdpm-cli/scripts/_spec-shared.ts; same source as SPEC-RENDER-DSL §6.4):
 //   string family:
 //     fn.upper(s)                  — uppercase (Unicode).
@@ -473,7 +479,9 @@ in its manifest. Without that, the invocation triggers
 //     fn.date.iso(iso)             — 'YYYY-MM-DDTHH:MM:SSZ' (UTC, normalised).
 //   identity family:
 //     fn.hash(value)               — SHA-256 hex digest. Canonicalisation rules in EXPR-RT §M14: primitives & lists supported; maps raise type-error in v1.0.0 (Future Work spec:fw:hash-maps).
-// Total: 14 functions across 4 families.
+//   reference family:
+//     fn.section_of(node_id)       — Resolve a DNIS NodeId (or its slug-form SPEC-CORE primitive id, e.g. 'dnis:node:01k…') to its rendered §N.M.K heading string. Reads from doc.section_index, which the renderer populates by DFS-walking the dnis:Node graph at render time (per SPEC-SECTIONS-TREE v0.2). Returns a render-error if the id is unknown — never silently coerces to '' (Principle 4).
+// Total: 15 functions across 4 families.
 
 // Graph helper inventory (registered on the `graph` receiver, NOT under fn.*).
 // These mediate relation-graph and primitive-existence queries that pure
@@ -801,6 +809,20 @@ Other open questions (defaulted):
 ---
 
 ## 19. Revision history
+
+### 0.1.8 — 2026-05-04 — Helper-set v1.2.0: fn.section_of + doc.section_index for SPEC-SECTIONS-TREE v0.2 cross-section references.
+
+Pure additive amendment. §M14 helper-set 1.1.0 → 1.2.0:
+
+1. New helper `fn.section_of(node_id)` (reference family). Resolves a dnis:Node id (NID or slug-form 'dnis:node:<lower nid>') to its rendered §N.M.K heading via the render-time section index. Throws `unknown-name` on miss — no silent coercion to '' (Principle: undefined names error loudly).
+
+2. New §M7 Tier-A binding `doc.section_index: map<string, string>` — render-time only; populated by the host's spec_md renderer when the project contains a `dnis:Document` and one or more active `dnis:Node` primitives of kind `section`. Empty for validate-time and DNIS-less renders.
+
+3. Plumbing: `ValidationEvaluationOptions.sectionIndex` (optional) flows through `createActivationContext` into `ExprRuntimeHelperContext.sectionIndex`, which `resolveSectionOf` reads. Render-time facade gains a per-call `sectionIndex` option.
+
+No existing helper changed; no existing binding changed; no grammar change. Adds one helper, one Tier-A binding, one optional option field. Closes the SPEC-SECTIONS-TREE v0.2 prose-reference gap that arose when section numbers became derived rather than authored.
+
+Affected sections: §M7, §M14, §19
 
 ### 0.1.7 — 2026-05-04 — Core runtime gaps closed for the shipped expression runtime.
 

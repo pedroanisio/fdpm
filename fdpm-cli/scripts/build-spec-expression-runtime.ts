@@ -35,7 +35,7 @@ import {
 } from "./_spec-shared.js";
 
 const PROJECT_ID = "spec-expression-runtime";
-const SPEC_VERSION = "0.1.7";
+const SPEC_VERSION = "0.1.8";
 
 function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -111,7 +111,7 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "0.1.7 — core runtime gaps closed. Bound caps, the closed 8-code runtime enum, full fn.sortBy key-expression semantics, automatic Tier-B git probing, and typed top-level CEL bindings are now shipped. See §0.5 and §19.",
+      "0.1.8 — helper-set 1.1.0 → 1.2.0: §M14 adds fn.section_of(node_id) for SPEC-SECTIONS-TREE v0.2 cross-section references; §M7 Tier-A adds doc.section_index (render-time only). Both are additive (no existing helper or binding changed). See §19.",
     source_script: "fdpm-cli/scripts/build-spec-expression-runtime.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-expr-rt",
@@ -1549,10 +1549,23 @@ const references: PrimitiveSpec[] = [
 
 const revisions: PrimitiveSpec[] = [
   {
-    id: "spec:rev:0-1-7",
+    id: "spec:rev:0-1-8",
     type: "spec:Revision",
     fields: {
       version: SPEC_VERSION,
+      date: "2026-05-04",
+      title: "Helper-set v1.2.0: fn.section_of + doc.section_index for SPEC-SECTIONS-TREE v0.2 cross-section references.",
+      notes:
+        "Pure additive amendment. §M14 helper-set 1.1.0 → 1.2.0:\n\n1. New helper `fn.section_of(node_id)` (reference family). Resolves a dnis:Node id (NID or slug-form 'dnis:node:<lower nid>') to its rendered §N.M.K heading via the render-time section index. Throws `unknown-name` on miss — no silent coercion to '' (Principle: undefined names error loudly).\n\n2. New §M7 Tier-A binding `doc.section_index: map<string, string>` — render-time only; populated by the host's spec_md renderer when the project contains a `dnis:Document` and one or more active `dnis:Node` primitives of kind `section`. Empty for validate-time and DNIS-less renders.\n\n3. Plumbing: `ValidationEvaluationOptions.sectionIndex` (optional) flows through `createActivationContext` into `ExprRuntimeHelperContext.sectionIndex`, which `resolveSectionOf` reads. Render-time facade gains a per-call `sectionIndex` option.\n\nNo existing helper changed; no existing binding changed; no grammar change. Adds one helper, one Tier-A binding, one optional option field. Closes the SPEC-SECTIONS-TREE v0.2 prose-reference gap that arose when section numbers became derived rather than authored.",
+      affected_sections: ["§M7", "§M14", "§19"],
+      kind: "patch",
+    },
+  },
+  {
+    id: "spec:rev:0-1-7",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.7",
       date: "2026-05-04",
       title: "Core runtime gaps closed for the shipped expression runtime.",
       notes:
@@ -1954,6 +1967,7 @@ const relations: RelationSpec[] = [
   { id: "rel:doc-revised-0-1-5", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-5" },
   { id: "rel:doc-revised-0-1-6", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-6" },
   { id: "rel:doc-revised-0-1-7", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-7" },
+  { id: "rel:doc-revised-0-1-8", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-8" },
 ];
 
 // ── Commit ─────────────────────────────────────────────────────────────────

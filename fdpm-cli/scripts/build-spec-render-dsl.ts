@@ -55,7 +55,7 @@ const documentSpec: PrimitiveSpec = {
     subtitle:
       "A small, sandboxed expression language evaluated at render time. Variables, project-graph queries, and conditional sections — no Turing-complete escape hatches.",
     spec_id: "spec:fdpm:render-dsl:0.1",
-    version: "0.1.5",
+    version: "0.1.6",
     status: "Proposal",
     audience:
       "FDPM core maintainers, plugin authors writing renderers (cap:renderer), security reviewers responsible for output sandboxing.",
@@ -80,7 +80,7 @@ const documentSpec: PrimitiveSpec = {
       "every helper to be reviewable as pure code.",
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
-    revision_note: "0.1.5 — ships the first host-owned render-DSL execution path, strict-mode exit semantics, and a template-driven references section. See §19.",
+    revision_note: "0.1.6 — adds fn.section_of(node_id) helper (helper-set v1.2.0) and the doc.section_index Tier-A binding for resolving DNIS NodeIds to their rendered §N.M.K headings. Closes the SPEC-SECTIONS-TREE v0.2 prose-ref gap. See §19.",
     source_script: "fdpm-cli/scripts/build-spec-render-dsl.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-render-dsl",
@@ -1181,6 +1181,19 @@ const references: PrimitiveSpec[] = [
 
 const revisions: PrimitiveSpec[] = [
   {
+    id: "spec:rev:0-1-6",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.6",
+      date: "2026-05-04",
+      title: "Add fn.section_of helper and doc.section_index Tier-A binding (helper-set v1.2.0).",
+      notes:
+        "Closes the SPEC-SECTIONS-TREE v0.2 cross-section reference gap: prose like 'see §7 of this SPEC' was a dual-source-of-truth defect once §N.M.K became derived rather than authored. v0.1.6 adds:\n\n1. `fn.section_of(node_id)` helper (helper-set v1.2.0, listed in §6.4 alongside the existing string/collection/date/identity families). Accepts a dnis:Node id in either form (bare NID or slug-form `dnis:node:<lower nid>`); resolves it to the rendered §N.M.K via the render-time section index. Throws an `unknown-name` render-error on miss — never silently coerces to '' (Principle 4).\n\n2. `doc.section_index: map<string, string>` Tier-A binding (§M7 in SPEC-EXPRESSION-RUNTIME). Render-time only; populated by spec:SpecMarkdownRenderer's DFS over the dnis:Node graph; empty for validate-time and DNIS-less renders.\n\n3. Helper-set version 1.1.0 → 1.2.0 (additive minor per §M14 bump rules; no existing helper changed).\n\nNo grammar change. The §6.5 EBNF and the four surface forms (§1.1, §6 capability table) are unchanged. Adding a helper to `fn.*` is the existing extension point §6.4 already documents.",
+      affected_sections: ["§4", "§6", "§6.4", "§19"],
+      kind: "patch",
+    },
+  },
+  {
     id: "spec:rev:0-1-3",
     type: "spec:Revision",
     fields: {
@@ -1537,6 +1550,7 @@ const relations: RelationSpec[] = [
   { id: "rel:doc-revised-0-1-3", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-3" },
   { id: "rel:doc-revised-0-1-5", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-5" },
   { id: "rel:doc-revised-0-1-4", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-4" },
+  { id: "rel:doc-revised-0-1-6", type: "spec:RevisedIn", from: documentSpec.id, to: "spec:rev:0-1-6" },
 ];
 
 // ── Commit ─────────────────────────────────────────────────────────────────

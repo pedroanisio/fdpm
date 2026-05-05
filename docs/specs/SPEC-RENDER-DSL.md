@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-render-dsl.ts"
-revision: "0.1.5 — ships the first host-owned render-DSL execution path, strict-mode exit semantics, and a template-driven references section. See §19."
+revision: "0.1.6 — adds fn.section_of(node_id) helper (helper-set v1.2.0) and the doc.section_index Tier-A binding for resolving DNIS NodeIds to their rendered §N.M.K headings. Closes the SPEC-SECTIONS-TREE v0.2 prose-ref gap. See §19."
 status: "Proposal"
 ---
 
@@ -60,7 +60,7 @@ This work is subject to the methodological caveats and commitments described in 
 | Field | Value |
 | --- | --- |
 | Spec ID | spec:fdpm:render-dsl:0.1 |
-| Version | 0.1.5 |
+| Version | 0.1.6 |
 | Status | Proposal |
 | Audience | FDPM core maintainers, plugin authors writing renderers (cap:renderer), security reviewers responsible for output sandboxing. |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md, docs/specs/SPEC-CORE.md, docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md, docs/specs/SPEC-EXPRESSION-RUNTIME.md, docs/specs/SPEC-CEL-VALIDATOR.md |
@@ -181,10 +181,10 @@ The grammar is the contract. CI parses every shipped renderer's templates agains
 
 _Note: the renderer's `kind: "schema"` section currently emits **all** spec:SchemaDefinition primitives in the project — see Future Work spec:fw:per-section-schemas. Both schemas below are surfaced under this single section as a workaround._
 
-#### fn.* — Helper function inventory (v1.1.0)
+#### fn.* — Helper function inventory (v1.2.0)
 
 ```ad_hoc
-// Standard helper set v1.1.0, inventory authoritative in
+// Standard helper set v1.2.0, inventory authoritative in
 // SPEC-EXPRESSION-RUNTIME §M14. The shape below is generated from
 // fdpm-cli/scripts/_spec-shared.ts so this SPEC and EXPR-RT cannot drift.
 
@@ -209,6 +209,9 @@ fn.date.iso(iso)           → 'YYYY-MM-DDTHH:MM:SSZ' (UTC, normalised).
 
 // identity family
 fn.hash(value)             → SHA-256 hex digest. Canonicalisation rules in EXPR-RT §M14: primitives & lists supported; maps raise type-error in v1.0.0 (Future Work spec:fw:hash-maps).
+
+// reference family
+fn.section_of(node_id)     → Resolve a DNIS NodeId (or its slug-form SPEC-CORE primitive id, e.g. 'dnis:node:01k…') to its rendered §N.M.K heading string. Reads from doc.section_index, which the renderer populates by DFS-walking the dnis:Node graph at render time (per SPEC-SECTIONS-TREE v0.2). Returns a render-error if the id is unknown — never silently coerces to '' (Principle 4).
 
 All helpers are pure, total, and bounded.
 Type errors return a render-error value at the call site (§M2 policy);
@@ -315,7 +318,7 @@ Adopt a CEL-only render-time DSL. The render-DSL adds NOTHING to CEL beyond a th
 - **positive**: Renderer authors can ship a template (data) instead of a TS module.
 - **positive**: GENERATED-DOCUMENT banner's `regeneration_command` becomes a real template instead of a hard-coded string.
 - **positive**: Per-renderer filter functions (renderADRs, renderRisks, …) collapse into CEL list-comprehension expressions plus the closed `fn.*` helper set in reusable templates.
-- **negative**: v0.1 ships with a small helper set (14 functions). Authors will request more; each is a SPEC amendment by Principle 3.
+- **negative**: v0.1 ships with a small helper set (15 functions). Authors will request more; each is a SPEC amendment by Principle 3.
 - **negative**: Couples this SPEC's release to SPEC-CEL-VALIDATOR's host evaluator landing first. Rollout order matters.
 - **neutral**: v0.1 has no `${else}` and no nested placeholders. These are explicitly Future Work.
 
@@ -504,6 +507,20 @@ Other open questions (defaulted):
 ---
 
 ## 19. Revision history
+
+### 0.1.6 — 2026-05-04 — Add fn.section_of helper and doc.section_index Tier-A binding (helper-set v1.2.0).
+
+Closes the SPEC-SECTIONS-TREE v0.2 cross-section reference gap: prose like 'see §7 of this SPEC' was a dual-source-of-truth defect once §N.M.K became derived rather than authored. v0.1.6 adds:
+
+1. `fn.section_of(node_id)` helper (helper-set v1.2.0, listed in §6.4 alongside the existing string/collection/date/identity families). Accepts a dnis:Node id in either form (bare NID or slug-form `dnis:node:<lower nid>`); resolves it to the rendered §N.M.K via the render-time section index. Throws an `unknown-name` render-error on miss — never silently coerces to '' (Principle 4).
+
+2. `doc.section_index: map<string, string>` Tier-A binding (§M7 in SPEC-EXPRESSION-RUNTIME). Render-time only; populated by spec:SpecMarkdownRenderer's DFS over the dnis:Node graph; empty for validate-time and DNIS-less renders.
+
+3. Helper-set version 1.1.0 → 1.2.0 (additive minor per §M14 bump rules; no existing helper changed).
+
+No grammar change. The §6.5 EBNF and the four surface forms (§1.1, §6 capability table) are unchanged. Adding a helper to `fn.*` is the existing extension point §6.4 already documents.
+
+Affected sections: §4, §6, §6.4, §19
 
 ### 0.1.5 — 2026-05-04 — Ship the first live render-DSL execution path through core/expr.
 
