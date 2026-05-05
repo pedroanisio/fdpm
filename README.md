@@ -123,6 +123,10 @@ npm --prefix fdpm-cli run dev -- version     # tsx, no build needed
 | `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | `fdpm-mcp`: per-session rate limit on tool calls. |
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | `fdpm-mcp`: truthy -> log full args (default: sha256 hash only). |
 
+One-shot CLI ergonomics:
+- `fdpm` one-shot commands default plugin startup logs to `warn`, so operator-facing output is not buried under activation banners.
+- Use `--verbose` to show plugin startup info logs, `--quiet` to suppress them, or `--log-level <debug|info|warn|error|silent>` for explicit control.
+
 ## Quick start (zero plugins)
 
 ```bash

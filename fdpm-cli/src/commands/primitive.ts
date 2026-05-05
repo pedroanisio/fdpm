@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
-import { compileRegexOrThrow, emit, parseFieldMatchArgs, readInput, type OutputContext } from "./util.js";
+import { compileRegexOrThrow, emit, parseFieldMatchArgs, readInput, renderTable, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import {
   type CommandMetadataMap,
@@ -82,7 +82,11 @@ export function buildPrimitiveCommand(host: Host): Command {
       const slice = host.getProject(project);
       const items = Object.values(slice.primitives);
       emit(ctx, { primitives: items }, () =>
-        items.map((p) => `${p.id}\t${p.type_id}\trev=${p.revision}`).join("\n"),
+        renderTable(items, [
+          { header: "ID", value: (p) => p.id },
+          { header: "TYPE", value: (p) => p.type_id },
+          { header: "REV", value: (p) => p.revision, align: "right" },
+        ], { empty: "(no primitives)" }),
       );
     });
 
@@ -167,7 +171,11 @@ export function buildPrimitiveCommand(host: Host): Command {
         ...(fieldMatch.length > 0 && { fieldMatch }),
       });
       emit(ctx, { count: items.length, primitives: items }, () =>
-        items.map((p) => `${p.id}\t${p.type_id}\trev=${p.revision}`).join("\n"),
+        renderTable(items, [
+          { header: "ID", value: (p) => p.id },
+          { header: "TYPE", value: (p) => p.type_id },
+          { header: "REV", value: (p) => p.revision, align: "right" },
+        ], { empty: "(no primitives)" }),
       );
     });
 

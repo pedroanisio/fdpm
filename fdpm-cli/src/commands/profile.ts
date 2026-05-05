@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { DomainProfile } from "../core/models/meta.js";
-import { emit, readInput, type OutputContext } from "./util.js";
+import { emit, readInput, renderTable, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import {
   type CommandMetadataMap,
@@ -34,7 +34,13 @@ export function buildProfileCommand(host: Host): Command {
         relation_type_count: p.relation_types.length,
       }));
       emit(ctx, { profiles }, () =>
-        profiles.map((p) => `${p.id}@${p.version}\t${p.label}`).join("\n"),
+        renderTable(profiles, [
+          { header: "PROFILE", value: (p) => p.id },
+          { header: "VERSION", value: (p) => p.version },
+          { header: "PRIMITIVES", value: (p) => p.primitive_type_count, align: "right" },
+          { header: "RELATIONS", value: (p) => p.relation_type_count, align: "right" },
+          { header: "LABEL", value: (p) => p.label ?? "" },
+        ], { empty: "(no profiles)" }),
       );
     });
 

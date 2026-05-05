@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
-import { compileRegexOrThrow, emit, parseFieldMatchArgs, readInput, type OutputContext } from "./util.js";
+import { compileRegexOrThrow, emit, parseFieldMatchArgs, readInput, renderTable, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { relationFieldPatch } from "../core/host-extra.js";
 import {
@@ -24,7 +24,12 @@ export function buildRelationCommand(host: Host): Command {
       const slice = host.getProject(project);
       const items = Object.values(slice.relations);
       emit(ctx, { relations: items }, () =>
-        items.map((r) => `${r.id}\t${r.type_id}\t${r.source_id} -> ${r.target_id}`).join("\n"),
+        renderTable(items, [
+          { header: "ID", value: (r) => r.id },
+          { header: "TYPE", value: (r) => r.type_id },
+          { header: "SOURCE", value: (r) => r.source_id },
+          { header: "TARGET", value: (r) => r.target_id },
+        ], { empty: "(no relations)" }),
       );
     });
 
@@ -69,7 +74,12 @@ export function buildRelationCommand(host: Host): Command {
         ...(fieldMatch.length > 0 && { fieldMatch }),
       });
       emit(ctx, { count: items.length, relations: items }, () =>
-        items.map((r) => `${r.id}\t${r.type_id}\t${r.source_id} -> ${r.target_id}`).join("\n"),
+        renderTable(items, [
+          { header: "ID", value: (r) => r.id },
+          { header: "TYPE", value: (r) => r.type_id },
+          { header: "SOURCE", value: (r) => r.source_id },
+          { header: "TARGET", value: (r) => r.target_id },
+        ], { empty: "(no relations)" }),
       );
     });
 

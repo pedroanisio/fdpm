@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
-import { emit, readInput, type OutputContext } from "./util.js";
+import { emit, readInput, renderTable, type OutputContext } from "./util.js";
 import { isValidProjectId } from "../core/identity/id-rules.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { splitProject, cloneProject, rebuildFromLog } from "../core/host-extra.js";
@@ -12,6 +12,75 @@ import {
   NO_PROJECT_JSON,
   projectFromJsonField,
 } from "./metadata.js";
+
+function renderProjectGetHuman(
+  slice: {
+    project: {
+      id: string;
+      name: string;
+      profile_id: string;
+      revision: number;
+      description?: string;
+    };
+  },
+  counts: { primitives: number; relations: number; templates: number; test_suites: number },
+): string {
+  const lines = [
+    `Project: ${slice.project.id}`,
+    `Name: ${slice.project.name}`,
+    `Profile: ${slice.project.profile_id}`,
+    `Revision: ${slice.project.revision}`,
+    ...(slice.project.description ? [`Description: ${slice.project.description}`] : []),
+    "",
+    "Counts:",
+    `  Primitives: ${counts.primitives}`,
+    `  Relations: ${counts.relations}`,
+    `  Templates: ${counts.templates}`,
+    `  Test suites: ${counts.test_suites}`,
+  ];
+  return lines.join("\n");
+}
+
+function renderProjectListHuman(
+  projects: readonly {
+    id: string;
+    profile_label: string;
+    profile_version: string;
+    revision: number;
+    name: string;
+  }[],
+): string {
+  return renderTable(projects, [
+    { header: "PROJECT ID", value: (p) => p.id },
+    { header: "PROFILE", value: (p) => p.profile_label },
+    { header: "PROFILE VER", value: (p) => p.profile_version },
+    { header: "REV", value: (p) => p.revision, align: "right" },
+    { header: "NAME", value: (p) => p.name },
+  ], { empty: "(no projects)" });
+}
+
+function splitCanonicalProfileId(profileId: string): { labelSlug: string; version: string } {
+  const parts = profileId.split(":");
+  if (parts.length >= 3 && parts[0] === "profile") {
+    return {
+      labelSlug: parts.slice(1, -1).join(":"),
+      version: parts.at(-1) ?? "",
+    };
+  }
+  return { labelSlug: profileId, version: "" };
+}
+
+function humanizeProfileSlug(slug: string): string {
+  return slug
+    .split(":")
+    .map((segment) =>
+      segment
+        .split("-")
+        .map((word) => (word.length === 0 ? word : word[0]!.toUpperCase() + word.slice(1)))
+        .join(" "),
+    )
+    .join(" / ");
+}
 
 export function buildProjectCommand(host: Host): Command {
   const cmd = new Command("project");
@@ -47,9 +116,18 @@ export function buildProjectCommand(host: Host): Command {
     .action((opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const projects = host.listProjects();
-      emit(ctx, { projects }, () =>
-        projects.map((p) => `${p.id}\t${p.profile_id}\trev=${p.revision}\t${p.name}`).join("\n"),
-      );
+      const rows = projects.map((project) => {
+        const profile = host.profiles.getResolved(project.profile_id);
+        const canonical = splitCanonicalProfileId(project.profile_id);
+        return {
+          id: project.id,
+          profile_label: profile.label ?? profile.name ?? humanizeProfileSlug(canonical.labelSlug),
+          profile_version: canonical.version,
+          revision: project.revision,
+          name: project.name,
+        };
+      });
+      emit(ctx, { projects }, () => renderProjectListHuman(rows));
     });
 
   cmd
@@ -69,9 +147,7 @@ export function buildProjectCommand(host: Host): Command {
         templates: Object.keys(slice.templates).length,
         test_suites: Object.keys(slice.test_suites).length,
       };
-      emit(ctx, { ...slice, counts }, () =>
-        `${slice.project.id}@${slice.project.revision}\t${slice.project.profile_id}\nprimitives=${counts.primitives} relations=${counts.relations} templates=${counts.templates} suites=${counts.test_suites}`,
-      );
+      emit(ctx, { ...slice, counts }, () => renderProjectGetHuman(slice, counts));
     });
 
   cmd
@@ -157,3 +233,5 @@ export const commandMetadata: CommandMetadataMap = {
   "project clone":            { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
   "project rebuild-from-log": { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
 };
+
+export { renderProjectGetHuman, renderProjectListHuman, splitCanonicalProfileId, humanizeProfileSlug };

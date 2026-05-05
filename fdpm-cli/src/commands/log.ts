@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
-import { emit, parseKindCsv, type OutputContext } from "./util.js";
+import { emit, parseKindCsv, renderTable, type OutputContext } from "./util.js";
 import { undo } from "../core/host-extra.js";
 import { buildAuditRecord } from "../core/audit/projection.js";
 import {
@@ -42,7 +42,12 @@ export function buildLogCommand(host: Host): Command {
         ...(opts.limit != null && { limit: parseInt(String(opts.limit), 10) }),
       });
       emit(ctx, { operations: ops }, () =>
-        ops.map((o) => `${o.revision}\t${o.kind}\t${o.op_id}\t${o.actor}`).join("\n"),
+        renderTable(ops, [
+          { header: "REV", value: (o) => o.revision, align: "right" },
+          { header: "KIND", value: (o) => o.kind },
+          { header: "OP ID", value: (o) => o.op_id },
+          { header: "ACTOR", value: (o) => o.actor },
+        ], { empty: "(no operations)" }),
       );
     });
 

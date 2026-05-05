@@ -33,6 +33,9 @@ const GLOBAL_FLAGS = [
   "-V",
   "--data-dir",
   "--no-persist",
+  "--verbose",
+  "--quiet",
+  "--log-level",
 ] as const;
 
 const COMMAND_SUBCOMMANDS: Record<string, readonly string[]> = {

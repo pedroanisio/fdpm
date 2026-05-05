@@ -72,13 +72,19 @@ export function buildProgram(host: Host, opts: BuildProgramOptions = {}): Comman
         "",
         "Environment variables:",
         ...renderEnvVarHelpLines(),
-        "  note: --json auto-sets FDPM_LOG_LEVEL=warn unless explicitly overridden",
+        "  note: one-shot commands default plugin startup logs to warn; use --verbose, --quiet, or --log-level to override",
       ].join("\n"),
     )
     .addHelpText("after", renderRootAfterHelp())
     .version(HOST_VERSION)
     .option("--data-dir <path>", "override FDPM_DATA_DIR")
     .option("--no-persist", "run in-memory only, no JSONL log on disk")
+    .option("--verbose", "show plugin startup info logs and expand human diagnostics")
+    .option("--quiet", "suppress plugin startup logs")
+    .option(
+      "--log-level <level>",
+      "set plugin startup log threshold: debug | info | warn | error | silent",
+    )
     .enablePositionalOptions();
 
   if (opts.exitOverride === true) program.exitOverride();

@@ -10,6 +10,12 @@ export interface OutputContext {
   json: boolean;
 }
 
+export interface TableColumn<T> {
+  header: string;
+  value: (row: T) => string | number;
+  align?: "left" | "right";
+}
+
 export function emit(ctx: OutputContext, payload: unknown, human?: () => string): void {
   // SPEC-REPL §8.2 + SPEC-MCP-SERVER both require one JSON value per
   // line in agent-driven mode. The one-shot CLI keeps its
@@ -24,6 +30,33 @@ export function emit(ctx: OutputContext, payload: unknown, human?: () => string)
       ? human() + "\n"
       : JSON.stringify(payload, null, compact ? undefined : 2) + "\n";
   writeAllSync(text);
+}
+
+export function renderTable<T>(
+  rows: readonly T[],
+  columns: readonly TableColumn<T>[],
+  opts: { empty: string },
+): string {
+  if (rows.length === 0) return opts.empty;
+
+  const widths = columns.map((column) => {
+    const cellWidths = rows.map((row) => String(column.value(row)).length);
+    return Math.max(column.header.length, ...cellWidths);
+  });
+
+  const formatRow = (cells: readonly string[], isHeader = false): string =>
+    cells
+      .map((cell, idx) => {
+        const align = isHeader ? "left" : (columns[idx]?.align ?? "left");
+        return align === "right" ? cell.padStart(widths[idx]!) : cell.padEnd(widths[idx]!);
+      })
+      .join("  ");
+
+  const header = formatRow(columns.map((column) => column.header), true);
+  const body = rows.map((row) =>
+    formatRow(columns.map((column) => String(column.value(row)))),
+  );
+  return [header, ...body].join("\n");
 }
 
 /**

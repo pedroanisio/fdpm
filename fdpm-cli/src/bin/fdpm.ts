@@ -8,16 +8,10 @@ import {
 import { buildReplCommand } from "../commands/repl.js";
 import { buildProgram } from "./program.js";
 import { handleError } from "./error-handling.js";
+import { resolveOneShotCliRuntimeOptions } from "./runtime-options.js";
 
 async function main(): Promise<void> {
-  // We need the parsed flags before constructing Host (for --data-dir
-  // and --no-persist). Pre-parse top-level flags by inspecting argv.
   const argv = process.argv.slice(2);
-  const persistIdx = argv.indexOf("--no-persist");
-  const dataDirIdx = argv.indexOf("--data-dir");
-  const persist = persistIdx === -1;
-  const dataDir =
-    dataDirIdx >= 0 && argv[dataDirIdx + 1] != null ? argv[dataDirIdx + 1] : undefined;
 
   if (argv.length === 0) {
     process.stdout.write(renderRootOnboarding() + "\n");
@@ -32,18 +26,14 @@ async function main(): Promise<void> {
     return;
   }
 
-  // §6.6 plugin-logger ergonomics: when the user requested machine-readable
-  // output via --json, default plugin logging to `warn` so activation banners
-  // don't trail behind / interleave with the JSON. Explicit FDPM_LOG_LEVEL
-  // wins. Apply BEFORE Host construction (which triggers plugin activation
-  // and the very banners we want to suppress).
-  if (argv.includes("--json") && process.env["FDPM_LOG_LEVEL"] === undefined) {
-    process.env["FDPM_LOG_LEVEL"] = "warn";
+  const runtime = resolveOneShotCliRuntimeOptions(argv);
+  if (runtime.logLevelOverride !== undefined) {
+    process.env["FDPM_LOG_LEVEL"] = runtime.logLevelOverride;
   }
 
   const host = new Host({
-    ...(dataDir != null && { dataDir }),
-    ...(persist === false && { dataDir: null }),
+    ...(runtime.dataDir != null && { dataDir: runtime.dataDir }),
+    ...(runtime.persist === false && { dataDir: null }),
   });
   await host.load();
 

@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
-import { emit, type OutputContext } from "./util.js";
+import { emit, renderTable, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import {
   type CommandMetadataMap,
@@ -43,13 +43,14 @@ export function buildPluginCommand(host: Host): Command {
         error: r.errorMessage,
       }));
       emit(ctx, { plugins: records }, () =>
-        records
-          .map(
-            (r) =>
-              `${r.id}@${r.version}\t${r.state}\ttrust=${r.trust}\tcaps=${r.capabilities}` +
-              (r.error ? `\terror=${r.error}` : ""),
-          )
-          .join("\n") || "(no plugins)",
+        renderTable(records, [
+          { header: "PLUGIN", value: (r) => r.id },
+          { header: "VERSION", value: (r) => r.version },
+          { header: "STATE", value: (r) => r.state },
+          { header: "TRUST", value: (r) => r.trust },
+          { header: "CAPS", value: (r) => r.capabilities, align: "right" },
+          { header: "ERROR", value: (r) => r.error ?? "" },
+        ], { empty: "(no plugins)" }),
       );
     });
 
