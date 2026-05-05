@@ -43,7 +43,7 @@ export const tool: McpToolEntry<
   name: "fdpm.primitive.replace",
   tier: "validating_write",
   description:
-    "Replace a primitive's field_values. type_id is immutable. Optional expected_revision enforces If-Match optimistic concurrency.",
+    "Replace a primitive's field_values wholesale. type_id is immutable (the existing primitive's type wins; submitting a different type_id is rejected with `conflict`). BEFORE calling: invoke fdpm.profile.type_info(profile_id, type_id) to confirm required_field_names — every required name MUST appear in the new field_values. Optional expected_revision enforces If-Match optimistic concurrency (returns `conflict` on revision drift). Rejection surfaces as `isError: false`, `ok: false` with findings; protocol errors (not_found, conflict) surface as `isError: true`.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

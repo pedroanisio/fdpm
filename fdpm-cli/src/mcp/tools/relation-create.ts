@@ -44,7 +44,7 @@ export const tool: McpToolEntry<
   name: "fdpm.relation.create",
   tier: "validating_write",
   description:
-    "Create a relation between two primitives. Runs the §7 validation pipeline; rejection is reported via the validation_report envelope.",
+    "Create a typed relation between two existing primitives. BEFORE calling: invoke fdpm.profile.type_info(profile_id, type_id) to discover the relation's source_type_id / target_type_id (the source and target primitives MUST be of those types — mismatches reject) and the id_pattern for the relation's `id`. Both source_id and target_id MUST refer to primitives that already exist in the same project (otherwise: rejected with `not_found`). Cardinality bounds (max source/target degree) are enforced at validation time. Rejection surfaces as `isError: false`, `ok: false` with findings; use fdpm.relation.create_batch for multi-relation atomic batches.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

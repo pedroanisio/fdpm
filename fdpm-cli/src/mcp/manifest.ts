@@ -37,10 +37,12 @@ import { tool as logDiffTool } from "./tools/log-diff.js";
 import { tool as profileRegisterTool } from "./tools/profile-register.js";
 import { tool as projectCreateTool } from "./tools/project-create.js";
 import { tool as primitiveCreateTool } from "./tools/primitive-create.js";
+import { tool as primitiveCreateBatchTool } from "./tools/primitive-create-batch.js";
 import { tool as primitiveReplaceTool } from "./tools/primitive-replace.js";
 import { tool as primitivePatchTool } from "./tools/primitive-patch.js";
 import { tool as primitiveFieldPatchTool } from "./tools/primitive-field-patch.js";
 import { tool as relationCreateTool } from "./tools/relation-create.js";
+import { tool as relationCreateBatchTool } from "./tools/relation-create-batch.js";
 import { tool as relationReplaceTool } from "./tools/relation-replace.js";
 import { tool as relationPatchTool } from "./tools/relation-patch.js";
 import { tool as structureReorderTool } from "./tools/structure-reorder.js";
@@ -72,10 +74,12 @@ export const TIER_2_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
   profileRegisterTool,
   projectCreateTool,
   primitiveCreateTool,
+  primitiveCreateBatchTool,
   primitiveReplaceTool,
   primitivePatchTool,
   primitiveFieldPatchTool,
   relationCreateTool,
+  relationCreateBatchTool,
   relationReplaceTool,
   relationPatchTool,
   structureReorderTool,
@@ -168,6 +172,8 @@ export const EXPOSED_HOST_METHODS: ReadonlySet<string> = new Set<string>([
   "patchRelation",
   "reorder",
   "reparent",
+  // Used by the batch-create tools (primitive.create_batch / relation.create_batch).
+  "appendBatchWithCausation",
   // Tier 3 — destructive deletes (gated by --enable-destructive).
   "deleteProject",
   "deletePrimitive",

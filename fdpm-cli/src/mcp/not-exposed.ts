@@ -52,10 +52,15 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
 
   // -- Internal append helpers ----------------------------------------
   // Per SPEC-MCP-SERVER §8.4 these MUST NEVER be exposed: they take
-  // raw operations / batches and bypass tier classification entirely.
+  // raw operations and bypass tier classification entirely. The third
+  // sibling, `appendBatchWithCausation`, is intentionally NOT in this
+  // list as of v0.1.1 — it is now reached via `fdpm.primitive.create_batch`
+  // and `fdpm.relation.create_batch`, which accept typed intents (NOT
+  // raw operations) and run under the standard Tier-2 classification.
+  // SPEC §8.4's prohibition targets "raw operation / raw JSONL" inputs,
+  // not the batch path itself.
   "appendAndPersist",
   "appendBatch",
-  "appendBatchWithCausation",
 
   // -- Migration (Tier 3 — destructive, deferred) ---------------------
   "migrateNormalizeMetadata",

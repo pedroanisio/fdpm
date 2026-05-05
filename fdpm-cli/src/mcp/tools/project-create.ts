@@ -43,7 +43,7 @@ export const tool: McpToolEntry<
   name: "fdpm.project.create",
   tier: "validating_write",
   description:
-    "Create a new project bound to a registered profile. Returns the standard Tier-2 envelope including operation and validation_report.",
+    "Create a new project bound to a registered profile. The profile_id MUST already be registered (call fdpm.profile.list to discover what's available; fdpm.profile.register to add a new one). The project_id MUST be unique within the data dir; collision returns `conflict`. Returns the standard Tier-2 envelope including operation and validation_report.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

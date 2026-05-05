@@ -40,7 +40,7 @@ export const tool: McpToolEntry<
   name: "fdpm.structure.reorder",
   tier: "validating_write",
   description:
-    "Reorder children within a scope. Returns the standard Tier-2 envelope.",
+    "Set the order of primitives within a scope. `ordering` is a permutation of the scope's current children — every child id MUST appear exactly once, no extras and no omissions (otherwise: `validation` rejection). Use this to reorder sections within a document, requirements within a section, etc. Does NOT add or remove members; use field-patch / replace on the parent for membership changes.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

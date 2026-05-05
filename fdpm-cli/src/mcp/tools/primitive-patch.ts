@@ -42,7 +42,7 @@ export const tool: McpToolEntry<
   name: "fdpm.primitive.patch",
   tier: "validating_write",
   description:
-    "Partial-update a primitive's field_values. Validation scope is the touched paths only; pre-existing violations on untouched fields do not block the edit.",
+    "Partial-update a primitive's field_values: only the keys present in `patch.field_values` are merged in. Validation scope is the touched paths only; pre-existing violations on untouched fields do NOT block the edit (use this property to evolve a partially-invalid primitive incrementally). Rejection surfaces as `isError: false`, `ok: false` with findings restricted to the touched paths. Use fdpm.primitive.replace to rewrite the whole field_values; use fdpm.primitive.field_patch for JSON-Patch-style operations.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

@@ -41,7 +41,7 @@ export const tool: McpToolEntry<
   name: "fdpm.profile.register",
   tier: "validating_write",
   description:
-    "Register a DomainProfile (persisted by default). Returns the standard Tier-2 envelope; profiles do not produce operation log entries, so the operation field is omitted on success.",
+    "Register a DomainProfile (persisted by default). The profile object MUST follow the DomainProfile schema (id, version, primitive_types, relation_types, scopes, categories, optional `extends` chain). If `extends` lists parent profile ids, those parents MUST be registered first or registration rejects with `not_found`. The standard Tier-2 envelope is returned; profiles do not produce operation log entries, so `operation` is omitted on success.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },
