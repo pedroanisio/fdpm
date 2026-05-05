@@ -52,6 +52,16 @@ export interface HostOptions {
 /**
  * Typed intent for `Host.appendBatchWithCausation`. Each variant
  * mirrors the shape its single-entry counterpart accepts.
+ *
+ * The optional `uid` on primitive.create / relation.create is
+ * SPEC-CORE 1.2 §5.6.1's "DNIS NID == SPEC-CORE uid" pin: the DNIS
+ * host adapter pre-mints the NID inside the inner DNIS planner, then
+ * passes it here so the persisted primitive's `uid` equals the NID.
+ * Without this override the host auto-mints a fresh ULID per
+ * primitive, which breaks the §5.6.1 invariant that callers rely on
+ * for parent_node_id resolution and lineage walks. Only the DNIS
+ * adapter SHOULD set `uid`; ordinary plugin/transformer callers leave
+ * it undefined and accept the host's auto-mint.
  */
 export type DnisBatchIntent =
   | {
@@ -61,6 +71,7 @@ export type DnisBatchIntent =
         type_id: string;
         field_values: Record<string, unknown>;
         scope_id?: string;
+        uid?: string;
       };
     }
   | {
@@ -80,6 +91,7 @@ export type DnisBatchIntent =
         source_id: string;
         target_id: string;
         field_values?: Record<string, unknown>;
+        uid?: string;
       };
     };
 
@@ -673,7 +685,10 @@ export class Host {
 
         switch (intent.kind) {
           case "primitive.create": {
-            const uid = mintUid();
+            // SPEC-CORE 1.2 §5.6.1: DNIS adapter sets uid = the DNIS NID
+            // so caller-side parent_node_id references resolve. Other
+            // callers leave uid undefined and accept the auto-mint.
+            const uid = intent.primitive.uid ?? mintUid();
             const proposed: PrimitiveInstance = {
               id: intent.primitive.id,
               uid,
@@ -710,7 +725,7 @@ export class Host {
             break;
           }
           case "relation.create": {
-            const uid = mintUid();
+            const uid = intent.relation.uid ?? mintUid();
             const proposed: RelationInstance = {
               id: intent.relation.id,
               uid,

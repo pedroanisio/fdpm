@@ -139,19 +139,31 @@ export class DnisHostAdapter {
   /**
    * Create a SPEC-DNIS Document and persist it as a `dnis:Document`
    * SPEC-CORE primitive. Returns the canonical Document record.
+   *
+   * Routes through `appendBatchWithCausation` (single-entry batch)
+   * rather than `Host.createPrimitive` so we can pass the DNIS
+   * DocumentId through as the SPEC-CORE primitive's `uid` per
+   * SPEC-CORE 1.2 §5.6.1 ("uid MUST equal the DNIS NID"). The host's
+   * single-entry create path rejects caller-provided uid by design,
+   * which is correct for ordinary callers but blocks the DNIS
+   * adapter's identity-pin requirement.
    */
   async createDocument(input: CreateDocumentInput): Promise<Document> {
     const document = this.cache.createDocument(input);
     try {
-      await this.host.createPrimitive(this.projectId, {
-        id: documentPrimitiveId(document.id),
-        type_id: DNIS_DOCUMENT_TYPE,
-        field_values: documentPrimitiveFields(document),
-        scope_id: DNIS_DOCUMENT_SCOPE,
-      });
+      await this.host.appendBatchWithCausation(this.projectId, [
+        {
+          kind: "primitive.create",
+          primitive: {
+            id: documentPrimitiveId(document.id),
+            uid: document.id,
+            type_id: DNIS_DOCUMENT_TYPE,
+            field_values: documentPrimitiveFields(document),
+            scope_id: DNIS_DOCUMENT_SCOPE,
+          },
+        },
+      ]);
     } catch (err) {
-      // Roll back the in-memory mutation so the adapter remains
-      // log-consistent on host-write failure.
       this.discardDocumentFromCache(document.id);
       throw err;
     }
@@ -282,6 +294,7 @@ export class DnisHostAdapter {
           kind: "primitive.create",
           primitive: {
             id: slug,
+            uid: nodeId, // SPEC-CORE §5.6.1: uid == DNIS NID
             type_id: DNIS_NODE_TYPE,
             field_values: nodePrimitiveFields(current),
             scope_id: DNIS_DOCUMENT_SCOPE,

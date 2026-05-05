@@ -53,7 +53,6 @@ async function setupAdapter(): Promise<{
   await newDnisProject(host, projectId);
   const adapter = new DnisHostAdapter(host, { projectId });
   const document = await adapter.createDocument({
-    id: "DOC0000000000000000000001" as DocumentId,
     createdBy: AGENT,
     schemaVersion: "0.1.7",
     hashAlgorithm: "sha256",

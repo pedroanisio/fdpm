@@ -118,6 +118,24 @@ function inc(tgt: string, type: string, ctx: Ctx): string[] {
   return ctx.incoming.get(tgt)?.get(type) ?? [];
 }
 
+/**
+ * Emit a renderer-level diagnostic. RenderFinding (src/core/render/template.ts:12)
+ * is shaped for render-DSL parser/evaluator errors; we reuse it for
+ * renderer-side findings by setting `expression` to the rule_id and
+ * leaving line/column at 0. The `templateId` carries the rule_id so
+ * downstream consumers can group these alongside DSL findings.
+ */
+function pushRendererFinding(ctx: Ctx, rule_id: string, message: string): void {
+  ctx.findings.push({
+    kind: "render-error",
+    templateId: rule_id,
+    line: 0,
+    column: 0,
+    expression: rule_id,
+    message,
+  });
+}
+
 // ── Frontmatter, banner, status ──────────────────────────────────
 
 function renderFrontmatter(doc: PrimitiveInstance): string[] {
@@ -740,13 +758,48 @@ function compareSectionNumbers(a: string, b: string): number {
 }
 
 function renderSections(ctx: Ctx): string[] {
-  const sections = ctx.primitives
-    .filter((p) => p.type_id === "spec:Section")
+  // SPEC-CORE 1.2 §5.6 / SPEC-SECTIONS-TREE v0.2 — DNIS-Node-backed path.
+  // If the project contains a dnis:Document AND at least one active
+  // dnis:Node whose kind is "section", treat the DNIS Node graph as the
+  // canonical section tree and DFS-walk it. The legacy `spec:Section`
+  // path stays available for projects that haven't migrated.
+  const dnisRoot = ctx.primitives.find((p) => p.type_id === "dnis:Document");
+  const dnisSections = dnisRoot
+    ? ctx.primitives.filter(
+        (p) =>
+          p.type_id === "dnis:Node" &&
+          fvs(p, "kind") === "section" &&
+          !nonEmpty(fvs(p, "retired_at")),
+      )
+    : [];
+  const legacySections = ctx.primitives.filter((p) => p.type_id === "spec:Section");
+
+  if (dnisSections.length > 0) {
+    if (legacySections.length > 0) {
+      pushRendererFinding(
+        ctx,
+        "spec:render:mixed-mode-sections",
+        `project contains ${dnisSections.length} dnis:Node section(s) AND ${legacySections.length} spec:Section primitive(s); ` +
+          "the DNIS path is canonical and the spec:Section primitives will be ignored. " +
+          "Migrate the legacy primitives via the SPEC-SECTIONS-TREE codemod or remove them.",
+      );
+    }
+    return renderSectionsFromDnis(ctx, dnisSections);
+  }
+
+  return renderSectionsLegacy(ctx, legacySections);
+}
+
+function renderSectionsLegacy(
+  ctx: Ctx,
+  sections: readonly PrimitiveInstance[],
+): string[] {
+  const sorted = sections
     .slice()
     .sort((a, b) => compareSectionNumbers(fvs(a, "number"), fvs(b, "number")));
 
   const lines: string[] = [];
-  for (const s of sections) {
+  for (const s of sorted) {
     const number = fvs(s, "number");
     const title = fvs(s, "title");
     const explicitDepth = fv<number>(s, "depth");
@@ -766,6 +819,132 @@ function renderSections(ctx: Ctx): string[] {
     lines.push("---", "");
   }
   return lines;
+}
+
+/**
+ * SPEC-SECTIONS-TREE v0.2 — DNIS-backed section rendering.
+ *
+ * The DNIS Node tree is the canonical section structure. Each
+ * `dnis:Node` of kind "section" carries its rendering payload as a
+ * JSON-encoded `content` field with shape:
+ *
+ *     {
+ *       "title": "Section title",
+ *       "body_md": "Section prose, possibly empty.",
+ *       "dispatch_kind"?: "adr" | "stakeholders" | ... | undefined,
+ *       "depth_override"?: number  // optional; renderer normally derives
+ *                                  // depth from DFS path length
+ *     }
+ *
+ * Numbering is a deterministic function of the tree shape: at each
+ * level, siblings are sorted by SPEC-DNIS Position (string-comparable
+ * per SPEC-DNIS §6.1), then assigned 1-based positional indices joined
+ * by `.`. Depth is path-length + 2 (so a top-level section is `##`, a
+ * sub-section is `###`, etc.) — clamped to [2, 6] to match the legacy
+ * path.
+ *
+ * Body content is rendered the same way as the legacy path: the parsed
+ * `dispatch_kind` looks up `KIND_RENDERERS`; the kind handler walks the
+ * project's typed primitives (spec:Stakeholder, spec:ADR, …) for table
+ * content. The DNIS Node holds title + prose + dispatch hint; it does
+ * NOT hold the typed primitives themselves.
+ */
+function renderSectionsFromDnis(
+  ctx: Ctx,
+  nodes: readonly PrimitiveInstance[],
+): string[] {
+  // dnis:Node primitives carry `parent_node_id` as the parent's bare
+  // NID (the ULID stored as the SPEC-CORE `uid`), NOT as the parent's
+  // slug-shaped primitive id (e.g. "dnis:node:01k..."). Group children
+  // by that NID, with empty string sentinel for roots (matching the
+  // adapter's `node.parentNodeId ?? ""` write — see
+  // src/core/dnis/adapter.ts).
+  const byParentNid = new Map<string, PrimitiveInstance[]>();
+  for (const n of nodes) {
+    const parent = fvs(n, "parent_node_id") || "";
+    if (!byParentNid.has(parent)) byParentNid.set(parent, []);
+    byParentNid.get(parent)!.push(n);
+  }
+  for (const [, group] of byParentNid) {
+    group.sort((a, b) =>
+      fvs(a, "position").localeCompare(fvs(b, "position")),
+    );
+  }
+
+  const lines: string[] = [];
+  function dfs(parentNid: string, ancestorPath: number[]): void {
+    const children = byParentNid.get(parentNid) ?? [];
+    for (let i = 0; i < children.length; i += 1) {
+      const child = children[i]!;
+      const path = [...ancestorPath, i + 1];
+      const number = path.join(".");
+      const parsed = parseDnisContent(ctx, child);
+      const title = parsed.title;
+      const body = parsed.body_md;
+      const dispatchKind = parsed.dispatch_kind ?? "";
+      const depthOverride = parsed.depth_override;
+
+      const computed = path.length + 1; // top-level = 2 (##), sub = 3 (###), …
+      const depth = Math.min(Math.max(depthOverride ?? computed, 2), 6);
+      const hashes = "#".repeat(depth);
+      lines.push(`${hashes} ${number}. ${title}`, "");
+      if (nonEmpty(body)) lines.push(body.trim(), "");
+      if (dispatchKind) {
+        const fn = KIND_RENDERERS[dispatchKind];
+        if (fn) lines.push(...fn(ctx));
+      }
+      lines.push("---", "");
+
+      // Recurse: use THIS node's `uid` (= the bare DNIS NID, per
+      // SPEC-CORE §5.6.1's NID==uid pin) as the parent key for its
+      // children. The SPEC-CORE primitive's `uid` field is the
+      // parent_node_id values point at.
+      dfs(child.uid, path);
+    }
+  }
+  dfs("", []);
+  return lines;
+}
+
+interface DnisSectionContent {
+  title: string;
+  body_md: string;
+  dispatch_kind?: string;
+  depth_override?: number;
+}
+
+function parseDnisContent(ctx: Ctx, node: PrimitiveInstance): DnisSectionContent {
+  const raw = fvs(node, "content");
+  if (!raw) {
+    pushRendererFinding(
+      ctx,
+      "spec:render:dnis-section-empty-content",
+      `dnis:Node ${node.id} has empty content; rendering as untitled blank section`,
+    );
+    return { title: "(untitled)", body_md: "" };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    pushRendererFinding(
+      ctx,
+      "spec:render:dnis-section-invalid-json",
+      `dnis:Node ${node.id} content is not valid JSON: ${(err as Error).message}`,
+    );
+    return { title: "(invalid content)", body_md: "" };
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { title: "(invalid content)", body_md: "" };
+  }
+  const obj = parsed as Record<string, unknown>;
+  const out: DnisSectionContent = {
+    title: typeof obj["title"] === "string" ? (obj["title"] as string) : "(untitled)",
+    body_md: typeof obj["body_md"] === "string" ? (obj["body_md"] as string) : "",
+  };
+  if (typeof obj["dispatch_kind"] === "string") out.dispatch_kind = obj["dispatch_kind"] as string;
+  if (typeof obj["depth_override"] === "number") out.depth_override = obj["depth_override"] as number;
+  return out;
 }
 
 // ── Top-level renderer entry ─────────────────────────────────────

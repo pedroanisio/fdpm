@@ -1,0 +1,25 @@
+{
+  "id": "fdpm.spec-authoring-dnis",
+  "version": "0.1.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Spec-Authoring DNIS Composition",
+  "description": "Composition profile that extends both profile:spec-authoring:0.1 and profile:dnis:0.1 so a single project can hold spec-authoring's typed primitives (Document, Stakeholder, ADR, Reference, ...) AND a DNIS Node tree (dnis:Document + dnis:Node) for graph-derived section numbering. Build scripts that opt into this profile model their section structure as DNIS Nodes; the spec-authoring renderer walks the DNIS Node graph instead of the legacy spec:Section primitives.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.2,<2"
+  },
+  "permissions": [
+    "read:projects",
+    "read:primitives",
+    "read:relations"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "spec-authoring-dnis",
+      "entry": "PROFILE"
+    }
+  ]
+}
