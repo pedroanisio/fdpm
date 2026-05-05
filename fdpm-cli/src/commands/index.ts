@@ -28,6 +28,7 @@ import { commandMetadata as profileMetadata } from "./profile.js";
 import { commandMetadata as projectMetadata } from "./project.js";
 import { commandMetadata as relationMetadata } from "./relation.js";
 import { commandMetadata as renderMetadata } from "./render.js";
+import { commandMetadata as replMetadata } from "./repl.js";
 import { commandMetadata as structureMetadata } from "./structure.js";
 import { commandMetadata as templateMetadata } from "./template.js";
 import { commandMetadata as testSuiteMetadata } from "./test-suite.js";
@@ -48,6 +49,7 @@ export const ALL_COMMAND_METADATA: CommandMetadataMap = {
   ...projectMetadata,
   ...relationMetadata,
   ...renderMetadata,
+  ...replMetadata,
   ...structureMetadata,
   ...templateMetadata,
   ...testSuiteMetadata,

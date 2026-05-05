@@ -4,7 +4,8 @@
   "description": "FDPM Core SPEC v1.1 — full CLI implementation",
   "type": "module",
   "bin": {
-    "fdpm": "./dist/src/bin/fdpm.js"
+    "fdpm": "./dist/src/bin/fdpm.js",
+    "fdpm-mcp": "./dist/src/bin/fdpm-mcp.js"
   },
   "exports": {
     ".": "./dist/src/index.js"
@@ -13,7 +14,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p . && npm run copy-plugin-assets && chmod +x dist/src/bin/fdpm.js",
+    "build": "tsc -p . && npm run copy-plugin-assets && chmod +x dist/src/bin/fdpm.js dist/src/bin/fdpm-mcp.js",
     "copy-plugin-assets": "node scripts/copy-plugin-assets.mjs",
     "dev": "tsx src/bin/fdpm.ts",
     "test": "vitest run",
@@ -22,15 +23,20 @@
   },
   "dependencies": {
     "@marcbachmann/cel-js": "^7.6.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^12.1.0",
     "pdf-lib": "^1.17.1",
+    "shell-quote": "^1.8.3",
     "ulid": "^2.3.0",
     "uuid": "^11.1.1",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@types/node": "^22.5.4",
+    "@types/shell-quote": "^1.7.5",
     "@vitest/coverage-v8": "^2.1.9",
+    "ajv": "^8.17.1",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
