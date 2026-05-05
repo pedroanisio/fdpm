@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import { newHost } from "./fixtures.js";
 import { importTransfer } from "../src/core/host-extra.js";
 
-async function seedProject(host: any, projectId: string, primitives: any[], relations: any[] = []) {
+async function seedProject(host: any, workbookId: string, primitives: any[], relations: any[] = []) {
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
-      id: projectId,
+    workbook: {
+      id: workbookId,
       name: "Imported",
       profile_id: "test:demo",
       created_at: new Date().toISOString(),

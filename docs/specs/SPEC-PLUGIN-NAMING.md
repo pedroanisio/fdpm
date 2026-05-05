@@ -78,7 +78,7 @@ The deeper structural inconsistency — that the seven names belong to **four di
 
 ## 2. External evidence
 
-Three authoritative plugin-id conventions converge on a single shape: lowercase, namespace-separator, project-controlled prefix, kebab-case feature name.
+Three authoritative plugin-id conventions converge on a single shape: lowercase, namespace-separator, workbook-controlled prefix, kebab-case feature name.
 
 | Convention | Form | Source |
 | --- | --- | --- |
@@ -327,7 +327,7 @@ Profile ids share the namespaced-id schema (`^[a-z0-9-]+(:[A-Za-z0-9._-]+)+$`, d
 | Scope id | `scope:dnis:document` | `DomainProfile.scopes[].id` |
 | Category id | `cat:dnis:document` | `DomainProfile.categories[].id` |
 | State id | `state:<entity>:<name>` | software-architecture state-machine primitives |
-| Profile id | `profile:architecture:1.0` | `DomainProfile.id`, `Project.profile_id`, `extends[]` |
+| Profile id | `profile:architecture:1.0` | `DomainProfile.id`, `Workbook.profile_id`, `extends[]` |
 
 The Zod schema accepts any string matching the namespaced-id regex; it does not require a specific leading word. The `profile:` prefix is a convention enforced by every built-in plugin and made normative here because:
 

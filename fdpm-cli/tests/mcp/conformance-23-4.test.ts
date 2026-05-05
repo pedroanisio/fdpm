@@ -4,8 +4,8 @@
  *
  * Verbatim:
  *   "While the MCP server is running, run a `fdpm` CLI command that
- *    mutates the project. Then issue a Tier 2 MCP call against the
- *    same project. expected: Tier 2 call returns isError=true with
+ *    mutates the workbook. Then issue a Tier 2 MCP call against the
+ *    same workbook. expected: Tier 2 call returns isError=true with
  *    category='permission' and evidence.reason='stale_state'. After
  *    SIGHUP-triggered Host.reload(), the call succeeds."
  *
@@ -43,7 +43,7 @@ describe("SPEC-MCP-SERVER §23.4 — stale-state refusal on concurrent CLI write
     await host.load();
     await host.registerProfile(TEST_PROFILE, { persist: true });
     await host.createProject({
-      project_id: "p1",
+      workbook_id: "p1",
       name: "P1",
       profile_id: "test:demo",
     });
@@ -60,7 +60,7 @@ describe("SPEC-MCP-SERVER §23.4 — stale-state refusal on concurrent CLI write
 
     // Seed the freshness tuple with a successful Tier-2 call.
     const seeded = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:seed",
         type_id: "test:section",
@@ -76,7 +76,7 @@ describe("SPEC-MCP-SERVER §23.4 — stale-state refusal on concurrent CLI write
     appendRawOp(dataDir, "p1", {
       op_id: mintUid(),
       kind: "primitive.create",
-      project_id: "p1",
+      workbook_id: "p1",
       payload: {
         id: "section:cli-side",
         uid: mintUid(),
@@ -90,9 +90,9 @@ describe("SPEC-MCP-SERVER §23.4 — stale-state refusal on concurrent CLI write
       schema_version: "1.1.0",
     });
 
-    // Tier-2 MCP call against the same project — expected refusal.
+    // Tier-2 MCP call against the same workbook — expected refusal.
     const refused = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:after-cli",
         type_id: "test:section",
@@ -118,7 +118,7 @@ describe("SPEC-MCP-SERVER §23.4 — stale-state refusal on concurrent CLI write
     session.clearFreshnessMap();
 
     const accepted = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:after-reload",
         type_id: "test:section",

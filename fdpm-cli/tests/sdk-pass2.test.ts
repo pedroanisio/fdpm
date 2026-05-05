@@ -66,7 +66,7 @@ describe("ProjectBuilder.pending", () => {
 // -- rollbackOnError (S5) ----------------------------------------------
 
 describe("commit({ rollbackOnError: true })", () => {
-  it("deletes the project on failure when set", async () => {
+  it("deletes the workbook on failure when set", async () => {
     const host = await newHostWithProfile();
     await expect(
       defineProject(host, { id: "p", name: "P", profile: "test:demo" })
@@ -77,7 +77,7 @@ describe("commit({ rollbackOnError: true })", () => {
         ])
         .commit({ rollbackOnError: true }),
     ).rejects.toThrow(FDPMException);
-    // Project itself should be gone — rollback happened.
+    // Workbook itself should be gone — rollback happened.
     expect(() => host.getProject("p")).toThrow(/not found|not_found/i);
   });
 
@@ -91,7 +91,7 @@ describe("commit({ rollbackOnError: true })", () => {
         ])
         .commit(),
     ).rejects.toThrow(FDPMException);
-    // Project survives; the first primitive made it through.
+    // Workbook survives; the first primitive made it through.
     const slice = host.getProject("p");
     expect(slice.primitives["section:a"]).toBeDefined();
     expect(slice.primitives["section:bad"]).toBeUndefined();
@@ -113,12 +113,12 @@ describe("commit({ rollbackOnError: true })", () => {
     }
   });
 
-  // P0 regression: rollback path runs `deleteProject` on a project
+  // P0 regression: rollback path runs `deleteProject` on a workbook
   // whose primitive batch failed on the very first op — meaning the
-  // project was created but ZERO primitives were persisted. Earlier
+  // workbook was created but ZERO primitives were persisted. Earlier
   // rollback test failed on the *second* primitive, so this empty-
-  // project edge case was uncovered.
-  it("rolls back a project whose first primitive failed (zero primitives persisted)", async () => {
+  // workbook edge case was uncovered.
+  it("rolls back a workbook whose first primitive failed (zero primitives persisted)", async () => {
     const host = await newHostWithProfile();
     await expect(
       defineProject(host, { id: "p-empty", name: "P", profile: "test:demo" })
@@ -310,7 +310,7 @@ describe("renderProject result shape", () => {
       profile: fs.id,
     }).commit();
     const r = await renderProject(host, {
-      project: "fs-render-shape",
+      workbook: "fs-render-shape",
       target: "text/markdown",
     });
     expect(typeof r.rendererId).toBe("string");

@@ -54,7 +54,7 @@ const ALL_PRIMITIVES: PrimitiveTypeDef[] = [
 
 export const PROFILE_ID = "profile:planning:0.1" as const;
 export const SCOPE_IDS = {
-  project: "scope:plan:project",
+  workbook: "scope:plan:workbook",
   iteration: "scope:plan:iteration",
   execution: "scope:plan:execution",
 } as const;

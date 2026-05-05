@@ -1,7 +1,7 @@
 /**
  * formal_specification renderers — DNIS-Node section path.
  *
- * Verifies that when a project carries a dnis:Document and one or more
+ * Verifies that when a workbook carries a dnis:Document and one or more
  * dnis:Node primitives of kind="section" (typically via
  * profile:formal-specification-dnis:0.1), the markdown / html / pdf
  * renderers walk the DNIS Node graph (DFS over parent_node_id, sorted
@@ -12,7 +12,7 @@
  * Also asserts:
  *   - membership: fs:ContainedIn whose target_id is a dnis:Node uid
  *     anchors a primitive into that section's bucket
- *   - mixed-mode finding: project containing both fs:Section AND
+ *   - mixed-mode finding: workbook containing both fs:Section AND
  *     dnis:Node sections triggers fs:render:mixed-mode-sections
  *   - retired dnis:Nodes are excluded
  *   - bibliography (fs:Citation) and unsectioned buckets work in DNIS
@@ -45,10 +45,10 @@ async function freshHost(): Promise<Host> {
   return host;
 }
 
-async function newComposedProject(host: Host, project_id: string): Promise<void> {
+async function newComposedProject(host: Host, workbook_id: string): Promise<void> {
   await host.createProject({
-    project_id,
-    name: project_id,
+    workbook_id,
+    name: workbook_id,
     profile_id: FS_DNIS_PROFILE,
   });
 }
@@ -84,17 +84,17 @@ interface RendererOut {
 
 async function renderWith(
   host: Host,
-  projectId: string,
+  workbookId: string,
   rendererId: string,
   contentType: string,
 ): Promise<RendererOut> {
-  const slice = host.getProject(projectId);
-  const profile = host.profiles.getResolved(slice.project.profile_id);
+  const slice = host.getProject(workbookId);
+  const profile = host.profiles.getResolved(slice.workbook.profile_id);
   const out = await host.plugins.runRenderer(
     contentType,
     {
-      projectId,
-      project: slice.project,
+      workbookId,
+      workbook: slice.workbook,
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       templates: Object.values(slice.templates),
@@ -116,10 +116,10 @@ async function renderWith(
 describe("formal_specification renderers — DNIS Node section path", () => {
   it("markdown: walks dnis:Node tree DFS and emits §N.M.K headings derived from the path", async () => {
     const host = await freshHost();
-    const projectId = "fs-dnis-md-fixture";
-    await newComposedProject(host, projectId);
+    const workbookId = "fs-dnis-md-fixture";
+    await newComposedProject(host, workbookId);
 
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -156,7 +156,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
       description: "Wrap-up.",
     });
 
-    const out = await renderWith(host, projectId, "fs:SpecRenderer", "text/markdown");
+    const out = await renderWith(host, workbookId, "fs:SpecRenderer", "text/markdown");
 
     // Headings derived from DFS path. fs renderers use depth-2 (`##`)
     // for every section; the dotted number captures the depth.
@@ -187,9 +187,9 @@ describe("formal_specification renderers — DNIS Node section path", () => {
 
   it("html: wraps DFS-derived headings in <h2> with dotted numbers", async () => {
     const host = await freshHost();
-    const projectId = "fs-dnis-html-fixture";
-    await newComposedProject(host, projectId);
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const workbookId = "fs-dnis-html-fixture";
+    await newComposedProject(host, workbookId);
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -199,17 +199,17 @@ describe("formal_specification renderers — DNIS Node section path", () => {
     await createSection(adapter, document.id, a, 2, { title: "Alpha-1" });
     await createSection(adapter, document.id, null, 3, { title: "Beta" });
 
-    const out = await renderWith(host, projectId, "fs:SpecHtmlRenderer", "text/html");
+    const out = await renderWith(host, workbookId, "fs:SpecHtmlRenderer", "text/html");
     expect(out.text).toContain("<h2>1. Alpha");
     expect(out.text).toContain("<h2>1.1. Alpha-1");
     expect(out.text).toContain("<h2>2. Beta");
   });
 
-  it("pdf: produces a valid PDF and surfaces no findings on a clean DNIS project", async () => {
+  it("pdf: produces a valid PDF and surfaces no findings on a clean DNIS workbook", async () => {
     const host = await freshHost();
-    const projectId = "fs-dnis-pdf-fixture";
-    await newComposedProject(host, projectId);
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const workbookId = "fs-dnis-pdf-fixture";
+    await newComposedProject(host, workbookId);
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -217,7 +217,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
     });
     await createSection(adapter, document.id, null, 1, { title: "Solo" });
 
-    const out = await renderWith(host, projectId, "fs:SpecPdfRenderer", "application/pdf");
+    const out = await renderWith(host, workbookId, "fs:SpecPdfRenderer", "application/pdf");
     expect(out.contentType).toBe("application/pdf");
     expect(out.bytes.length).toBeGreaterThan(100);
     // PDF magic header.
@@ -227,9 +227,9 @@ describe("formal_specification renderers — DNIS Node section path", () => {
 
   it("ignores retired dnis:Node sections (renders only active nodes)", async () => {
     const host = await freshHost();
-    const projectId = "fs-dnis-retired";
-    await newComposedProject(host, projectId);
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const workbookId = "fs-dnis-retired";
+    await newComposedProject(host, workbookId);
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -249,19 +249,19 @@ describe("formal_specification renderers — DNIS Node section path", () => {
       payload: {},
     });
 
-    const out = await renderWith(host, projectId, "fs:SpecRenderer", "text/markdown");
+    const out = await renderWith(host, workbookId, "fs:SpecRenderer", "text/markdown");
     expect(out.text).toContain("## 1. Kept section");
     expect(out.text).not.toContain("Retired section");
   });
 
   it("emits a mixed-mode warning when both fs:Section and dnis:Node sections coexist; DNIS path wins", async () => {
     const host = await freshHost();
-    const projectId = "fs-dnis-mixed";
-    await newComposedProject(host, projectId);
+    const workbookId = "fs-dnis-mixed";
+    await newComposedProject(host, workbookId);
 
     // Legacy fs:Section primitive: should be ignored once DNIS sections
     // exist, but the warning MUST fire.
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: "section:99",
       type_id: "fs:Section",
       field_values: {
@@ -273,7 +273,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
       },
     });
 
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -284,7 +284,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
       description: "DNIS-path content wins.",
     });
 
-    const out = await renderWith(host, projectId, "fs:SpecRenderer", "text/markdown");
+    const out = await renderWith(host, workbookId, "fs:SpecRenderer", "text/markdown");
     const mixed = out.findings.filter(
       (f) => f.expression === "fs:render:mixed-mode-sections",
     );
@@ -302,14 +302,14 @@ describe("formal_specification renderers — DNIS Node section path", () => {
     // RendererOutput.findings (so downstream tooling can group across
     // formats). HTML emits an <aside> band; PDF draws an italic line
     // on the title page.
-    const htmlOut = await renderWith(host, projectId, "fs:SpecHtmlRenderer", "text/html");
+    const htmlOut = await renderWith(host, workbookId, "fs:SpecHtmlRenderer", "text/html");
     expect(
       htmlOut.findings.filter((f) => f.expression === "fs:render:mixed-mode-sections"),
     ).toHaveLength(1);
     expect(htmlOut.text).toContain('class="fdpm-finding"');
     expect(htmlOut.text).toContain("DNIS path is canonical");
 
-    const pdfOut = await renderWith(host, projectId, "fs:SpecPdfRenderer", "application/pdf");
+    const pdfOut = await renderWith(host, workbookId, "fs:SpecPdfRenderer", "application/pdf");
     expect(
       pdfOut.findings.filter((f) => f.expression === "fs:render:mixed-mode-sections"),
     ).toHaveLength(1);
@@ -320,10 +320,10 @@ describe("formal_specification renderers — DNIS Node section path", () => {
 
   it("anchors primitives via fs:ContainedIn when the relation targets a dnis:Node primitive id", async () => {
     const host = await freshHost();
-    const projectId = "fs-dnis-containedin";
-    await newComposedProject(host, projectId);
+    const workbookId = "fs-dnis-containedin";
+    await newComposedProject(host, workbookId);
 
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -342,7 +342,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
     // Add a small domain primitive (fs:Audience — only 3 fields, no
     // composite id template) and anchor it to the dnis:Node section
     // via fs:ContainedIn.
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: "audience:methodologists",
       type_id: "fs:Audience",
       field_values: {
@@ -351,7 +351,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
         description: "Researchers reviewing the experimental method.",
       },
     });
-    await host.createRelation(projectId, {
+    await host.createRelation(workbookId, {
       id: "rel:audience-in-method",
       type_id: "fs:ContainedIn",
       source_id: "audience:methodologists",
@@ -362,7 +362,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
       },
     });
 
-    const out = await renderWith(host, projectId, "fs:SpecRenderer", "text/markdown");
+    const out = await renderWith(host, workbookId, "fs:SpecRenderer", "text/markdown");
     expect(out.text).toContain("## 1. Method");
     // The Audience primitive should appear under §1, not in the appendix.
     expect(out.text).not.toContain("Appendix — Unsectioned");
@@ -379,16 +379,16 @@ describe("formal_specification renderers — DNIS Node section path", () => {
     // buildDocumentTreeFromDnis directly with hand-crafted primitives
     // and relations to exercise that defensive branch.
     const host = await freshHost();
-    const projectId = "fs-dnis-uid-target";
-    await newComposedProject(host, projectId);
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const workbookId = "fs-dnis-uid-target";
+    await newComposedProject(host, workbookId);
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
       hashAlgorithm: "sha256",
     });
     const secNid = await createSection(adapter, document.id, null, 1, { title: "Solo" });
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: "audience:m",
       type_id: "fs:Audience",
       field_values: {
@@ -400,8 +400,8 @@ describe("formal_specification renderers — DNIS Node section path", () => {
 
     // Hand-craft a relation whose target_id is the bare uid (NID),
     // bypassing host.createRelation's validator.
-    const slice = host.getProject(projectId);
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const slice = host.getProject(workbookId);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const handRelation: RelationInstance = {
       id: "rel:hand-crafted-uid-target",
       uid: "01ZZZHANDCRAFTEDUIDREL000",
@@ -414,7 +414,7 @@ describe("formal_specification renderers — DNIS Node section path", () => {
 
     const tree = buildDocumentTreeFromDnis(
       {
-        projectId,
+        workbookId,
         primitives: Object.values(slice.primitives) as PrimitiveInstance[],
         relations: [
           ...(Object.values(slice.relations) as RelationInstance[]),

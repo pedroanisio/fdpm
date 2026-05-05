@@ -2,11 +2,11 @@
  * Host.reload() — SPEC-REPL §10.3 atomic reload contract.
  *
  * Covers:
- *   - reload() returns {reloadedAt, projects}
+ *   - reload() returns {reloadedAt, workbooks}
  *   - reload() picks up out-of-band log appends (the canonical case
  *     for the REPL/MCP staleness gate)
- *   - reload() picks up out-of-band project creations (a separate
- *     process created project P; the loaded Host now sees it)
+ *   - reload() picks up out-of-band workbook creations (a separate
+ *     process created workbook P; the loaded Host now sees it)
  *   - reload() is idempotent against an unchanged data dir
  *   - reload() preserves Host identity (the same `host` reference;
  *     consumers that captured `host` keep working)
@@ -39,11 +39,11 @@ async function freshHost(): Promise<Host> {
 }
 
 describe("Host.reload", () => {
-  it("returns {reloadedAt, projects} with the post-reload project list", async () => {
+  it("returns {reloadedAt, workbooks} with the post-reload workbook list", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-a",
-      name: "Project A",
+      workbook_id: "proj-a",
+      name: "Workbook A",
       profile_id: "profile:formal-specification:3.0",
     });
 
@@ -53,27 +53,27 @@ describe("Host.reload", () => {
 
     expect(result.reloadedAt).toBeGreaterThanOrEqual(before);
     expect(result.reloadedAt).toBeLessThanOrEqual(after);
-    expect(result.projects).toContain("proj-a");
+    expect(result.workbooks).toContain("proj-a");
   });
 
   it("picks up out-of-band log appends written by another process", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-oob",
+      workbook_id: "proj-oob",
       name: "OOB",
       profile_id: "profile:formal-specification:3.0",
     });
-    const beforeRev = host.getProject("proj-oob").project.revision;
+    const beforeRev = host.getProject("proj-oob").workbook.revision;
 
     // Read the log, then craft a hand-rolled extra op that mimics what
     // a second process would write. The simplest realistic injection
-    // is a primitive.create — copy the project.create's request_id
+    // is a primitive.create — copy the workbook.create's request_id
     // pattern but bump op_id.
-    const logPath = join(dataDir, "projects", "proj-oob", "log.jsonl");
+    const logPath = join(dataDir, "workbooks", "proj-oob", "log.jsonl");
     const extraOp = JSON.stringify({
       op_id: "01JZZZOOB0000000000000000A",
       kind: "primitive.create",
-      project_id: "proj-oob",
+      workbook_id: "proj-oob",
       payload: {
         id: "section:oob",
         type_id: "fs:Section",
@@ -105,24 +105,24 @@ describe("Host.reload", () => {
 
     const sliceAfter = host.getProject("proj-oob");
     expect(sliceAfter.primitives["section:oob"]).toBeDefined();
-    expect(sliceAfter.project.revision).toBe(beforeRev + 1);
+    expect(sliceAfter.workbook.revision).toBe(beforeRev + 1);
   });
 
-  it("picks up an entirely new project written out-of-band", async () => {
+  it("picks up an entirely new workbook written out-of-band", async () => {
     const host = await freshHost();
     expect(host.listProjects().map((p) => p.id)).not.toContain("proj-new");
 
-    // Write the JSONL log for a brand-new project, mimicking what a
-    // second `fdpm project create` invocation would produce.
-    const projectDir = join(dataDir, "projects", "proj-new");
+    // Write the JSONL log for a brand-new workbook, mimicking what a
+    // second `fdpm workbook create` invocation would produce.
+    const projectDir = join(dataDir, "workbooks", "proj-new");
     mkdirSync(projectDir, { recursive: true });
     const op = JSON.stringify({
       op_id: "01JZZZNEW0000000000000000A",
-      kind: "project.create",
-      project_id: "proj-new",
+      kind: "workbook.create",
+      workbook_id: "proj-new",
       payload: {
-        project_id: "proj-new",
-        name: "New OOB Project",
+        workbook_id: "proj-new",
+        name: "New OOB Workbook",
         profile_id: "profile:formal-specification:3.0",
       },
       actor: "test:oob",
@@ -137,14 +137,14 @@ describe("Host.reload", () => {
     writeFileSync(join(projectDir, "log.jsonl"), op + "\n", "utf8");
 
     const result = await host.reload();
-    expect(result.projects).toContain("proj-new");
+    expect(result.workbooks).toContain("proj-new");
     expect(host.listProjects().map((p) => p.id)).toContain("proj-new");
   });
 
   it("is idempotent against an unchanged data dir", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-idem",
+      workbook_id: "proj-idem",
       name: "Idempotent",
       profile_id: "profile:formal-specification:3.0",
     });
@@ -152,9 +152,9 @@ describe("Host.reload", () => {
     const result1 = await host.reload();
     const result2 = await host.reload();
 
-    expect(result1.projects).toEqual(result2.projects);
-    // Same project visible after both reloads.
-    expect(host.getProject("proj-idem").project.id).toBe("proj-idem");
+    expect(result1.workbooks).toEqual(result2.workbooks);
+    // Same workbook visible after both reloads.
+    expect(host.getProject("proj-idem").workbook.id).toBe("proj-idem");
   });
 
   it("preserves the Host reference identity across reload", async () => {
@@ -177,15 +177,15 @@ describe("Host.statProjectLog", () => {
     expect(host.statProjectLog("anything")).toBeNull();
   });
 
-  it("returns null for a project whose log does not exist", async () => {
+  it("returns null for a workbook whose log does not exist", async () => {
     const host = await freshHost();
     expect(host.statProjectLog("never-created")).toBeNull();
   });
 
-  it("returns (mtime_ns, size) after a project is created", async () => {
+  it("returns (mtime_ns, size) after a workbook is created", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-stat",
+      workbook_id: "proj-stat",
       name: "Stat",
       profile_id: "profile:formal-specification:3.0",
     });

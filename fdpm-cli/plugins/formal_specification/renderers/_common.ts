@@ -31,14 +31,14 @@ import type { RenderFinding } from "../../../src/core/render/template.js";
  */
 
 export interface DocumentTree {
-  project_id: string;
+  workbook_id: string;
   profile: DomainProfile;
   sections: SectionBlock[];
   unsectioned: PrimitiveInstance[];
   citations: PrimitiveInstance[];
   /**
    * Renderer-level findings emitted while building the tree. Currently
-   * used to surface mixed-mode warnings (project carries both fs:Section
+   * used to surface mixed-mode warnings (workbook carries both fs:Section
    * AND dnis:Node sections). Empty list = clean.
    */
   findings: RenderFinding[];
@@ -65,7 +65,7 @@ export interface SectionBlock {
 }
 
 export interface RenderInput {
-  projectId: string;
+  workbookId: string;
   primitives: readonly PrimitiveInstance[];
   relations: readonly RelationInstance[];
   profile: DomainProfile;
@@ -152,7 +152,7 @@ export function buildDocumentTree(input: RenderInput): DocumentTree {
   }));
 
   return {
-    project_id: input.projectId,
+    workbook_id: input.workbookId,
     profile: input.profile,
     sections: blocks,
     unsectioned,
@@ -162,7 +162,7 @@ export function buildDocumentTree(input: RenderInput): DocumentTree {
 }
 
 /**
- * DNIS-backed sibling of `buildDocumentTree`. When the project carries a
+ * DNIS-backed sibling of `buildDocumentTree`. When the workbook carries a
  * `dnis:Document` plus one or more active `dnis:Node` primitives of
  * kind="section", the DNIS Node graph is the canonical section tree
  * (see SPEC-CORE 1.2 §5.6 / SPEC-SECTIONS-TREE v0.2). Sibling order
@@ -292,7 +292,7 @@ export function buildDocumentTreeFromDnis(
   });
 
   return {
-    project_id: input.projectId,
+    workbook_id: input.workbookId,
     profile: input.profile,
     sections: blocks,
     unsectioned,
@@ -337,7 +337,7 @@ function parseDnisContent(node: PrimitiveInstance): DnisSectionContent {
 
 /**
  * Mode-detecting front-door for the three renderers. Picks the DNIS
- * path when the project carries a `dnis:Document` plus one or more
+ * path when the workbook carries a `dnis:Document` plus one or more
  * active `dnis:Node` primitives of kind="section"; otherwise falls
  * back to the legacy `fs:Section` path. When BOTH are present, the
  * DNIS path wins and the returned tree carries a `mixed-mode-sections`
@@ -365,7 +365,7 @@ export function buildDocumentTreeAuto(input: RenderInput): DocumentTree {
         column: 0,
         expression: "fs:render:mixed-mode-sections",
         message:
-          `project contains ${dnisSections.length} dnis:Node section(s) AND ` +
+          `workbook contains ${dnisSections.length} dnis:Node section(s) AND ` +
           `${legacySections.length} fs:Section primitive(s); the DNIS path is ` +
           `canonical and the fs:Section primitives will be ignored. Migrate ` +
           `the legacy primitives or remove them.`,

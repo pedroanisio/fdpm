@@ -27,10 +27,10 @@ import { SPEC_CORE_VERSION } from "./version/spec.js";
 
 export async function relationFieldPatch(
   host: Host,
-  project_id: string,
+  workbook_id: string,
   payload: { id: string; operations: JsonPatchOp[]; expected_revision?: number },
 ): Promise<AppendOutput> {
-  const slice = host.getProject(project_id);
+  const slice = host.getProject(workbook_id);
   const existing = slice.relations[payload.id];
   if (!existing) throw new FDPMException("not_found", `relation not found: ${payload.id}`);
   if (
@@ -44,7 +44,7 @@ export async function relationFieldPatch(
     "source_id",
     "target_id",
   ]);
-  const profile = host.requireResolvedProfile(project_id);
+  const profile = host.requireResolvedProfile(workbook_id);
   const prims = new Map(Object.entries(slice.primitives));
   const proposed: RelationInstance = { ...existing, field_values: result };
   // §9.7.4 path-scoped revalidation — see host.fieldPatchPrimitive.
@@ -56,7 +56,7 @@ export async function relationFieldPatch(
     });
   return host.appendAndPersist({
     kind: "relation.field-patch",
-    project_id,
+    workbook_id,
     payload: { id: payload.id, operations: payload.operations },
   });
 }
@@ -67,13 +67,13 @@ export async function splitProject(
   host: Host,
   source_id: string,
   body: {
-    partition: { target_project_id?: string; target_project_name: string; sections: string[] }[];
+    partition: { target_workbook_id?: string; target_workbook_name: string; sections: string[] }[];
     cross_partition_relations: "drop";
     include_unassigned?: "first" | "last" | "none";
   },
 ): Promise<{ project_ids: string[]; dropped_relations: RelationInstance[]; audit_request_id: string }> {
   // Both checks below are request-shape contract checks (PALS gate level),
-  // not profile-rule violations — they fail before any project state is
+  // not profile-rule violations — they fail before any workbook state is
   // touched. Pair them under `verification` so the operator gets a single
   // exit code (3) for "your split request is malformed", regardless of
   // which field was wrong.
@@ -115,13 +115,13 @@ export async function splitProject(
 
   // Resolve target ids.
   const targets = body.partition.map((entry, i) => ({
-    target_project_id: entry.target_project_id ?? `${source_id}-part-${i + 1}`,
-    target_project_name: entry.target_project_name,
+    target_workbook_id: entry.target_workbook_id ?? `${source_id}-part-${i + 1}`,
+    target_workbook_name: entry.target_workbook_name,
     sections: entry.sections,
   }));
   for (const t of targets) {
-    if (host.listProjects().some((p) => p.id === t.target_project_id))
-      throw new FDPMException("conflict", `target project id collides: ${t.target_project_id}`);
+    if (host.listProjects().some((p) => p.id === t.target_workbook_id))
+      throw new FDPMException("conflict", `target workbook id collides: ${t.target_workbook_id}`);
   }
 
   // Compute primitive→partition assignment via "containing Section":
@@ -169,15 +169,15 @@ export async function splitProject(
     if (ai !== bi) droppedRelations.push(r);
   }
 
-  // Atomic plan: emit one project.split top-level op (audit), then per
-  // target a project.create + per-primitive primitive.create + per-kept
+  // Atomic plan: emit one workbook.split top-level op (audit), then per
+  // target a workbook.create + per-primitive primitive.create + per-kept
   // relation relation.create. All under one request_id.
   const request_id = uuidv7();
   const allInputs: AppendInput[] = [];
-  // Top-level audit op on source project.
+  // Top-level audit op on source workbook.
   allInputs.push({
-    kind: "project.split",
-    project_id: source_id,
+    kind: "workbook.split",
+    workbook_id: source_id,
     payload: {
       partition: targets,
       cross_partition_relations: "drop",
@@ -188,21 +188,21 @@ export async function splitProject(
   // Per-target builds.
   for (const [i, t] of targets.entries()) {
     allInputs.push({
-      kind: "project.create",
-      project_id: t.target_project_id,
+      kind: "workbook.create",
+      workbook_id: t.target_workbook_id,
       payload: {
-        project_id: t.target_project_id,
-        name: t.target_project_name,
-        profile_id: slice.project.profile_id,
+        workbook_id: t.target_workbook_id,
+        name: t.target_workbook_name,
+        profile_id: slice.workbook.profile_id,
       },
       request_id,
     });
-    // SPEC-UID: split mints fresh uids (logically new projects).
+    // SPEC-UID: split mints fresh uids (logically new workbooks).
     for (const prim of Object.values(slice.primitives)) {
       if (assignments[prim.id] !== i) continue;
       allInputs.push({
         kind: "primitive.create",
-        project_id: t.target_project_id,
+        workbook_id: t.target_workbook_id,
         payload: {
           id: prim.id,
           uid: mintUid(),
@@ -219,7 +219,7 @@ export async function splitProject(
       if (ai !== i || bi !== i) continue;
       allInputs.push({
         kind: "relation.create",
-        project_id: t.target_project_id,
+        workbook_id: t.target_workbook_id,
         payload: {
           id: rel.id,
           uid: mintUid(),
@@ -234,15 +234,15 @@ export async function splitProject(
   }
   // Source delete last.
   allInputs.push({
-    kind: "project.delete",
-    project_id: source_id,
-    payload: { project_id: source_id },
+    kind: "workbook.delete",
+    workbook_id: source_id,
+    payload: { workbook_id: source_id },
     request_id,
   });
 
-  // Atomic apply: split into per-project transactions, then on any
+  // Atomic apply: split into per-workbook transactions, then on any
   // failure reverse via :undo. Simpler: snapshot the entire state, and
-  // restore on failure. We do project-by-project append; on failure we
+  // restore on failure. We do workbook-by-workbook append; on failure we
   // delete every newly-created target project's projection + log.
   const created: string[] = [];
   try {
@@ -250,20 +250,20 @@ export async function splitProject(
       // Use store.append directly so we can roll back.
       const out = host.store.append(input);
       if (host.persistence) await host.persistence.appendOp(out.op);
-      if (input.kind === "project.create") created.push(input.project_id);
+      if (input.kind === "workbook.create") created.push(input.workbook_id);
     }
   } catch (err) {
-    // Roll back: rebuild every newly-created project (which deletes
+    // Roll back: rebuild every newly-created workbook (which deletes
     // their projections; their logs are append-only — but we want true
-    // atomicity. The chosen mitigation: on failure, append project.delete
-    // for each created target plus the source's project.create-undo is
+    // atomicity. The chosen mitigation: on failure, append workbook.delete
+    // for each created target plus the source's workbook.create-undo is
     // not possible (the source is still alive because delete was last).
     for (const id of created) {
       try {
         host.store.append({
-          kind: "project.delete",
-          project_id: id,
-          payload: { project_id: id },
+          kind: "workbook.delete",
+          workbook_id: id,
+          payload: { workbook_id: id },
           request_id,
         });
         if (host.persistence) {
@@ -280,7 +280,7 @@ export async function splitProject(
   }
 
   return {
-    project_ids: targets.map((t) => t.target_project_id),
+    project_ids: targets.map((t) => t.target_workbook_id),
     dropped_relations: droppedRelations,
     audit_request_id: request_id,
   };
@@ -291,29 +291,29 @@ export async function splitProject(
 export async function cloneProject(
   host: Host,
   source_id: string,
-  body: { target_project_id?: string; target_project_name: string },
-): Promise<{ project_id: string; primitives_copied: number; relations_copied: number }> {
+  body: { target_workbook_id?: string; target_workbook_name: string },
+): Promise<{ workbook_id: string; primitives_copied: number; relations_copied: number }> {
   const slice = host.getProject(source_id);
   const targetId =
-    body.target_project_id ?? `${source_id}-clone-${uuidv7().slice(0, 8)}`;
+    body.target_workbook_id ?? `${source_id}-clone-${uuidv7().slice(0, 8)}`;
   if (host.listProjects().some((p) => p.id === targetId))
-    throw new FDPMException("conflict", `target project id exists: ${targetId}`);
+    throw new FDPMException("conflict", `target workbook id exists: ${targetId}`);
 
   const request_id = uuidv7();
   const inputs: AppendInput[] = [
     {
-      kind: "project.clone",
-      project_id: source_id,
-      payload: { target_project_id: targetId, target_project_name: body.target_project_name },
+      kind: "workbook.clone",
+      workbook_id: source_id,
+      payload: { target_workbook_id: targetId, target_workbook_name: body.target_workbook_name },
       request_id,
     },
     {
-      kind: "project.create",
-      project_id: targetId,
+      kind: "workbook.create",
+      workbook_id: targetId,
       payload: {
-        project_id: targetId,
-        name: body.target_project_name,
-        profile_id: slice.project.profile_id,
+        workbook_id: targetId,
+        name: body.target_workbook_name,
+        profile_id: slice.workbook.profile_id,
         cloned_from: source_id,
       },
       request_id,
@@ -325,7 +325,7 @@ export async function cloneProject(
   for (const prim of Object.values(slice.primitives)) {
     inputs.push({
       kind: "primitive.create",
-      project_id: targetId,
+      workbook_id: targetId,
       payload: {
         id: prim.id,
         uid: mintUid(),
@@ -339,7 +339,7 @@ export async function cloneProject(
   for (const rel of Object.values(slice.relations)) {
     inputs.push({
       kind: "relation.create",
-      project_id: targetId,
+      workbook_id: targetId,
       payload: {
         id: rel.id,
         uid: mintUid(),
@@ -354,7 +354,7 @@ export async function cloneProject(
   for (const tmpl of Object.values(slice.templates)) {
     inputs.push({
       kind: "template.create",
-      project_id: targetId,
+      workbook_id: targetId,
       payload: { template: tmpl },
       request_id,
     });
@@ -362,7 +362,7 @@ export async function cloneProject(
   for (const suite of Object.values(slice.test_suites)) {
     inputs.push({
       kind: "test_suite.create",
-      project_id: targetId,
+      workbook_id: targetId,
       payload: { suite },
       request_id,
     });
@@ -374,7 +374,7 @@ export async function cloneProject(
   }
 
   return {
-    project_id: targetId,
+    workbook_id: targetId,
     primitives_copied: Object.keys(slice.primitives).length,
     relations_copied: Object.keys(slice.relations).length,
   };
@@ -384,29 +384,29 @@ export async function cloneProject(
 
 export async function createTemplate(
   host: Host,
-  project_id: string,
+  workbook_id: string,
   template: ProjectTemplate,
 ): Promise<AppendOutput> {
   return host.appendAndPersist({
     kind: "template.create",
-    project_id,
+    workbook_id,
     payload: { template },
   });
 }
 
 export async function applyTemplate(
   host: Host,
-  project_id: string,
+  workbook_id: string,
   template_id: string,
   id_prefix?: string,
 ): Promise<AppendOutput[]> {
-  const slice = host.getProject(project_id);
+  const slice = host.getProject(workbook_id);
   const template = slice.templates[template_id];
   if (!template) throw new FDPMException("not_found", `template not found: ${template_id}`);
   const request_id = uuidv7();
   const apply: AppendInput = {
     kind: "template.apply",
-    project_id,
+    workbook_id,
     payload: { template_id, ...(id_prefix && { id_prefix }) },
     request_id,
   };
@@ -420,7 +420,7 @@ export async function applyTemplate(
     const id = id_prefix ? `${id_prefix}${prim.id}` : prim.id;
     const op = host.store.append({
       kind: "primitive.create",
-      project_id,
+      workbook_id,
       payload: {
         id,
         uid: mintUid(),
@@ -438,7 +438,7 @@ export async function applyTemplate(
     const id = id_prefix ? `${id_prefix}${rel.id}` : rel.id;
     const op = host.store.append({
       kind: "relation.create",
-      project_id,
+      workbook_id,
       payload: {
         id,
         uid: mintUid(),
@@ -460,18 +460,18 @@ export async function applyTemplate(
 
 export async function createTestSuite(
   host: Host,
-  project_id: string,
+  workbook_id: string,
   suite: TestSuite,
 ): Promise<AppendOutput> {
   return host.appendAndPersist({
     kind: "test_suite.create",
-    project_id,
+    workbook_id,
     payload: { suite },
   });
 }
 
-export function runTestSuite(host: Host, project_id: string, suite_id: string): SuiteRunReport {
-  const slice = host.getProject(project_id);
+export function runTestSuite(host: Host, workbook_id: string, suite_id: string): SuiteRunReport {
+  const slice = host.getProject(workbook_id);
   const suite = slice.test_suites[suite_id];
   if (!suite) throw new FDPMException("not_found", `suite not found: ${suite_id}`);
   // CLI v1.1: the test runner is a thin shell. Each TestSuiteCheck has
@@ -487,7 +487,7 @@ export function runTestSuite(host: Host, project_id: string, suite_id: string): 
   }));
   return {
     suite_id,
-    project_id,
+    workbook_id,
     started_at,
     completed_at: new Date().toISOString(),
     findings,
@@ -497,11 +497,11 @@ export function runTestSuite(host: Host, project_id: string, suite_id: string): 
 
 // -- Transfer -------------------------------------------------------
 
-export function exportTransfer(host: Host, project_id: string): ProjectTransfer {
-  const slice = host.getProject(project_id);
+export function exportTransfer(host: Host, workbook_id: string): ProjectTransfer {
+  const slice = host.getProject(workbook_id);
   return {
     spec_core: SPEC_CORE_VERSION,
-    project: slice.project,
+    workbook: slice.workbook,
     primitives: Object.values(slice.primitives),
     relations: Object.values(slice.relations),
     templates: Object.values(slice.templates),
@@ -534,38 +534,38 @@ export async function importTransfer(
   transfer: ProjectTransfer,
   options: ImportTransferOptions = {},
 ): Promise<{
-  project_id: string;
+  workbook_id: string;
   primitives_imported: number;
   relations_imported: number;
   primitives_skipped_uid_match: number;
   relations_skipped_uid_match: number;
 }> {
   const uidMode: ImportUidMode = options.uidMode ?? "preserve";
-  if (host.listProjects().some((p) => p.id === transfer.project.id))
-    throw new FDPMException("conflict", `project already exists: ${transfer.project.id}`);
-  if (!host.profiles.has(transfer.project.profile_id))
+  if (host.listProjects().some((p) => p.id === transfer.workbook.id))
+    throw new FDPMException("conflict", `workbook already exists: ${transfer.workbook.id}`);
+  if (!host.profiles.has(transfer.workbook.profile_id))
     throw new FDPMException(
       "not_found",
-      `transfer references unknown profile: ${transfer.project.profile_id}`,
+      `transfer references unknown profile: ${transfer.workbook.profile_id}`,
     );
   const request_id = uuidv7();
   // Top-level audit op
   const audit = host.store.append({
     kind: "transfer.import",
-    project_id: transfer.project.id,
-    payload: { transfer: { project_id: transfer.project.id } },
+    workbook_id: transfer.workbook.id,
+    payload: { transfer: { workbook_id: transfer.workbook.id } },
     request_id,
   });
   if (host.persistence) await host.persistence.appendOp(audit.op);
 
   await host.appendAndPersist({
-    kind: "project.create",
-    project_id: transfer.project.id,
+    kind: "workbook.create",
+    workbook_id: transfer.workbook.id,
     payload: {
-      project_id: transfer.project.id,
-      name: transfer.project.name,
-      profile_id: transfer.project.profile_id,
-      ...(transfer.project.description != null && { description: transfer.project.description }),
+      workbook_id: transfer.workbook.id,
+      name: transfer.workbook.name,
+      profile_id: transfer.workbook.profile_id,
+      ...(transfer.workbook.description != null && { description: transfer.workbook.description }),
     },
     parent_op_id: audit.op.op_id,
     request_id,
@@ -596,7 +596,7 @@ export async function importTransfer(
     }
     await host.appendAndPersist({
       kind: "primitive.create",
-      project_id: transfer.project.id,
+      workbook_id: transfer.workbook.id,
       payload: {
         id: prim.id,
         uid: uidForOp,
@@ -629,7 +629,7 @@ export async function importTransfer(
     }
     await host.appendAndPersist({
       kind: "relation.create",
-      project_id: transfer.project.id,
+      workbook_id: transfer.workbook.id,
       payload: {
         id: rel.id,
         uid: uidForOp,
@@ -645,7 +645,7 @@ export async function importTransfer(
   for (const tmpl of transfer.templates) {
     await host.appendAndPersist({
       kind: "template.create",
-      project_id: transfer.project.id,
+      workbook_id: transfer.workbook.id,
       payload: { template: tmpl },
       parent_op_id: audit.op.op_id,
       request_id,
@@ -654,14 +654,14 @@ export async function importTransfer(
   for (const suite of transfer.test_suites) {
     await host.appendAndPersist({
       kind: "test_suite.create",
-      project_id: transfer.project.id,
+      workbook_id: transfer.workbook.id,
       payload: { suite },
       parent_op_id: audit.op.op_id,
       request_id,
     });
   }
   return {
-    project_id: transfer.project.id,
+    workbook_id: transfer.workbook.id,
     primitives_imported: transfer.primitives.length - primitives_skipped_uid_match,
     relations_imported: transfer.relations.length - relations_skipped_uid_match,
     primitives_skipped_uid_match,
@@ -673,21 +673,21 @@ export async function importTransfer(
 
 export async function undo(
   host: Host,
-  project_id: string,
+  workbook_id: string,
   target_op_id?: string,
 ): Promise<AppendOutput> {
-  const log = host.store.getOperationLog(project_id);
+  const log = host.store.getOperationLog(workbook_id);
   if (log.length === 0) throw new FDPMException("not_found", "log is empty");
   const target = target_op_id ? log.find((o) => o.op_id === target_op_id) : log[log.length - 1];
   if (!target) throw new FDPMException("not_found", `op not found: ${target_op_id}`);
   const fullLog =
-    project_id === target.project_id
+    workbook_id === target.workbook_id
       ? log
-      : [...log, ...host.store.getOperationLog(target.project_id)];
+      : [...log, ...host.store.getOperationLog(target.workbook_id)];
   const desc = computeInverse(target, host.store.getRawState(), fullLog);
   return host.appendAndPersist({
     kind: desc.kind,
-    project_id: desc.project_id,
+    workbook_id: desc.workbook_id,
     payload: desc.payload,
     causation_op_id: desc.causation_op_id,
   });
@@ -695,10 +695,10 @@ export async function undo(
 
 // -- Rebuild from log -----------------------------------------------
 
-export async function rebuildFromLog(host: Host, project_id: string): Promise<{ revision: number }> {
-  host.store.rebuildProject(project_id);
-  const slice = host.getProject(project_id);
-  return { revision: slice.project.revision };
+export async function rebuildFromLog(host: Host, workbook_id: string): Promise<{ revision: number }> {
+  host.store.rebuildProject(workbook_id);
+  const slice = host.getProject(workbook_id);
+  return { revision: slice.workbook.revision };
 }
 
 // -- Batch edits (§9.7.5) ------------------------------------------
@@ -710,7 +710,7 @@ export interface BatchOpInput {
 
 export async function batchEdit(
   host: Host,
-  project_id: string,
+  workbook_id: string,
   ops: BatchOpInput[],
   expected_project_revision?: number,
   options?: { dryRun?: boolean },
@@ -724,14 +724,14 @@ export async function batchEdit(
     throw new FDPMException("quota", `batch ops ${ops.length} exceed cap ${maxOps}`, {
       evidence: { observed: ops.length, cap: maxOps, unit: "ops", env: "FDPM_MAX_BATCH_OPS" },
     });
-  const slice = host.getProject(project_id);
+  const slice = host.getProject(workbook_id);
   if (
     expected_project_revision !== undefined &&
-    slice.project.revision !== expected_project_revision
+    slice.workbook.revision !== expected_project_revision
   )
     throw new FDPMException(
       "conflict",
-      `expected_project_revision=${expected_project_revision} != current=${slice.project.revision}`,
+      `expected_project_revision=${expected_project_revision} != current=${slice.workbook.revision}`,
     );
 
   // SPEC-UID §4 principle 5: operators don't author uids. Inject a
@@ -771,7 +771,7 @@ export async function batchEdit(
       dryResults.push(r);
     }
     return {
-      project_revision: slice.project.revision,
+      project_revision: slice.workbook.revision,
       results: dryResults,
       dry_run: true,
     };
@@ -782,7 +782,7 @@ export async function batchEdit(
   // operation against the projected state by simulating in a clone.
   const inputs: AppendInput[] = mintedOps.map((o) => ({
     kind: o.kind,
-    project_id,
+    workbook_id,
     payload: o.payload,
   }));
   const out = host.store.appendBatch(inputs);
@@ -801,15 +801,15 @@ export async function batchEdit(
     if (scope_id) r.scope_id = scope_id;
     return r;
   });
-  const finalSlice = host.getProject(project_id);
-  return { project_revision: finalSlice.project.revision, results };
+  const finalSlice = host.getProject(workbook_id);
+  return { project_revision: finalSlice.workbook.revision, results };
 }
 
 /**
  * Operation kinds that may appear inside a `fdpm edit` (§9.7.5) batch.
- * Project-lifecycle and import/template/test-suite kinds run through
+ * Workbook-lifecycle and import/template/test-suite kinds run through
  * dedicated commands and are intentionally excluded — including them
- * here would let an operator atomically delete the project they are
+ * here would let an operator atomically delete the workbook they are
  * editing, which has no sensible rollback story.
  */
 export const BATCH_EDITABLE_KINDS = [

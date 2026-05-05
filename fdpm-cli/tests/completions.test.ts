@@ -8,9 +8,9 @@ import {
 describe("root onboarding", () => {
   it("shows concise next-step guidance and examples", () => {
     const text = renderRootOnboarding();
-    expect(text).toContain("FDPM — typed project graph CLI");
-    expect(text).toContain("fdpm project list");
-    expect(text).toContain("fdpm validate <project>");
+    expect(text).toContain("FDPM — typed workbook graph CLI");
+    expect(text).toContain("fdpm workbook list");
+    expect(text).toContain("fdpm validate <workbook>");
     expect(text).toContain("fdpm completions <bash|zsh|fish|powershell>");
   });
 
@@ -37,7 +37,7 @@ describe("completions command", () => {
       process.stdout.write = write;
     }
     expect(stdout).toContain("complete -F _fdpm_completions fdpm");
-    expect(stdout).toContain("project");
+    expect(stdout).toContain("workbook");
     expect(stdout).toContain("primitive");
     expect(stdout).toContain("--data-dir");
   });

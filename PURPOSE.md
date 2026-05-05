@@ -15,6 +15,14 @@ disclaimer:
 This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](./DISCLAIMER.md).
 > No statement or premise not backed by a real logical definition or verifiable reference should be taken for granted.
 
+## Repository Layout
+
+The runnable CLI package lives under [`fdpm-cli/`](./fdpm-cli/); the
+top-level repository carries cross-cutting docs (`docs/specs/`,
+`DISCLAIMER.md`, `PURPOSE.md`, this file) and packaging scripts. The
+nested layout exists so the repo can host adjacent tools (renderers,
+plugins, eval harnesses) without polluting the CLI's `package.json`.
+
 ## Why This Repository Exists
 
 This repository exists to ship FDPM as an **agent-driven domain workbench**.

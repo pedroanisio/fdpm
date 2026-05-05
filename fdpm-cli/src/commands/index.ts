@@ -25,7 +25,7 @@ import { commandMetadata as migrateMetadata } from "./migrate.js";
 import { commandMetadata as pluginMetadata } from "./plugin.js";
 import { commandMetadata as primitiveMetadata } from "./primitive.js";
 import { commandMetadata as profileMetadata } from "./profile.js";
-import { commandMetadata as projectMetadata } from "./project.js";
+import { commandMetadata as projectMetadata } from "./workbook.js";
 import { commandMetadata as relationMetadata } from "./relation.js";
 import { commandMetadata as renderMetadata } from "./render.js";
 import { commandMetadata as replMetadata } from "./repl.js";

@@ -3,11 +3,11 @@ import { newHost } from "./fixtures.js";
 import { importTransfer } from "../src/core/host-extra.js";
 import { PROFILE as SW_PROFILE } from "../plugins/software_architecture/index.js";
 
-async function seedProject(host: any, projectId: string, primitives: any[], relations: any[] = []) {
+async function seedProject(host: any, workbookId: string, primitives: any[], relations: any[] = []) {
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
-      id: projectId,
+    workbook: {
+      id: workbookId,
       name: "Imported",
       profile_id: SW_PROFILE.id,
       created_at: new Date().toISOString(),

@@ -24,7 +24,7 @@ async function loadHost(): Promise<Host> {
   });
   await host.load();
   await host.createProject({
-    project_id: "p",
+    workbook_id: "p",
     name: "P",
     profile_id: "profile:spec-authoring:0.1",
   });
@@ -121,7 +121,7 @@ describe("spec_authoring — ADR validators (graph predicates)", () => {
   it("ADR with only 1 Considers edge surfaces a warning at validateProject", async () => {
     const host = await loadHost();
     await buildAdrSetup(host);
-    // One Considers edge only. The rule is a project-coherence check
+    // One Considers edge only. The rule is a workbook-coherence check
     // (warning, not error) because it cannot be satisfied at primitive-
     // create time — the ADR exists before its outgoing relations.
     await host.createRelation("p", {

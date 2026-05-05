@@ -40,11 +40,11 @@ function targetIdOf(op: Operation): string {
   const p = op.payload as Record<string, unknown>;
   return (
     (p["id"] as string) ??
-    (p["project_id"] as string) ??
+    (p["workbook_id"] as string) ??
     (p["template_id"] as string) ??
     (p["suite_id"] as string) ??
     (p["primitive_id"] as string) ??
-    op.project_id
+    op.workbook_id
   );
 }
 
@@ -72,10 +72,10 @@ function truncateDiff(diff: Record<string, unknown>): Record<string, unknown> {
 export function buildAuditRecord(op: Operation, log: Operation[]): AuditRecord {
   const before = log.filter((o) => o.revision < op.revision);
   const beforeState = replay(before);
-  const beforeSlice = sliceProject(beforeState, op.project_id);
+  const beforeSlice = sliceProject(beforeState, op.workbook_id);
   const after = [...before, op];
   const afterState = replay(after);
-  const afterSlice = sliceProject(afterState, op.project_id);
+  const afterSlice = sliceProject(afterState, op.workbook_id);
   const target_id = targetIdOf(op);
 
   let diffPayload: Record<string, unknown>;
@@ -89,10 +89,10 @@ export function buildAuditRecord(op: Operation, log: Operation[]): AuditRecord {
       before: beforeSlice?.relations[target_id] ?? null,
       after: afterSlice?.relations[target_id] ?? null,
     };
-  } else if (op.kind.startsWith("project.")) {
+  } else if (op.kind.startsWith("workbook.")) {
     diffPayload = {
-      before: beforeSlice?.project ?? null,
-      after: afterSlice?.project ?? null,
+      before: beforeSlice?.workbook ?? null,
+      after: afterSlice?.workbook ?? null,
     };
   } else {
     diffPayload = { before: null, after: op.payload };

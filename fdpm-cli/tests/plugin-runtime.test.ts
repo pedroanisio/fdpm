@@ -166,7 +166,7 @@ export default {
     const r = host.plugins.get("test.raising");
     expect(r?.state).toBe("quarantined");
     expect(r?.errorMessage).toContain("boom");
-    // Host is still usable — listing projects works.
+    // Host is still usable — listing workbooks works.
     expect(host.listProjects()).toEqual([]);
     rmSync(pluginDir, { recursive: true, force: true });
   });
@@ -271,7 +271,7 @@ describe("plugin runtime — cross-plugin slot conflicts (§7.4)", () => {
           spec_version: "1.1.0",
           kind: "server",
           host_compatibility: { fdpm: ">=1.0,<2" },
-          permissions: ["import:project"],
+          permissions: ["import:workbook"],
           capabilities: [
             { capability_id: "cap:importer", local_name: "fmt", entry: "fn" },
           ],
@@ -283,7 +283,7 @@ const manifest = ${JSON.stringify({
   spec_version: "1.1.0",
   kind: "server",
   host_compatibility: { fdpm: ">=1.0,<2" },
-  permissions: ["import:project"],
+  permissions: ["import:workbook"],
   capabilities: [{ capability_id: "cap:importer", local_name: "fmt" }],
 })};
 const fn = (raw) => raw;
@@ -336,7 +336,7 @@ describe("plugin runtime — runImporter exception barrier", () => {
         spec_version: "1.1.0",
         kind: "server",
         host_compatibility: { fdpm: ">=1.0,<2" },
-        permissions: ["import:project"],
+        permissions: ["import:workbook"],
         capabilities: [
           { capability_id: "cap:importer", local_name: "boom", entry: "fn" },
         ],
@@ -348,7 +348,7 @@ const manifest = ${JSON.stringify({
   spec_version: "1.1.0",
   kind: "server",
   host_compatibility: { fdpm: ">=1.0,<2" },
-  permissions: ["import:project"],
+  permissions: ["import:workbook"],
   capabilities: [{ capability_id: "cap:importer", local_name: "boom" }],
 })};
 const fn = () => { throw new Error("kaboom"); };
@@ -373,7 +373,7 @@ export default {
     expect(r?.state).toBe("quarantined");
     expect(r?.errorMessage).toContain("kaboom");
 
-    // Host stays alive — listing projects works, version reads work.
+    // Host stays alive — listing workbooks works, version reads work.
     expect(host.listProjects()).toEqual([]);
     // The format is unreachable now: re-invoking surfaces "no importer
     // registered" because findImporter scans only `installed` (live)
@@ -430,7 +430,7 @@ describe("plugin runtime — runImporter / runRenderer pass-through of FDPMExcep
         spec_version: "1.1.0",
         kind: "server",
         host_compatibility: { fdpm: ">=1.0,<2" },
-        permissions: ["import:project"],
+        permissions: ["import:workbook"],
         capabilities: [
           { capability_id: "cap:importer", local_name: "picky", entry: "fn" },
         ],
@@ -443,7 +443,7 @@ const manifest = ${JSON.stringify({
   spec_version: "1.1.0",
   kind: "server",
   host_compatibility: { fdpm: ">=1.0,<2" },
-  permissions: ["import:project"],
+  permissions: ["import:workbook"],
   capabilities: [{ capability_id: "cap:importer", local_name: "picky" }],
 })};
 const fn = (raw) => {
@@ -524,7 +524,7 @@ export default {
 
     await expect(
       host.plugins.runRenderer("text/plain", {
-        projectId: "x",
+        workbookId: "x",
         primitives: [],
         relations: [],
         profile: { id: "p:x:1.0" } as never,

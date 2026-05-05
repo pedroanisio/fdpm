@@ -57,11 +57,11 @@ const DNIS_DOCUMENT_SCOPE = "scope:dnis:document" as const;
 
 export interface DnisHostAdapterOptions {
   /**
-   * SPEC-CORE project id within which DNIS Documents are materialised.
-   * Every DNIS Document and Node lives under one project; cross-project
+   * SPEC-CORE workbook id within which DNIS Documents are materialised.
+   * Every DNIS Document and Node lives under one workbook; cross-workbook
    * DNIS Documents are out of scope per SPEC-DNIS Q1.
    */
-  projectId: string;
+  workbookId: string;
   /**
    * Optional clock override (for deterministic tests).
    */
@@ -140,12 +140,12 @@ function documentPrimitiveFields(doc: Document): Record<string, unknown> {
 
 export class DnisHostAdapter {
   private readonly host: Host;
-  private readonly projectId: string;
+  private readonly workbookId: string;
   private readonly cache: InMemoryDnisStore;
 
   constructor(host: Host, opts: DnisHostAdapterOptions) {
     this.host = host;
-    this.projectId = opts.projectId;
+    this.workbookId = opts.workbookId;
     const cacheOpts: { now?: () => string; mintId?: () => string } = {};
     if (opts.now) cacheOpts.now = opts.now;
     if (opts.mintId) cacheOpts.mintId = opts.mintId;
@@ -166,7 +166,7 @@ export class DnisHostAdapter {
    * OperationIds, so this is fine.
    */
   hydrate(): void {
-    const slice = this.host.getProject(this.projectId);
+    const slice = this.host.getProject(this.workbookId);
     const documents: Document[] = [];
     const nodes: Node[] = [];
     for (const p of Object.values(slice.primitives)) {
@@ -230,7 +230,7 @@ export class DnisHostAdapter {
   async createDocument(input: CreateDocumentInput): Promise<Document> {
     const document = this.cache.createDocument(input);
     try {
-      await this.host.appendBatchWithCausation(this.projectId, [
+      await this.host.appendBatchWithCausation(this.workbookId, [
         {
           kind: "primitive.create",
           primitive: {
@@ -322,7 +322,7 @@ export class DnisHostAdapter {
     }
 
     try {
-      await this.host.appendBatchWithCausation(this.projectId, intents);
+      await this.host.appendBatchWithCausation(this.workbookId, intents);
     } catch (err) {
       // Host write failed; the cache is now ahead of the log. Force a
       // replay-from-log to restore consistency. This is heavier than a

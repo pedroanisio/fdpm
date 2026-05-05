@@ -2,7 +2,7 @@
  * Resource provider registry.
  *
  * Slice 1 wires only `renderResourceProvider`. Future providers
- * (project transfer, validate report, primitive view) plug in by
+ * (workbook transfer, validate report, primitive view) plug in by
  * appending here and exporting from `./<name>.ts`.
  *
  * The MCP server's `resources/list` and `resources/read` handlers

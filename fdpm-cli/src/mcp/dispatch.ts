@@ -206,24 +206,24 @@ async function dispatchOne(
   }
 
   // 4. Freshness check (SPEC-MCP-SERVER §10 / §21).
-  // Resolves the tool's project-id extractor, expands ["*"] wildcards,
+  // Resolves the tool's workbook-id extractor, expands ["*"] wildcards,
   // calls `session.checkFreshness`, and either tail-replays (Tier 1
   // lenient) or refuses (Tier 2/3 strict). Skipped when the tool's
-  // extractor returns [] (no project state addressed).
+  // extractor returns [] (no workbook state addressed).
   try {
     const project_ids = resolveProjectIds(host, tool.name, rawArgs);
     if (project_ids.length > 0) {
       const { stale } = ctx.session.checkFreshness(host, project_ids);
       if (stale.length > 0) {
         if (tool.tier === "read_only") {
-          // Lenient: tail-replay each stale project, then continue.
+          // Lenient: tail-replay each stale workbook, then continue.
           for (const pid of stale) {
             await host.reloadProjectTail(pid);
           }
           ctx.session.markFresh(host, stale);
         } else {
           // Strict: refuse with a stale-state envelope. Surface the
-          // first stale project (operators see a deterministic id;
+          // first stale workbook (operators see a deterministic id;
           // the audit log preserves the args hash for cross-reference).
           const first = stale[0]!;
           const observed = host.statProjectLog(first);
@@ -244,7 +244,7 @@ async function dispatchOne(
           }
           const env = errorEnvelope(
             staleStateException({
-              project_id: first,
+              workbook_id: first,
               advice: "operator must SIGHUP fdpm-mcp",
               detail,
             }),
@@ -339,9 +339,9 @@ async function dispatchOne(
 }
 
 /**
- * Resolve the project_id set this call addresses. Empty array means
+ * Resolve the workbook_id set this call addresses. Empty array means
  * "skip the freshness check"; `["*"]` is the wildcard sentinel that
- * expands to every known project (with a stderr warning per SPEC §10
+ * expands to every known workbook (with a stderr warning per SPEC §10
  * lenient-mode notes).
  */
 function resolveProjectIds(
@@ -353,7 +353,7 @@ function resolveProjectIds(
   // tool has an entry in `TOOL_TO_COMMAND_METADATA`. Test harnesses
   // that inject synthetic tools via the `resolveTool` seam are the
   // only callers that legitimately reach a missing entry; treat those
-  // as "no project state" rather than crashing the dispatch path.
+  // as "no workbook state" rather than crashing the dispatch path.
   let extractor: ReturnType<typeof resolveProjectIdsExtractor>;
   try {
     extractor = resolveProjectIdsExtractor(toolName);
@@ -486,7 +486,7 @@ function extractTargetId(args: unknown): string {
       return (v as { id: string }).id;
     }
   }
-  if (typeof o["project_id"] === "string") return o["project_id"];
+  if (typeof o["workbook_id"] === "string") return o["workbook_id"];
   return "(unknown)";
 }
 

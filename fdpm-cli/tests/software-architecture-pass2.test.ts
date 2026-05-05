@@ -66,7 +66,7 @@ describe("gap #1 — Decision carries date, deciders, last_reviewed_at", () => {
   it("Host accepts a Decision with date + deciders + last_reviewed_at populated", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "g1",
+      workbook_id: "g1",
       name: "g1",
       profile_id: PROFILE_ID,
     });
@@ -137,7 +137,7 @@ describe("gap #3 — Endpoint declares typed parameters", () => {
 
   it("Host accepts an Endpoint with typed path + query parameters", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g3", name: "g3", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g3", name: "g3", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("g3", {
       id: "endpoint:GET:order",
       type_id: "sw:Endpoint",
@@ -182,7 +182,7 @@ describe("gap #4 — Constraint carries an optional structured SLO", () => {
 
   it("Host accepts a Constraint with a fully populated SLO", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g4", name: "g4", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g4", name: "g4", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("g4", {
       id: "constraint:runtime:p99-latency",
       type_id: "sw:Constraint",
@@ -204,7 +204,7 @@ describe("gap #4 — Constraint carries an optional structured SLO", () => {
 
   it("legacy `metric: string` form still parses (backwards compat)", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g4b", name: "g4b", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g4b", name: "g4b", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("g4b", {
       id: "constraint:runtime:throughput",
       type_id: "sw:Constraint",
@@ -240,7 +240,7 @@ describe("gap #5 — DependsOn metadata covers more dependency kinds + direction
 
   it("Host accepts a DependsOn relation with new kinds + direction", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g5", name: "g5", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g5", name: "g5", profile_id: PROFILE_ID });
     for (const id of ["domain:Service:A", "domain:Service:B"]) {
       await host.createPrimitive("g5", {
         id,
@@ -286,7 +286,7 @@ describe("gap #6 — sw:QualityAttribute primitive", () => {
 
   it("Host accepts a QualityAttribute scenario", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g6", name: "g6", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g6", name: "g6", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("g6", {
       id: "qa:Performance:burst-write",
       type_id: "sw:QualityAttribute",
@@ -330,7 +330,7 @@ describe("gap #7 — sw:Risk primitive and sw:Risks relation", () => {
 
   it("Host accepts a Risk + a wildcard-source Risks relation from a Decision", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g7", name: "g7", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g7", name: "g7", profile_id: PROFILE_ID });
     await host.createPrimitive("g7", {
       id: "decision:0001",
       type_id: "sw:Decision",
@@ -600,7 +600,7 @@ describe("gap #16 — Entity.kind enum includes Library and DataStore", () => {
 
   it("Host accepts Entities with the new kinds", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g16", name: "g16", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g16", name: "g16", profile_id: PROFILE_ID });
     for (const k of ["Library", "DataStore"]) {
       const r = await host.createPrimitive("g16", {
         id: `domain:${k}:Test${k}`,
@@ -655,7 +655,7 @@ describe("gap #17 — Viewpoint + View primitives + view-projection helper", () 
 
   it("projectThroughView intersects category / scope / type filters and drops dangling relations", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g17", name: "g17", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g17", name: "g17", profile_id: PROFILE_ID });
     await host.createPrimitive("g17", {
       id: "domain:Service:Foo",
       type_id: "sw:Entity",
@@ -682,7 +682,7 @@ describe("gap #17 — Viewpoint + View primitives + view-projection helper", () 
       field_values: { kind: "runtime" },
     });
     const slice = host.getProject("g17");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
 
     // domain-only filter should keep Foo + Order, drop DB, drop the relation.
     const domainOnly = projectThroughView(
@@ -726,7 +726,7 @@ describe("gap #17 — Viewpoint + View primitives + view-projection helper", () 
 
   it("projectThroughViewInstance reads filters off a sw:View primitive", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "g17b", name: "g17b", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "g17b", name: "g17b", profile_id: PROFILE_ID });
     await host.createPrimitive("g17b", {
       id: "viewpoint:logical",
       type_id: "sw:Viewpoint",
@@ -759,7 +759,7 @@ describe("gap #17 — Viewpoint + View primitives + view-projection helper", () 
       field_values: { kind: "DataStore", name: "DB", lifecycle: "Active", description: "x" },
     });
     const slice = host.getProject("g17b");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const viewPrim = slice.primitives["view:logical:domain-only"]!;
 
     const proj = projectThroughViewInstance(
@@ -809,7 +809,7 @@ describe("stabilization — non-terminal-state-has-transition is a noop until a 
 
   it("creating a non-terminal State without any Transition does NOT emit a warning under the current contract", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "stab1", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "stab1", name: "x", profile_id: PROFILE_ID });
     // Need an Entity for the State.entity_id stableId reference.
     await host.createPrimitive("stab1", {
       id: "domain:Service:Foo",
@@ -843,7 +843,7 @@ describe("stabilization — non-terminal-state-has-transition is a noop until a 
 
   it("creating a terminal State emits no warning either (terminal short-circuits even when CEL fires)", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "stab2", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "stab2", name: "x", profile_id: PROFILE_ID });
     await host.createPrimitive("stab2", {
       id: "domain:Service:Foo",
       type_id: "sw:Entity",
@@ -883,7 +883,7 @@ describe("stabilization — non-terminal-state-has-transition is a noop until a 
 describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () => {
   it("sw:val:decision-superseded-has-successor REJECTS a Superseded decision with no incoming Supersedes edge", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel1", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel1", name: "x", profile_id: PROFILE_ID });
     // Create as Accepted first so the "alternatives" + rationale gates pass,
     // then attempt to flip to Superseded with no successor — must fail.
     await host.createPrimitive("cel1", {
@@ -928,7 +928,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:val:decision-superseded-has-successor PASSES once the Supersedes chain exists", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel1b", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel1b", name: "x", profile_id: PROFILE_ID });
     await host.createPrimitive("cel1b", {
       id: "decision:0001",
       type_id: "sw:Decision",
@@ -979,7 +979,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:val:risk-high-impact-has-mitigation REJECTS a High-impact Risk with whitespace mitigation", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel2", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel2", name: "x", profile_id: PROFILE_ID });
     let caught: unknown = null;
     try {
       await host.createPrimitive("cel2", {
@@ -1009,7 +1009,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:val:risk-high-impact-has-mitigation does NOT fire when impact != High", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel2b", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel2b", name: "x", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("cel2b", {
       id: "risk:domain:ok",
       type_id: "sw:Risk",
@@ -1027,7 +1027,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:comp:capability-realized FIRES (warning) when a Capability has no RealizedBy edges", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel3", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel3", name: "x", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("cel3", {
       id: "capability:domain:Search",
       type_id: "sw:Capability",
@@ -1048,7 +1048,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:comp:active-entity-deployed FIRES (warning) on Active Entity with no DeployedTo", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel4", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel4", name: "x", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("cel4", {
       id: "domain:Service:Lonely",
       type_id: "sw:Entity",
@@ -1070,7 +1070,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:comp:active-entity-deployed does NOT fire on Proposed entities", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel4b", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel4b", name: "x", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("cel4b", {
       id: "domain:Service:Future",
       type_id: "sw:Entity",
@@ -1092,7 +1092,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:val:deprecated-endpoint-has-successor FIRES on a deprecated endpoint without a DeprecatedBy edge", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel5", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel5", name: "x", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("cel5", {
       id: "endpoint:GET:legacy",
       type_id: "sw:Endpoint",
@@ -1115,7 +1115,7 @@ describe("pass-2 CEL rules fire end-to-end (relies on SPEC-CEL-VALIDATOR)", () =
 
   it("sw:val:deprecated-endpoint-has-successor does NOT fire on a non-deprecated endpoint (has() guard)", async () => {
     const host = await freshHost();
-    await host.createProject({ project_id: "cel5b", name: "x", profile_id: PROFILE_ID });
+    await host.createProject({ workbook_id: "cel5b", name: "x", profile_id: PROFILE_ID });
     const r = await host.createPrimitive("cel5b", {
       id: "endpoint:GET:current",
       type_id: "sw:Endpoint",
@@ -1144,7 +1144,7 @@ describe("end-to-end — ADR renderer surfaces gap #1 fields and gap #17 views",
   beforeAll(async () => {
     host = await freshHost();
     await host.createProject({
-      project_id: "e2e-adr",
+      workbook_id: "e2e-adr",
       name: "e2e",
       profile_id: PROFILE_ID,
     });
@@ -1195,7 +1195,7 @@ describe("end-to-end — ADR renderer surfaces gap #1 fields and gap #17 views",
       field_values: {
         name: "adrs",
         viewpoint_id: "viewpoint:governance",
-        summary: "All ADRs in the project.",
+        summary: "All ADRs in the workbook.",
         included_type_ids: ["sw:Decision"],
       },
     });
@@ -1203,11 +1203,11 @@ describe("end-to-end — ADR renderer surfaces gap #1 fields and gap #17 views",
 
   it("ADR markdown carries Date / Deciders / Last reviewed for the populated decision", async () => {
     const slice = host.getProject("e2e-adr");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer(
       "text/markdown",
       {
-        projectId: "e2e-adr",
+        workbookId: "e2e-adr",
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         profile,
@@ -1228,11 +1228,11 @@ describe("end-to-end — ADR renderer surfaces gap #1 fields and gap #17 views",
 
   it("ADR markdown lists views that reference decisions", async () => {
     const slice = host.getProject("e2e-adr");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer(
       "text/markdown",
       {
-        projectId: "e2e-adr",
+        workbookId: "e2e-adr",
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         profile,
@@ -1242,7 +1242,7 @@ describe("end-to-end — ADR renderer surfaces gap #1 fields and gap #17 views",
     const md = new TextDecoder().decode(out.bytes);
     expect(md).toContain("## Views referencing decisions");
     expect(md).toContain("`view:governance:adrs`");
-    expect(md).toContain("All ADRs in the project");
+    expect(md).toContain("All ADRs in the workbook");
     expect(md).toMatch(/\(2 decisions\)/);
   });
 });
@@ -1255,7 +1255,7 @@ describe("end-to-end — OpenAPI renderer surfaces gap #2/#3/#12/#17 fields", ()
   it("emits parameters, deprecated flag, typed status_code, schema-version, and x-fdpm-views", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "e2e-openapi",
+      workbook_id: "e2e-openapi",
       name: "e2e",
       profile_id: PROFILE_ID,
     });
@@ -1372,11 +1372,11 @@ describe("end-to-end — OpenAPI renderer surfaces gap #2/#3/#12/#17 fields", ()
     });
 
     const slice = host.getProject("e2e-openapi");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer(
       "application/x-yaml",
       {
-        projectId: "e2e-openapi",
+        workbookId: "e2e-openapi",
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         profile,

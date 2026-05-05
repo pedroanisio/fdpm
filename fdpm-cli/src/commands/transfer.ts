@@ -13,15 +13,15 @@ import { FDPMException } from "../core/errors/fdpm-exception.js";
 
 export function buildTransferCommand(host: Host): Command {
   const cmd = new Command("transfer");
-  cmd.description("Project import/export (§9.1 /transfer/import, /transfer/export)");
+  cmd.description("Workbook import/export (§9.1 /transfer/import, /transfer/export)");
 
   cmd
     .command("export")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .option("--json", "emit JSON (default)")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: opts.json !== false };
-      const transfer = exportTransfer(host, project);
+      const transfer = exportTransfer(host, workbook);
       emit(ctx, transfer);
     });
 
@@ -30,16 +30,16 @@ export function buildTransferCommand(host: Host): Command {
     .description("Import a ProjectTransfer (§9.1 POST /transfer/import)")
     .requiredOption("-f, --file <path>", "transfer JSON file")
     .option(
-      "--project-id <id>",
-      "override the transfer file's project.id (re-home a snapshot under a new id)",
+      "--workbook-id <id>",
+      "override the transfer file's workbook.id (re-home a snapshot under a new id)",
     )
     .option(
-      "--project-name <name>",
-      "override the transfer file's project.name",
+      "--workbook-name <name>",
+      "override the transfer file's workbook.name",
     )
     .option(
-      "--project-description <text>",
-      "override the transfer file's project.description",
+      "--workbook-description <text>",
+      "override the transfer file's workbook.description",
     )
     .option(
       "--merge-by-uid",
@@ -69,20 +69,20 @@ export function buildTransferCommand(host: Host): Command {
           evidence: { issues: result.error.issues },
         });
       // Apply optional overrides BEFORE handing to importTransfer. The
-      // transfer file's `project.id` is the default; the caller may
+      // transfer file's `workbook.id` is the default; the caller may
       // re-home the snapshot under a different id by passing
-      // --project-id, which is the routine ergonomic when the original
+      // --workbook-id, which is the routine ergonomic when the original
       // id already exists in the target data dir.
       const transfer = result.data;
-      if (opts.projectId != null) {
-        transfer.project = { ...transfer.project, id: opts.projectId };
+      if (opts.workbookId != null) {
+        transfer.workbook = { ...transfer.workbook, id: opts.workbookId };
       }
       if (opts.projectName != null) {
-        transfer.project = { ...transfer.project, name: opts.projectName };
+        transfer.workbook = { ...transfer.workbook, name: opts.projectName };
       }
       if (opts.projectDescription != null) {
-        transfer.project = {
-          ...transfer.project,
+        transfer.workbook = {
+          ...transfer.workbook,
           description: opts.projectDescription,
         };
       }
@@ -97,9 +97,9 @@ export function buildTransferCommand(host: Host): Command {
     )
     .argument("<format>", "importer format id (e.g. fs-v3)")
     .requiredOption("-f, --file <path>", "raw input file")
-    .requiredOption("--project-id <id>", "target project id")
-    .requiredOption("--project-name <name>", "target project display name")
-    .option("--project-description <text>", "optional project description")
+    .requiredOption("--workbook-id <id>", "target workbook id")
+    .requiredOption("--workbook-name <name>", "target workbook display name")
+    .option("--workbook-description <text>", "optional workbook description")
     .option(
       "--extra-profile-id <id>",
       "override the importer's profile_id selection (forwarded as options.extra.profileId)",
@@ -117,7 +117,7 @@ export function buildTransferCommand(host: Host): Command {
       const extra: Record<string, unknown> = { ...(opts.extra ?? {}) };
       if (opts.extraProfileId != null) extra["profileId"] = opts.extraProfileId;
       const transfer = await host.plugins.runImporter(format, raw, {
-        projectId: opts.projectId,
+        workbookId: opts.workbookId,
         projectName: opts.projectName,
         ...(opts.projectDescription != null && {
           projectDescription: opts.projectDescription,
@@ -167,16 +167,16 @@ export const commandMetadata: CommandMetadataMap = {
   "transfer export": {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "transfer import": {
     readOnly: false,
     projectIdsFromArgv: projectIdFlagArgv(),
-    projectIdsFromJson: projectFromJsonField("project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook_id"),
   },
   "transfer import-as": {
     readOnly: false,
     projectIdsFromArgv: projectIdFlagArgv(),
-    projectIdsFromJson: projectFromJsonField("project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook_id"),
   },
 };

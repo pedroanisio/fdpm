@@ -42,17 +42,17 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 
 | Tool | Operation | Description |
 |---|---|---|
-| `fdpm.health` | health probe | Liveness probe; returns server version, manifest version, profile/project counts |
+| `fdpm.health` | health probe | Liveness probe; returns server version, manifest version, profile/workbook counts |
 | `fdpm.profile.list` | list profiles | List loaded `DomainProfile`s with id, version, optional label/name |
 | `fdpm.profile.get` | fetch profile | Fetch a `DomainProfile` by id (raw, un-resolved); throws `not_found` if unknown |
 | `fdpm.profile.type_info` | type contract | Minimum-sufficient construction contract for one type in a profile (id_pattern, fields, required, constraints). **Call before any create.** |
-| `fdpm.project.list` | list projects | List loaded projects with id, name, profile_id, current revision |
-| `fdpm.project.get` | fetch project | Full project slice (project meta + primitives + relations + templates) |
+| `fdpm.workbook.list` | list workbooks | List loaded workbooks with id, name, profile_id, current revision |
+| `fdpm.workbook.get` | fetch workbook | Full workbook slice (workbook meta + primitives + relations + templates) |
 | `fdpm.primitive.search` | search primitives | Case-insensitive substring search on `field_values`; optional `type_id` narrow; returns `fields_excerpt` |
-| `fdpm.primitive.get` | fetch primitive | Fetch one primitive by id within a project; throws `not_found` if absent |
+| `fdpm.primitive.get` | fetch primitive | Fetch one primitive by id within a workbook; throws `not_found` if absent |
 | `fdpm.relation.list` | list relations | List relations; optional `type_id` / `source_id` / `target_id` AND-narrow |
 | `fdpm.relation.get` | fetch relation | Fetch one relation by id |
-| `fdpm.log.tail` | recent ops | Most recent N operations from a project's log (oldest-to-newest in slice; default 50, max 1000) |
+| `fdpm.log.tail` | recent ops | Most recent N operations from a workbook's log (oldest-to-newest in slice; default 50, max 1000) |
 | `fdpm.log.diff` | ops between revs | Operations between two revisions (inclusive); `to_revision` defaults to current |
 
 ## Tools — Tier 2: validating-write (always advertised)
@@ -60,7 +60,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 | Tool | Operation | Description |
 |---|---|---|
 | `fdpm.profile.register` | register profile | Register a new `DomainProfile` (in-memory only at v0.1) |
-| `fdpm.project.create` | create project | Create a new project bound to a registered profile; returns Tier-2 envelope with `validation_report` |
+| `fdpm.workbook.create` | create workbook | Create a new workbook bound to a registered profile; returns Tier-2 envelope with `validation_report` |
 | `fdpm.primitive.create` | create primitive | Create one primitive; runs §7 validation pipeline; rejection via envelope (`ok: false`, `isError: false`) |
 | `fdpm.primitive.create_batch` | atomic batch create | Atomically create 1..500 primitives; ALL succeed or WHOLE batch rolls back; later entries see earlier ones |
 | `fdpm.primitive.replace` | full overwrite | Replace `field_values` entirely; `type_id` immutable; supports `expected_revision` (If-Match) |
@@ -77,7 +77,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 
 | Tool | Operation | Description |
 |---|---|---|
-| `fdpm.project.delete` | delete project | Delete a project; refuses with `category=permission, reason=destructive_disabled` when not enabled |
+| `fdpm.workbook.delete` | delete workbook | Delete a workbook; refuses with `category=permission, reason=destructive_disabled` when not enabled |
 | `fdpm.primitive.delete` | delete primitive | Delete a primitive by id |
 | `fdpm.primitive.delete_batch` | atomic batch delete | Atomically delete 1..500 primitives; first missing id rejects the whole batch |
 | `fdpm.relation.delete` | delete relation | Delete a relation by id |
@@ -87,11 +87,11 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 
 | URI template | Provider | Read behavior | Read-only? |
 |---|---|---|---|
-| `fdpm://project/{project_id}/render/{target}` | `fdpm.render` | Runs SPEC-REPL §10.2 lenient tail-replay, then invokes registered renderer for `target` (a MIME type like `text/markdown`, `application/x-yaml`, `application/pdf`). `text/*` → UTF-8 in `text` field; binary → base64 in `blob` | yes |
+| `fdpm://workbook/{workbook_id}/render/{target}` | `fdpm.render` | Runs SPEC-REPL §10.2 lenient tail-replay, then invokes registered renderer for `target` (a MIME type like `text/markdown`, `application/x-yaml`, `application/pdf`). `text/*` → UTF-8 in `text` field; binary → base64 in `blob` | yes |
 
 **Resource enumeration:** `enumerate()` is `loaded_projects × registered_renderers`.
 Each loaded plugin contributes one or more renderer targets via
-`ctx.registerRenderer(...)`. With six projects loaded and the
+`ctx.registerRenderer(...)`. With six workbooks loaded and the
 `software_architecture` (md+yaml), `spec_authoring` (md),
 `formal_specification` (md+html+pdf), and `planning` (md+svg+md) plugins
 active, `resources/list` advertises ~24+ concrete render URIs.
@@ -116,7 +116,7 @@ Source: [src/mcp/resources/render.ts](../../fdpm-cli/src/mcp/resources/render.ts
 | Gate | Mechanism | Source |
 |---|---|---|
 | Tier-3 advertisement | `--enable-destructive` flag (or `FDPM_MCP_ENABLE_DESTRUCTIVE=1`) — when off, Tier-3 tools are absent from `tools/list` AND refused at dispatch (defense-in-depth) | [src/mcp/manifest.ts](../../fdpm-cli/src/mcp/manifest.ts), `advertisedTools()` |
-| Freshness check | Every tool that addresses a `project_id` runs SPEC-REPL §10.2 lenient tail-replay before serving | [src/mcp/tool-metadata-map.ts](../../fdpm-cli/src/mcp/tool-metadata-map.ts) |
+| Freshness check | Every tool that addresses a `workbook_id` runs SPEC-REPL §10.2 lenient tail-replay before serving | [src/mcp/tool-metadata-map.ts](../../fdpm-cli/src/mcp/tool-metadata-map.ts) |
 | CI manifest gate | `tests/mcp-classification.test.ts` — every public Host method must be in `EXPOSED_HOST_METHODS` or `not-exposed.NOT_EXPOSED`; new unclassified methods break the build | [src/mcp/manifest.ts](../../fdpm-cli/src/mcp/manifest.ts), [src/mcp/not-exposed.ts](../../fdpm-cli/src/mcp/not-exposed.ts) |
 
 ## Sources

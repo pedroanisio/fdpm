@@ -19,9 +19,9 @@ import {
  *            `rendererId`/`pluginId` (provenance fields, not aliases).
  *
  * The audit also called out P2 #11 / P3 #11 ambiguity around the
- * RenderOptions naming. The auditor's proposal `projectId` /
+ * RenderOptions naming. The auditor's proposal `workbookId` /
  * `targetMimeType` was rejected (it goes the wrong direction —
- * `project` IS already the alias). Real fix: `rendererId` → `renderer`.
+ * `workbook` IS already the alias). Real fix: `rendererId` → `renderer`.
  */
 
 // -- structural rename: `rendererId` → `renderer` ----------------------
@@ -30,7 +30,7 @@ describe("RenderOptions alias-convention rename", () => {
   it("RenderOptions exposes `renderer`, not `rendererId`", () => {
     // Type-level: the new name is required; the old one is gone.
     const ok: RenderOptions = {
-      project: "p",
+      workbook: "p",
       target: "text/markdown",
       renderer: "fs:SpecRenderer",
     };
@@ -71,7 +71,7 @@ describe("renderProject forwards `renderer` to the host runtime", () => {
     }).commit();
 
     const r = await renderProject(host, {
-      project: "p3-renderer-ok",
+      workbook: "p3-renderer-ok",
       target: "text/markdown",
       renderer: "fs:SpecRenderer",
     });
@@ -93,7 +93,7 @@ describe("renderProject forwards `renderer` to the host runtime", () => {
 
     await expect(
       renderProject(host, {
-        project: "p3-renderer-bad",
+        workbook: "p3-renderer-bad",
         target: "text/markdown",
         renderer: "does:not:exist",
       }),
@@ -113,7 +113,7 @@ describe("renderProject forwards `renderer` to the host runtime", () => {
     }).commit();
 
     const r = await renderProject(host, {
-      project: "p3-renderer-default",
+      workbook: "p3-renderer-default",
       target: "text/markdown",
     });
     expect(typeof r.rendererId).toBe("string");
@@ -130,10 +130,10 @@ describe("SDK alias convention is honored across input shapes", () => {
   // loudly if anyone re-introduces a Host-flavoured suffix on any
   // input shape, which would silently regress consistency.
 
-  it("ProjectHeader uses `id`/`profile`, not `project_id`/`profile_id`", () => {
+  it("ProjectHeader uses `id`/`profile`, not `workbook_id`/`profile_id`", () => {
     expectTypeOf<ProjectHeader>().toHaveProperty("id");
     expectTypeOf<ProjectHeader>().toHaveProperty("profile");
-    expectTypeOf<ProjectHeader>().not.toHaveProperty("project_id");
+    expectTypeOf<ProjectHeader>().not.toHaveProperty("workbook_id");
     expectTypeOf<ProjectHeader>().not.toHaveProperty("profile_id");
   });
 
@@ -157,31 +157,31 @@ describe("SDK alias convention is honored across input shapes", () => {
     expectTypeOf<RelationSpec>().not.toHaveProperty("field_values");
   });
 
-  it("PatchPrimitiveInput uses `project`/`fields`/`scope`/`expectedRevision`", () => {
-    expectTypeOf<PatchPrimitiveInput>().toHaveProperty("project");
+  it("PatchPrimitiveInput uses `workbook`/`fields`/`scope`/`expectedRevision`", () => {
+    expectTypeOf<PatchPrimitiveInput>().toHaveProperty("workbook");
     expectTypeOf<PatchPrimitiveInput>().toHaveProperty("fields");
     expectTypeOf<PatchPrimitiveInput>().toHaveProperty("scope");
     expectTypeOf<PatchPrimitiveInput>().toHaveProperty("expectedRevision");
-    expectTypeOf<PatchPrimitiveInput>().not.toHaveProperty("project_id");
+    expectTypeOf<PatchPrimitiveInput>().not.toHaveProperty("workbook_id");
     expectTypeOf<PatchPrimitiveInput>().not.toHaveProperty("scope_id");
     expectTypeOf<PatchPrimitiveInput>().not.toHaveProperty("expected_revision");
     expectTypeOf<PatchPrimitiveInput>().not.toHaveProperty("field_values");
   });
 
-  it("PatchRelationInput uses `project`/`fields`/`expectedRevision`", () => {
-    expectTypeOf<PatchRelationInput>().toHaveProperty("project");
+  it("PatchRelationInput uses `workbook`/`fields`/`expectedRevision`", () => {
+    expectTypeOf<PatchRelationInput>().toHaveProperty("workbook");
     expectTypeOf<PatchRelationInput>().toHaveProperty("fields");
     expectTypeOf<PatchRelationInput>().toHaveProperty("expectedRevision");
-    expectTypeOf<PatchRelationInput>().not.toHaveProperty("project_id");
+    expectTypeOf<PatchRelationInput>().not.toHaveProperty("workbook_id");
     expectTypeOf<PatchRelationInput>().not.toHaveProperty("expected_revision");
     expectTypeOf<PatchRelationInput>().not.toHaveProperty("field_values");
   });
 
-  it("RenderOptions uses `project`/`target`/`renderer` (no Id/_id)", () => {
-    expectTypeOf<RenderOptions>().toHaveProperty("project");
+  it("RenderOptions uses `workbook`/`target`/`renderer` (no Id/_id)", () => {
+    expectTypeOf<RenderOptions>().toHaveProperty("workbook");
     expectTypeOf<RenderOptions>().toHaveProperty("target");
     expectTypeOf<RenderOptions>().toHaveProperty("renderer");
-    expectTypeOf<RenderOptions>().not.toHaveProperty("project_id");
+    expectTypeOf<RenderOptions>().not.toHaveProperty("workbook_id");
     expectTypeOf<RenderOptions>().not.toHaveProperty("rendererId");
   });
 });

@@ -129,7 +129,7 @@ describe("fdpm workspace rename (subprocess)", () => {
 describe("fdpm workspace backup / restore / verify (subprocess)", () => {
   it("backup writes a bundle and restore --name recreates it elsewhere", () => {
     const created = runCli([
-      "project",
+      "workbook",
       "create",
       "--id",
       "proj-r",
@@ -138,7 +138,7 @@ describe("fdpm workspace backup / restore / verify (subprocess)", () => {
       "--profile",
       "profile:formal-specification:3.0",
     ]);
-    expect(created.status, `project create failed: ${created.stderr}`).toBe(0);
+    expect(created.status, `workbook create failed: ${created.stderr}`).toBe(0);
 
     const out = join(bundleDir, "round.fdpmbak");
     const bk = runCli(["workspace", "backup", "-o", out, "--json"]);
@@ -169,7 +169,7 @@ describe("fdpm workspace backup / restore / verify (subprocess)", () => {
       expect(rsParsed.ok).toBe(true);
       expect(rsParsed.reidentified).toBe(true);
       expect(rsParsed.name).toBe("round-restored");
-      expect(existsSync(join(target, "projects", "proj-r", "log.jsonl"))).toBe(true);
+      expect(existsSync(join(target, "workbooks", "proj-r", "log.jsonl"))).toBe(true);
 
       const vf = runCli(["workspace", "verify", "round-restored", "--json"]);
       expect(vf.status).toBe(0);

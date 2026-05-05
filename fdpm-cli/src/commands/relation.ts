@@ -17,11 +17,11 @@ export function buildRelationCommand(host: Host): Command {
 
   cmd
     .command("list")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .option("--json", "emit JSON")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slice = host.getProject(project);
+      const slice = host.getProject(workbook);
       const items = Object.values(slice.relations);
       emit(ctx, { relations: items }, () =>
         renderTable(items, [
@@ -35,14 +35,14 @@ export function buildRelationCommand(host: Host): Command {
 
   cmd
     .command("get")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<id>", "relation id (slug, or uid with --by-uid)")
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
     .option("--json", "emit JSON")
-    .action((project, id, opts) => {
+    .action((workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slug = resolveSlug(host, project, id, "relation", !!opts.byUid);
-      const slice = host.getProject(project);
+      const slug = resolveSlug(host, workbook, id, "relation", !!opts.byUid);
+      const slice = host.getProject(workbook);
       const item = slice.relations[slug];
       if (!item) throw new FDPMException("not_found", `relation not found: ${slug}`);
       emit(ctx, item);
@@ -50,7 +50,7 @@ export function buildRelationCommand(host: Host): Command {
 
   cmd
     .command("search")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .description(
       "Find relations by type, id, source/target, and/or field-value match",
     )
@@ -62,10 +62,10 @@ export function buildRelationCommand(host: Host): Command {
     .option("--match <needle...>", "field-value substring match (path=needle to scope)")
     .option("--match-regex <pattern...>", "field-value regex match (path=pattern to scope)")
     .option("--json", "emit JSON")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const fieldMatch = parseFieldMatchArgs(opts.match, opts.matchRegex);
-      const items = host.searchRelations(project, {
+      const items = host.searchRelations(workbook, {
         ...(opts.type != null && { typeId: opts.type }),
         ...(opts.idLike != null && { idLike: opts.idLike }),
         ...(opts.idRegex != null && { idRegex: compileRegexOrThrow(opts.idRegex, "--id-regex") }),
@@ -85,10 +85,10 @@ export function buildRelationCommand(host: Host): Command {
 
   cmd
     .command("create")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .requiredOption("-f, --file <path>", "JSON body file (or - for stdin)")
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const body = (await readInput(opts.file)) as {
         id: string;
@@ -97,7 +97,7 @@ export function buildRelationCommand(host: Host): Command {
         target_id: string;
         field_values?: Record<string, unknown>;
       };
-      const result = await host.createRelation(project, body);
+      const result = await host.createRelation(workbook, body);
       emit(ctx, {
         id: body.id,
         op_id: result.append.op.op_id,
@@ -108,20 +108,20 @@ export function buildRelationCommand(host: Host): Command {
 
   cmd
     .command("replace")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<id>", "relation id (slug, or uid with --by-uid)")
     .requiredOption("-f, --file <path>", "JSON body file")
     .option("--if-match <revision>", "expected revision")
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
     .option("--json", "emit JSON")
-    .action(async (project, id, opts) => {
+    .action(async (workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slug = resolveSlug(host, project, id, "relation", !!opts.byUid);
+      const slug = resolveSlug(host, workbook, id, "relation", !!opts.byUid);
       const body = (await readInput(opts.file)) as {
         type_id: string;
         field_values: Record<string, unknown>;
       };
-      const result = await host.replaceRelation(project, {
+      const result = await host.replaceRelation(workbook, {
         id: slug,
         ...body,
         ...(opts.ifMatch != null && { expected_revision: parseInt(String(opts.ifMatch), 10) }),
@@ -131,7 +131,7 @@ export function buildRelationCommand(host: Host): Command {
 
   cmd
     .command("patch")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<id>", "relation id (slug, or uid with --by-uid)")
     .description(
       "PATCH — partial update (validates only touched paths by default; --full-validate forces whole-record gating)",
@@ -144,11 +144,11 @@ export function buildRelationCommand(host: Host): Command {
     )
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
     .option("--json", "emit JSON")
-    .action(async (project, id, opts) => {
+    .action(async (workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slug = resolveSlug(host, project, id, "relation", !!opts.byUid);
+      const slug = resolveSlug(host, workbook, id, "relation", !!opts.byUid);
       const body = (await readInput(opts.file)) as { field_values: Record<string, unknown> };
-      const result = await host.patchRelation(project, {
+      const result = await host.patchRelation(workbook, {
         id: slug,
         ...body,
         ...(opts.ifMatch != null && { expected_revision: parseInt(String(opts.ifMatch), 10) }),
@@ -159,31 +159,31 @@ export function buildRelationCommand(host: Host): Command {
 
   cmd
     .command("delete")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<id>", "relation id (slug, or uid with --by-uid)")
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
     .option("--json", "emit JSON")
-    .action(async (project, id, opts) => {
+    .action(async (workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slug = resolveSlug(host, project, id, "relation", !!opts.byUid);
-      const result = await host.deleteRelation(project, slug);
+      const slug = resolveSlug(host, workbook, id, "relation", !!opts.byUid);
+      const result = await host.deleteRelation(workbook, slug);
       emit(ctx, { id: slug, op_id: result.op.op_id, deleted: true });
     });
 
   cmd
     .command("field-patch")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<id>", "relation id (slug, or uid with --by-uid)")
     .description("RFC-6902 subset patch on relation fields")
     .requiredOption("-f, --file <path>", "JSON body file with operations[]")
     .option("--if-match <revision>", "expected revision")
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
     .option("--json", "emit JSON")
-    .action(async (project, id, opts) => {
+    .action(async (workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slug = resolveSlug(host, project, id, "relation", !!opts.byUid);
+      const slug = resolveSlug(host, workbook, id, "relation", !!opts.byUid);
       const body = (await readInput(opts.file)) as { operations: JsonPatchOp[] };
-      const result = await relationFieldPatch(host, project, {
+      const result = await relationFieldPatch(host, workbook, {
         id: slug,
         operations: body.operations,
         ...(opts.ifMatch != null && { expected_revision: parseInt(String(opts.ifMatch), 10) }),
@@ -195,7 +195,7 @@ export function buildRelationCommand(host: Host): Command {
 }
 
 const RELATION_PROJECT_DEPTH_2 = firstPositionalAfter(2);
-const RELATION_PROJECT_JSON = projectFromJsonField("project", "project_id");
+const RELATION_PROJECT_JSON = projectFromJsonField("workbook", "workbook_id");
 
 export const commandMetadata: CommandMetadataMap = {
   "relation list":         { readOnly: true,  projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },

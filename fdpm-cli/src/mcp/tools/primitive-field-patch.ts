@@ -12,7 +12,7 @@ import { Tier2EnvelopeBase, type Tier2Envelope } from "../tier2-envelope.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     payload: z
       .object({
         id: z.string().min(1),
@@ -50,7 +50,7 @@ export const tool: McpToolEntry<
   annotations: { destructiveHint: false },
   handler: async (host, args) => {
     const { append, report } = await host.fieldPatchPrimitive(
-      args.project_id,
+      args.workbook_id,
       args.payload,
     );
     return {

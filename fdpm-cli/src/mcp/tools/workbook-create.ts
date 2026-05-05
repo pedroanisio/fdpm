@@ -1,9 +1,9 @@
 /**
- * `fdpm.project.create` — Tier 2 (validating-write).
+ * `fdpm.workbook.create` — Tier 2 (validating-write).
  *
- * Creates a new project bound to a registered profile. Returns the
+ * Creates a new workbook bound to a registered profile. Returns the
  * SPEC §8.2 envelope: `{ ok, operation, validation_report,
- * post_state_summary }`. `project.create` is not gated by the §7
+ * post_state_summary }`. `workbook.create` is not gated by the §7
  * validation pipeline (no instance to validate against the profile);
  * the Host returns a synthetic accepted ValidationReport so callers
  * see a uniform shape regardless of tool.
@@ -15,7 +15,7 @@ import { Tier2EnvelopeBase, type Tier2Envelope } from "../tier2-envelope.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     name: z.string().min(1),
     profile_id: z.string().min(1),
     description: z.string().optional(),
@@ -24,7 +24,7 @@ const Input = z
 
 const PostStateSummary = z
   .object({
-    project_id: z.string(),
+    workbook_id: z.string(),
     profile_id: z.string(),
   })
   .strict();
@@ -40,24 +40,24 @@ export const tool: McpToolEntry<
   z.infer<typeof Input>,
   Tier2Envelope<z.infer<typeof PostStateSummary>>
 > = {
-  name: "fdpm.project.create",
+  name: "fdpm.workbook.create",
   tier: "validating_write",
   description:
-    "Create a new project bound to a registered profile. The profile_id MUST already be registered (call fdpm.profile.list to discover what's available; fdpm.profile.register to add a new one). The project_id MUST be unique within the data dir; collision returns `conflict`. Returns the standard Tier-2 envelope including operation and validation_report.",
+    "Create a new workbook bound to a registered profile. The profile_id MUST already be registered (call fdpm.profile.list to discover what's available; fdpm.profile.register to add a new one). The workbook_id MUST be unique within the data dir; collision returns `conflict`. Returns the standard Tier-2 envelope including operation and validation_report.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },
   handler: async (host, args) => {
     const append = await host.createProject({
-      project_id: args.project_id,
+      workbook_id: args.workbook_id,
       name: args.name,
       profile_id: args.profile_id,
       ...(args.description !== undefined && { description: args.description }),
     });
-    // project.create does not run the §7 instance pipeline. Synthesize
+    // workbook.create does not run the §7 instance pipeline. Synthesize
     // an accepted report so the envelope shape is uniform.
     const report = {
-      target_id: args.project_id,
+      target_id: args.workbook_id,
       findings: [],
       accepted: true,
     };
@@ -66,7 +66,7 @@ export const tool: McpToolEntry<
       operation: append.op,
       validation_report: report,
       post_state_summary: {
-        project_id: args.project_id,
+        workbook_id: args.workbook_id,
         profile_id: args.profile_id,
       },
     };

@@ -8,7 +8,7 @@ import { Tier2EnvelopeBase, type Tier2Envelope } from "../tier2-envelope.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     patch: z
       .object({
         id: z.string().min(1),
@@ -23,7 +23,7 @@ const Input = z
 const PostStateSummary = z
   .object({
     primitive_id: z.string(),
-    project_id: z.string(),
+    workbook_id: z.string(),
     fields_touched: z.array(z.string()),
   })
   .strict();
@@ -48,7 +48,7 @@ export const tool: McpToolEntry<
   annotations: { destructiveHint: false },
   handler: async (host, args) => {
     const { append, report } = await host.patchPrimitive(
-      args.project_id,
+      args.workbook_id,
       args.patch,
     );
     const touched = Object.keys(args.patch.field_values);
@@ -59,7 +59,7 @@ export const tool: McpToolEntry<
       validation_report: report,
       post_state_summary: {
         primitive_id: args.patch.id,
-        project_id: args.project_id,
+        workbook_id: args.workbook_id,
         fields_touched: touched,
       },
     };

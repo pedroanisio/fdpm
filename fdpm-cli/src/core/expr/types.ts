@@ -74,9 +74,9 @@ export function makeProjectValue(
   fingerprint: string,
 ): ExprProjectValue {
   return {
-    id: slice.project.id,
-    profile_id: slice.project.profile_id,
-    revision: slice.project.revision,
+    id: slice.workbook.id,
+    profile_id: slice.workbook.profile_id,
+    revision: slice.workbook.revision,
     fingerprint,
     primitives: Object.values(slice.primitives).map(mapPrimitiveToCEL),
     relations: Object.values(slice.relations).map(mapRelationToCEL),

@@ -49,7 +49,7 @@ describe("generator determinism", () => {
         transferPath,
         JSON.stringify({
           spec_core: "1.1",
-          project: {
+          workbook: {
             id: "p",
             name: "P",
             profile_id: PROFILE_ID,
@@ -114,7 +114,7 @@ describe("generator determinism", () => {
         transferPath,
         JSON.stringify({
           spec_core: "1.1",
-          project: {
+          workbook: {
             id: "p",
             name: "P",
             profile_id: "profile:nonexistent:9.9",
@@ -146,7 +146,7 @@ describe("generator determinism", () => {
         transferPath,
         JSON.stringify({
           spec_core: "1.1",
-          project: {
+          workbook: {
             id: "p",
             name: "P",
             profile_id: PROFILE_ID,

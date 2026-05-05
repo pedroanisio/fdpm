@@ -46,7 +46,7 @@ export interface BackupManifest {
     created_by_host_version: string;
   };
   files: BackupManifestFileEntry[];
-  projects: { id: string; log_size: number; log_sha256: string }[];
+  workbooks: { id: string; log_size: number; log_sha256: string }[];
   profiles: { id: string; sha256: string }[];
   warnings: string[];
   exit_status: "ok" | "warn";
@@ -132,8 +132,8 @@ function toBundleRel(root: string, path: string): string {
 
 /**
  * Plan the bundle: walk the data dir, compute per-file sha256 and
- * content_type, classify into projects/profiles/other for the
- * manifest tables. Skips `workspace.json` from the projects/profiles
+ * content_type, classify into workbooks/profiles/other for the
+ * manifest tables. Skips `workspace.json` from the workbooks/profiles
  * tables (it is its own top-level file).
  */
 async function planBundle(
@@ -156,14 +156,14 @@ async function planBundle(
 
     const relForCategorize = toBundleRel(dataDir, abs);
     const segs = relForCategorize.split(posix.sep);
-    if (segs[0] === "projects" && segs.length === 3 && segs[2] === "log.jsonl") {
+    if (segs[0] === "workbooks" && segs.length === 3 && segs[2] === "log.jsonl") {
       projectIndex.set(segs[1]!, { log_size: bytes, log_sha256: sha });
     } else if (segs[0] === "profiles" && segs.length === 2 && segs[1]!.endsWith(".json")) {
       profileEntries.push({ id: segs[1]!.replace(/\.json$/, ""), sha256: sha });
     }
   }
 
-  const projects = [...projectIndex.entries()]
+  const workbooks = [...projectIndex.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([id, info]) => ({ id, ...info }));
   profileEntries.sort((a, b) => a.id.localeCompare(b.id));
@@ -180,7 +180,7 @@ async function planBundle(
       created_by_host_version: identity.created_by_host_version,
     },
     files: fileEntries,
-    projects,
+    workbooks,
     profiles: profileEntries,
     warnings: [],
     exit_status: "ok",

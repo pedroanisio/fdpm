@@ -17,7 +17,7 @@ const longTitle = "x".repeat(300); // > test:section.title max_length 200
 async function seed(host: Awaited<ReturnType<typeof newHost>>) {
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
+    workbook: {
       id: "p",
       name: "P",
       profile_id: "test:demo",
@@ -98,7 +98,7 @@ describe("§9.7 patchRelation — touched-paths default", () => {
     // existing relation type, so this test verifies the no-regression
     // path: a normal patch still succeeds in the touched-paths default.
     const host = await newHost();
-    await host.createProject({ project_id: "q", name: "Q", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "q", name: "Q", profile_id: "test:demo" });
     await host.createPrimitive("q", {
       id: "section:s",
       type_id: "test:section",

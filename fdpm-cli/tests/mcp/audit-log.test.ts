@@ -38,7 +38,7 @@ describe("audit log — completeness and validation_status", () => {
     await host.load();
     await host.registerProfile(TEST_PROFILE);
     await host.createProject({
-      project_id: "p1",
+      workbook_id: "p1",
       name: "P1",
       profile_id: "test:demo",
     });
@@ -61,7 +61,7 @@ describe("audit log — completeness and validation_status", () => {
       const r1 = await dispatcher.call("fdpm.health", {});
       expect(r1.isError).toBe(false);
       const r2 = await dispatcher.call("fdpm.primitive.create", {
-        project_id: "p1",
+        workbook_id: "p1",
         primitive: {
           id: `section:${primIndex}`,
           type_id: "test:section",
@@ -120,7 +120,7 @@ describe("audit log — completeness and validation_status", () => {
     await host.load();
     await host.registerProfile(TEST_PROFILE);
     await host.createProject({
-      project_id: "p1",
+      workbook_id: "p1",
       name: "P1",
       profile_id: "test:demo",
     });
@@ -137,7 +137,7 @@ describe("audit log — completeness and validation_status", () => {
     const dispatcher = createDispatcher(host, ctx, audit);
 
     const result = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:big",
         type_id: "test:section",

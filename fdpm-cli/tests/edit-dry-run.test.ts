@@ -12,8 +12,8 @@ import { batchEdit } from "../src/core/host-extra.js";
 describe("batchEdit dry-run", () => {
   it("returns would-* outcomes without changing revision", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
-    const before = host.getProject("p").project.revision;
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
+    const before = host.getProject("p").workbook.revision;
     const result = await batchEdit(
       host,
       "p",
@@ -39,15 +39,15 @@ describe("batchEdit dry-run", () => {
       "would-created",
       "would-patched",
     ]);
-    const after = host.getProject("p").project.revision;
+    const after = host.getProject("p").workbook.revision;
     expect(after).toBe(before);
     expect(host.getProject("p").primitives["section:a"]).toBeUndefined();
   });
 
   it("rejects malformed payload before applying anything", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
-    const before = host.getProject("p").project.revision;
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
+    const before = host.getProject("p").workbook.revision;
     await expect(
       batchEdit(
         host,
@@ -71,12 +71,12 @@ describe("batchEdit dry-run", () => {
         { dryRun: true },
       ),
     ).rejects.toThrow(/payload schema violation/);
-    expect(host.getProject("p").project.revision).toBe(before);
+    expect(host.getProject("p").workbook.revision).toBe(before);
   });
 
   it("mutating mode still works end-to-end (no regression)", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     const result = await batchEdit(host, "p", [
       {
         kind: "primitive.create",

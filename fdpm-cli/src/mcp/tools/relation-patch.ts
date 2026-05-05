@@ -8,7 +8,7 @@ import { Tier2EnvelopeBase, type Tier2Envelope } from "../tier2-envelope.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     patch: z
       .object({
         id: z.string().min(1),
@@ -22,7 +22,7 @@ const Input = z
 const PostStateSummary = z
   .object({
     relation_id: z.string(),
-    project_id: z.string(),
+    workbook_id: z.string(),
   })
   .strict();
 
@@ -46,7 +46,7 @@ export const tool: McpToolEntry<
   annotations: { destructiveHint: false },
   handler: async (host, args) => {
     const { append, report } = await host.patchRelation(
-      args.project_id,
+      args.workbook_id,
       args.patch,
     );
     return {
@@ -55,7 +55,7 @@ export const tool: McpToolEntry<
       validation_report: report,
       post_state_summary: {
         relation_id: args.patch.id,
-        project_id: args.project_id,
+        workbook_id: args.workbook_id,
       },
     };
   },

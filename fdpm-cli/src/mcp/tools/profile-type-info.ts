@@ -46,7 +46,7 @@ const PrimitiveTypeInfo = z
     category_id: z.string().optional(),
     description: z.string().optional(),
     id_pattern: z.string().describe("Regex (or template) the instance id MUST match."),
-    id_uniqueness: z.enum(["global", "project", "per_scope", "per_parent"]),
+    id_uniqueness: z.enum(["global", "workbook", "per_scope", "per_parent"]),
     scoped: z.boolean(),
     is_partition_unit: z.boolean(),
     fields: z

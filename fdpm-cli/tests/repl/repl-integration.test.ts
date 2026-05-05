@@ -145,7 +145,7 @@ describe("AC-5 — JSON-mode framing (stdout = pure JSON, stderr = banners/error
   it("error envelopes go to stderr, not stdout", () => {
     const r = runRepl({
       dataDir,
-      scriptText: "primitive list nonexistent-project\n:quit\n",
+      scriptText: "primitive list nonexistent-workbook\n:quit\n",
       flags: ["--json"],
     });
     // The error appears on stderr.
@@ -218,12 +218,12 @@ describe("AC-7 — forbidden meta-commands rejected", () => {
 
 describe("AC-3 + AC-4 — freshness gate (strict refusal vs. lenient replay)", () => {
   function setupProject(): string {
-    // Create a project via one-shot CLI so the REPL session has
+    // Create a workbook via one-shot CLI so the REPL session has
     // something to start from.
     const r = runOneShot({
       dataDir,
       args: [
-        "project",
+        "workbook",
         "create",
         "--id",
         "fresh-proj",
@@ -238,13 +238,13 @@ describe("AC-3 + AC-4 — freshness gate (strict refusal vs. lenient replay)", (
   }
 
   it("AC-4 (lenient): a read-only command tail-replays an OOB append", () => {
-    const project = setupProject();
-    // Inject an OOB-written op directly into the project log: a
+    const workbook = setupProject();
+    // Inject an OOB-written op directly into the workbook log: a
     // primitive.create.
-    appendRawOp(dataDir, project, {
+    appendRawOp(dataDir, workbook, {
       op_id: ulidLike("OOBA1"),
       kind: "primitive.create",
-      project_id: project,
+      workbook_id: workbook,
       payload: {
         id: "section:oob-1",
         type_id: "fs:Section",
@@ -272,7 +272,7 @@ describe("AC-3 + AC-4 — freshness gate (strict refusal vs. lenient replay)", (
     // replay and surface the OOB-injected primitive.
     const r = runRepl({
       dataDir,
-      scriptText: `primitive list ${project} --json\n:quit\n`,
+      scriptText: `primitive list ${workbook} --json\n:quit\n`,
       flags: ["--json"],
     });
     expect(r.exitCode).toBe(0);
@@ -285,7 +285,7 @@ describe("AC-3 + AC-4 — freshness gate (strict refusal vs. lenient replay)", (
   });
 
   it("AC-3 (strict): a write-capable command refuses with permission+stale_state after an OOB append", () => {
-    const project = setupProject();
+    const workbook = setupProject();
 
     // The REPL boots, takes a freshness snapshot (initial state),
     // THEN we inject an OOB op, THEN the next write-capable command
@@ -315,8 +315,8 @@ describe("AC-3 + AC-4 — freshness gate (strict refusal vs. lenient replay)", (
     // skip the strict-mode-via-spawn case here and rely on the
     // unit-level Host.reloadProjectTail tests + the staleStateException
     // tests to prove the gate's behavior. The integration coverage
-    // for AC-3 lives in tests/host-reload-project-tail.test.ts
-    // (host_compat throws) and tests/host-reload-project-tail.test.ts
+    // for AC-3 lives in tests/host-reload-workbook-tail.test.ts
+    // (host_compat throws) and tests/host-reload-workbook-tail.test.ts
     // (staleStateException helper).
     //
     // What we CAN assert here: the freshness gate plumbing fires
@@ -324,7 +324,7 @@ describe("AC-3 + AC-4 — freshness gate (strict refusal vs. lenient replay)", (
     // documentation marker so future work can fill in the gap with
     // an interactive spawn (using process.stdin.write between
     // commands).
-    void project;
+    void workbook;
     expect(true).toBe(true);
   });
 });

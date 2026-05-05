@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Host } from "../../src/core/host.js";
 import { tool as profileGetTool } from "../../src/mcp/tools/profile-get.js";
-import { tool as projectGetTool } from "../../src/mcp/tools/project-get.js";
+import { tool as workbookGetTool } from "../../src/mcp/tools/workbook-get.js";
 import { tool as primitiveGetTool } from "../../src/mcp/tools/primitive-get.js";
 import { applyFieldsProjection } from "../../src/mcp/projection.js";
 
@@ -72,20 +72,20 @@ describe("Tier-1 tools accept fields argument", () => {
     ).toBe(false);
   });
 
-  it("fdpm.project.get accepts fields", () => {
+  it("fdpm.workbook.get accepts fields", () => {
     expect(
-      projectGetTool.input.safeParse({ project_id: "p", fields: ["primitive_count"] }).success,
+      workbookGetTool.input.safeParse({ workbook_id: "p", fields: ["primitive_count"] }).success,
     ).toBe(true);
-    expect(projectGetTool.input.safeParse({ project_id: "p" }).success).toBe(true);
+    expect(workbookGetTool.input.safeParse({ workbook_id: "p" }).success).toBe(true);
   });
 
   it("fdpm.primitive.get accepts fields", () => {
     expect(
-      primitiveGetTool.input.safeParse({ project_id: "p", id: "x", fields: ["primitive"] })
+      primitiveGetTool.input.safeParse({ workbook_id: "p", id: "x", fields: ["primitive"] })
         .success,
     ).toBe(true);
     expect(
-      primitiveGetTool.input.safeParse({ project_id: "p", id: "x" }).success,
+      primitiveGetTool.input.safeParse({ workbook_id: "p", id: "x" }).success,
     ).toBe(true);
   });
 

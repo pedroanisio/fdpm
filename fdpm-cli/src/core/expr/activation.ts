@@ -27,7 +27,7 @@ export interface TierBOsContext {
 }
 
 export interface ValidationActivationOptions {
-  project: ExprProjectValue;
+  workbook: ExprProjectValue;
   host: {
     fdpmVersion: string;
     helperSetVersion: string;
@@ -75,7 +75,7 @@ export function createBaseEnvironment(): Environment {
       scope_id: "dyn",
     },
   });
-  env.registerVariable("project", {
+  env.registerVariable("workbook", {
     schema: {
       id: "string",
       profile_id: "string",
@@ -122,7 +122,7 @@ export function createBaseEnvironment(): Environment {
 
   // Existence helpers (helper-set v1.1.0; SPEC-EXPRESSION-RUNTIME §M14
   // amendment, SPEC-CEL-VALIDATOR §6 amendment). Both expose the
-  // project-primitive set the activation already carries.
+  // workbook-primitive set the activation already carries.
   env.registerFunction(
     "dyn.exists(string):bool",
     (
@@ -164,13 +164,13 @@ export function createValidationActivationContext(
       instance_id: instance.id,
       relations,
       // Existence helpers (SPEC-EXPRESSION-RUNTIME §M14 helper-set v1.1.0)
-      // need the project's primitive set. The activation's `project.primitives`
+      // need the workbook's primitive set. The activation's `workbook.primitives`
       // is already mapped via mapPrimitiveToCEL — its `{id}` is sufficient
       // for primitiveExists / targetsExist.
-      primitives: options.project.primitives,
+      primitives: options.workbook.primitives,
     },
     doc: mapPrimitiveToCEL(instance),
-    project: options.project,
+    workbook: options.workbook,
     env: createEnvBinding(permissions, options.env, git),
     host: createHostBinding(permissions, options.host, options.osInfo),
   };

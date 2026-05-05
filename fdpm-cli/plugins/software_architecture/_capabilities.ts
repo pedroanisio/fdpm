@@ -175,12 +175,12 @@ export function registerSoftwareArchitectureCapabilities(ctx: PluginContext): vo
       if (record.kind === "primitive") primitives.push(record.data as PrimitiveInstance);
       else if (record.kind === "relation") relations.push(record.data as RelationInstance);
     }
-    const projectId = options?.projectId ?? "sw-imported";
+    const workbookId = options?.workbookId ?? "sw-imported";
     const transfer: ProjectTransfer = {
       spec_core: "1.1.0",
-      project: {
-        id: projectId,
-        name: options?.projectName ?? projectId,
+      workbook: {
+        id: workbookId,
+        name: options?.projectName ?? workbookId,
         profile_id: "profile:software-architecture:1.0",
         created_at: new Date().toISOString(),
         revision: 0,

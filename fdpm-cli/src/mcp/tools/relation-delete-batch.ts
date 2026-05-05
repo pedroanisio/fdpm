@@ -14,7 +14,7 @@ import { Operation } from "../../core/operations/operation.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     relation_ids: z
       .array(z.string().min(1))
       .min(1)
@@ -53,7 +53,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
       kind: "relation.delete" as const,
       payload: { id },
     }));
-    const { outputs } = await host.appendBatchWithCausation(args.project_id, intents);
+    const { outputs } = await host.appendBatchWithCausation(args.workbook_id, intents);
     return {
       ok: true,
       operations: outputs.map((o) => o.op),

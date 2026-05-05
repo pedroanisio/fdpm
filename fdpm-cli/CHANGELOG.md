@@ -13,7 +13,7 @@ disclaimer:
 All notable changes to `@fdpm/cli` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this workbook adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The SDK surface re-exported from `src/sdk.ts` carries its own
 `0.x` stability note documented inside the file; breaking changes to
 the SDK shape are still recorded here so embedders see them on
@@ -95,9 +95,9 @@ suite, and MCP-bin precedence are all in this slice.
     verify`. Wired through `buildProgram` and `ALL_COMMAND_METADATA`.
     All subcommands carry SPEC-REPL §10.2 metadata as
     `NO_PROJECT_ARGV` / `NO_PROJECT_JSON` because workspace ops never
-    touch project logs (the freshness gate has nothing to stat).
+    touch workbook logs (the freshness gate has nothing to stat).
     `verify` does an out-of-band `Host.load()` round-trip and reports
-    project count + elapsed_ms.
+    workbook count + elapsed_ms.
 
   - **Host integration** (`src/core/host.ts`): `host.workspace:
     Workspace | null` populated after `load()` / `reload()` /
@@ -161,7 +161,7 @@ rejections from leaking out as MCP-protocol errors.
 
   - **Per-session freshness map** (`src/mcp/session.ts`):
     `recordSeen` / `checkFreshness` / `markFresh` /
-    `clearFreshnessMap`. Tracks `(mtime_ns, size)` for every project
+    `clearFreshnessMap`. Tracks `(mtime_ns, size)` for every workbook
     log this session has touched. Strict bigint-tuple equality on the
     pair; "not seen yet" → not stale (recorded fresh on first
     encounter). The map is purely in-memory; SIGHUP-triggered
@@ -177,7 +177,7 @@ rejections from leaking out as MCP-protocol errors.
     `host_compat` from `Host.reloadProjectTail` propagates as an MCP
     error envelope. Successful Tier-2/3 writes re-seed the freshness
     map so the same session can issue consecutive writes against the
-    same project.
+    same workbook.
 
   - **Six new Tier-1 read-only tools**: `fdpm.primitive.search`,
     `fdpm.primitive.get`, `fdpm.relation.list`, `fdpm.relation.get`,
@@ -186,7 +186,7 @@ rejections from leaking out as MCP-protocol errors.
     / `Host.getProject` reads — no new Host methods required.
 
   - **Eleven Tier-2 validating-write tools**: `fdpm.profile.register`,
-    `fdpm.project.create`, `fdpm.primitive.create`,
+    `fdpm.workbook.create`, `fdpm.primitive.create`,
     `fdpm.primitive.replace`, `fdpm.primitive.patch`,
     `fdpm.primitive.field_patch`, `fdpm.relation.create`,
     `fdpm.relation.replace`, `fdpm.relation.patch`,
@@ -221,7 +221,7 @@ rejections from leaking out as MCP-protocol errors.
 
   - **Tool ↔ command-metadata mapping** (`src/mcp/tool-metadata-map.ts`):
     explicit table that maps every MCP tool name to either an
-    `ALL_COMMAND_METADATA` key, `null` (no project state), or an
+    `ALL_COMMAND_METADATA` key, `null` (no workbook state), or an
     inline `ProjectIdsFromJson` extractor (used for the `log.*`
     tools whose closest CLI peer key isn't a 1:1 name match).
     Boot-time assertion in `manifest.ts` fails server start if any
@@ -255,7 +255,7 @@ are now testable end-to-end in `tests/mcp/`.
 
   - **Tier 3 tools** (off by default; opt in via `--enable-destructive`
     / `FDPM_MCP_ENABLE_DESTRUCTIVE=1`):
-    - `fdpm.project.delete` — wraps `Host.deleteProject`.
+    - `fdpm.workbook.delete` — wraps `Host.deleteProject`.
     - `fdpm.primitive.delete` — wraps `Host.deletePrimitive`.
     - `fdpm.relation.delete` — wraps `Host.deleteRelation`.
 
@@ -308,7 +308,7 @@ are now testable end-to-end in `tests/mcp/`.
 
   - **Defense-in-depth in `resolveProjectIds`**: the freshness-step
     helper now treats a tool name absent from `TOOL_TO_COMMAND_METADATA`
-    as "no project state" instead of throwing. The boot-time check in
+    as "no workbook state" instead of throwing. The boot-time check in
     `manifest.ts` still rejects manifest drift; the runtime fallback
     only matters for synthetic test tools injected via the
     `resolveTool` seam.
@@ -326,8 +326,8 @@ transport with five Tier 1 read-only tools:
   - `fdpm.health` — server liveness + manifest version + counts.
   - `fdpm.profile.list` — registered DomainProfiles.
   - `fdpm.profile.get` — fetch a profile by id.
-  - `fdpm.project.list` — loaded projects.
-  - `fdpm.project.get` — project row + primitive/relation counts.
+  - `fdpm.workbook.list` — loaded workbooks.
+  - `fdpm.workbook.get` — workbook row + primitive/relation counts.
 
 Architecture follows SPEC-MCP-SERVER §4 (Architectural Principles), §8
 (Tool Surface tiers), §11 (Zod source of truth, JSON Schema derived),
@@ -370,8 +370,8 @@ Known gaps deferred to slice B-final / slice C:
 
   - **Freshness check** — the dispatcher's freshness step is a no-op
     in slice B-prelim. Tier 1 tools are safe under this relaxation
-    (they take an explicit `project_id` for a pure read or touch no
-    project state). Tier 2 / Tier 3 tools cannot land until the
+    (they take an explicit `workbook_id` for a pure read or touch no
+    workbook state). Tier 2 / Tier 3 tools cannot land until the
     freshness mechanism is wired (REPL track step 3+5; the
     `Host.reload` and `Host.statProjectLog` primitives exist but the
     dispatcher does not yet consult them). See the `SLICE-B-FINAL`
@@ -435,19 +435,19 @@ New built-in plugin under `plugins/spec_authoring_dnis/` declares a
 profile that `extends` both `profile:spec-authoring:0.1` and
 `profile:dnis:0.1`. Build scripts that opt in get spec-authoring's
 typed primitives AND DNIS's `dnis:Document`/`dnis:Node` registered
-in the same project. The §4.3 profile-resolution merge handles the
-extends chain; existing `profile:spec-authoring:0.1` projects are
+in the same workbook. The §4.3 profile-resolution merge handles the
+extends chain; existing `profile:spec-authoring:0.1` workbooks are
 unaffected.
 
 #### SPEC-SECTIONS-TREE v0.2 — sections as DNIS Nodes
 
 The `spec:SpecMarkdownRenderer` gains a DNIS-backed section path:
-when a project contains a `dnis:Document` and one or more active
+when a workbook contains a `dnis:Document` and one or more active
 `dnis:Node` primitives of `kind: "section"`, the renderer DFS-walks
 the dnis:Node graph (parent_node_id, sorted by SPEC-DNIS Position)
 and derives §N.M.K headings from the path. The legacy
 `spec:Section`/`spec:HasSection` path is preserved verbatim for
-unmigrated projects; mixed-mode projects emit a
+unmigrated workbooks; mixed-mode workbooks emit a
 `spec:render:mixed-mode-sections` warning and the DNIS path wins.
 
 The `dnis:Node` `content` JSON shape supports four optional fields
@@ -495,7 +495,7 @@ bytes for SPEC-DNIS).
 
 The spec_md renderer's closing-references-section detection was
 extended to recognise `dnis:Node` sections of `dispatch_kind:
-"references"` so migrated projects retain their authored references
+"references"` so migrated workbooks retain their authored references
 section without re-emitting the closing block.
 
 #### `Host.appendBatchWithCausation`
@@ -514,11 +514,11 @@ intended caller; ordinary plugin/transformer code continues to use
 
 #### Tooling — scripts/ type-checking
 
-New `tsconfig.scripts.json` extends the project tsconfig and scopes
+New `tsconfig.scripts.json` extends the workbook tsconfig and scopes
 `scripts/**/*.ts` under `"types": ["node"]` so build scripts type-
 check (and the IDE stops reporting `process` as undefined). Surfaced
 two real type errors in `scripts/generate-build-from-transfer.ts`
-that the project tsconfig was hiding (`PrimitiveInstance` /
+that the workbook tsconfig was hiding (`PrimitiveInstance` /
 `RelationInstance` literals were missing `uid`); both fixed by
 seeding via `mintUidFromSeed` (matches the SPEC-UID upcaster
 pattern).
@@ -547,15 +547,15 @@ pattern).
 
 Standalone, flat-args helpers wrapping the Host's edit / delete
 methods using the same operator-friendly aliases (`fields`, `scope`,
-`expectedRevision`, `project`) as `defineProject`. They live alongside
+`expectedRevision`, `workbook`) as `defineProject`. They live alongside
 `ProjectBuilder` rather than on it because the builder is documented
-as append-only / greenfield-only, and edits to a persisted project are
+as append-only / greenfield-only, and edits to a persisted workbook are
 a different workflow.
 
-- `patchPrimitive(host, { project, id, fields, scope?, expectedRevision?, fullValidate? }) → { revision, report }`
-- `patchRelation(host, { project, id, fields, expectedRevision?, fullValidate? }) → { revision, report }`
-- `deletePrimitive(host, { project, id }) → { revision }`
-- `deleteRelation(host, { project, id }) → { revision }`
+- `patchPrimitive(host, { workbook, id, fields, scope?, expectedRevision?, fullValidate? }) → { revision, report }`
+- `patchRelation(host, { workbook, id, fields, expectedRevision?, fullValidate? }) → { revision, report }`
+- `deletePrimitive(host, { workbook, id }) → { revision }`
+- `deleteRelation(host, { workbook, id }) → { revision }`
 - New types: `PatchPrimitiveInput`, `PatchRelationInput`,
   `PatchResult`, `DeleteResult` (re-exported from the package root).
 
@@ -565,7 +565,7 @@ a different workflow.
 relation references **before** `createProject` is called. When a
 relation's `from` or `to` doesn't resolve to a queued primitive,
 commit fails fast with a `verification`-category `FDPMException`
-listing every dangling ref at once, no project is created, no rollback
+listing every dangling ref at once, no workbook is created, no rollback
 is needed, and the builder is sealed against retry.
 
 Failure carries `evidence.dangling_refs: Array<{ relation_id, missing,
@@ -581,10 +581,10 @@ Survives the rollback success path AND the rollback-failure wrap.
 
 ```ts
 export interface PartialCommitFailure {
-  project_id: string;
+  workbook_id: string;
   primitives_created: number;   // count of persisted primitives
   relations_created: number;    // count of persisted relations
-  failed_at: "project" | "primitive" | "relation" | "preflight";
+  failed_at: "workbook" | "primitive" | "relation" | "preflight";
   failed_id?: string;           // id of the spec that triggered the failure
 }
 ```
@@ -614,7 +614,7 @@ The SDK's file-level docstring now formalizes the alias convention so
 future helpers stay consistent:
 
 - INPUT shapes drop `_id` / `Id` suffixes
-  (`project_id` → `project`, `type_id` → `type`, `scope_id` → `scope`,
+  (`workbook_id` → `workbook`, `type_id` → `type`, `scope_id` → `scope`,
   `source_id` → `from`, `target_id` → `to`, `rendererId` → `renderer`).
 - INPUT shapes rename `field_values` → `fields`.
 - INPUT shapes use camelCase for snake_case Host fields
@@ -632,11 +632,11 @@ the original validation error reachable via `Error.cause`.
 
 #### Tests
 
-- `tests/sdk-edit.test.ts` — 15 cases covering the four new edit helpers (happy-path patch with revision bump + `ValidationReport` shape, `scope` alias forwarding, `expectedRevision` → `conflict`, validation errors → `validation`, `not_found` for unknown ids, `fullValidate` flag forwarding, no-op patch on a fields-less relation, delete success, delete on unknown project, end-to-end create→patch→delete roundtrip).
+- `tests/sdk-edit.test.ts` — 15 cases covering the four new edit helpers (happy-path patch with revision bump + `ValidationReport` shape, `scope` alias forwarding, `expectedRevision` → `conflict`, validation errors → `validation`, `not_found` for unknown ids, `fullValidate` flag forwarding, no-op patch on a fields-less relation, delete success, delete on unknown workbook, end-to-end create→patch→delete roundtrip).
 - `tests/sdk-public-surface.test.ts` — 3 cases pinning the package-root export contract (SDK helpers, host-extra functions referenced by the SDK docstring, `Host`/`FDPMException` value exports).
 - `tests/sdk-p2.test.ts` — 15 cases for generic `fields` narrowing, the cross-namespace id-sharing rejection, referential pre-flight, and `partial_commit` evidence on every failure path (including survival through rollback success and rollback-failure wrap).
 - `tests/sdk-p3.test.ts` — 11 cases pinning the `RenderOptions` rename and the alias-convention rules across every SDK input shape via `expectTypeOf`.
-- `tests/sdk-pass2.test.ts` — 4 new P0 regression cases (double-commit guard on success path, double-commit guard on rolled-back failure, sealed-builder rejection of `primitives()`/`relations()` after commit, empty-project rollback edge case, cause-chain preservation through rollback-failure wrap).
+- `tests/sdk-pass2.test.ts` — 4 new P0 regression cases (double-commit guard on success path, double-commit guard on rolled-back failure, sealed-builder rejection of `primitives()`/`relations()` after commit, empty-workbook rollback edge case, cause-chain preservation through rollback-failure wrap).
 
 ### Changed
 
@@ -663,8 +663,8 @@ output envelope (`RenderResult`) keeps `rendererId` and `pluginId`
 because those are provenance fields, not aliases.
 
 ```diff
-- await renderProject(host, { project, target, rendererId: "fs:SpecRenderer" });
-+ await renderProject(host, { project, target, renderer: "fs:SpecRenderer" });
+- await renderProject(host, { workbook, target, rendererId: "fs:SpecRenderer" });
++ await renderProject(host, { workbook, target, renderer: "fs:SpecRenderer" });
 ```
 
 `RenderResult.rendererId` and `RenderResult.pluginId` are unchanged.
@@ -682,10 +682,10 @@ with documented rationale** (regression tests pin the rejection):
   legitimate import workflows from systems with shared id namespaces.
   Pinned by `tests/sdk-p2.test.ts › "rejected: cross-namespace id
   sharing is allowed by design"`.
-- **`projectId` / `targetMimeType` renames on `RenderOptions`.** The
+- **`workbookId` / `targetMimeType` renames on `RenderOptions`.** The
   audit proposed these as a consistency fix, but they go in the wrong
-  direction — `project` is *already* the SDK alias (it strips `_id`
-  from `project_id`), and `target` accepts both MIME types and
+  direction — `workbook` is *already* the SDK alias (it strips `_id`
+  from `workbook_id`), and `target` accepts both MIME types and
   symbolic ids per `RendererRegistration.target`. The real consistency
   issue was `rendererId` keeping the `Id` suffix, which is fixed
   above.

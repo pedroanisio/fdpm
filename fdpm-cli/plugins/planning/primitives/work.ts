@@ -14,7 +14,7 @@ import {
 /**
  * Work primitives — the unit of execution.
  *
- *   plan:WorkBreakdown — root container ("project", "epic"). Used to group
+ *   plan:WorkBreakdown — root container ("workbook", "epic"). Used to group
  *                        unrelated task subtrees under one banner.
  *   plan:Task          — leaf or branch work item. Carries duration, status,
  *                        priority, planned dates, optional assignee, and a
@@ -36,7 +36,7 @@ export const WORK_PRIMITIVES: PrimitiveTypeDef[] = [
     id: "plan:WorkBreakdown",
     name: "WorkBreakdown",
     category: "cat:plan:work",
-    description: "A root or branch container for a tree of tasks. Used to group an epic, project, or top-level effort under one banner.",
+    description: "A root or branch container for a tree of tasks. Used to group an epic, workbook, or top-level effort under one banner.",
     scoped: true,
     id_format: idTemplate("wbs:{name}"),
     fields: [
@@ -117,7 +117,7 @@ export const WORK_PRIMITIVES: PrimitiveTypeDef[] = [
       // relation is a redundant graph-edge form for renderer convenience.
       stableId(
         "assignee_id",
-        "Actor (Person/System/Bot) responsible for the task. References a sw:Actor primitive defined elsewhere in the project.",
+        "Actor (Person/System/Bot) responsible for the task. References a sw:Actor primitive defined elsewhere in the workbook.",
         "sw:Actor",
         { required: false },
       ),

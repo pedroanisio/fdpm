@@ -10,7 +10,7 @@ import {
 describe("§13 observability and audit", () => {
   it("core-observability-002: large audit diff is truncated and marked", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     // Create a primitive whose field_values blob is large (within the
     // verification gate's per-field max but pushing the audit diff over
     // FDPM_AUDIT_DIFF_MAX_BYTES default 32 KiB).
@@ -28,11 +28,11 @@ describe("§13 observability and audit", () => {
 
   it("audit record has all required fields per §13.3", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     const log = host.store.getOperationLog("p1");
     const record = buildAuditRecord(log[0]!, log);
     expect(record.id).toBe(record.op_id);
-    expect(record.action).toBe("project.create");
+    expect(record.action).toBe("workbook.create");
     expect(record.actor).toBeTruthy();
     expect(record.request_id).toBeTruthy();
   });

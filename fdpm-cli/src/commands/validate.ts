@@ -9,7 +9,7 @@ import {
 } from "./metadata.js";
 
 /**
- * `fdpm validate <project>` — read-only project-wide validation.
+ * `fdpm validate <workbook>` — read-only workbook-wide validation.
  *
  * Runs the same `runPrimitive` / `runRelation` validators that gate
  * writes, against the *current* projection. No state changes. Useful for:
@@ -26,8 +26,8 @@ import {
 export function buildValidateCommand(host: Host): Command {
   const cmd = new Command("validate");
   cmd
-    .description("Run profile validation across an entire project (read-only)")
-    .argument("<project>", "project id")
+    .description("Run profile validation across an entire workbook (read-only)")
+    .argument("<workbook>", "workbook id")
     .option("--target <id...>", "restrict to specific primitive/relation ids")
     .option("--rule <rule_id...>", "restrict to specific rule_id(s)")
     .option(
@@ -39,7 +39,7 @@ export function buildValidateCommand(host: Host): Command {
     .option("--json", "emit JSON")
     .action(
       (
-        projectId: string,
+        workbookId: string,
         opts: {
           target?: string[];
           rule?: string[];
@@ -55,7 +55,7 @@ export function buildValidateCommand(host: Host): Command {
           );
         }
         const ctx: OutputContext = { json: !!opts.json };
-        const result = host.validateProject(projectId, {
+        const result = host.validateProject(workbookId, {
           ...(opts.target && { targetIds: new Set(opts.target) }),
           ...(opts.rule && { ruleIds: new Set(opts.rule) }),
           minLevel: opts.minLevel,
@@ -64,7 +64,7 @@ export function buildValidateCommand(host: Host): Command {
         emit(ctx, result, () => {
           const lines: string[] = [];
           lines.push(
-            `${result.project_id}@${result.revision}\terrors=${result.summary.errors}\twarnings=${result.summary.warnings}\tinfo=${result.summary.info}`,
+            `${result.workbook_id}@${result.revision}\terrors=${result.summary.errors}\twarnings=${result.summary.warnings}\tinfo=${result.summary.info}`,
           );
           for (const r of [...result.primitives, ...result.relations]) {
             for (const f of r.findings) {
@@ -82,7 +82,7 @@ export function buildValidateCommand(host: Host): Command {
           // Surface as validation category so handleError exits 4 (§8).
           throw new FDPMException(
             "validation",
-            `${result.summary.errors} error(s)${opts.strict ? `, ${result.summary.warnings} warning(s)` : ""} in ${projectId}`,
+            `${result.summary.errors} error(s)${opts.strict ? `, ${result.summary.warnings} warning(s)` : ""} in ${workbookId}`,
           );
         }
       },
@@ -94,6 +94,6 @@ export const commandMetadata: CommandMetadataMap = {
   validate: {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(1),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

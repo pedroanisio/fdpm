@@ -22,21 +22,21 @@ export function buildMigrateCommand(host: Host): Command {
 
   cmd
     .command("normalize-metadata")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .description(
       "Lift legacy `field_values._metadata.*` keys onto top-level field_values for every relation",
     )
     .option("--dry-run", "report what would be normalised without writing")
     .option("--json", "emit JSON")
-    .action(async (project: string, opts: { dryRun?: boolean; json?: boolean }) => {
+    .action(async (workbook: string, opts: { dryRun?: boolean; json?: boolean }) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const result = await host.migrateNormalizeMetadata(project, {
+      const result = await host.migrateNormalizeMetadata(workbook, {
         dryRun: opts.dryRun === true,
       });
       emit(ctx, result, () => {
         const lines: string[] = [];
         lines.push(
-          `${result.project_id}\tinspected=${result.inspected}\tnormalised=${result.normalised.length}\tskipped=${result.skipped.length}\terrors=${result.errors.length}${result.dry_run ? "\t(dry-run)" : ""}`,
+          `${result.workbook_id}\tinspected=${result.inspected}\tnormalised=${result.normalised.length}\tskipped=${result.skipped.length}\terrors=${result.errors.length}${result.dry_run ? "\t(dry-run)" : ""}`,
         );
         for (const id of result.normalised) lines.push(`  ~ ${id}`);
         for (const e of result.errors) lines.push(`  ! ${e.id}\t${e.message}`);
@@ -51,6 +51,6 @@ export const commandMetadata: CommandMetadataMap = {
   "migrate normalize-metadata": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

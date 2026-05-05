@@ -79,7 +79,7 @@ describe("SPEC-UID AC-1: schema declares uid as a length-26 ULID", () => {
 describe("SPEC-UID AC-2: uid immutability across replace/patch", () => {
   it("createPrimitive produces a 26-char ULID and replace/patch preserve it", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     const created = await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -111,7 +111,7 @@ describe("SPEC-UID AC-2: uid immutability across replace/patch", () => {
 
   it("createRelation mints a uid; replace/patch preserve it", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:s",
       type_id: "test:section",
@@ -141,7 +141,7 @@ describe("SPEC-UID AC-2: uid immutability across replace/patch", () => {
 
   it("rejects an operator-supplied uid on createPrimitive (Core-only mint site)", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await expect(
       host.createPrimitive("p", {
         id: "section:a",
@@ -186,9 +186,9 @@ function walk(dir: string, visit: (file: string) => void): void {
 
 // AC-4: round-trip export → import preserves every uid.
 describe("SPEC-UID AC-4: export → import preserves every uid", () => {
-  it("re-imported project carries the original uids", async () => {
+  it("re-imported workbook carries the original uids", async () => {
     const source = await newHost();
-    await source.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await source.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await source.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -205,11 +205,11 @@ describe("SPEC-UID AC-4: export → import preserves every uid", () => {
     const target = new Host({ dataDir: null, noPlugins: true });
     await target.load();
     await target.registerProfile(TEST_PROFILE);
-    // Re-home under a new id to dodge "project already exists" — the
-    // uids are project-orthogonal, so the round-trip survives.
+    // Re-home under a new id to dodge "workbook already exists" — the
+    // uids are workbook-orthogonal, so the round-trip survives.
     const rehomed: ProjectTransfer = {
       ...transfer,
-      project: { ...transfer.project, id: "q" },
+      workbook: { ...transfer.workbook, id: "q" },
     };
     await importTransfer(target, rehomed);
     const targetPrims = Object.values(target.getProject("q").primitives);
@@ -234,7 +234,7 @@ describe("SPEC-UID AC-5 / conformance: v1.1 → v1.2 upcaster is deterministic a
     const op: Operation = {
       op_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV",
       kind: "primitive.create",
-      project_id: "p",
+      workbook_id: "p",
       schema_version: "1.1.0",
       revision: 1,
       timestamp: "2026-05-04T00:00:00.000Z",
@@ -252,33 +252,33 @@ describe("SPEC-UID AC-5 / conformance: v1.1 → v1.2 upcaster is deterministic a
     const op: Operation = {
       op_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV",
       kind: "transfer.import",
-      project_id: "p",
+      workbook_id: "p",
       schema_version: "1.1.0",
       revision: 1,
       timestamp: "2026-05-04T00:00:00.000Z",
       request_id: "00000000-0000-7000-8000-000000000000",
-      payload: { transfer: { project_id: "p" } },
+      payload: { transfer: { workbook_id: "p" } },
     };
     expect(upcastPayload(op.kind, op.schema_version, op.payload, op)).toEqual(op.payload);
   });
 
-  it("legacy project.create ops upcast by identity", () => {
+  it("legacy workbook.create ops upcast by identity", () => {
     const op: Operation = {
       op_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-      kind: "project.create",
-      project_id: "p",
+      kind: "workbook.create",
+      workbook_id: "p",
       schema_version: "1.1.0",
       revision: 1,
       timestamp: "2026-05-04T00:00:00.000Z",
       request_id: "00000000-0000-7000-8000-000000000000",
-      payload: { project_id: "p", name: "P", profile_id: "test:demo" },
+      payload: { workbook_id: "p", name: "P", profile_id: "test:demo" },
     };
     expect(upcastPayload(op.kind, op.schema_version, op.payload, op)).toEqual(op.payload);
   });
 
   it("two replays of the same log produce identical projections (no uid drift)", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -294,9 +294,9 @@ describe("SPEC-UID AC-5 / conformance: v1.1 → v1.2 upcaster is deterministic a
 
 // AC-6: clone produces fresh uids — none equal the source's uids.
 describe("SPEC-UID AC-6: cloneProject mints fresh uids", () => {
-  it("cloned project's uids are disjoint from the source's", async () => {
+  it("cloned workbook's uids are disjoint from the source's", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -310,7 +310,7 @@ describe("SPEC-UID AC-6: cloneProject mints fresh uids", () => {
     const sourceUids = new Set(
       Object.values(host.getProject("p").primitives).map((p) => p.uid),
     );
-    await cloneProject(host, "p", { target_project_id: "q", target_project_name: "Q" });
+    await cloneProject(host, "p", { target_workbook_id: "q", target_workbook_name: "Q" });
     const cloneUids = Object.values(host.getProject("q").primitives).map((p) => p.uid);
     for (const uid of cloneUids) {
       expect(sourceUids.has(uid)).toBe(false);
@@ -323,7 +323,7 @@ describe("SPEC-UID AC-6: cloneProject mints fresh uids", () => {
 describe("SPEC-UID AC-7: --by-uid and slug addressing return the same primitive", () => {
   it("host.lookupUid resolves the index back to the same instance", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -331,15 +331,15 @@ describe("SPEC-UID AC-7: --by-uid and slug addressing return the same primitive"
     });
     const slug = host.getProject("p").primitives["section:a"]!;
     const entry = host.lookupUid(slug.uid);
-    expect(entry).toEqual({ project_id: "p", kind: "primitive", id: "section:a" });
+    expect(entry).toEqual({ workbook_id: "p", kind: "primitive", id: "section:a" });
     const byUid = host.resolvePrimitiveByUid(slug.uid);
     expect(byUid.primitive).toStrictEqual(slug);
-    expect(byUid.project_id).toBe("p");
+    expect(byUid.workbook_id).toBe("p");
   });
 
   it("uid_index drops entries when primitives are deleted", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -353,7 +353,7 @@ describe("SPEC-UID AC-7: --by-uid and slug addressing return the same primitive"
 
   it("uid_index drops cascaded relation entries when their endpoints are deleted", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:s",
       type_id: "test:section",
@@ -381,18 +381,18 @@ describe("SPEC-UID AC-7: --by-uid and slug addressing return the same primitive"
 describe("SPEC-UID transfer.import uid policies", () => {
   it("preserve mode (default) carries uids through and rejects same-uid collisions", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "A", number: 1 },
     });
     const transfer = exportTransfer(host, "p");
-    // Re-home and import: uids are preserved (project boundaries don't
+    // Re-home and import: uids are preserved (workbook boundaries don't
     // make a uid local).
     const rehomed: ProjectTransfer = {
       ...transfer,
-      project: { ...transfer.project, id: "q" },
+      workbook: { ...transfer.workbook, id: "q" },
     };
     // First re-import succeeds with preserved uids.
     await expect(importTransfer(host, rehomed)).rejects.toThrow(/uid collision/);
@@ -400,7 +400,7 @@ describe("SPEC-UID transfer.import uid policies", () => {
 
   it("merge-by-uid skips bundled records that already exist locally", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -409,7 +409,7 @@ describe("SPEC-UID transfer.import uid policies", () => {
     const transfer = exportTransfer(host, "p");
     const rehomed: ProjectTransfer = {
       ...transfer,
-      project: { ...transfer.project, id: "q" },
+      workbook: { ...transfer.workbook, id: "q" },
     };
     const result = await importTransfer(host, rehomed, { uidMode: "merge-by-uid" });
     expect(result.primitives_skipped_uid_match).toBe(1);
@@ -418,7 +418,7 @@ describe("SPEC-UID transfer.import uid policies", () => {
 
   it("mint-fresh ignores bundled uids", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -428,7 +428,7 @@ describe("SPEC-UID transfer.import uid policies", () => {
     const transfer = exportTransfer(host, "p");
     const rehomed: ProjectTransfer = {
       ...transfer,
-      project: { ...transfer.project, id: "q" },
+      workbook: { ...transfer.workbook, id: "q" },
     };
     await importTransfer(host, rehomed, { uidMode: "mint-fresh" });
     const newUid = host.getProject("q").primitives["section:a"]!.uid;

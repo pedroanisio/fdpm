@@ -172,7 +172,7 @@ export const VALIDATION_RULES: ValidationRuleDef[] = [
 
   // (8) AI tasks MUST have at least one AC with a non-empty CEL expression.
   // Two-step check: count outgoing Verifies (must be >=1) AND that at least
-  // one of the targeted AC primitives in the project carries a non-empty
+  // one of the targeted AC primitives in the workbook carries a non-empty
   // expression. The second half is hard to express in pure CEL today —
   // graph.outgoing returns ids, not the AC field_values. We approximate
   // with a structural check: AI task must have at least one Verifies edge.
@@ -193,7 +193,7 @@ export const VALIDATION_RULES: ValidationRuleDef[] = [
   // has no outgoing Implements edge.
   rule(
     "plan:val:implements-target-exists",
-    "plan:Implements targets must exist in the project",
+    "plan:Implements targets must exist in the workbook",
     "error",
     ["plan:Task"],
     'forall edges of plan:Implements: graph.exists(target)',

@@ -86,10 +86,10 @@ registerUpcaster("relation.create", "1.1.0", "1.2.0", (payload, op) => ({
 }));
 
 const IDENTITY_UPCAST_KINDS_1_1_TO_1_2: OperationKind[] = [
-  "project.create",
-  "project.delete",
-  "project.split",
-  "project.clone",
+  "workbook.create",
+  "workbook.delete",
+  "workbook.split",
+  "workbook.clone",
   "primitive.replace",
   "primitive.patch",
   "primitive.field-patch",

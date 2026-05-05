@@ -108,15 +108,15 @@ Core never depends on a plugin. The plugin runtime depends on Core. Plugins depe
 
 ### 1.4 The one-sentence test for Core membership
 
-> Could a competent operator, starting from FDPM Core with **zero plugins installed**, create an empty project, define a custom profile via the API, instantiate primitives and relations, and run validations — without ever invoking domain-specific code?
+> Could a competent operator, starting from FDPM Core with **zero plugins installed**, create an empty workbook, define a custom profile via the API, instantiate primitives and relations, and run validations — without ever invoking domain-specific code?
 
 If yes, Core is correctly drawn. Every section below contributes to making the answer yes.
 
 ### 1.5 The `core:empty` profile (zero-plugins seed)
 
-Core ships exactly one profile as Core content: `core:empty`. It declares no primitive types, no relation types, one default scope (`core:scope:doc`), and one default category (`core:category:general`). Its sole purpose is to make §10.2 baseline bullet 3 ("a project with any registered profile can be opened") satisfiable in a zero-plugins state.
+Core ships exactly one profile as Core content: `core:empty`. It declares no primitive types, no relation types, one default scope (`core:scope:doc`), and one default category (`core:category:general`). Its sole purpose is to make §10.2 baseline bullet 3 ("a workbook with any registered profile can be opened") satisfiable in a zero-plugins state.
 
-`core:empty` is **not** a domain. It contains no semantics. It exists so that the operator's first action — "create a project" — has a profile to attach to and so that integration tests of the shell are not blocked on a plugin install. Plugins MUST NOT depend on `core:empty`; profile authors MUST NOT extend it.
+`core:empty` is **not** a domain. It contains no semantics. It exists so that the operator's first action — "create a workbook" — has a profile to attach to and so that integration tests of the shell are not blocked on a plugin install. Plugins MUST NOT depend on `core:empty`; profile authors MUST NOT extend it.
 
 ---
 
@@ -141,7 +141,7 @@ These rank-ordered principles bind every Core decision and resolve conflicts. Ea
 | **Core** | Everything specified in this document. |
 | **core:empty** | The single Core-shipped profile; see §1.5. |
 | **Host** | The running FDPM process: Core + plugin runtime + activated plugins. |
-| **Instance** | A populated `PrimitiveInstance` or `RelationInstance` belonging to a Project (§5). |
+| **Instance** | A populated `PrimitiveInstance` or `RelationInstance` belonging to a Workbook (§5). |
 | **Meta-model** | The Pydantic types that constrain what a Profile can contain (§4). |
 | **Plugin boundary** | The `PluginContext` interface plus the `/plugins/{id}/...` URL namespace. The only contact surface plugins have with Core. |
 | **Profile** | A populated `DomainProfile` value. Profiles are content even when shipped as built-ins. |
@@ -163,11 +163,11 @@ All defined in `src/fdpm/models/core.py`. The following constructors are normati
 | `DomainProfile`       | Top-level container. Holds categories, scopes, primitive types, relation types, validation rules, rendering rules, templates. |
 | `CategoryDef`         | A grouping label for primitive types within a profile.                                 |
 | `ScopeDef`            | A ranked containment context (e.g. "specification", "method", "execution").       |
-| `PrimitiveTypeDef`    | A typed node in a project graph. Has fields, ID-format rule, optional inline structs, optional `is_partition_unit` (§5.4.3). |
+| `PrimitiveTypeDef`    | A typed node in a workbook graph. Has fields, ID-format rule, optional inline structs, optional `is_partition_unit` (§5.4.3). |
 | `RelationTypeDef`     | A typed edge with cardinality, source/target type IDs, optional fields.               |
 | `FieldDef`            | A typed field on a primitive or relation. Carries validations.                        |
 | `FieldValidation`     | A declarative constraint (`max_length`, `min_items`, `pattern`, …).                   |
-| `IDFormatRule`        | Pattern + uniqueness scope (`global`, `project`).                                     |
+| `IDFormatRule`        | Pattern + uniqueness scope (`global`, `workbook`).                                     |
 | `InlineStructDef`     | A nested record type used as a field value.                                           |
 | `ValidationRuleDef`   | A profile-level rule referencing primitives or relations.                             |
 | `RendererBinding`     | A declared mapping from primitive types to renderer targets.                          |
@@ -181,7 +181,7 @@ All defined in `src/fdpm/models/core.py`. The following constructors are normati
 - Every `FieldDef` has a `name` unique within its containing primitive or struct.
 - Every `IDFormatRule.pattern` produces deterministic IDs from the field values it references.
 - Every `Enum[...]` field type's value list is closed and finite.
-- `PrimitiveTypeDef.is_partition_unit` defaults to `False`. When `True`, primitives of this type are eligible Section units in `POST /projects/{id}:split` (§5.4.3). The flag is purely declarative; the validation pipeline does not change behaviour based on it.
+- `PrimitiveTypeDef.is_partition_unit` defaults to `False`. When `True`, primitives of this type are eligible Section units in `POST /workbooks/{id}:split` (§5.4.3). The flag is purely declarative; the validation pipeline does not change behaviour based on it.
 
 ### 4.3 Profile resolution
 
@@ -203,23 +203,23 @@ Resolution is Core. The data being resolved is content.
 
 ## 5. The Instance Model (Layer 2 of Core)
 
-What a populated project looks like, independent of any profile.
+What a populated workbook looks like, independent of any profile.
 
 ### 5.1 Constituent types
 
 | Type                  | Purpose                                                                                |
 | --------------------- | -------------------------------------------------------------------------------------- |
-| `Project`             | A named container holding instances of a chosen profile.                              |
+| `Workbook`             | A named container holding instances of a chosen profile.                              |
 | `PrimitiveInstance`   | A populated primitive: `id`, `type_id`, `field_values`, optional `scope_id`.          |
 | `RelationInstance`    | A populated relation: `id`, `type_id`, `source_id`, `target_id`, optional fields.     |
 | `ProjectTemplate`     | A reusable bundle of pre-populated instances.                                         |
-| `TestSuite`           | A set of declarative checks runnable against a project.                               |
+| `TestSuite`           | A set of declarative checks runnable against a workbook.                               |
 | `SuiteRunReport`      | The result of executing a `TestSuite`.                                                |
-| `ProjectTransfer`     | The serialisable form of a project for import/export.                                  |
+| `ProjectTransfer`     | The serialisable form of a workbook for import/export.                                  |
 
 ### 5.2 Invariants the instance model imposes
 
-- Every `PrimitiveInstance.type_id` resolves to a `PrimitiveTypeDef` in the project's profile.
+- Every `PrimitiveInstance.type_id` resolves to a `PrimitiveTypeDef` in the workbook's profile.
 - Every `RelationInstance` connects two `PrimitiveInstance`s whose types satisfy the `RelationTypeDef.source_type_id`/`target_type_id` constraint.
 - Every `PrimitiveInstance.id` is unique within the scope declared by its type's `IDFormatRule.uniqueness`.
 - Every required field on a primitive or relation is present at persistence time.
@@ -228,33 +228,33 @@ What a populated project looks like, independent of any profile.
 ### 5.3 What is **not** in the instance model
 
 - Domain semantics. A `PrimitiveInstance` of type `fs:Equation` is to Core just a typed record; the meaning of "equation" is plugin business.
-- Cross-project references. Instances are project-local. Cross-project federation is out of Core scope (future SPEC).
+- Cross-workbook references. Instances are workbook-local. Cross-workbook federation is out of Core scope (future SPEC).
 
-### 5.4 Core graph operations — project-level
+### 5.4 Core graph operations — workbook-level
 
-Beyond per-primitive CRUD (§9.7) and structural reordering / reparenting (§9.7.7), two **project-level** operations are domain-neutral mutations on the project graph. Core owns them; plugins MUST NOT re-implement them. Each operation goes through the §7 validation pipeline for every primitive it touches and emits one or more audit records per §13.3.
+Beyond per-primitive CRUD (§9.7) and structural reordering / reparenting (§9.7.7), two **workbook-level** operations are domain-neutral mutations on the workbook graph. Core owns them; plugins MUST NOT re-implement them. Each operation goes through the §7 validation pipeline for every primitive it touches and emits one or more audit records per §13.3.
 
-These operations are **additive in v1.0**: they extend the platform endpoint set (§9.1) with two new routes (`:split`, `:clone`) and one new optional meta-model field (`PrimitiveTypeDef.is_partition_unit`). Reordering primitives within a project is **not** in this section — that is §9.7.7's `structure:reorder`, which already covers the use case via scope-membership permutation.
+These operations are **additive in v1.0**: they extend the platform endpoint set (§9.1) with two new routes (`:split`, `:clone`) and one new optional meta-model field (`PrimitiveTypeDef.is_partition_unit`). Reordering primitives within a workbook is **not** in this section — that is §9.7.7's `structure:reorder`, which already covers the use case via scope-membership permutation.
 
-#### 5.4.1 Project split — `POST /projects/{id}:split`
+#### 5.4.1 Workbook split — `POST /workbooks/{id}:split`
 
-Splits one project into N projects along an explicit Section partition.
+Splits one workbook into N workbooks along an explicit Section partition.
 
 **Request body** carries an ordered `partition` of ≥ 2 entries (each with `target_project_name`, optional `target_project_id`, and a list of Section primitive IDs), plus `cross_partition_relations: "drop"` (the only v1.0 value), plus optional `include_unassigned: "first" | "last" | "none"`.
 
-**Semantics:** validate the partition is total over the supplied Sections; compute primitive assignment by containing Section; for each entry atomically create a new project with the same `profile_id`, deep-copy assigned primitives; cross-partition relations are dropped (the response lists them); the source project is deleted on success; one `project.split` audit record on the source plus per-new-project `project.create` plus per-dropped `relation.drop`, all under the same `request_id`.
+**Semantics:** validate the partition is total over the supplied Sections; compute primitive assignment by containing Section; for each entry atomically create a new workbook with the same `profile_id`, deep-copy assigned primitives; cross-partition relations are dropped (the response lists them); the source workbook is deleted on success; one `workbook.split` audit record on the source plus per-new-workbook `workbook.create` plus per-dropped `relation.drop`, all under the same `request_id`.
 
-**Atomicity:** all-or-nothing. If any partition entry fails its validation pipeline, Core rolls back: no new projects, source unchanged, 4xx response.
+**Atomicity:** all-or-nothing. If any partition entry fails its validation pipeline, Core rolls back: no new workbooks, source unchanged, 4xx response.
 
-**Refused inputs:** partition with < 2 entries → 400 `validation`; Section appearing in two entries → 400 `validation`; target project ID already exists → 409 `conflict`; `cross_partition_relations` other than `"drop"` → 400 `verification`; source project has no Sections → 400 `validation`.
+**Refused inputs:** partition with < 2 entries → 400 `validation`; Section appearing in two entries → 400 `validation`; target workbook ID already exists → 409 `conflict`; `cross_partition_relations` other than `"drop"` → 400 `verification`; source workbook has no Sections → 400 `validation`.
 
-#### 5.4.2 Project clone — `POST /projects/{id}:clone`
+#### 5.4.2 Workbook clone — `POST /workbooks/{id}:clone`
 
-Deep-copies a project under a new ID/name. `target_project_id` is optional; if absent, Core derives `{source_id}-clone-{ulid}`.
+Deep-copies a workbook under a new ID/name. `target_project_id` is optional; if absent, Core derives `{source_id}-clone-{ulid}`.
 
-**Semantics:** new project gets a fresh ID; primitive and relation IDs are preserved verbatim (uniqueness scope is per-project). All primitives, relations, templates, and test suites are copied; suite-run reports are NOT copied. The validation pipeline runs against each copied primitive; if any fail, the clone is rolled back. One `project.create` audit record on the new project with `evidence: {cloned_from: source_id}`.
+**Semantics:** new workbook gets a fresh ID; primitive and relation IDs are preserved verbatim (uniqueness scope is per-workbook). All primitives, relations, templates, and test suites are copied; suite-run reports are NOT copied. The validation pipeline runs against each copied primitive; if any fail, the clone is rolled back. One `workbook.create` audit record on the new workbook with `evidence: {cloned_from: source_id}`.
 
-**Refused inputs:** target project ID already exists → 409 `conflict`; source project does not exist → 404 `not_found`.
+**Refused inputs:** target workbook ID already exists → 409 `conflict`; source workbook does not exist → 404 `not_found`.
 
 Clone is **shallow with respect to plugin-owned state**: per-plugin configuration, custom validator caches, and any future `cap:storage`-backed state are NOT copied.
 
@@ -262,13 +262,13 @@ Clone is **shallow with respect to plugin-owned state**: per-plugin configuratio
 
 Split partitions on Sections. The meta-model does not have a `Section` primitive type — domains define their own (`fs:Section`, `narrative:Chapter`, `arch:Component`, etc.). Core identifies Sections structurally: a primitive type qualifies as a partition unit for split if its `PrimitiveTypeDef.is_partition_unit` is `True`. The flag is optional, defaults to `False`, and is profile-authored.
 
-A profile MAY mark zero, one, or more primitive types as partition units; if zero, that profile's projects cannot be split. Core's `core:empty` profile has no partition units, which is correct: a project on `core:empty` has nothing meaningful to split along.
+A profile MAY mark zero, one, or more primitive types as partition units; if zero, that profile's workbooks cannot be split. Core's `core:empty` profile has no partition units, which is correct: a workbook on `core:empty` has nothing meaningful to split along.
 
 #### 5.4.4 What plugins contribute to graph operations
 
-Plugins **do not** contribute graph-operation handlers. The two project-level operations (split, clone) and the structural editing operations (§9.7.7 `structure:reorder` / `structure:reparent`) are Core-implemented and Core-tested.
+Plugins **do not** contribute graph-operation handlers. The two workbook-level operations (split, clone) and the structural editing operations (§9.7.7 `structure:reorder` / `structure:reparent`) are Core-implemented and Core-tested.
 
-In v1.1, plugins that need to react to a split/clone must poll the operation log (§5.5, unified with §13.3 audit log) — which requires `read:audit` permission per companion SPEC §5.2. This is intentionally awkward; the awkwardness is the signal that `cap:project-event` belongs in a future SPEC.
+In v1.1, plugins that need to react to a split/clone must poll the operation log (§5.5, unified with §13.3 audit log) — which requires `read:audit` permission per companion SPEC §5.2. This is intentionally awkward; the awkwardness is the signal that `cap:workbook-event` belongs in a future SPEC.
 
 ### 5.5 Event sourcing — the canonical persistence model
 
@@ -280,11 +280,11 @@ This subsection is normative. It defines the operation set, the log's invariants
 
 An **operation** is a typed, immutable record describing one logical mutation. The set of operation kinds is **closed and Core-owned**. Plugins MUST NOT introduce new kinds; they may only emit operations of existing kinds (e.g. via `cap:transformer` per the companion SPEC). Adding a new kind is a Core SPEC minor bump.
 
-The v1.1 kind set: `project.create`, `project.delete`, `project.split`, `project.clone`, `primitive.create`, `primitive.replace`, `primitive.patch`, `primitive.field-patch`, `primitive.delete`, `relation.create`, `relation.replace`, `relation.patch`, `relation.field-patch`, `relation.delete`, `structure.reorder`, `structure.reparent`, `template.create` / `template.delete` / `template.apply`, `test_suite.create` / `test_suite.replace` / `test_suite.delete`, `transfer.import`.
+The v1.1 kind set: `workbook.create`, `workbook.delete`, `workbook.split`, `workbook.clone`, `primitive.create`, `primitive.replace`, `primitive.patch`, `primitive.field-patch`, `primitive.delete`, `relation.create`, `relation.replace`, `relation.patch`, `relation.field-patch`, `relation.delete`, `structure.reorder`, `structure.reparent`, `template.create` / `template.delete` / `template.apply`, `test_suite.create` / `test_suite.replace` / `test_suite.delete`, `transfer.import`.
 
-`SuiteRunReport` records are **not** operations. They are observations of project state at a point in time, written by the test runner; they are projected separately and are not replayed.
+`SuiteRunReport` records are **not** operations. They are observations of workbook state at a point in time, written by the test runner; they are projected separately and are not replayed.
 
-Each `Operation` carries: `op_id` (ulid), optional `parent_op_id`, `kind`, `project_id`, kind-specific `payload`, `actor`, optional `plugin_id`, `timestamp`, monotonically-increasing `revision`, `request_id` (uuid v7), optional `causation_op_id`, and `schema_version`. Operations are **immutable after append**.
+Each `Operation` carries: `op_id` (ulid), optional `parent_op_id`, `kind`, `workbook_id`, kind-specific `payload`, `actor`, optional `plugin_id`, `timestamp`, monotonically-increasing `revision`, `request_id` (uuid v7), optional `causation_op_id`, and `schema_version`. Operations are **immutable after append**.
 
 #### 5.5.2 Operation payload schemas
 
@@ -302,13 +302,13 @@ A property test (`core-eventsource-replay-001`) asserts that for any sequence of
 
 #### 5.5.4 Revisions and ordering
 
-`Operation.revision` is a per-project monotonically-increasing integer. The first operation creating a project has `revision = 1`. Every subsequent operation targeting that project has `revision = previous_revision_for_this_project + 1`. The §9.7.6 `ETag` for `GET /projects/{id}` is the project's current revision; the `ETag` for an individual primitive/relation is the revision of the most recent operation that touched it.
+`Operation.revision` is a per-workbook monotonically-increasing integer. The first operation creating a workbook has `revision = 1`. Every subsequent operation targeting that workbook has `revision = previous_revision_for_this_project + 1`. The §9.7.6 `ETag` for `GET /workbooks/{id}` is the workbook's current revision; the `ETag` for an individual primitive/relation is the revision of the most recent operation that touched it.
 
-Ordering across projects is given by `op_id` (ulid). Within a project, ordering is given by `revision`. The two orderings agree on operations that share a `request_id`.
+Ordering across workbooks is given by `op_id` (ulid). Within a workbook, ordering is given by `revision`. The two orderings agree on operations that share a `request_id`.
 
 #### 5.5.5 Snapshots
 
-Snapshots are a **performance optimisation, not a source of truth**. Core MAY persist a snapshot `state_at_revision_N` per project at configurable intervals (default: every `FDPM_SNAPSHOT_EVERY_OPS` operations, default 1000). On startup or on a fresh replay request, Core loads the most recent snapshot and replays only the tail operations after it.
+Snapshots are a **performance optimisation, not a source of truth**. Core MAY persist a snapshot `state_at_revision_N` per workbook at configurable intervals (default: every `FDPM_SNAPSHOT_EVERY_OPS` operations, default 1000). On startup or on a fresh replay request, Core loads the most recent snapshot and replays only the tail operations after it.
 
 Invariants: a snapshot MUST be byte-equal to what `replay(log[:N])` would produce; replaying from `revision = 0` MUST produce the same final state as loading any snapshot and replaying the tail; a snapshot MAY be discarded at any time without loss of correctness.
 
@@ -324,7 +324,7 @@ The verification gate (§8) checks at SPEC-bump release time that every old `sch
 
 #### 5.5.7 Branching and "what-if" — explicitly out of scope
 
-A natural consequence of an event-sourced log is that branches are cheap. **Branching is out of scope for v1.1.** The log is single-trunk per project. The `:undo` mechanism (§9.8.2) appends inverse operations rather than rewinding the trunk; this preserves history and avoids the merge-conflict problem.
+A natural consequence of an event-sourced log is that branches are cheap. **Branching is out of scope for v1.1.** The log is single-trunk per workbook. The `:undo` mechanism (§9.8.2) appends inverse operations rather than rewinding the trunk; this preserves history and avoids the merge-conflict problem.
 
 #### 5.5.8 What plugins contribute, what they do not
 
@@ -421,13 +421,13 @@ The legacy `project_state` ad-hoc bag from earlier code is removed by v1.1 — i
 
 The store is thread-safe under the `RLock` it owns. The log is the serialisation point: `Store.append(op)` acquires the lock, runs the §7 validation pipeline against the proposed post-application state, assigns `revision`, sets `timestamp`, appends to the log, and applies the operation to the projection — all under one lock. Either all of it happens or none of it does.
 
-Optimistic concurrency control (§9.7.6) compares the caller's `If-Match` / `expected_revision` against the project's current revision *before* acquiring the append lock; mismatches yield 412 without log mutation.
+Optimistic concurrency control (§9.7.6) compares the caller's `If-Match` / `expected_revision` against the workbook's current revision *before* acquiring the append lock; mismatches yield 412 without log mutation.
 
 ### 6.4 Persistence
 
 The log is in-memory in v1.1, but its **shape is fixed**: `Operation` model, payload schemas, ordering, and replay semantics are all SPEC-locked here. A future Core SPEC minor (`SPEC-CORE-PERSISTENCE`) will add a write-ahead-log file format and snapshot persistence.
 
-Restart in v1.1 still loses project content. Profile registration via plugin `activate()` is unaffected because profiles are not in the log.
+Restart in v1.1 still loses workbook content. Profile registration via plugin `activate()` is unaffected because profiles are not in the log.
 
 ### 6.5 Replay on demand
 
@@ -479,7 +479,7 @@ This shape is Core; plugins emit findings, they do not invent the report.
 
 ## 8. The Verification Gate (Layer 5 of Core)
 
-The gate enforces PALS's LAW at every external boundary. It is broader than the validation pipeline (§7), which only concerns Project instances; the gate covers every kind of artefact entering Core.
+The gate enforces PALS's LAW at every external boundary. It is broader than the validation pipeline (§7), which only concerns Workbook instances; the gate covers every kind of artefact entering Core.
 
 ### 8.1 What the gate covers
 
@@ -492,7 +492,7 @@ The gate enforces PALS's LAW at every external boundary. It is broader than the 
 | Plugin-contributed renderer output        | MIME type matches declared target; size below `FDPM_MAX_RENDER_BYTES`; UTF-8 if textual.           |
 | Plugin-contributed router                 | Empty prefix; no overlap with reserved namespaces (§9.4).                                          |
 | Plugin-contributed transformer output     | Result satisfies destination primitive type's schema (re-runs §7).                                 |
-| Plugin-contributed importer/exporter      | Round-trip property test on a Core-supplied synthetic project at install time.                    |
+| Plugin-contributed importer/exporter      | Round-trip property test on a Core-supplied synthetic workbook at install time.                    |
 | Inbound `ProjectTransfer`                 | Schema validation; profile compatibility check; per-instance §7 pipeline.                          |
 | Outbound response                         | Pydantic serialisation; no leak of internal types.                                                 |
 
@@ -517,31 +517,31 @@ These routes are Core-owned and immutable across SPEC minor versions. Plugins MU
 | GET    | `/profiles`                                       | List registered profiles                   |
 | GET    | `/profiles/{id}`                                  | Resolved profile                           |
 | GET    | `/profiles/{id}/raw`                              | Raw (unresolved) profile                   |
-| POST   | `/projects`                                       | Create project                             |
-| GET    | `/projects`                                       | List projects                              |
-| GET    | `/projects/{id}`                                  | Project metadata                           |
-| DELETE | `/projects/{id}`                                  | Delete project                             |
-| POST   | `/projects/{id}:split`                            | Split project along a Section partition (§5.4.1). Destructive: source is deleted. |
-| POST   | `/projects/{id}:clone`                            | Deep-copy project under a new ID (§5.4.2). |
-| GET    | `/projects/{id}/primitives`                       | List primitives                            |
-| POST   | `/projects/{id}/primitives`                       | Create primitive (passes through §7)       |
-| GET    | `/projects/{id}/primitives/{pid}`                 | Read primitive                             |
-| PATCH  | `/projects/{id}/primitives/{pid}`                 | Update primitive (whole-record or `:field-patch`) |
-| DELETE | `/projects/{id}/primitives/{pid}`                 | Delete primitive                           |
+| POST   | `/workbooks`                                       | Create workbook                             |
+| GET    | `/workbooks`                                       | List workbooks                              |
+| GET    | `/workbooks/{id}`                                  | Workbook metadata                           |
+| DELETE | `/workbooks/{id}`                                  | Delete workbook                             |
+| POST   | `/workbooks/{id}:split`                            | Split workbook along a Section partition (§5.4.1). Destructive: source is deleted. |
+| POST   | `/workbooks/{id}:clone`                            | Deep-copy workbook under a new ID (§5.4.2). |
+| GET    | `/workbooks/{id}/primitives`                       | List primitives                            |
+| POST   | `/workbooks/{id}/primitives`                       | Create primitive (passes through §7)       |
+| GET    | `/workbooks/{id}/primitives/{pid}`                 | Read primitive                             |
+| PATCH  | `/workbooks/{id}/primitives/{pid}`                 | Update primitive (whole-record or `:field-patch`) |
+| DELETE | `/workbooks/{id}/primitives/{pid}`                 | Delete primitive                           |
 | (relations: same shape under `/relations/...`)    |                                                                            |
-| POST   | `/projects/{id}/edits`                            | Batch transactional edits (§9.7.5).        |
-| POST   | `/projects/{id}/structure:reorder`                | Reorder children within a `ScopeDef` (§9.7.7).      |
-| POST   | `/projects/{id}/structure:reparent`               | Move a primitive between scopes within the same project (§9.7.7). |
-| GET    | `/projects/{id}/views/{view_id}`                  | Read a Core-defined view                   |
-| GET    | `/projects/{id}/templates`                        | List templates                             |
-| POST   | `/projects/{id}/templates`                        | Apply template                             |
-| GET    | `/projects/{id}/test-suites`                      | List test suites                           |
-| POST   | `/projects/{id}/test-suites/{sid}:run`            | Execute suite                              |
+| POST   | `/workbooks/{id}/edits`                            | Batch transactional edits (§9.7.5).        |
+| POST   | `/workbooks/{id}/structure:reorder`                | Reorder children within a `ScopeDef` (§9.7.7).      |
+| POST   | `/workbooks/{id}/structure:reparent`               | Move a primitive between scopes within the same workbook (§9.7.7). |
+| GET    | `/workbooks/{id}/views/{view_id}`                  | Read a Core-defined view                   |
+| GET    | `/workbooks/{id}/templates`                        | List templates                             |
+| POST   | `/workbooks/{id}/templates`                        | Apply template                             |
+| GET    | `/workbooks/{id}/test-suites`                      | List test suites                           |
+| POST   | `/workbooks/{id}/test-suites/{sid}:run`            | Execute suite                              |
 | POST   | `/transfer/import`                                | Import a `ProjectTransfer`                 |
-| GET    | `/projects/{id}/transfer/export`                  | Export a `ProjectTransfer`                 |
-| GET    | `/projects/{id}/log`                              | Read the operation log for a project (§5.5, §9.8.1). Permission-gated by `read:audit`. |
-| GET    | `/projects/{id}/at`                               | Time-travel: project state as of a given revision (§9.8.2). |
-| POST   | `/projects/{id}:undo`                             | Append an inverse operation (§9.8.3).      |
+| GET    | `/workbooks/{id}/transfer/export`                  | Export a `ProjectTransfer`                 |
+| GET    | `/workbooks/{id}/log`                              | Read the operation log for a workbook (§5.5, §9.8.1). Permission-gated by `read:audit`. |
+| GET    | `/workbooks/{id}/at`                               | Time-travel: workbook state as of a given revision (§9.8.2). |
+| POST   | `/workbooks/{id}:undo`                             | Append an inverse operation (§9.8.3).      |
 | POST   | `/projects/{id}:rebuild-from-log`                 | Operator-only: discard projection, replay from log (§5.5.5, §6.5). |
 | GET    | `/plugins`                                        | Plugin admin (companion SPEC §6.6)         |
 | GET    | `/plugins/{id}`                                   | Plugin record                              |
@@ -589,7 +589,7 @@ In-tree consumers — `frontend/src/lib/api.ts` and `tests/test_frontend_api_con
 
 ### 9.7 Document editing API (Core)
 
-A "document" in FDPM is not a blob — it is a typed graph of `PrimitiveInstance` and `RelationInstance` records belonging to a `Project`. **Editing a document = mutating that graph.** This subsection specifies the editing verbs Core owns. Plugins extend the *types* edited through this API; they do not extend the API itself.
+A "document" in FDPM is not a blob — it is a typed graph of `PrimitiveInstance` and `RelationInstance` records belonging to a `Workbook`. **Editing a document = mutating that graph.** This subsection specifies the editing verbs Core owns. Plugins extend the *types* edited through this API; they do not extend the API itself.
 
 #### 9.7.1 Operating principles
 
@@ -599,7 +599,7 @@ A "document" in FDPM is not a blob — it is a typed graph of `PrimitiveInstance
 4. **Edits are auditable.** Every successful edit produces an audit record (§13.3) with a structured `diff`.
 5. **Edits are concurrency-safe.** The store lock (§6.3) serialises mutations. Optimistic concurrency control is exposed via `ETag` / `If-Match` (see §9.7.6).
 6. **Edits are framed in JSON.** Core specifies one wire shape; binary payloads (images, attachments) are out of scope for v1.0.
-7. **Edits never cross projects.** A single request mutates at most one project. Cross-project moves are a future SPEC.
+7. **Edits never cross workbooks.** A single request mutates at most one workbook. Cross-workbook moves are a future SPEC.
 
 #### 9.7.2 Edit verbs
 
@@ -619,19 +619,19 @@ The verification gate rejects: `op` values outside the allowed set; `path` strin
 
 #### 9.7.5 Batch edits (transaction)
 
-`POST /projects/{pid}/edits` applies an ordered list of edit operations as a single transaction. Operation kinds (Core-fixed; not extensible by plugins): `primitive.create`, `primitive.replace`, `primitive.patch`, `primitive.field-patch`, `primitive.delete`, `relation.*` mirrors, `structure.reorder`, `structure.reparent`.
+`POST /workbooks/{pid}/edits` applies an ordered list of edit operations as a single transaction. Operation kinds (Core-fixed; not extensible by plugins): `primitive.create`, `primitive.replace`, `primitive.patch`, `primitive.field-patch`, `primitive.delete`, `relation.*` mirrors, `structure.reorder`, `structure.reparent`.
 
-Transaction semantics: applied in declared order under a single store-lock acquisition; if any operation fails any check, **all** prior operations are rolled back. **Per-operation permission check.** The batch endpoint requires only authentication; each operation is checked under its per-resource permission (`primitive.*` → `write:primitives`, `relation.*` → `write:relations`, `structure.*` → `write:projects`). A caller missing any required permission causes the whole batch to be rejected with `category=permission` before any operation runs (no partial application). Total operation count MUST NOT exceed `FDPM_MAX_BATCH_OPS` (default 500). The §7 pipeline runs after each operation; `error`-level findings abort the batch. `expected_project_revision` (optional) provides project-level optimistic concurrency.
+Transaction semantics: applied in declared order under a single store-lock acquisition; if any operation fails any check, **all** prior operations are rolled back. **Per-operation permission check.** The batch endpoint requires only authentication; each operation is checked under its per-resource permission (`primitive.*` → `write:primitives`, `relation.*` → `write:relations`, `structure.*` → `write:workbooks`). A caller missing any required permission causes the whole batch to be rejected with `category=permission` before any operation runs (no partial application). Total operation count MUST NOT exceed `FDPM_MAX_BATCH_OPS` (default 500). The §7 pipeline runs after each operation; `error`-level findings abort the batch. `expected_project_revision` (optional) provides workbook-level optimistic concurrency.
 
 #### 9.7.6 Concurrency: revisions, ETags, If-Match
 
-Every `PrimitiveInstance` and `RelationInstance` carries an integer `revision` that increments on every successful mutation. Every `Project` carries a `project_revision`. `GET` responses for individual records emit `ETag: "{revision}"`; `GET` for `/projects/{id}` emits `ETag: "{project_revision}"`. `PUT`, `PATCH`, `DELETE` MAY supply `If-Match`; mismatch yields `412`. Batch requests MAY supply `expected_project_revision`. Field-patch requests MAY supply `expected_revision` in the body or `If-Match` header (header wins). Core does not perform automatic merge resolution in v1.0.
+Every `PrimitiveInstance` and `RelationInstance` carries an integer `revision` that increments on every successful mutation. Every `Workbook` carries a `project_revision`. `GET` responses for individual records emit `ETag: "{revision}"`; `GET` for `/workbooks/{id}` emits `ETag: "{project_revision}"`. `PUT`, `PATCH`, `DELETE` MAY supply `If-Match`; mismatch yields `412`. Batch requests MAY supply `expected_project_revision`. Field-patch requests MAY supply `expected_revision` in the body or `If-Match` header (header wins). Core does not perform automatic merge resolution in v1.0.
 
 #### 9.7.7 Immutability and structural edits
 
-Some fields are **immutable post-creation**: `PrimitiveInstance.id`, `PrimitiveInstance.type_id`, `RelationInstance.id`, `RelationInstance.type_id`, `RelationInstance.source_id`, `RelationInstance.target_id`, `Project.profile_id`. Mutating them requires delete-and-recreate.
+Some fields are **immutable post-creation**: `PrimitiveInstance.id`, `PrimitiveInstance.type_id`, `RelationInstance.id`, `RelationInstance.type_id`, `RelationInstance.source_id`, `RelationInstance.target_id`, `Workbook.profile_id`. Mutating them requires delete-and-recreate.
 
-Structural edits (re-ordering, re-parenting within the same project) **are** allowed via `POST /projects/{pid}/structure:reorder` (reorders children within one `ScopeDef`) and `POST /projects/{pid}/structure:reparent` (moves a primitive between scopes). Reorderings MUST be permutations of the current scope membership; reparenting MUST respect any `RelationTypeDef`-imposed scope constraints.
+Structural edits (re-ordering, re-parenting within the same workbook) **are** allowed via `POST /workbooks/{pid}/structure:reorder` (reorders children within one `ScopeDef`) and `POST /workbooks/{pid}/structure:reparent` (moves a primitive between scopes). Reorderings MUST be permutations of the current scope membership; reparenting MUST respect any `RelationTypeDef`-imposed scope constraints.
 
 #### 9.7.8 Default forms drive edits
 
@@ -654,11 +654,11 @@ The Core frontend shell builds default primitive forms entirely from `FieldDef` 
 
 Three endpoints expose the consequences of §5.5's event-sourced persistence model. None of these is feasible without the log; all become natural once the log exists.
 
-#### 9.8.1 `GET /projects/{id}/log`
+#### 9.8.1 `GET /workbooks/{id}/log`
 
-Returns the operation log for a project, optionally filtered by `from_revision`, `to_revision`, `kind` (comma-separated), `actor`, `plugin_id`, `request_id`, `limit` (default 1000, cap `FDPM_LOG_PAGE_MAX` = 10 000). Response is a list of `Operation` records ordered by `revision`. Permission: `read:audit`. This endpoint is the unification of "audit log" and "operation log."
+Returns the operation log for a workbook, optionally filtered by `from_revision`, `to_revision`, `kind` (comma-separated), `actor`, `plugin_id`, `request_id`, `limit` (default 1000, cap `FDPM_LOG_PAGE_MAX` = 10 000). Response is a list of `Operation` records ordered by `revision`. Permission: `read:audit`. This endpoint is the unification of "audit log" and "operation log."
 
-#### 9.8.2 `GET /projects/{id}/at?revision=N`
+#### 9.8.2 `GET /workbooks/{id}/at?revision=N`
 
 Returns the project state as of operation `N` — i.e. the projection that `replay(log[:N+1])` would produce. Same response shape as `GET /projects/{id}` plus the embedded primitives/relations.
 
@@ -666,9 +666,9 @@ Performance: Core uses the nearest snapshot ≤ N (§5.5.5) and replays forward.
 
 Caveat: time-travel returns historical state, but **not historical profile schema**. If a SPEC bump changed payload schemas, upcasters (§5.5.6) run during the replay so the returned state uses today's schema.
 
-#### 9.8.3 `POST /projects/{id}:undo`
+#### 9.8.3 `POST /workbooks/{id}:undo`
 
-Appends an inverse operation that undoes the effect of a target operation. The target defaults to "the most recent operation in the project"; an optional body specifies a different one (`{ "target_op_id": "01HV..." }`).
+Appends an inverse operation that undoes the effect of a target operation. The target defaults to "the most recent operation in the workbook"; an optional body specifies a different one (`{ "target_op_id": "01HV..." }`).
 
 Semantics: Core reads the target operation; computes the **inverse** (kind-specific, see §9.8.4); appends the inverse with `causation_op_id = target_op_id`; the original target operation **remains in the log** (undo is forward motion, not history rewriting); re-undoing the inverse is `:undo` on the inverse — yielding a new op that re-applies the original effect.
 
@@ -686,12 +686,12 @@ If the target operation cannot be cleanly inverted given the current state, Core
 | `relation.*`             | Symmetric to `primitive.*`.                                                                        |
 | `structure.reorder`      | `structure.reorder` with the prior ordering.                                                       |
 | `structure.reparent`     | `structure.reparent` with `from`/`to` swapped.                                                     |
-| `project.create`         | `project.delete`. (Undoing creation deletes the project.)                                           |
-| `project.delete`         | `project.create` + bulk replay; rejected with 409 if another project's `project.split` consumed this project's ID. |
-| `project.split`          | A single inverse that recreates the source and deletes the partition projects. Rejected if any partition project has been mutated since the split. |
-| `project.clone`          | `project.delete` of the clone.                                                                     |
+| `workbook.create`         | `workbook.delete`. (Undoing creation deletes the workbook.)                                           |
+| `workbook.delete`         | `workbook.create` + bulk replay; rejected with 409 if another workbook's `workbook.split` consumed this workbook's ID. |
+| `workbook.split`          | A single inverse that recreates the source and deletes the partition workbooks. Rejected if any partition workbook has been mutated since the split. |
+| `workbook.clone`          | `workbook.delete` of the clone.                                                                     |
 | `template.*`             | Symmetric.                                                                                         |
-| `transfer.import`        | A bulk inverse equivalent to `project.delete` of the imported project.                             |
+| `transfer.import`        | A bulk inverse equivalent to `workbook.delete` of the imported workbook.                             |
 
 Multi-target undo is not a distinct endpoint; the caller issues `:undo` repeatedly. Each undo is a separate operation in the log, individually re-undoable.
 
@@ -705,7 +705,7 @@ The frontend has a Core just as the backend does. Without it, the SPA cannot exi
 
 - Application bootstrap (`App.tsx`, `routes.test.tsx` covered baseline routing).
 - Auth flow (API key entry, session, `protected-route.tsx`, `auth-guard.tsx`).
-- Project listing, creation, deletion, navigation.
+- Workbook listing, creation, deletion, navigation.
 - The Explorer skeleton: header, layout, document outline, section blocks.
 - A **default** primitive form, primitive card, and explorer panel that work for any `PrimitiveTypeDef` using only field metadata from the meta-model.
 - A **default** print/preview renderer (HTML→browser-print) keyed off the same `FieldDef` metadata; produces a generic typeset output for any profile. Used as the zero-plugins fallback for "Export PDF" / Ctrl+P.
@@ -716,7 +716,7 @@ The frontend has a Core just as the backend does. Without it, the SPA cannot exi
 
 ### 10.2 The "zero plugins installed" baseline
 
-The shell MUST render and remain useful with no plugins installed: login works; project list works; a project attached to `core:empty` (§1.5) or any other registered profile can be opened; for every primitive type in the active profile, the default form, card, and explorer panel render and accept input; validation findings render; import/export of `ProjectTransfer` works; the default print/preview renderer produces an output for any project; the plugin admin page works and shows "no plugins installed".
+The shell MUST render and remain useful with no plugins installed: login works; workbook list works; a workbook attached to `core:empty` (§1.5) or any other registered profile can be opened; for every primitive type in the active profile, the default form, card, and explorer panel render and accept input; validation findings render; import/export of `ProjectTransfer` works; the default print/preview renderer produces an output for any workbook; the plugin admin page works and shows "no plugins installed".
 
 This is acceptance criterion `core-fe-baseline-001`.
 
@@ -741,7 +741,7 @@ Core defines the boundary; the companion SPEC defines what flows across it. This
 
 - A typed `PluginContext` injected at lifecycle events.
 - A read API on the store that never raises for valid IDs and never returns mutable state.
-- Stable platform endpoints (§9.1) that plugins can call through the host's HTTP stack. The frontend's scoped API client (companion SPEC §7.5) MUST permit calls to the read-side §9.1 endpoints declared in the plugin's manifest `permissions` (e.g. `read:projects`, `read:primitives`), in addition to the plugin's own `/plugins/{id}/...` namespace.
+- Stable platform endpoints (§9.1) that plugins can call through the host's HTTP stack. The frontend's scoped API client (companion SPEC §7.5) MUST permit calls to the read-side §9.1 endpoints declared in the plugin's manifest `permissions` (e.g. `read:workbooks`, `read:primitives`), in addition to the plugin's own `/plugins/{id}/...` namespace.
 - Verification of plugin contributions before they take effect.
 - Failure isolation: a plugin error never crashes Core or another plugin.
 - Observability: every plugin call is traceable through metrics and logs.
@@ -801,7 +801,7 @@ Plugin metrics (companion SPEC §11) are layered on top, never replacing Core me
 
 ### 13.2 Required logs
 
-Every Core log record carries: `request_id` (uuid v7); `route` (templated, e.g. `/projects/{id}`); `actor` (auth principal id); `outcome` (`accept` | `reject` | `error`); `verification_gate_decision` when the gate fired.
+Every Core log record carries: `request_id` (uuid v7); `route` (templated, e.g. `/workbooks/{id}`); `actor` (auth principal id); `outcome` (`accept` | `reject` | `error`); `verification_gate_decision` when the gate fired.
 
 ### 13.3 Audit trail — projection of the operation log
 
@@ -814,7 +814,7 @@ class AuditRecord(BaseModel):
     id: str                # = Operation.op_id
     timestamp: datetime    # = Operation.timestamp
     actor: str             # = Operation.actor
-    action: str            # = Operation.kind  (e.g. "project.create")
+    action: str            # = Operation.kind  (e.g. "workbook.create")
     target_id: str         # derived from Operation.payload
     diff: dict             # derived: { before: <pre-state>, after: <post-state> } reconstructed from log replay
     plugin_id: str | None  # = Operation.plugin_id
@@ -822,11 +822,11 @@ class AuditRecord(BaseModel):
     op_id: str             # explicit pointer back to the canonical operation
 ```
 
-`diff` is computed by replaying the log up to `op_id - 1` to reconstruct the pre-state, then computing the structural diff against the operation's effect. For high-throughput audit consumers, `GET /projects/{id}/log` (§9.8.1) is preferable.
+`diff` is computed by replaying the log up to `op_id - 1` to reconstruct the pre-state, then computing the structural diff against the operation's effect. For high-throughput audit consumers, `GET /workbooks/{id}/log` (§9.8.1) is preferable.
 
 The `diff` field is bounded by `FDPM_AUDIT_DIFF_MAX_BYTES` (default 32 KiB). Truncation: truncate field-by-field, preferring to keep field names; replace each discarded value with `{"_truncated": true, "_original_bytes": N}`; add a top-level `_audit_truncated: true` marker; increment `fdpm_audit_diff_truncated_total`. A truncated audit record is still a valid audit record.
 
-The audit log is Core. Plugins MAY *emit* operations through their permitted write paths (§9.7, §5.4 graph operations) — those operations *are* the audit records of plugin actions. There is no separate `PluginContext.audit(...)` write path in v1.1; the operation log is the only audit channel. Plugins MAY *read* the log under the `read:audit` permission via `GET /projects/{id}/log`.
+The audit log is Core. Plugins MAY *emit* operations through their permitted write paths (§9.7, §5.4 graph operations) — those operations *are* the audit records of plugin actions. There is no separate `PluginContext.audit(...)` write path in v1.1; the operation log is the only audit channel. Plugins MAY *read* the log under the `read:audit` permission via `GET /workbooks/{id}/log`.
 
 ---
 
@@ -864,8 +864,8 @@ For every state-changing request: 1) Auth check (Core); 2) Permission check (if 
 | `FDPM_MAX_RENDER_BYTES`                | `52_428_800` (50 MiB)            | Renderer output cap.                                |
 | `FDPM_MAX_FIELD_PATCH_OPS`             | `100`                            | Max RFC-6902 ops in a `:field-patch` request (§9.7.4). |
 | `FDPM_MAX_BATCH_OPS`                   | `500`                            | Max operations in a single batch-edit request (§9.7.5). |
-| `FDPM_SNAPSHOT_EVERY_OPS`              | `1000`                           | Snapshot cadence per project (§5.5.5).              |
-| `FDPM_LOG_PAGE_MAX`                    | `10_000`                         | Hard cap on `GET /projects/{id}/log?limit=` (§9.8.1). |
+| `FDPM_SNAPSHOT_EVERY_OPS`              | `1000`                           | Snapshot cadence per workbook (§5.5.5).              |
+| `FDPM_LOG_PAGE_MAX`                    | `10_000`                         | Hard cap on `GET /workbooks/{id}/log?limit=` (§9.8.1). |
 | `FDPM_FINDING_EVIDENCE_MAX_BYTES`      | `16_384` (16 KiB)                | Per-finding `evidence` cap (§7.3).                  |
 | `FDPM_AUDIT_DIFF_MAX_BYTES`            | `32_768` (32 KiB)                | Per-record audit diff cap (§13.3).                  |
 | `FDPM_VALIDATOR_QUARANTINE_THRESHOLD`  | `3`                              | Consecutive raises before validator-owning plugin is quarantined (§7.1). |
@@ -894,7 +894,7 @@ All Core errors derive from `FDPMException` with a typed `category`:
 | ---------------------- | --------------------------------------------------------------------- | ----------- |
 | `validation`           | §7 pipeline finding at `error` level.                                  | 400         |
 | `verification`         | §8 gate rejection.                                                     | 400         |
-| `not_found`            | Unknown profile / project / primitive / relation id.                  | 404         |
+| `not_found`            | Unknown profile / workbook / primitive / relation id.                  | 404         |
 | `conflict`             | ID collision, duplicate registration.                                 | 409         |
 | `permission`           | Plugin lacks declared permission for action.                          | 403         |
 | `unauthenticated`      | Missing or invalid auth.                                              | 401         |
@@ -967,8 +967,8 @@ Core is **conformant** when all the following hold against `main`. Each criterio
 - [ ] **12.** No write-path Core handler exists that bypasses the gate; a code-review checklist + test inventory is the evidence. _(open)_
 - [ ] **13.** Every path in §9.1 is implemented and has request/response schema tests. _(open)_
 - [ ] **14.** A plugin attempting to mount a router on any reserved path is rejected by the gate. _(open)_
-- [ ] **15.** After §19 migration, requests to pre-migration paths (`/api/narrative/*`, `/api/spec_parser/*`, `/api/projects/{id}/export.pdf`) return 404 — no redirect, no shim. The contract test enumerates these paths and asserts their absence from OpenAPI. _(open)_
-- [ ] **16.** The SPA, run with zero plugins, exercises §10.2 in an end-to-end browser test (including default print/preview render and `core:empty` project open). _(open)_
+- [ ] **15.** After §19 migration, requests to pre-migration paths (`/api/narrative/*`, `/api/spec_parser/*`, `/api/workbooks/{id}/export.pdf`) return 404 — no redirect, no shim. The contract test enumerates these paths and asserts their absence from OpenAPI. _(open)_
+- [ ] **16.** The SPA, run with zero plugins, exercises §10.2 in an end-to-end browser test (including default print/preview render and `core:empty` workbook open). _(open)_
 - [ ] **17.** Each slot has a default implementation; a synthetic plugin overrides it; both code paths are tested. _(open)_
 - [ ] **18.** A synthetic frontend plugin that exceeds `FDPM_FE_PLUGIN_BUDGET_MS` does not block first paint; the slot falls back; the admin API records the breach. _(open)_
 - [ ] **19.** The `PluginContext` has no method that exposes mutable references to store internals; tested by introspection. _(open)_
@@ -979,10 +979,10 @@ Core is **conformant** when all the following hold against `main`. Each criterio
 - [ ] **24.** The defence-in-depth chain in §14.3 is exercised by a test that injects a failure at each step and asserts the request aborts. _(open)_
 - [ ] **25.** Every category in §16 is producible via a dedicated test path. _(open)_
 - [ ] **26.** A test attempts each forbidden change in §17.2 and asserts the host rejects it. _(open)_
-- [ ] **27.** `POST /projects/{id}:split` with a valid 2-way partition produces two new projects, deletes the source, drops cross-partition relations, and returns the dropped list. Audit log captures `project.split` + per-new-project `project.create` + per-dropped `relation.drop` records under one `request_id`. _(open)_
-- [ ] **28.** Each refused-input case in §5.4.1 returns the documented status/category. Atomicity test: a partition that triggers a per-primitive validation failure leaves the source project unchanged. _(open)_
+- [ ] **27.** `POST /workbooks/{id}:split` with a valid 2-way partition produces two new workbooks, deletes the source, drops cross-partition relations, and returns the dropped list. Audit log captures `workbook.split` + per-new-workbook `workbook.create` + per-dropped `relation.drop` records under one `request_id`. _(open)_
+- [ ] **28.** Each refused-input case in §5.4.1 returns the documented status/category. Atomicity test: a partition that triggers a per-primitive validation failure leaves the source workbook unchanged. _(open)_
 - [ ] **29.** A profile with no `is_partition_unit=True` primitive type rejects `:split` with 400 `validation`. `core:empty` exercises this path. _(open)_
-- [ ] **30.** `POST /projects/{id}:clone` produces a project with the same `profile_id`, copies all primitives and relations and templates and test suites, does NOT copy `SuiteRunReport`s, and emits one `project.create` audit record with `cloned_from` evidence. _(open)_
+- [ ] **30.** `POST /workbooks/{id}:clone` produces a workbook with the same `profile_id`, copies all primitives and relations and templates and test suites, does NOT copy `SuiteRunReport`s, and emits one `workbook.create` audit record with `cloned_from` evidence. _(open)_
 - [ ] **31.** Clone with a target ID collision returns 409 `conflict`; clone of a missing source returns 404. _(open)_
 - [ ] **32.** `PrimitiveTypeDef.is_partition_unit` is exercised in profile-construction tests: valid `True`/`False` declarations are accepted; the field defaults to `False` when absent. _(open)_
 - [ ] **33.** Every meta-model field type round-trips through the default form to all four edit surfaces (whole, field, batch, structure). _(open)_
@@ -995,8 +995,8 @@ Core is **conformant** when all the following hold against `main`. Each criterio
 - [ ] **40.** Every state-changing endpoint in §9.1 appends exactly one operation per affected record under one `request_id`. _(open)_
 - [ ] **41.** Replay is pure and deterministic: `replay(log) == replay(log)` byte-equal across runs and restarts. Property test against randomised operation sequences. _(open)_
 - [ ] **42.** Direct projection mutation is forbidden by AST inspection of `src/fdpm/api/**` and `src/fdpm/engine/**`. The only write path is `Store.append`. _(open)_
-- [ ] **43.** `GET /projects/{id}/log` honours all query filters and respects `read:audit`. _(open)_
-- [ ] **44.** `GET /projects/{id}/at?revision=N` returns state byte-equal to `replay(log[:N+1])` for every N. _(open)_
+- [ ] **43.** `GET /workbooks/{id}/log` honours all query filters and respects `read:audit`. _(open)_
+- [ ] **44.** `GET /workbooks/{id}/at?revision=N` returns state byte-equal to `replay(log[:N+1])` for every N. _(open)_
 - [ ] **45.** `:undo` of every kind in §9.8.4 produces state byte-equal to "before the target operation" when no later operations interfere; conflict path tested for kinds that admit a conflict. _(open)_
 - [ ] **46.** Snapshots, when present, are byte-equal to `replay(log[:N])`. Property test creates random snapshots and verifies. _(open)_
 - [ ] **47.** A SPEC bump that changes a kind's payload schema ships an upcaster; the release-time gate rejects the bump if any old `schema_version` lacks a chain to current. _(open)_
@@ -1017,8 +1017,8 @@ The current codebase is mostly Core, but has three Core-violations that must be 
 
 - `src/fdpm/main.py` — bootstrap only.
 - `src/fdpm/store.py` — unchanged structurally; access discipline tightened.
-- `src/fdpm/models/{core, instances, project, api_contracts, transfer, errors, composition}.py` — Core data types.
-- `src/fdpm/api/{profiles, projects, primitives, relations, views, templates, transfer, test_suites}.py` — platform endpoints.
+- `src/fdpm/models/{core, instances, workbook, api_contracts, transfer, errors, composition}.py` — Core data types.
+- `src/fdpm/api/{profiles, workbooks, primitives, relations, views, templates, transfer, test_suites}.py` — platform endpoints.
 - `src/fdpm/api/plugins.py` — admin surface (added by companion SPEC).
 - `src/fdpm/engine/{validation, compilation, rendering, test_runner}.py` — only the *generic* parts; domain-aware code splits out to plugins.
 - `src/fdpm/plugin/**` — the plugin runtime (companion SPEC).
@@ -1054,7 +1054,7 @@ The frontend's `lib/api.ts` paths for migrated routers MUST be updated in the sa
 | ------------------------------------------ | ----------------------------------------------------------------------------- |
 | `/api/narrative/*`                         | `/api/plugins/narrative/*`                                                    |
 | `/api/spec_parser/*`                       | `/api/plugins/formal-specification/*`                                         |
-| `/api/projects/{id}/export.pdf`            | `/api/plugins/formal-specification/projects/{id}/export.pdf`                  |
+| `/api/workbooks/{id}/export.pdf`            | `/api/plugins/formal-specification/workbooks/{id}/export.pdf`                  |
 
 The contract test (`tests/test_frontend_api_contract.py`) is updated in the same PR and is the gate that prevents a half-migrated merge. Per §9.6 there is no redirect fallback; a frontend build that misses a path 404s in production. This is the chosen design: a loud break in CI is preferable to a quiet shim that lingers.
 
@@ -1077,16 +1077,16 @@ The following are deliberately excluded from Core v1.1. Listing them prevents ac
 - **Multi-tenancy and per-tenant authorisation** — Core is single-tenant in v1.0. Multi-tenancy is a separate SPEC.
 - **WASM or process-level plugin sandboxing** — Trust tier model is the v1.0 mitigation; isolation is a future SPEC.
 - **Plugin marketplace or signed registry service** — Distribution channel is out of Core scope.
-- **Cross-project federation (instances referencing other projects)** — §5.3 forbids cross-project references in v1.1. Federation is a future SPEC.
+- **Cross-workbook federation (instances referencing other workbooks)** — §5.3 forbids cross-workbook references in v1.1. Federation is a future SPEC.
 - **Real-time collaboration (CRDT, OT, or socket layer)** — The operation log makes some of this feasible; it is not an obligation of v1.1.
 - **Hot reload of Core code without restart** — Out of scope; restart is the v1.1 mechanism.
 - **`cap:shared-constants` for cross-runtime constants** — Would address `drift-risk-map.md` findings #1, #5–#8 systematically.
-- **`cross_partition_relations: "preserve"` for `:split`** — Requires cross-project references in the meta-model, which §5.3 forbids in v1.1.
+- **`cross_partition_relations: "preserve"` for `:split`** — Requires cross-workbook references in the meta-model, which §5.3 forbids in v1.1.
 - **`cross_partition_relations: "annotate"` for `:split`** — Defensible but lossy; deferred until a user story demands it.
-- **Project merge / re-join (inverse of `:split`)** — Once split, projects are independent in v1.1.
-- **`cap:project-event` (§5.4.4)** — Letting plugins subscribe to operation-log events without polling. The natural "free feature" event sourcing unlocks; deferred to a future SPEC.
+- **Workbook merge / re-join (inverse of `:split`)** — Once split, workbooks are independent in v1.1.
+- **`cap:workbook-event` (§5.4.4)** — Letting plugins subscribe to operation-log events without polling. The natural "free feature" event sourcing unlocks; deferred to a future SPEC.
 - **`cap:projection` (§5.5.8)** — Letting plugins build their own derived views over the log. Deferred to the same future SPEC as `cap:project-event`.
-- **Primitive-level split or clone** — Different surface from project-level (§5.4); rejected for v1.1 because no user story requires it.
+- **Primitive-level split or clone** — Different surface from workbook-level (§5.4); rejected for v1.1 because no user story requires it.
 - **Branching, copy-on-write, alternative timelines (§5.5.7)** — Event sourcing makes these feasible; v1.1 explicitly does not ship them. `:undo` (§9.8.3) appends inverses rather than rewinding the trunk.
 - **Log compaction / redaction** — A buggy plugin that emits 10 000 noisy operations pollutes history forever in v1.1. Operator tooling to compact or redact specific operation ranges is deferred.
 - **Replaying the log in a sandbox to verify upcaster correctness across the entire historical fleet** — v1.1 ships upcasters with unit tests and the build-time gate (`core-eventsource-008`); large-fleet replay validation is operator tooling, not a Core obligation.
@@ -1177,7 +1177,7 @@ Editorial revision; no normative invariant change. §9.7.5 transaction-semantics
 
 Affected sections: 0, 9.7.5
 
-### 1.0.3 — 2026-05-04 — Core graph operations (project-level)
+### 1.0.3 — 2026-05-04 — Core graph operations (workbook-level)
 
 Substantively a SPEC minor bump. Adds two platform endpoints (`:split`, `:clone`) and one optional meta-model field (`PrimitiveTypeDef.is_partition_unit`). A draft also added `POST .../primitives:reorder` and `order_field`; both dropped because §9.7's `structure:reorder` covers the use case more thoughtfully via scope-membership permutation.
 

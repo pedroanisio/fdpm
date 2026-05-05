@@ -2,17 +2,17 @@ import type { ScopeDef } from "../../src/core/models/meta.js";
 
 /**
  * Scopes — three orthogonal lenses through which a primitive is read. Tasks
- * live in `scope:plan:project` by default; iteration-bound work moves to
+ * live in `scope:plan:workbook` by default; iteration-bound work moves to
  * `scope:plan:iteration`; in-flight work (claims, current blockers) moves
  * to `scope:plan:execution`. Renderers pick a scope as a filter when
  * producing partial views.
  */
 export const SCOPES: ScopeDef[] = [
   {
-    id: "scope:plan:project",
-    name: "Project",
+    id: "scope:plan:workbook",
+    name: "Workbook",
     rank: 1,
-    description: "Project-wide work breakdown, persistent goals.",
+    description: "Workbook-wide work breakdown, persistent goals.",
   },
   {
     id: "scope:plan:iteration",

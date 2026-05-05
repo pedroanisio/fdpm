@@ -6,7 +6,7 @@
 
 - `task:p1-subscribe` _(Either/P0)_ — Wire ResourceSubscribeRequestSchema + the watcher loop. On subscribe, take a (mtime\_ns, size) snapshot via host.statProjectLog and poll on a 250-500ms cadence; emit notifications/resources/updated when the snapshot changes.
 - `task:p1-sizecap` _(Either/P0)_ — Add FDPM\_MCP\_MAX\_RESOURCE\_BYTES (default 1 MiB). Reject oversized renders in resources/read with a \`quota\` envelope carrying \`evidence.bytes\` and \`evidence.cap\`. Cap also applies after base64 expansion for binary blobs.
-- `task:p1-providers` _(Either/P1)_ — Add three more resource providers: (a) project transfer at fdpm://project/{id}/transfer, (b) validate report at fdpm://project/{id}/validate, (c) primitive view at fdpm://project/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.
+- `task:p1-providers` _(Either/P1)_ — Add three more resource providers: (a) workbook transfer at fdpm://workbook/{id}/transfer, (b) validate report at fdpm://workbook/{id}/validate, (c) primitive view at fdpm://workbook/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.
 
 ---
 
@@ -16,14 +16,14 @@
 
 - `task:p1-subscribe` _(Either/P0)_ — Wire ResourceSubscribeRequestSchema + the watcher loop. On subscribe, take a (mtime\_ns, size) snapshot via host.statProjectLog and poll on a 250-500ms cadence; emit notifications/resources/updated when the snapshot changes.
 - `task:p1-sizecap` _(Either/P0)_ — Add FDPM\_MCP\_MAX\_RESOURCE\_BYTES (default 1 MiB). Reject oversized renders in resources/read with a \`quota\` envelope carrying \`evidence.bytes\` and \`evidence.cap\`. Cap also applies after base64 expansion for binary blobs.
-- `task:p1-providers` _(Either/P1)_ — Add three more resource providers: (a) project transfer at fdpm://project/{id}/transfer, (b) validate report at fdpm://project/{id}/validate, (c) primitive view at fdpm://project/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.
+- `task:p1-providers` _(Either/P1)_ — Add three more resource providers: (a) workbook transfer at fdpm://workbook/{id}/transfer, (b) validate report at fdpm://workbook/{id}/validate, (c) primitive view at fdpm://workbook/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.
 
 ### Backlog (25)
 
-- `task:p1-tests` _(Either/P0)_ — End-to-end JSON-RPC smoke against fdpm-mcp via stdio: subscribe, modify project log, observe notification; oversized render → quota envelope; each new provider returns content.
+- `task:p1-tests` _(Either/P0)_ — End-to-end JSON-RPC smoke against fdpm-mcp via stdio: subscribe, modify workbook log, observe notification; oversized render → quota envelope; each new provider returns content.
 - `task:p2-dry-run` _(Either/P0)_ — Add \`dry\_run: boolean\` to every Tier-3 tool input schema. When true, the tool runs the validation pipeline + computes the would-affect set but does NOT call host.delete\*. Returns the would-affect summary.
 - `task:p2-idempotency` _(Either/P0)_ — Require an \`idempotency\_key: string\` on every Tier-3 tool call. Server stores (tool\_name, key) → first\_seen\_at in a TTL map (~5 min). Re-issue with same key returns the cached result; re-issue with different key after the TTL succeeds normally.
-- `task:p2-audit-gates` _(Either/P1)_ — Write the McpAuditLog entry BEFORE invoking host.delete\* (today it's after) — on crash the audit shows intent; on success it's amended with outcome=ok. Add a debounce gate: refuse re-issue if the prior same-project audit entry is \<100ms old.
+- `task:p2-audit-gates` _(Either/P1)_ — Write the McpAuditLog entry BEFORE invoking host.delete\* (today it's after) — on crash the audit shows intent; on success it's amended with outcome=ok. Add a debounce gate: refuse re-issue if the prior same-workbook audit entry is \<100ms old.
 - `task:p2-tests` _(Either/P0)_ — Tests covering: dry-run returns correct would-affect; idempotency key dedupes within TTL; pre-execution audit entry persists across simulated crash; debounce refuses sub-100ms re-issue.
 - `task:p3-streaming` _(Either/P1)_ — Long renders (>1 MB) stream partial chunks to stdout in JSON mode. Each chunk: \`{stream\_id, seq, final, bytes\_chunk}\` envelope. Renderer needs an optional streaming hook the REPL drives.
 - `task:p3-multiline` _(Either/P2)_ — Trailing backslash continues input across lines. Continuation prompt \`... > \` on stderr. Cancel via Ctrl-C clears the in-progress buffer.
@@ -31,7 +31,7 @@
 - `task:p3-tests` _(Either/P1)_ — Tests: streaming render produces N+1 chunks (N data + 1 final flag); multi-line via spawn-with-stdin-pipe assembles correctly; completion returns expected candidates for known fixtures.
 - `task:p4-codemod-write` _(Either/P0)_ — Implement fdpm-cli/scripts/migrate-section-numbers.ts. Parses build-spec-\*.ts, replaces hand-authored \`number: "N"\` with the dnis:Node path, drops legacy spec:Section. Per-script byte-diff gate: refuses to write if pre/post output differs.
 - `task:p4-codemod-apply` _(Human/P0)_ — Run the codemod across every build-spec-\*.ts. Commit each migrated script in a separate commit so reviewers can see one-at-a-time diffs. Re-render every SPEC and confirm byte-equal output.
-- `task:p4-deprecation-removal` _(Either/P1)_ — Remove the spec:Section.number field from the active schema OR escalate the deprecation to an error finding (decide based on whether any external project still uses it). Update SPEC-SECTIONS-TREE §11 / §15.
+- `task:p4-deprecation-removal` _(Either/P1)_ — Remove the spec:Section.number field from the active schema OR escalate the deprecation to an error finding (decide based on whether any external workbook still uses it). Update SPEC-SECTIONS-TREE §11 / §15.
 - `task:p4-spec-stable` _(Either/P1)_ — Flip SPEC-SECTIONS-TREE status from Proposal to Stable in build-spec-sections-tree.ts; re-render docs/specs/SPEC-SECTIONS-TREE.md.
 - `task:p5-audit` _(Either/P1)_ — Audit which build-spec-\*.ts under fdpm-cli/scripts/ still hand-author \`number\` on spec:Section / fs:Section. Produce a spreadsheet (or just a markdown table) of (script, section\_count, profile\_id).
 - `task:p5-migrate-scripts` _(Either/P1)_ — Migrate each script identified by p5-audit to use dnis:Node sections via DnisHostAdapter. Re-render and confirm byte-equal output (the DNIS path's DFS numbering should match the legacy compareSectionNumbers output for any well-formed SPEC).
@@ -39,9 +39,9 @@
 - `task:p6-partial-failure` _(Either/P2)_ — Make :reload plugins survive a single plugin's activate() throwing. Today the reload aborts mid-way through. Fix: catch per-plugin, mark as \`quarantined\`, continue with the rest. Surface the count of quarantined plugins in the reload result.
 - `task:p6-incremental` _(Either/P2)_ — Plugin discovery currently rescans every dir on every load. Cache (dir, mtime\_ns) and skip unchanged dirs. Cache invalidates on :reload plugins. Saves wall-clock on REPL :reload and MCP SIGHUP.
 - `task:p6-spec-doc` _(Either/P2)_ — Write SPEC-PLUGIN-LIFECYCLE: documents activation order (profile-deps first, capability-deps next), partial-failure semantics, and the incremental-discovery contract. Either as a fresh SPEC under docs/specs/ or as a §-level addition to SPEC-CORE.
-- `task:p7-host-impl` _(Either/P2)_ — Add Host.searchPrimitivesAcross(filters) that walks every loaded project and returns a flat array of (project\_id, primitive). Reuses the per-project searchPrimitives implementation; coalesces results by id when --dedupe is passed.
-- `task:p7-cli-flags` _(Either/P2)_ — Extend \`fdpm primitive search\` with --across-projects, --type-class GLOB (e.g. \`\*:Section\` matches spec:Section, fs:Section, sw:Section), --field-equals key=value (multiple). Output groups results by project\_id in human mode, flat array in JSON mode.
-- `task:p7-tests` _(Either/P2)_ — Tests against a multi-project fixture (3 projects, 2 profiles, ~20 primitives total). Cover: --across-projects returns all matches, --type-class glob matches across profiles, --field-equals composes with the others.
+- `task:p7-host-impl` _(Either/P2)_ — Add Host.searchPrimitivesAcross(filters) that walks every loaded workbook and returns a flat array of (workbook\_id, primitive). Reuses the per-workbook searchPrimitives implementation; coalesces results by id when --dedupe is passed.
+- `task:p7-cli-flags` _(Either/P2)_ — Extend \`fdpm primitive search\` with --across-workbooks, --type-class GLOB (e.g. \`\*:Section\` matches spec:Section, fs:Section, sw:Section), --field-equals key=value (multiple). Output groups results by workbook\_id in human mode, flat array in JSON mode.
+- `task:p7-tests` _(Either/P2)_ — Tests against a multi-workbook fixture (3 workbooks, 2 profiles, ~20 primitives total). Cover: --across-workbooks returns all matches, --type-class glob matches across profiles, --field-equals composes with the others.
 - `task:p8-design` _(Either/P2)_ — Decide between (a) generating MANUAL.md + README.md env tables from src/core/config/env.ts at build time, or (b) introducing a content-include mechanism (e.g. \<!--include:env-table--> markers replaced by a script). (a) is simpler; (b) is more flexible.
 - `task:p8-implementation` _(Either/P2)_ — Implement the chosen approach from p8-design. Either way: env-contract test passes after adding a new env var without manual MANUAL.md / README.md edits.
 - `task:p8-tests` _(Either/P2)_ — Update tests/env-contract.test.ts to reflect the new generation/include mechanism. Add a regression test: adding a fake env var to env.ts triggers regeneration and the test re-passes without manual edits.

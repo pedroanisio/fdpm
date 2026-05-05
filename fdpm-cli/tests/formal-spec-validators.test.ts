@@ -21,7 +21,7 @@ async function loadHost(): Promise<Host> {
   });
   await host.load();
   await host.createProject({
-    project_id: "p1",
+    workbook_id: "p1",
     name: "P1",
     profile_id: PROFILE_ID,
   });

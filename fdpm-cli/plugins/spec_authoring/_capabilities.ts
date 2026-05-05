@@ -99,12 +99,12 @@ export function registerSpecAuthoringExtraCapabilities(ctx: PluginContext): void
       if (record.kind === "primitive") primitives.push(record.data as PrimitiveInstance);
       else if (record.kind === "relation") relations.push(record.data as RelationInstance);
     }
-    const projectId = options?.projectId ?? "spec-imported";
+    const workbookId = options?.workbookId ?? "spec-imported";
     const transfer: ProjectTransfer = {
       spec_core: "1.1.0",
-      project: {
-        id: projectId,
-        name: options?.projectName ?? projectId,
+      workbook: {
+        id: workbookId,
+        name: options?.projectName ?? workbookId,
         profile_id: "profile:spec-authoring:0.1",
         created_at: new Date().toISOString(),
         revision: 0,

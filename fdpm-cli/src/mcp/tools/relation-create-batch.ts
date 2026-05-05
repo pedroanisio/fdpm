@@ -17,7 +17,7 @@ import { ValidationReport } from "../../core/models/instance.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     relations: z
       .array(
         z
@@ -69,7 +69,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
       relation: r,
     }));
     const { outputs, reports } = await host.appendBatchWithCausation(
-      args.project_id,
+      args.workbook_id,
       intents,
     );
     return {

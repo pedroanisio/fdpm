@@ -35,7 +35,7 @@
  *     even when no section of kind='references' is authored — citations
  *     without a bibliography is the failure mode we exist to prevent).
  *
- * The renderer reacts to `template_id` via project-level options if the
+ * The renderer reacts to `template_id` via workbook-level options if the
  * caller threads it through; absent that, it produces the full SPEC.
  */
 import type { RendererFn, RendererOutput } from "../../../src/plugin/types.js";
@@ -75,7 +75,7 @@ interface Ctx {
    * SPEC-SECTIONS-TREE v0.2 §6.4 — dnis:Node id → §N.M.K heading map.
    * Built once at renderer entry by buildSectionIndex(); consumed by
    * the `fn.section_of` helper (helper-set v1.2.0) when this map is
-   * threaded through the renderTemplate facade. Empty when the project
+   * threaded through the renderTemplate facade. Empty when the workbook
    * contains no dnis:Document.
    */
   sectionIndex: Map<string, string>;
@@ -101,7 +101,7 @@ function buildCtx(
     if (!i.has(r.type_id)) i.set(r.type_id, []);
     i.get(r.type_id)!.push(r.source_id);
   }
-  // Heuristic: if there's exactly one Document in the project, that's the doc.
+  // Heuristic: if there's exactly one Document in the workbook, that's the doc.
   // Otherwise pick the first by id (sorted) so output is deterministic.
   const docs = primitives
     .filter((p) => p.type_id === "spec:Document")
@@ -117,7 +117,7 @@ function buildCtx(
     outgoing,
     incoming,
     // Empty by default; populated by populateSectionIndex() at the
-    // renderSpecMarkdown entry point if the project contains a dnis:
+    // renderSpecMarkdown entry point if the workbook contains a dnis:
     // Document. Building it before any renderSection call keeps the
     // §N.M.K resolution available to every template anywhere in the
     // document, not just inside the section body.
@@ -151,7 +151,7 @@ function populateSectionIndex(ctx: Ctx): number {
 }
 
 /**
- * Build a fresh §N.M.K → id index from a project's primitives — same
+ * Build a fresh §N.M.K → id index from a workbook's primitives — same
  * algorithm as the renderer's internal populateSectionIndex but
  * decoupled from the renderer's Ctx so callers (and tests) can
  * exercise the indexing logic without spinning up a full render.
@@ -954,10 +954,10 @@ function compareSectionNumbers(a: string, b: string): number {
 
 function renderSections(ctx: Ctx): string[] {
   // SPEC-CORE 1.2 §5.6 / SPEC-SECTIONS-TREE v0.2 — DNIS-Node-backed path.
-  // If the project contains a dnis:Document AND at least one active
+  // If the workbook contains a dnis:Document AND at least one active
   // dnis:Node whose kind is "section", treat the DNIS Node graph as the
   // canonical section tree and DFS-walk it. The legacy `spec:Section`
-  // path stays available for projects that haven't migrated.
+  // path stays available for workbooks that haven't migrated.
   const dnisRoot = ctx.primitives.find((p) => p.type_id === "dnis:Document");
   const dnisSections = dnisRoot
     ? ctx.primitives.filter(
@@ -974,7 +974,7 @@ function renderSections(ctx: Ctx): string[] {
       pushRendererFinding(
         ctx,
         "spec:render:mixed-mode-sections",
-        `project contains ${dnisSections.length} dnis:Node section(s) AND ${legacySections.length} spec:Section primitive(s); ` +
+        `workbook contains ${dnisSections.length} dnis:Node section(s) AND ${legacySections.length} spec:Section primitive(s); ` +
           "the DNIS path is canonical and the spec:Section primitives will be ignored. " +
           "Migrate the legacy primitives via the SPEC-SECTIONS-TREE codemod or remove them.",
       );
@@ -1040,7 +1040,7 @@ function renderSectionsLegacy(
  *
  * Body content is rendered the same way as the legacy path: the parsed
  * `dispatch_kind` looks up `KIND_RENDERERS`; the kind handler walks the
- * project's typed primitives (spec:Stakeholder, spec:ADR, …) for table
+ * workbook's typed primitives (spec:Stakeholder, spec:ADR, …) for table
  * content. The DNIS Node holds title + prose + dispatch hint; it does
  * NOT hold the typed primitives themselves.
  */
@@ -1246,14 +1246,14 @@ export const renderSpecMarkdown: RendererFn = (input): RendererOutput => {
   // Build the §N.M.K → dnis:Node id index before any rendering begins.
   // Templates anywhere in the document can resolve cross-section
   // references via `fn.section_of(node_id)` (helper-set v1.2.0). The
-  // index is empty when the project has no dnis:Document — legacy
-  // spec:Section projects are unaffected.
+  // index is empty when the workbook has no dnis:Document — legacy
+  // spec:Section workbooks are unaffected.
   populateSectionIndex(ctx);
   const lines: string[] = [];
 
   if (!ctx.doc) {
     lines.push(
-      "# (no spec:Document found in this project)",
+      "# (no spec:Document found in this workbook)",
       "",
       "_The spec_authoring renderer requires at least one `spec:Document` primitive._",
       "",

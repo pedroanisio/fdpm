@@ -8,7 +8,7 @@ import { CURRENT_PAYLOAD_SCHEMA_VERSION } from "../operations/payloads.js";
 import type {
   PrimitiveInstance,
   RelationInstance,
-  Project,
+  Workbook,
   ProjectTemplate,
   TestSuite,
 } from "../models/instance.js";
@@ -27,16 +27,16 @@ export function applyOperation(state: StoreState, op: Operation): void {
       : upcastPayload(op.kind, op.schema_version, op.payload, op);
 
   switch (op.kind) {
-    case "project.create":
+    case "workbook.create":
       applyProjectCreate(state, op, payload);
       break;
-    case "project.delete":
-      applyProjectDelete(state, payload as { project_id: string });
+    case "workbook.delete":
+      applyProjectDelete(state, payload as { workbook_id: string });
       break;
-    case "project.split":
+    case "workbook.split":
       applyProjectSplit(state, op, payload);
       break;
-    case "project.clone":
+    case "workbook.clone":
       applyProjectClone(state, op, payload);
       break;
     case "primitive.create":
@@ -102,7 +102,7 @@ export function applyOperation(state: StoreState, op: Operation): void {
 }
 
 function projectExists(state: StoreState, id: string): boolean {
-  return id in state.projects;
+  return id in state.workbooks;
 }
 
 function ensureProjectMaps(state: StoreState, id: string): void {
@@ -116,51 +116,51 @@ function ensureProjectMaps(state: StoreState, id: string): void {
 
 function applyProjectCreate(state: StoreState, op: Operation, payload: any): void {
   const p = payload as {
-    project_id: string;
+    workbook_id: string;
     name: string;
     profile_id: string;
     description?: string;
   };
-  if (projectExists(state, p.project_id))
-    throw new FDPMException("conflict", `project already exists: ${p.project_id}`);
-  const project: Project = {
-    id: p.project_id,
+  if (projectExists(state, p.workbook_id))
+    throw new FDPMException("conflict", `workbook already exists: ${p.workbook_id}`);
+  const workbook: Workbook = {
+    id: p.workbook_id,
     name: p.name,
     profile_id: p.profile_id,
     created_at: op.timestamp,
     revision: op.revision,
     ...(p.description != null && { description: p.description }),
   };
-  state.projects[p.project_id] = project;
-  ensureProjectMaps(state, p.project_id);
+  state.workbooks[p.workbook_id] = workbook;
+  ensureProjectMaps(state, p.workbook_id);
 }
 
-function applyProjectDelete(state: StoreState, payload: { project_id: string }): void {
-  // Drop every uid_index entry that points at this project before
+function applyProjectDelete(state: StoreState, payload: { workbook_id: string }): void {
+  // Drop every uid_index entry that points at this workbook before
   // wiping the projection — otherwise --by-uid would resolve phantoms.
   for (const [uid, entry] of Object.entries(state.uid_index)) {
-    if (entry.project_id === payload.project_id) delete state.uid_index[uid];
+    if (entry.workbook_id === payload.workbook_id) delete state.uid_index[uid];
   }
-  delete state.projects[payload.project_id];
-  delete state.primitives[payload.project_id];
-  delete state.relations[payload.project_id];
-  delete state.templates[payload.project_id];
-  delete state.test_suites[payload.project_id];
-  delete state.suite_runs[payload.project_id];
-  delete state.scope_membership[payload.project_id];
+  delete state.workbooks[payload.workbook_id];
+  delete state.primitives[payload.workbook_id];
+  delete state.relations[payload.workbook_id];
+  delete state.templates[payload.workbook_id];
+  delete state.test_suites[payload.workbook_id];
+  delete state.suite_runs[payload.workbook_id];
+  delete state.scope_membership[payload.workbook_id];
 }
 
 function applyProjectSplit(state: StoreState, op: Operation, payload: any): void {
-  // The split's effect is encoded as the source project's deletion plus
-  // per-target project.create operations expanded as children. The
+  // The split's effect is encoded as the source workbook's deletion plus
+  // per-target workbook.create operations expanded as children. The
   // top-level split op itself is a no-op at replay; child ops carry the
   // effect. (Append-time logic in store.ts emits the children.)
   void state; void op; void payload;
 }
 
 function applyProjectClone(state: StoreState, op: Operation, payload: any): void {
-  // Same pattern as split — clone expands into a project.create on the
-  // new project plus per-primitive/relation creates.
+  // Same pattern as split — clone expands into a workbook.create on the
+  // new workbook plus per-primitive/relation creates.
   void state; void op; void payload;
 }
 
@@ -172,8 +172,8 @@ function applyPrimitiveCreate(state: StoreState, op: Operation, payload: any): v
     field_values: Record<string, unknown>;
     scope_id?: string;
   };
-  ensureProjectMaps(state, op.project_id);
-  const prims = state.primitives[op.project_id]!;
+  ensureProjectMaps(state, op.workbook_id);
+  const prims = state.primitives[op.workbook_id]!;
   if (p.id in prims)
     throw new FDPMException("conflict", `primitive id collision: ${p.id}`);
   if (p.uid in state.uid_index)
@@ -190,12 +190,12 @@ function applyPrimitiveCreate(state: StoreState, op: Operation, payload: any): v
   };
   prims[p.id] = inst;
   state.uid_index[p.uid] = {
-    project_id: op.project_id,
+    workbook_id: op.workbook_id,
     kind: "primitive",
     id: p.id,
   };
   if (p.scope_id) {
-    const memberships = state.scope_membership[op.project_id]!;
+    const memberships = state.scope_membership[op.workbook_id]!;
     const list = memberships[p.scope_id] ?? [];
     list.push(p.id);
     memberships[p.scope_id] = list;
@@ -211,7 +211,7 @@ function applyPrimitiveReplace(state: StoreState, op: Operation, payload: any): 
     scope_id?: string;
     uid?: string;
   };
-  const prims = state.primitives[op.project_id];
+  const prims = state.primitives[op.workbook_id];
   if (!prims || !(p.id in prims))
     throw new FDPMException("not_found", `primitive not found: ${p.id}`);
   const existing = prims[p.id]!;
@@ -239,7 +239,7 @@ function applyPrimitivePatch(state: StoreState, op: Operation, payload: any): vo
     field_values: Record<string, unknown>;
     scope_id?: string;
   };
-  const prims = state.primitives[op.project_id];
+  const prims = state.primitives[op.workbook_id];
   if (!prims || !(p.id in prims))
     throw new FDPMException("not_found", `primitive not found: ${p.id}`);
   const existing = prims[p.id]!;
@@ -254,7 +254,7 @@ function applyPrimitivePatch(state: StoreState, op: Operation, payload: any): vo
 
 function applyPrimitiveFieldPatch(state: StoreState, op: Operation, payload: any): void {
   const p = payload as { id: string; operations: JsonPatchOp[] };
-  const prims = state.primitives[op.project_id];
+  const prims = state.primitives[op.workbook_id];
   if (!prims || !(p.id in prims))
     throw new FDPMException("not_found", `primitive not found: ${p.id}`);
   const existing = prims[p.id]!;
@@ -265,20 +265,20 @@ function applyPrimitiveFieldPatch(state: StoreState, op: Operation, payload: any
 
 function applyPrimitiveDelete(state: StoreState, op: Operation, payload: any): void {
   const p = payload as { id: string };
-  const prims = state.primitives[op.project_id];
+  const prims = state.primitives[op.workbook_id];
   if (!prims || !(p.id in prims)) return; // idempotent on missing
   const existing = prims[p.id]!;
   delete prims[p.id];
   delete state.uid_index[existing.uid];
   if (existing.scope_id) {
-    const list = state.scope_membership[op.project_id]?.[existing.scope_id];
+    const list = state.scope_membership[op.workbook_id]?.[existing.scope_id];
     if (list) {
       const idx = list.indexOf(p.id);
       if (idx >= 0) list.splice(idx, 1);
     }
   }
   // Cascade: drop any relations touching this primitive (and their uids).
-  const rels = state.relations[op.project_id] ?? {};
+  const rels = state.relations[op.workbook_id] ?? {};
   for (const rid of Object.keys(rels)) {
     const r = rels[rid]!;
     if (r.source_id === p.id || r.target_id === p.id) {
@@ -298,8 +298,8 @@ function applyRelationCreate(state: StoreState, op: Operation, payload: any): vo
     target_id: string;
     field_values?: Record<string, unknown>;
   };
-  ensureProjectMaps(state, op.project_id);
-  const rels = state.relations[op.project_id]!;
+  ensureProjectMaps(state, op.workbook_id);
+  const rels = state.relations[op.workbook_id]!;
   if (r.id in rels)
     throw new FDPMException("conflict", `relation id collision: ${r.id}`);
   if (r.uid in state.uid_index)
@@ -316,7 +316,7 @@ function applyRelationCreate(state: StoreState, op: Operation, payload: any): vo
     revision: op.revision,
   };
   state.uid_index[r.uid] = {
-    project_id: op.project_id,
+    workbook_id: op.workbook_id,
     kind: "relation",
     id: r.id,
   };
@@ -329,7 +329,7 @@ function applyRelationReplace(state: StoreState, op: Operation, payload: any): v
     type_id: string;
     field_values: Record<string, unknown>;
   };
-  const rels = state.relations[op.project_id];
+  const rels = state.relations[op.workbook_id];
   if (!rels || !(r.id in rels))
     throw new FDPMException("not_found", `relation not found: ${r.id}`);
   const existing = rels[r.id]!;
@@ -345,7 +345,7 @@ function applyRelationReplace(state: StoreState, op: Operation, payload: any): v
 
 function applyRelationPatch(state: StoreState, op: Operation, payload: any): void {
   const r = payload as { id: string; field_values: Record<string, unknown> };
-  const rels = state.relations[op.project_id];
+  const rels = state.relations[op.workbook_id];
   if (!rels || !(r.id in rels))
     throw new FDPMException("not_found", `relation not found: ${r.id}`);
   const existing = rels[r.id]!;
@@ -359,7 +359,7 @@ function applyRelationPatch(state: StoreState, op: Operation, payload: any): voi
 
 function applyRelationFieldPatch(state: StoreState, op: Operation, payload: any): void {
   const r = payload as { id: string; operations: JsonPatchOp[] };
-  const rels = state.relations[op.project_id];
+  const rels = state.relations[op.workbook_id];
   if (!rels || !(r.id in rels))
     throw new FDPMException("not_found", `relation not found: ${r.id}`);
   const existing = rels[r.id]!;
@@ -375,7 +375,7 @@ function applyRelationFieldPatch(state: StoreState, op: Operation, payload: any)
 
 function applyRelationDelete(state: StoreState, op: Operation, payload: any): void {
   const r = payload as { id: string };
-  const rels = state.relations[op.project_id];
+  const rels = state.relations[op.workbook_id];
   if (!rels) return;
   delete rels[r.id];
   bumpProjectRevision(state, op);
@@ -383,10 +383,10 @@ function applyRelationDelete(state: StoreState, op: Operation, payload: any): vo
 
 function applyStructureReorder(state: StoreState, op: Operation, payload: any): void {
   const p = payload as { scope_id: string; ordering: string[] };
-  const memberships = state.scope_membership[op.project_id];
+  const memberships = state.scope_membership[op.workbook_id];
   if (!memberships)
-    throw new FDPMException("not_found", `project not found: ${op.project_id}`, {
-      evidence: { project_id: op.project_id },
+    throw new FDPMException("not_found", `workbook not found: ${op.workbook_id}`, {
+      evidence: { workbook_id: op.workbook_id },
     });
   const current = memberships[p.scope_id] ?? [];
   // Reordering MUST be a permutation of current membership.
@@ -405,15 +405,15 @@ function applyStructureReparent(state: StoreState, op: Operation, payload: any):
     to_scope_id: string;
     position?: number;
   };
-  const memberships = state.scope_membership[op.project_id];
-  const prims = state.primitives[op.project_id];
+  const memberships = state.scope_membership[op.workbook_id];
+  const prims = state.primitives[op.workbook_id];
   if (!memberships || !prims)
-    throw new FDPMException("not_found", `project not found: ${op.project_id}`, {
-      evidence: { project_id: op.project_id },
+    throw new FDPMException("not_found", `workbook not found: ${op.workbook_id}`, {
+      evidence: { workbook_id: op.workbook_id },
     });
   if (!(p.primitive_id in prims))
     throw new FDPMException("not_found", `primitive not found: ${p.primitive_id}`, {
-      evidence: { primitive_id: p.primitive_id, project_id: op.project_id },
+      evidence: { primitive_id: p.primitive_id, workbook_id: op.workbook_id },
     });
   const fromList = memberships[p.from_scope_id] ?? [];
   const idx = fromList.indexOf(p.primitive_id);
@@ -434,42 +434,42 @@ function applyStructureReparent(state: StoreState, op: Operation, payload: any):
 
 function applyTemplateCreate(state: StoreState, op: Operation, payload: any): void {
   const t = (payload as { template: ProjectTemplate }).template;
-  ensureProjectMaps(state, op.project_id);
-  state.templates[op.project_id]![t.id] = t;
+  ensureProjectMaps(state, op.workbook_id);
+  state.templates[op.workbook_id]![t.id] = t;
   bumpProjectRevision(state, op);
 }
 
 function applyTemplateDelete(state: StoreState, op: Operation, payload: any): void {
   const p = payload as { template_id: string };
-  if (state.templates[op.project_id]) delete state.templates[op.project_id]![p.template_id];
+  if (state.templates[op.workbook_id]) delete state.templates[op.workbook_id]![p.template_id];
   bumpProjectRevision(state, op);
 }
 
 function applyTestSuiteCreate(state: StoreState, op: Operation, payload: any): void {
   const s = (payload as { suite: TestSuite }).suite;
-  ensureProjectMaps(state, op.project_id);
-  state.test_suites[op.project_id]![s.id] = s;
+  ensureProjectMaps(state, op.workbook_id);
+  state.test_suites[op.workbook_id]![s.id] = s;
   bumpProjectRevision(state, op);
 }
 
 function applyTestSuiteReplace(state: StoreState, op: Operation, payload: any): void {
   const p = payload as { suite_id: string; suite: TestSuite };
-  if (!state.test_suites[op.project_id])
-    throw new FDPMException("not_found", `project not found: ${op.project_id}`, {
-      evidence: { project_id: op.project_id },
+  if (!state.test_suites[op.workbook_id])
+    throw new FDPMException("not_found", `workbook not found: ${op.workbook_id}`, {
+      evidence: { workbook_id: op.workbook_id },
     });
-  state.test_suites[op.project_id]![p.suite_id] = p.suite;
+  state.test_suites[op.workbook_id]![p.suite_id] = p.suite;
   bumpProjectRevision(state, op);
 }
 
 function applyTestSuiteDelete(state: StoreState, op: Operation, payload: any): void {
   const p = payload as { suite_id: string };
-  if (state.test_suites[op.project_id]) delete state.test_suites[op.project_id]![p.suite_id];
+  if (state.test_suites[op.workbook_id]) delete state.test_suites[op.workbook_id]![p.suite_id];
   bumpProjectRevision(state, op);
 }
 
 function bumpProjectRevision(state: StoreState, op: Operation): void {
-  const proj = state.projects[op.project_id];
+  const proj = state.workbooks[op.workbook_id];
   if (proj) proj.revision = op.revision;
 }
 
@@ -478,7 +478,7 @@ function bumpProjectRevision(state: StoreState, op: Operation): void {
  */
 export function replay(log: Operation[], from?: StoreState): StoreState {
   const state = from ?? emptyState();
-  // Sort by (revision, op_id) per project, but the log is appended in
+  // Sort by (revision, op_id) per workbook, but the log is appended in
   // order so a stable sort by op_id preserves global ordering.
   const sorted = [...log].sort((a, b) =>
     a.revision === b.revision ? a.op_id.localeCompare(b.op_id) : a.revision - b.revision,
@@ -492,15 +492,15 @@ export function replay(log: Operation[], from?: StoreState): StoreState {
  * and as the snapshot used for batch rollback. Deep-cloned so mutations
  * to the live projection do not bleed into the snapshot.
  */
-export function sliceProject(state: StoreState, project_id: string): ProjectStateSlice | null {
-  const project = state.projects[project_id];
-  if (!project) return null;
+export function sliceProject(state: StoreState, workbook_id: string): ProjectStateSlice | null {
+  const workbook = state.workbooks[workbook_id];
+  if (!workbook) return null;
   return structuredClone({
-    project,
-    primitives: state.primitives[project_id] ?? {},
-    relations: state.relations[project_id] ?? {},
-    templates: state.templates[project_id] ?? {},
-    test_suites: state.test_suites[project_id] ?? {},
-    scope_membership: state.scope_membership[project_id] ?? {},
+    workbook,
+    primitives: state.primitives[workbook_id] ?? {},
+    relations: state.relations[workbook_id] ?? {},
+    templates: state.templates[workbook_id] ?? {},
+    test_suites: state.test_suites[workbook_id] ?? {},
+    scope_membership: state.scope_membership[workbook_id] ?? {},
   });
 }

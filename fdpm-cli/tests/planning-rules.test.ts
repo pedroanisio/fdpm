@@ -29,7 +29,7 @@ async function freshHost(): Promise<Host> {
 
 async function newPlanningProject(host: Host, id: string): Promise<void> {
   await host.createProject({
-    project_id: id,
+    workbook_id: id,
     name: id,
     profile_id: PROFILE_ID,
   });
@@ -58,7 +58,7 @@ describe("plan:val:ai-task-duration-bounded", () => {
       await host.createPrimitive("p1a", {
         id: "task:bad",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           name: "bad",
@@ -85,7 +85,7 @@ describe("plan:val:ai-task-duration-bounded", () => {
       await host.createPrimitive("p1b", {
         id: "task:overrun",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           name: "overrun",
@@ -111,26 +111,26 @@ describe("plan:val:ai-task-duration-bounded", () => {
   // ai-task-has-machine-checkable-ac rule; helper builds both pieces.
   async function seedAcceptableAiTask(
     host: Host,
-    projectId: string,
+    workbookId: string,
     taskId: string,
     aiMinutes: number,
   ): Promise<Awaited<ReturnType<Host["replacePrimitive"]>>> {
-    await newPlanningProject(host, projectId);
+    await newPlanningProject(host, workbookId);
     const acId = `ac:${taskId.replace(/[^a-z0-9]+/gi, "-")}`;
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: acId,
       type_id: "plan:AcceptanceCriterion",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         criterion: "test passes",
         expression: 'instance.field_values.status == "Done"',
         status: "open",
       },
     });
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: taskId,
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: taskId,
@@ -140,16 +140,16 @@ describe("plan:val:ai-task-duration-bounded", () => {
         is_root: true,
       },
     });
-    await host.createRelation(projectId, {
+    await host.createRelation(workbookId, {
       id: `rel:verifies-${taskId.replace(/[^a-z0-9]+/gi, "-")}`,
       type_id: "plan:Verifies",
       source_id: taskId,
       target_id: acId,
     });
-    return host.replacePrimitive(projectId, {
+    return host.replacePrimitive(workbookId, {
       id: taskId,
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: taskId,
@@ -179,7 +179,7 @@ describe("plan:val:ai-task-duration-bounded", () => {
     const r = await host.createPrimitive("p1e", {
       id: "task:human",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "human",
@@ -206,7 +206,7 @@ describe("plan:val:non-root-task-has-deps", () => {
       await host.createPrimitive("p2a", {
         id: "task:orphan",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           name: "orphan",
@@ -232,7 +232,7 @@ describe("plan:val:non-root-task-has-deps", () => {
     const r = await host.createPrimitive("p2b", {
       id: "task:explicit-root",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "explicit-root",
@@ -252,7 +252,7 @@ describe("plan:val:non-root-task-has-deps", () => {
     await host.createPrimitive("p2c", {
       id: "task:root",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "root",
@@ -273,7 +273,7 @@ describe("plan:val:non-root-task-has-deps", () => {
     await host.createPrimitive("p2c", {
       id: "task:child",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "child",
@@ -293,7 +293,7 @@ describe("plan:val:non-root-task-has-deps", () => {
     const r = await host.replacePrimitive("p2c", {
       id: "task:child",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "child",
@@ -318,7 +318,7 @@ describe("plan:val:no-circular-deps", () => {
       await host.createPrimitive("p3a", {
         id,
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           name: id,
@@ -360,7 +360,7 @@ describe("plan:val:no-circular-deps", () => {
         findings.some((f) => f.rule_id === "plan:val:no-circular-deps"),
       ).toBe(true);
     } else {
-      // The relation was accepted; validate the project and assert the
+      // The relation was accepted; validate the workbook and assert the
       // rule fires.
       const report = host.validateProject("p3a");
       const findings = report.primitives
@@ -383,7 +383,7 @@ describe("plan:val:done-task-has-ac", () => {
     await host.createPrimitive("p4a", {
       id: "task:no-ac",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "no-ac",
@@ -398,7 +398,7 @@ describe("plan:val:done-task-has-ac", () => {
       await host.replacePrimitive("p4a", {
         id: "task:no-ac",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           status: "Done",
@@ -433,7 +433,7 @@ describe("plan:val:blocked-task-has-blocker", () => {
       await host.createPrimitive("p5a", {
         id: "task:blocked-empty",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           status: "Blocked",
@@ -468,7 +468,7 @@ describe("plan:val:planned-dates-ordered", () => {
       await host.createPrimitive("p6a", {
         id: "task:reverse",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           name: "reverse",
@@ -496,7 +496,7 @@ describe("plan:val:planned-dates-ordered", () => {
     const r = await host.createPrimitive("p6b", {
       id: "task:zero",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "zero",
@@ -517,7 +517,7 @@ describe("plan:val:planned-dates-ordered", () => {
     const r = await host.createPrimitive("p6c", {
       id: "task:half",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "half",
@@ -549,7 +549,7 @@ describe("plan:val:claim-has-expiry", () => {
       await host.createPrimitive("p7a", {
         id: "task:loose-claim",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           name: "loose-claim",
@@ -577,7 +577,7 @@ describe("plan:val:claim-has-expiry", () => {
     const r = await host.createPrimitive("p7b", {
       id: "task:bounded-claim",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "bounded-claim",
@@ -606,7 +606,7 @@ describe("plan:val:ai-task-has-machine-checkable-ac", () => {
       await host.createPrimitive("p8a", {
         id: "task:ai-no-ac",
         type_id: "plan:Task",
-        scope_id: "scope:plan:project",
+        scope_id: "scope:plan:workbook",
         field_values: {
           ...REQUIRED_TASK_FIELDS,
           name: "ai-no-ac",
@@ -637,7 +637,7 @@ describe("plan:val:ai-task-has-machine-checkable-ac", () => {
     await host.createPrimitive("p8b", {
       id: "ac:tested-ai-ok",
       type_id: "plan:AcceptanceCriterion",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         criterion: "test passes",
         expression: 'instance.field_values.status == "Done"',
@@ -647,7 +647,7 @@ describe("plan:val:ai-task-has-machine-checkable-ac", () => {
     await host.createPrimitive("p8b", {
       id: "task:ai-ok",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "ai-ok",
@@ -666,7 +666,7 @@ describe("plan:val:ai-task-has-machine-checkable-ac", () => {
     const r = await host.replacePrimitive("p8b", {
       id: "task:ai-ok",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "ai-ok",
@@ -691,7 +691,7 @@ describe("plan:val:implements-target-exists", () => {
     await host.createPrimitive("p9a", {
       id: "task:src",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "src",
@@ -731,7 +731,7 @@ describe("plan:val:implements-target-exists", () => {
     await host.createPrimitive("p9c", {
       id: "task:src",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "src",
@@ -744,7 +744,7 @@ describe("plan:val:implements-target-exists", () => {
     await host.createPrimitive("p9c", {
       id: "task:tgt",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "tgt",
@@ -777,12 +777,12 @@ describe("plan:val:implements-target-exists", () => {
   it("ACCEPTS plan:Implements once the target primitive exists", async () => {
     const host = await freshHost();
     await newPlanningProject(host, "p9b");
-    // Use a sibling primitive in the same project (no need to register
+    // Use a sibling primitive in the same workbook (no need to register
     // sw plugin profile — wildcard target_types accepts anything).
     await host.createPrimitive("p9b", {
       id: "task:src",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "src",
@@ -795,7 +795,7 @@ describe("plan:val:implements-target-exists", () => {
     await host.createPrimitive("p9b", {
       id: "task:tgt",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "tgt",
@@ -826,7 +826,7 @@ describe("plan:comp:in-progress-has-assignee", () => {
     const r = await host.createPrimitive("p10a", {
       id: "task:unattended",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         status: "In_progress",
@@ -853,7 +853,7 @@ describe("plan:comp:in-progress-has-assignee", () => {
     const r = await host.createPrimitive("p10b", {
       id: "task:not-running",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "not-running",
@@ -1006,7 +1006,7 @@ describe("host.runRenderer end-to-end dispatch for the 3 planning renderers", ()
     await host.createPrimitive("p-runrenderer", {
       id: "task:demo",
       type_id: "plan:Task",
-      scope_id: "scope:plan:project",
+      scope_id: "scope:plan:workbook",
       field_values: {
         ...REQUIRED_TASK_FIELDS,
         name: "demo",
@@ -1020,9 +1020,9 @@ describe("host.runRenderer end-to-end dispatch for the 3 planning renderers", ()
     });
 
     const slice = host.getProject("p-runrenderer");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const input = {
-      projectId: "p-runrenderer",
+      workbookId: "p-runrenderer",
       profile,
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),

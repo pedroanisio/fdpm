@@ -115,16 +115,16 @@ describe("Issue-F — `not_found` message corpus is on canonical form", () => {
 });
 
 describe("Issue-F — replay paths surface canonical messages with evidence", () => {
-  it("structure.reorder on a missing project: canonical message + evidence", async () => {
+  it("structure.reorder on a missing workbook: canonical message + evidence", async () => {
     const host = await newHost();
     let caught: unknown;
     try {
-      // §5.4 reorder against a project that doesn't exist exercises the
+      // §5.4 reorder against a workbook that doesn't exist exercises the
       // memberships-missing branch in replay.ts at the top of
       // applyStructureReorder.
       await host.appendAndPersist({
         kind: "structure.reorder",
-        project_id: "ghost",
+        workbook_id: "ghost",
         payload: { scope_id: "test:scope:doc", ordering: [] },
       });
     } catch (err) {
@@ -133,18 +133,18 @@ describe("Issue-F — replay paths surface canonical messages with evidence", ()
     expect(caught).toBeInstanceOf(FDPMException);
     const fdpm = caught as FDPMException;
     expect(fdpm.category).toBe("not_found");
-    expect(fdpm.message).toBe("project not found: ghost");
-    expect(fdpm.evidence).toEqual({ project_id: "ghost" });
+    expect(fdpm.message).toBe("workbook not found: ghost");
+    expect(fdpm.evidence).toEqual({ workbook_id: "ghost" });
   });
 
   it("structure.reparent on a missing primitive: canonical message + evidence", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     let caught: unknown;
     try {
       await host.appendAndPersist({
         kind: "structure.reparent",
-        project_id: "p1",
+        workbook_id: "p1",
         payload: {
           primitive_id: "section:ghost",
           from_scope_id: "test:scope:doc",
@@ -160,7 +160,7 @@ describe("Issue-F — replay paths surface canonical messages with evidence", ()
     expect(fdpm.message).toBe("primitive not found: section:ghost");
     expect(fdpm.evidence).toEqual({
       primitive_id: "section:ghost",
-      project_id: "p1",
+      workbook_id: "p1",
     });
   });
 });

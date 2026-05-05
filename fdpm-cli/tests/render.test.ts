@@ -51,7 +51,7 @@ async function newFsHost(): Promise<Host> {
 async function newFsHostWithPaper(): Promise<Host> {
   const host = await newFsHost();
   await host.createProject({
-    project_id: "paper",
+    workbook_id: "paper",
     name: "Demo Paper",
     profile_id: PROFILE_ID,
   });
@@ -86,9 +86,9 @@ describe("formal_specification renderers — happy path", () => {
   it("markdown renderer produces expected headings and is valid UTF-8", async () => {
     const host = await newFsHostWithPaper();
     const slice = host.getProject("paper");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer("text/markdown", {
-      projectId: "paper",
+      workbookId: "paper",
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       profile,
@@ -104,9 +104,9 @@ describe("formal_specification renderers — happy path", () => {
   it("html renderer produces a well-formed document", async () => {
     const host = await newFsHostWithPaper();
     const slice = host.getProject("paper");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer("text/html", {
-      projectId: "paper",
+      workbookId: "paper",
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       profile,
@@ -123,9 +123,9 @@ describe("formal_specification renderers — happy path", () => {
   it("pdf renderer produces a valid pdf-lib-parseable document", async () => {
     const host = await newFsHostWithPaper();
     const slice = host.getProject("paper");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer("application/pdf", {
-      projectId: "paper",
+      workbookId: "paper",
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       profile,
@@ -140,24 +140,24 @@ describe("formal_specification renderers — happy path", () => {
     expect(reloaded.getPageCount()).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders an empty project without crashing", async () => {
+  it("renders an empty workbook without crashing", async () => {
     const host = await newFsHost();
     await host.createProject({
-      project_id: "empty",
+      workbook_id: "empty",
       name: "Empty",
       profile_id: PROFILE_ID,
     });
     const slice = host.getProject("empty");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const md = await host.plugins.runRenderer("text/markdown", {
-      projectId: "empty",
+      workbookId: "empty",
       primitives: [],
       relations: [],
       profile,
     });
     expect(new TextDecoder().decode(md.bytes)).toContain("# empty");
     const pdf = await host.plugins.runRenderer("application/pdf", {
-      projectId: "empty",
+      workbookId: "empty",
       primitives: [],
       relations: [],
       profile,
@@ -221,7 +221,7 @@ export default {
     await host.plugins.enable(pluginId);
     await expect(
       host.plugins.runRenderer("text/markdown", {
-        projectId: "x",
+        workbookId: "x",
         primitives: [],
         relations: [],
         profile: { id: "p:x:1.0" } as never,
@@ -246,7 +246,7 @@ export default {
       await host.plugins.enable(pluginId);
       await expect(
         host.plugins.runRenderer("text/plain", {
-          projectId: "x",
+          workbookId: "x",
           primitives: [],
           relations: [],
           profile: { id: "p:x:1.0" } as never,
@@ -272,7 +272,7 @@ export default {
     await host.plugins.enable(pluginId);
     await expect(
       host.plugins.runRenderer("text/plain", {
-        projectId: "x",
+        workbookId: "x",
         primitives: [],
         relations: [],
         profile: { id: "p:x:1.0" } as never,
@@ -322,7 +322,7 @@ export default {
     await host.plugins.enable("test.raising-renderer");
     await expect(
       host.plugins.runRenderer("text/markdown", {
-        projectId: "x",
+        workbookId: "x",
         primitives: [],
         relations: [],
         profile: { id: "p:x:1.0" } as never,
@@ -340,7 +340,7 @@ describe("runRenderer — disambiguation", () => {
     const host = await newFsHost();
     await expect(
       host.plugins.runRenderer("application/x-fictional", {
-        projectId: "x",
+        workbookId: "x",
         primitives: [],
         relations: [],
         profile: { id: "p:x:1.0" } as never,

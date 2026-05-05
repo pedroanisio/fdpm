@@ -39,8 +39,8 @@ export const Capability = z
 export type Capability = z.infer<typeof Capability>;
 
 export const Permission = z.enum([
-  "read:projects",
-  "write:projects",
+  "read:workbooks",
+  "write:workbooks",
   "read:primitives",
   "write:primitives",
   "read:relations",
@@ -48,8 +48,8 @@ export const Permission = z.enum([
   "read:audit",
   "render:server",
   "render:client",
-  "import:project",
-  "export:project",
+  "import:workbook",
+  "export:workbook",
   "menu:contribute",
   "network:outbound",
   "filesystem:read",

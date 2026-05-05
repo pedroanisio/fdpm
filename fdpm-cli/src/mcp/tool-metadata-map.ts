@@ -11,11 +11,11 @@
  *   - `string` — the key in `ALL_COMMAND_METADATA`. The dispatcher
  *     calls that entry's `projectIdsFromJson` against the raw tool
  *     args.
- *   - `null` — the tool touches no project log (e.g. `fdpm.health`,
+ *   - `null` — the tool touches no workbook log (e.g. `fdpm.health`,
  *     `fdpm.profile.list`). The freshness check is skipped.
  *   - `ProjectIdsFromJson` — an inline extractor. Used for tools that
  *     do not have a direct command-metadata equivalent (e.g.
- *     `fdpm.log.tail` / `fdpm.log.diff`, which derive their project
+ *     `fdpm.log.tail` / `fdpm.log.diff`, which derive their workbook
  *     scope from the JSON payload directly even though the closest
  *     CLI key is `"log show"`).
  *
@@ -34,15 +34,15 @@ export type ToolMetadataEntry = string | null | ProjectIdsFromJson;
 
 /**
  * Inline extractor for log-shaped tool args. Both `fdpm.log.tail` and
- * `fdpm.log.diff` carry the project scope on `project_id`. The closest
- * CLI command (`log show`) uses the same `(project, project_id)` key
+ * `fdpm.log.diff` carry the workbook scope on `workbook_id`. The closest
+ * CLI command (`log show`) uses the same `(workbook, workbook_id)` key
  * convention; we duplicate that here rather than alias to `log show`
  * because neither MCP tool maps to that command exactly (no shell
  * tokens, no `--from-revision` flag conventions to honour).
  */
 const LOG_TOOL_PROJECT_JSON: ProjectIdsFromJson = projectFromJsonField(
-  "project_id",
-  "project",
+  "workbook_id",
+  "workbook",
 );
 
 export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
@@ -51,8 +51,8 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
   "fdpm.profile.list": "profile list",
   "fdpm.profile.get": "profile get",
   "fdpm.profile.type_info": null,
-  "fdpm.project.list": "project list",
-  "fdpm.project.get": "project get",
+  "fdpm.workbook.list": "workbook list",
+  "fdpm.workbook.get": "workbook get",
   "fdpm.primitive.search": "primitive search",
   "fdpm.primitive.get": "primitive get",
   "fdpm.relation.list": "relation list",
@@ -62,7 +62,7 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
 
   // Tier 2 — validating-write tools.
   "fdpm.profile.register": "profile register",
-  "fdpm.project.create": "project create",
+  "fdpm.workbook.create": "workbook create",
   "fdpm.primitive.create": "primitive create",
   "fdpm.primitive.create_batch": "primitive create",
   "fdpm.primitive.replace": "primitive replace",
@@ -76,7 +76,7 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
   "fdpm.structure.reparent": "structure reparent",
 
   // Tier 3 — destructive deletes (gated by --enable-destructive).
-  "fdpm.project.delete": "project delete",
+  "fdpm.workbook.delete": "workbook delete",
   "fdpm.primitive.delete": "primitive delete",
   "fdpm.primitive.delete_batch": "primitive delete",
   "fdpm.relation.delete": "relation delete",
@@ -85,7 +85,7 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
 
 /**
  * Resolve the `projectIdsFromJson` extractor for a given tool. Returns
- * a no-op `() => []` for `null` entries (no project state) AND for
+ * a no-op `() => []` for `null` entries (no workbook state) AND for
  * unknown tools — synthetic tools injected via the dispatcher's test
  * `resolveTool` seam are not in this table, and the freshness check
  * MUST NOT crash on them. Drift in production-tool entries is caught
@@ -93,7 +93,7 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
  */
 export function resolveProjectIdsExtractor(toolName: string): ProjectIdsFromJson {
   if (!(toolName in TOOL_TO_COMMAND_METADATA)) {
-    // Unknown tool (e.g. test-injected synthetic): treat as no-project.
+    // Unknown tool (e.g. test-injected synthetic): treat as no-workbook.
     return NO_PROJECT;
   }
   const entry = TOOL_TO_COMMAND_METADATA[toolName]!;

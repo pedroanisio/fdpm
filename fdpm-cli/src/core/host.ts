@@ -239,12 +239,12 @@ export class Host {
    * "the equivalent of constructing a fresh Host"). For plugins-only
    * reload, see `reloadPlugins()`.
    *
-   * Returns `{reloadedAt, projects}` for the SPEC-REPL freshness map
+   * Returns `{reloadedAt, workbooks}` for the SPEC-REPL freshness map
    * reset and the SPEC-MCP-SERVER audit log. `reloadedAt` is the
    * epoch-ms timestamp captured immediately before the swap;
-   * `projects` is the list of project_ids visible after the swap.
+   * `workbooks` is the list of project_ids visible after the swap.
    */
-  async reload(): Promise<{ reloadedAt: number; projects: string[] }> {
+  async reload(): Promise<{ reloadedAt: number; workbooks: string[] }> {
     const newStore = new Store(this.hostOptions.snapshotEvery);
     const newProfiles = new ProfileRegistry();
     // Recreate expr + renderDsl too: plugins re-register expression
@@ -376,19 +376,19 @@ export class Host {
     }
 
     const reloadedAt = Date.now();
-    const projects = this.listProjects().map((p) => p.id);
-    return { reloadedAt, projects };
+    const workbooks = this.listProjects().map((p) => p.id);
+    return { reloadedAt, workbooks };
   }
 
   /**
    * SPEC-REPL §10.2 freshness primitive. Host-level passthrough so
    * SPEC-MCP-SERVER and the REPL don't reach into `host.persistence`
    * directly. Returns null if no persistence layer is configured
-   * (`--no-persist`) or if the project's log file does not exist.
+   * (`--no-persist`) or if the workbook's log file does not exist.
    */
-  statProjectLog(project_id: string): { mtime_ns: bigint; size: bigint } | null {
+  statProjectLog(workbook_id: string): { mtime_ns: bigint; size: bigint } | null {
     if (!this.persistence) return null;
-    return this.persistence.statProjectLog(project_id);
+    return this.persistence.statProjectLog(workbook_id);
   }
 
   /**
@@ -498,7 +498,7 @@ export class Host {
   /**
    * SPEC-REPL §10.2 lenient-mode incremental tail-replay.
    *
-   * Reads the project's full JSONL log from disk and compares its
+   * Reads the workbook's full JSONL log from disk and compares its
    * prefix to the in-memory operation log. Three outcomes:
    *
    *   - No change (cheap path): the in-memory log already covers the
@@ -517,33 +517,33 @@ export class Host {
    * the SPEC-MCP-SERVER per-call validation_status field.
    *
    * No-op (no persistence configured, or no log file on disk for this
-   * project): returns {appliedOps: 0, newRevision: <current in-memory
-   * revision, or 0 if the project is unknown>}.
+   * workbook): returns {appliedOps: 0, newRevision: <current in-memory
+   * revision, or 0 if the workbook is unknown>}.
    */
   async reloadProjectTail(
-    project_id: string,
+    workbook_id: string,
   ): Promise<{ appliedOps: number; newRevision: number }> {
-    const currentLog = this.store.getOperationLog(project_id);
+    const currentLog = this.store.getOperationLog(workbook_id);
     const currentRev =
       currentLog.length > 0 ? currentLog[currentLog.length - 1]!.revision : 0;
 
     if (!this.persistence) {
       return { appliedOps: 0, newRevision: currentRev };
     }
-    const stat = this.persistence.statProjectLog(project_id);
+    const stat = this.persistence.statProjectLog(workbook_id);
     if (stat === null) {
       return { appliedOps: 0, newRevision: currentRev };
     }
 
-    const onDisk = await this.persistence.readLog(project_id);
+    const onDisk = await this.persistence.readLog(workbook_id);
     if (onDisk.length < currentLog.length) {
       throw new FDPMException(
         "host_compat",
-        `project log shrank: in-memory has ${currentLog.length} ops, on-disk has ${onDisk.length}`,
+        `workbook log shrank: in-memory has ${currentLog.length} ops, on-disk has ${onDisk.length}`,
         {
           evidence: {
             reason: "log_truncated",
-            project_id,
+            workbook_id,
             in_memory_count: currentLog.length,
             on_disk_count: onDisk.length,
           },
@@ -554,11 +554,11 @@ export class Host {
       if (onDisk[i]!.op_id !== currentLog[i]!.op_id) {
         throw new FDPMException(
           "host_compat",
-          `project log prefix diverged at op[${i}]: in-memory ${currentLog[i]!.op_id}, on-disk ${onDisk[i]!.op_id}`,
+          `workbook log prefix diverged at op[${i}]: in-memory ${currentLog[i]!.op_id}, on-disk ${onDisk[i]!.op_id}`,
           {
             evidence: {
               reason: "log_rewritten",
-              project_id,
+              workbook_id,
               divergence_index: i,
               in_memory_op_id: currentLog[i]!.op_id,
               on_disk_op_id: onDisk[i]!.op_id,
@@ -571,7 +571,7 @@ export class Host {
       return { appliedOps: 0, newRevision: currentRev };
     }
     const tail = onDisk.slice(currentLog.length);
-    this.store.appendReplayedOps(project_id, tail);
+    this.store.appendReplayedOps(workbook_id, tail);
     const newRev = tail[tail.length - 1]!.revision;
     return { appliedOps: tail.length, newRevision: newRev };
   }
@@ -591,10 +591,10 @@ export class Host {
     }
   }
 
-  // -- Project-level entry points -------------------------------------
+  // -- Workbook-level entry points -------------------------------------
 
   async createProject(input: {
-    project_id: string;
+    workbook_id: string;
     name: string;
     profile_id: string;
     description?: string;
@@ -602,25 +602,25 @@ export class Host {
     if (!this.profiles.has(input.profile_id))
       throw new FDPMException("not_found", `profile not found: ${input.profile_id}`);
     return this.appendAndPersist({
-      kind: "project.create",
-      project_id: input.project_id,
+      kind: "workbook.create",
+      workbook_id: input.workbook_id,
       payload: { ...input },
     });
   }
 
-  async deleteProject(project_id: string): Promise<AppendOutput> {
-    this.store.getProject(project_id); // throws not_found if absent
+  async deleteProject(workbook_id: string): Promise<AppendOutput> {
+    this.store.getProject(workbook_id); // throws not_found if absent
     const result = await this.appendAndPersist({
-      kind: "project.delete",
-      project_id,
-      payload: { project_id },
+      kind: "workbook.delete",
+      workbook_id,
+      payload: { workbook_id },
     });
     if (this.persistence) {
       // The log entry stays — but for a CLI, we also clear the on-disk
-      // project directory so a re-create with the same id starts fresh.
+      // workbook directory so a re-create with the same id starts fresh.
       // The deletion op IS the audit; we keep the log file but truncate
       // it logically by writing nothing (we keep the prior log so
-      // history can be inspected, but new projects with same id need a
+      // history can be inspected, but new workbooks with same id need a
       // clean slate). v1.1 keeps the log; this is the same behaviour
       // as the in-memory model (the log is forever).
     }
@@ -629,7 +629,7 @@ export class Host {
 
   // -- Primitive entry points -----------------------------------------
 
-  async createPrimitive(project_id: string, primitive: {
+  async createPrimitive(workbook_id: string, primitive: {
     id: string;
     uid?: string;
     type_id: string;
@@ -642,7 +642,7 @@ export class Host {
     const uid = mintUid();
     const payload = { ...primitive, uid };
 
-    return this.runWithValidation(project_id, "primitive.create", payload, () => {
+    return this.runWithValidation(workbook_id, "primitive.create", payload, () => {
       const proposed: PrimitiveInstance = {
         id: primitive.id,
         uid,
@@ -651,19 +651,19 @@ export class Host {
         revision: 0,
         ...(primitive.scope_id != null && { scope_id: primitive.scope_id }),
       };
-      const profile = this.requireResolvedProfile(project_id);
-      return this.pipeline.runPrimitive(proposed, profile, this.validationContext(project_id));
+      const profile = this.requireResolvedProfile(workbook_id);
+      return this.pipeline.runPrimitive(proposed, profile, this.validationContext(workbook_id));
     });
   }
 
-  async replacePrimitive(project_id: string, primitive: {
+  async replacePrimitive(workbook_id: string, primitive: {
     id: string;
     type_id: string;
     field_values: Record<string, unknown>;
     scope_id?: string;
     expected_revision?: number;
   }): Promise<{ append: AppendOutput; report: ValidationReport }> {
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     const existing = slice.primitives[primitive.id];
     if (!existing) throw new FDPMException("not_found", `primitive not found: ${primitive.id}`);
     if (existing.type_id !== primitive.type_id)
@@ -673,14 +673,14 @@ export class Host {
       existing.revision !== primitive.expected_revision
     )
       throw new FDPMException("conflict", `If-Match revision mismatch: stored=${existing.revision}`);
-    return this.runWithValidation(project_id, "primitive.replace", primitive, () => {
+    return this.runWithValidation(workbook_id, "primitive.replace", primitive, () => {
       const proposed: PrimitiveInstance = {
         ...existing,
         field_values: primitive.field_values,
         ...(primitive.scope_id != null && { scope_id: primitive.scope_id }),
       };
-      const profile = this.requireResolvedProfile(project_id);
-      return this.pipeline.runPrimitive(proposed, profile, this.validationContext(project_id));
+      const profile = this.requireResolvedProfile(workbook_id);
+      return this.pipeline.runPrimitive(proposed, profile, this.validationContext(workbook_id));
     });
   }
 
@@ -695,14 +695,14 @@ export class Host {
    * stricter semantic; preserves original §7.5 gating for callers that
    * deliberately want to fail on any pre-existing violation).
    */
-  async patchPrimitive(project_id: string, patch: {
+  async patchPrimitive(workbook_id: string, patch: {
     id: string;
     field_values: Record<string, unknown>;
     scope_id?: string;
     expected_revision?: number;
     fullValidate?: boolean;
   }): Promise<{ append: AppendOutput; report: ValidationReport }> {
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     const existing = slice.primitives[patch.id];
     if (!existing) throw new FDPMException("not_found", `primitive not found: ${patch.id}`);
     if (
@@ -713,14 +713,14 @@ export class Host {
     // Strip the harness-only flag from the persisted payload — operation
     // log records the user-facing patch shape, not internal toggles.
     const { fullValidate, ...persistPayload } = patch;
-    return this.runWithValidation(project_id, "primitive.patch", persistPayload, () => {
+    return this.runWithValidation(workbook_id, "primitive.patch", persistPayload, () => {
       const merged: PrimitiveInstance = {
         ...existing,
         field_values: { ...existing.field_values, ...patch.field_values },
         ...(patch.scope_id != null && { scope_id: patch.scope_id }),
       };
-      const profile = this.requireResolvedProfile(project_id);
-      const ctx = this.validationContext(project_id);
+      const profile = this.requireResolvedProfile(workbook_id);
+      const ctx = this.validationContext(workbook_id);
       if (fullValidate) {
         return this.pipeline.runPrimitive(merged, profile, ctx);
       }
@@ -730,18 +730,18 @@ export class Host {
     });
   }
 
-  async deletePrimitive(project_id: string, id: string): Promise<AppendOutput> {
-    const slice = this.store.getProject(project_id);
+  async deletePrimitive(workbook_id: string, id: string): Promise<AppendOutput> {
+    const slice = this.store.getProject(workbook_id);
     if (!(id in slice.primitives))
       throw new FDPMException("not_found", `primitive not found: ${id}`);
     return this.appendAndPersist({
       kind: "primitive.delete",
-      project_id,
+      workbook_id,
       payload: { id },
     });
   }
 
-  async fieldPatchPrimitive(project_id: string, payload: {
+  async fieldPatchPrimitive(workbook_id: string, payload: {
     id: string;
     operations: unknown[];
     expected_revision?: number;
@@ -760,7 +760,7 @@ export class Host {
           },
         },
       );
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     const existing = slice.primitives[payload.id];
     if (!existing) throw new FDPMException("not_found", `primitive not found: ${payload.id}`);
     if (
@@ -768,11 +768,11 @@ export class Host {
       existing.revision !== payload.expected_revision
     )
       throw new FDPMException("conflict", `If-Match revision mismatch: stored=${existing.revision}`);
-    return this.runWithValidation(project_id, "primitive.field-patch", payload, () => {
+    return this.runWithValidation(workbook_id, "primitive.field-patch", payload, () => {
       const ops = payload.operations as JsonPatchOp[];
       const { result } = applyPatch(existing.field_values, ops, ["id", "type_id"]);
       const proposed: PrimitiveInstance = { ...existing, field_values: result };
-      const profile = this.requireResolvedProfile(project_id);
+      const profile = this.requireResolvedProfile(workbook_id);
       // §9.7.4: a field-patch's validation scope is the touched paths
       // only. Without this, an unrelated pre-existing violation in
       // another field blocks every targeted edit on the primitive,
@@ -782,7 +782,7 @@ export class Host {
         proposed,
         profile,
         touched,
-        this.validationContext(project_id),
+        this.validationContext(workbook_id),
       );
     });
   }
@@ -790,25 +790,25 @@ export class Host {
   /**
    * Build the optional `CustomValidatorContext` passed to validators
    * when a primitive is created/replaced/patched/field-patched. Carries
-   * the project's relations so graph-traversal predicates
+   * the workbook's relations so graph-traversal predicates
    * (`has_incoming`, `has_outgoing`, `acyclic`) can run.
    */
-  private validationContext(project_id: string): {
+  private validationContext(workbook_id: string): {
     relations: readonly RelationInstance[];
-    project?: ProjectStateSlice;
+    workbook?: ProjectStateSlice;
     projectFingerprint?: string;
     gitProbeDir?: string;
   } {
     try {
-      const slice = this.store.getProject(project_id);
+      const slice = this.store.getProject(workbook_id);
       return {
         relations: Object.values(slice.relations),
-        project: slice,
-        projectFingerprint: this.projectFingerprint(project_id),
+        workbook: slice,
+        projectFingerprint: this.projectFingerprint(workbook_id),
         gitProbeDir: this.hostOptions.cwd ?? process.cwd(),
       };
     } catch {
-      // Project doesn't exist yet (e.g. createPrimitive on a project
+      // Workbook doesn't exist yet (e.g. createPrimitive on a workbook
       // that's about to be created via the same op stream — not a real
       // case in v1.1, but defensive). No relations to surface.
       return { relations: [], gitProbeDir: this.hostOptions.cwd ?? process.cwd() };
@@ -817,7 +817,7 @@ export class Host {
 
   // -- Relation entry points ------------------------------------------
 
-  async createRelation(project_id: string, relation: {
+  async createRelation(workbook_id: string, relation: {
     id: string;
     uid?: string;
     type_id: string;
@@ -830,7 +830,7 @@ export class Host {
     }
     const uid = mintUid();
     const payload = { ...relation, uid };
-    return this.runWithValidation(project_id, "relation.create", payload, () => {
+    return this.runWithValidation(workbook_id, "relation.create", payload, () => {
       const proposed: RelationInstance = {
         id: relation.id,
         uid,
@@ -840,20 +840,20 @@ export class Host {
         field_values: relation.field_values ?? {},
         revision: 0,
       };
-      const profile = this.requireResolvedProfile(project_id);
-      const slice = this.store.getProject(project_id);
+      const profile = this.requireResolvedProfile(workbook_id);
+      const slice = this.store.getProject(workbook_id);
       const prims = new Map(Object.entries(slice.primitives));
       return this.pipeline.runRelation(proposed, profile, prims);
     });
   }
 
-  async replaceRelation(project_id: string, relation: {
+  async replaceRelation(workbook_id: string, relation: {
     id: string;
     type_id: string;
     field_values: Record<string, unknown>;
     expected_revision?: number;
   }): Promise<{ append: AppendOutput; report: ValidationReport }> {
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     const existing = slice.relations[relation.id];
     if (!existing) throw new FDPMException("not_found", `relation not found: ${relation.id}`);
     if (existing.type_id !== relation.type_id)
@@ -863,25 +863,25 @@ export class Host {
       existing.revision !== relation.expected_revision
     )
       throw new FDPMException("conflict", `If-Match revision mismatch: stored=${existing.revision}`);
-    return this.runWithValidation(project_id, "relation.replace", relation, () => {
+    return this.runWithValidation(workbook_id, "relation.replace", relation, () => {
       const proposed: RelationInstance = {
         ...existing,
         field_values: relation.field_values,
       };
-      const profile = this.requireResolvedProfile(project_id);
+      const profile = this.requireResolvedProfile(workbook_id);
       const prims = new Map(Object.entries(slice.primitives));
       return this.pipeline.runRelation(proposed, profile, prims);
     });
   }
 
   /** See `patchPrimitive` — same touched-paths default applies here. */
-  async patchRelation(project_id: string, patch: {
+  async patchRelation(workbook_id: string, patch: {
     id: string;
     field_values: Record<string, unknown>;
     expected_revision?: number;
     fullValidate?: boolean;
   }): Promise<{ append: AppendOutput; report: ValidationReport }> {
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     const existing = slice.relations[patch.id];
     if (!existing) throw new FDPMException("not_found", `relation not found: ${patch.id}`);
     if (
@@ -890,12 +890,12 @@ export class Host {
     )
       throw new FDPMException("conflict", `If-Match revision mismatch: stored=${existing.revision}`);
     const { fullValidate, ...persistPayload } = patch;
-    return this.runWithValidation(project_id, "relation.patch", persistPayload, () => {
+    return this.runWithValidation(workbook_id, "relation.patch", persistPayload, () => {
       const merged: RelationInstance = {
         ...existing,
         field_values: { ...existing.field_values, ...patch.field_values },
       };
-      const profile = this.requireResolvedProfile(project_id);
+      const profile = this.requireResolvedProfile(workbook_id);
       const prims = new Map(Object.entries(slice.primitives));
       if (fullValidate) {
         return this.pipeline.runRelation(merged, profile, prims);
@@ -905,28 +905,28 @@ export class Host {
     });
   }
 
-  async deleteRelation(project_id: string, id: string): Promise<AppendOutput> {
-    const slice = this.store.getProject(project_id);
+  async deleteRelation(workbook_id: string, id: string): Promise<AppendOutput> {
+    const slice = this.store.getProject(workbook_id);
     if (!(id in slice.relations))
       throw new FDPMException("not_found", `relation not found: ${id}`);
     return this.appendAndPersist({
       kind: "relation.delete",
-      project_id,
+      workbook_id,
       payload: { id },
     });
   }
 
   // -- Structure ------------------------------------------------------
 
-  async reorder(project_id: string, scope_id: string, ordering: string[]): Promise<AppendOutput> {
+  async reorder(workbook_id: string, scope_id: string, ordering: string[]): Promise<AppendOutput> {
     return this.appendAndPersist({
       kind: "structure.reorder",
-      project_id,
+      workbook_id,
       payload: { scope_id, ordering },
     });
   }
 
-  async reparent(project_id: string, payload: {
+  async reparent(workbook_id: string, payload: {
     primitive_id: string;
     from_scope_id: string;
     to_scope_id: string;
@@ -934,7 +934,7 @@ export class Host {
   }): Promise<AppendOutput> {
     return this.appendAndPersist({
       kind: "structure.reparent",
-      project_id,
+      workbook_id,
       payload,
     });
   }
@@ -942,7 +942,7 @@ export class Host {
   // -- Operation log read API -----------------------------------------
 
   getLog(
-    project_id: string,
+    workbook_id: string,
     filters?: {
       from_revision?: number;
       to_revision?: number;
@@ -953,7 +953,7 @@ export class Host {
       limit?: number;
     },
   ): Operation[] {
-    const log = this.store.getOperationLog(project_id);
+    const log = this.store.getOperationLog(workbook_id);
     const max = parseInt(process.env["FDPM_LOG_PAGE_MAX"] ?? "10000", 10);
     const limit = Math.min(filters?.limit ?? 1000, max);
     let out = log;
@@ -973,9 +973,9 @@ export class Host {
 
   // -- Helpers --------------------------------------------------------
 
-  requireResolvedProfile(project_id: string): DomainProfile {
-    const slice = this.store.getProject(project_id);
-    return this.profiles.getResolved(slice.project.profile_id);
+  requireResolvedProfile(workbook_id: string): DomainProfile {
+    const slice = this.store.getProject(workbook_id);
+    return this.profiles.getResolved(slice.workbook.profile_id);
   }
 
   /**
@@ -983,7 +983,7 @@ export class Host {
    * operation is NOT appended — the caller receives the rejected report.
    */
   private async runWithValidation(
-    project_id: string,
+    workbook_id: string,
     kind: AppendInput["kind"],
     payload: Record<string, unknown>,
     runReport: () => ValidationReport,
@@ -994,7 +994,7 @@ export class Host {
         findings: report.findings,
       });
     }
-    const append = await this.appendAndPersist({ kind, project_id, payload });
+    const append = await this.appendAndPersist({ kind, workbook_id, payload });
     return { append, report };
   }
 
@@ -1006,11 +1006,11 @@ export class Host {
 
   /** Append with provided request_id (for batch). */
   async appendBatch(
-    project_id: string,
-    inputs: Omit<AppendInput, "project_id">[],
+    workbook_id: string,
+    inputs: Omit<AppendInput, "workbook_id">[],
   ): Promise<AppendOutput[]> {
     const request_id = uuidv7();
-    const full = inputs.map((i) => ({ ...i, project_id, request_id }));
+    const full = inputs.map((i) => ({ ...i, workbook_id, request_id }));
     const out = this.store.appendBatch(full);
     if (this.persistence) {
       for (const o of out) await this.persistence.appendOp(o.op);
@@ -1032,7 +1032,7 @@ export class Host {
    *      single-entry `createPrimitive`/`replacePrimitive`/`createRelation`
    *      methods run, raising `FDPMException("validation", ...)` with
    *      structured findings if any entry is rejected.
-   *   3. Calls `store.appendBatch`, which provides single-project
+   *   3. Calls `store.appendBatch`, which provides single-workbook
    *      atomicity with rollback if any append fails (see store.ts
    *      `appendBatch`).
    *   4. Persists every committed op to the JSONL log.
@@ -1046,7 +1046,7 @@ export class Host {
    * The DNIS host adapter is the only intended caller for now.
    */
   async appendBatchWithCausation(
-    project_id: string,
+    workbook_id: string,
     intents: DnisBatchIntent[],
   ): Promise<{ outputs: AppendOutput[]; reports: ValidationReport[] }> {
     if (intents.length === 0) {
@@ -1055,14 +1055,14 @@ export class Host {
     const request_id = uuidv7();
     const op_ids = intents.map(() => mintUid());
     const lead_op_id = op_ids[0]!;
-    const profile = this.requireResolvedProfile(project_id);
+    const profile = this.requireResolvedProfile(workbook_id);
 
     // Interleave validation with synthesis: each entry validates
     // against the projection that already includes prior entries. If
     // any entry fails, restore the entire pre-batch projection AND
     // log slice (matching store.appendBatch's rollback contract).
-    const beforeLog = [...this.store.getOperationLog(project_id)];
-    const beforeSnapshot = this.store.snapshotProjectForRollback(project_id);
+    const beforeLog = [...this.store.getOperationLog(workbook_id)];
+    const beforeSnapshot = this.store.snapshotProjectForRollback(workbook_id);
 
     const outputs: AppendOutput[] = [];
     const reports: ValidationReport[] = [];
@@ -1077,7 +1077,7 @@ export class Host {
           payload: Record<string, unknown>,
         ): AppendInput => ({
           kind,
-          project_id,
+          workbook_id,
           payload,
           op_id,
           request_id,
@@ -1089,7 +1089,7 @@ export class Host {
         // the assertion before push to `reports` enforces this.
         let report: ValidationReport | null = null;
         let input: AppendInput;
-        const ctx = this.validationContext(project_id);
+        const ctx = this.validationContext(workbook_id);
 
         switch (intent.kind) {
           case "primitive.create": {
@@ -1112,7 +1112,7 @@ export class Host {
             break;
           }
           case "primitive.replace": {
-            const slice = this.store.getProject(project_id);
+            const slice = this.store.getProject(workbook_id);
             const existing = slice.primitives[intent.primitive.id];
             if (!existing)
               throw new FDPMException(
@@ -1143,14 +1143,14 @@ export class Host {
               field_values: intent.relation.field_values ?? {},
               revision: 0,
             };
-            const slice = this.store.getProject(project_id);
+            const slice = this.store.getProject(workbook_id);
             const prims = new Map(Object.entries(slice.primitives));
             report = this.pipeline.runRelation(proposed, profile, prims);
             input = buildInput("relation.create", { ...intent.relation, uid });
             break;
           }
           case "primitive.delete": {
-            const slice = this.store.getProject(project_id);
+            const slice = this.store.getProject(workbook_id);
             if (!(intent.payload.id in slice.primitives))
               throw new FDPMException(
                 "not_found",
@@ -1163,7 +1163,7 @@ export class Host {
             break;
           }
           case "relation.delete": {
-            const slice = this.store.getProject(project_id);
+            const slice = this.store.getProject(workbook_id);
             if (!(intent.payload.id in slice.relations))
               throw new FDPMException(
                 "not_found",
@@ -1201,7 +1201,7 @@ export class Host {
     } catch (err) {
       // Roll back: restore log + projection. We do NOT persist anything
       // until the entire batch succeeds, so JSONL is still consistent.
-      this.store.restoreFromBatchSnapshot(project_id, beforeLog, beforeSnapshot);
+      this.store.restoreFromBatchSnapshot(workbook_id, beforeLog, beforeSnapshot);
       throw err;
     }
 
@@ -1215,8 +1215,8 @@ export class Host {
     return this.store.getProject(id);
   }
 
-  private projectFingerprint(project_id: string): string {
-    const log = this.store.getOperationLog(project_id);
+  private projectFingerprint(workbook_id: string): string {
+    const log = this.store.getOperationLog(workbook_id);
     return createHash("sha256").update(JSON.stringify(log), "utf8").digest("hex");
   }
 
@@ -1225,48 +1225,48 @@ export class Host {
   }
 
   /**
-   * SPEC-UID §14: O(1) cross-project lookup by uid.
+   * SPEC-UID §14: O(1) cross-workbook lookup by uid.
    *
-   * Returns the index entry (`project_id`, `kind`, `id`) for the given
+   * Returns the index entry (`workbook_id`, `kind`, `id`) for the given
    * uid, or `null` if no artifact with that uid is loaded. Callers that
-   * need the actual instance can chain `getProject(entry.project_id)`
+   * need the actual instance can chain `getProject(entry.workbook_id)`
    * and dereference by the returned `id`.
    */
-  lookupUid(uid: string): { project_id: string; kind: "primitive" | "relation"; id: string } | null {
+  lookupUid(uid: string): { workbook_id: string; kind: "primitive" | "relation"; id: string } | null {
     return this.store.lookupUid(uid);
   }
 
   /** Resolve a primitive by uid; throws not_found if absent. */
-  resolvePrimitiveByUid(uid: string): { project_id: string; primitive: PrimitiveInstance } {
+  resolvePrimitiveByUid(uid: string): { workbook_id: string; primitive: PrimitiveInstance } {
     const entry = this.lookupUid(uid);
     if (!entry || entry.kind !== "primitive")
       throw new FDPMException("not_found", `primitive not found by uid: ${uid}`);
-    const slice = this.getProject(entry.project_id);
+    const slice = this.getProject(entry.workbook_id);
     const prim = slice.primitives[entry.id];
     if (!prim)
       throw new FDPMException("internal", "uid_index drift: primitive missing", {
         evidence: { uid, ...entry },
       });
-    return { project_id: entry.project_id, primitive: prim };
+    return { workbook_id: entry.workbook_id, primitive: prim };
   }
 
   /** Resolve a relation by uid; throws not_found if absent. */
-  resolveRelationByUid(uid: string): { project_id: string; relation: RelationInstance } {
+  resolveRelationByUid(uid: string): { workbook_id: string; relation: RelationInstance } {
     const entry = this.lookupUid(uid);
     if (!entry || entry.kind !== "relation")
       throw new FDPMException("not_found", `relation not found by uid: ${uid}`);
-    const slice = this.getProject(entry.project_id);
+    const slice = this.getProject(entry.workbook_id);
     const rel = slice.relations[entry.id];
     if (!rel)
       throw new FDPMException("internal", "uid_index drift: relation missing", {
         evidence: { uid, ...entry },
       });
-    return { project_id: entry.project_id, relation: rel };
+    return { workbook_id: entry.workbook_id, relation: rel };
   }
 
   /**
    * Migrate legacy `field_values._metadata.*` keys onto top-level
-   * `field_values.*` for every relation in a project.
+   * `field_values.*` for every relation in a workbook.
    *
    * Rationale: an earlier version of the importer wrote relation
    * field-values under a nested `_metadata` envelope, but the validator
@@ -1280,17 +1280,17 @@ export class Host {
    * Returns the per-relation outcome (no-op, normalised, or error).
    */
   async migrateNormalizeMetadata(
-    project_id: string,
+    workbook_id: string,
     opts?: { dryRun?: boolean },
   ): Promise<{
-    project_id: string;
+    workbook_id: string;
     dry_run: boolean;
     inspected: number;
     normalised: string[];
     skipped: string[];
     errors: Array<{ id: string; message: string }>;
   }> {
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     const relations = Object.values(slice.relations);
     const normalised: string[] = [];
     const skipped: string[] = [];
@@ -1325,7 +1325,7 @@ export class Host {
     if (opts?.dryRun === true) {
       for (const p of plans) normalised.push(p.id);
       return {
-        project_id,
+        workbook_id,
         dry_run: true,
         inspected: relations.length,
         normalised,
@@ -1342,7 +1342,7 @@ export class Host {
       try {
         await batchEdit(
           this,
-          project_id,
+          workbook_id,
           plans.map((p) => ({
             kind: "relation.replace" as const,
             payload: { id: p.id, type_id: p.type_id, field_values: p.field_values },
@@ -1358,7 +1358,7 @@ export class Host {
     }
 
     return {
-      project_id,
+      workbook_id,
       dry_run: false,
       inspected: relations.length,
       normalised,
@@ -1368,26 +1368,26 @@ export class Host {
   }
 
   /**
-   * Diff between two revisions of a project (or two distinct projects).
+   * Diff between two revisions of a workbook (or two distinct workbooks).
    *
    * Returns the set of primitive/relation IDs added, removed, or modified.
    * For modified entries, lists the top-level field paths whose values
    * differ. Read-only; uses the time-travel `getProjectAt` API and so
-   * works only on projects whose log is fully replayable.
+   * works only on workbooks whose log is fully replayable.
    *
    * `from` / `to` may be either revision numbers (compared against the
-   * same project) or another project id (cross-project diff). When both
+   * same workbook) or another workbook id (cross-workbook diff). When both
    * are revisions, omitting `to` means "current".
    */
   diffProject(input: {
-    project_id: string;
-    from: { revision: number } | { project_id: string };
-    to?: { revision: number } | { project_id: string };
+    workbook_id: string;
+    from: { revision: number } | { workbook_id: string };
+    to?: { revision: number } | { workbook_id: string };
     detail?: boolean;
   }): {
-    project_id: string;
-    from: { project_id: string; revision: number };
-    to: { project_id: string; revision: number };
+    workbook_id: string;
+    from: { workbook_id: string; revision: number };
+    to: { workbook_id: string; revision: number };
     primitives: {
       added: string[];
       removed: string[];
@@ -1416,7 +1416,7 @@ export class Host {
     if (input.from === undefined) {
       throw new FDPMException(
         "verification",
-        "diffProject requires a `from` side (revision or project_id)",
+        "diffProject requires a `from` side (revision or workbook_id)",
       );
     }
     // Capture current revision once so we can validate that requested
@@ -1424,22 +1424,22 @@ export class Host {
     // silently returns the current state for any revision >= current,
     // making "diff from=999999" appear as zero changes — confusingly
     // wrong rather than honestly wrong.
-    const current = this.store.getProject(input.project_id);
+    const current = this.store.getProject(input.workbook_id);
     const resolveSide = (
-      side: { revision: number } | { project_id: string } | undefined,
+      side: { revision: number } | { workbook_id: string } | undefined,
       sideName: "from" | "to",
     ): ProjectStateSlice => {
       if (side === undefined) return current;
       if ("revision" in side) {
-        if (side.revision > current.project.revision) {
+        if (side.revision > current.workbook.revision) {
           throw new FDPMException(
             "not_found",
-            `${sideName} revision ${side.revision} is past current ${current.project.revision} for project ${input.project_id}`,
+            `${sideName} revision ${side.revision} is past current ${current.workbook.revision} for workbook ${input.workbook_id}`,
           );
         }
-        return this.store.getProjectAt(input.project_id, side.revision);
+        return this.store.getProjectAt(input.workbook_id, side.revision);
       }
-      return this.store.getProject(side.project_id);
+      return this.store.getProject(side.workbook_id);
     };
     const a = resolveSide(input.from, "from");
     const b = resolveSide(input.to, "to");
@@ -1495,9 +1495,9 @@ export class Host {
     };
 
     return {
-      project_id: input.project_id,
-      from: { project_id: a.project.id, revision: a.project.revision },
-      to: { project_id: b.project.id, revision: b.project.revision },
+      workbook_id: input.workbook_id,
+      from: { workbook_id: a.workbook.id, revision: a.workbook.revision },
+      to: { workbook_id: b.workbook.id, revision: b.workbook.revision },
       primitives: diffMap(a.primitives, b.primitives),
       relations: diffMap(a.relations, b.relations),
     };
@@ -1514,7 +1514,7 @@ export class Host {
    * workflow; it is not a full query language.
    */
   searchPrimitives(
-    project_id: string,
+    workbook_id: string,
     filter?: {
       typeId?: string;
       idLike?: string;
@@ -1522,7 +1522,7 @@ export class Host {
       fieldMatch?: ReadonlyArray<{ path?: string; needle: string; regex?: boolean }>;
     },
   ): PrimitiveInstance[] {
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     return Object.values(slice.primitives).filter((p) =>
       matchesPrimitive(p, filter ?? {}),
     );
@@ -1530,7 +1530,7 @@ export class Host {
 
   /** Same as `searchPrimitives` but for relations; adds source/target filters. */
   searchRelations(
-    project_id: string,
+    workbook_id: string,
     filter?: {
       typeId?: string;
       idLike?: string;
@@ -1540,14 +1540,14 @@ export class Host {
       fieldMatch?: ReadonlyArray<{ path?: string; needle: string; regex?: boolean }>;
     },
   ): RelationInstance[] {
-    const slice = this.store.getProject(project_id);
+    const slice = this.store.getProject(workbook_id);
     return Object.values(slice.relations).filter((r) =>
       matchesRelation(r, filter ?? {}),
     );
   }
 
   /**
-   * Project-wide validation pass — read-only.
+   * Workbook-wide validation pass — read-only.
    *
    * Runs the same `runPrimitive` / `runRelation` validators that gate
    * writes, but against the *current* projection without any proposed
@@ -1564,22 +1564,22 @@ export class Host {
    *     #10) surface; with `minLevel: "error"` only blocking findings do.
    */
   validateProject(
-    project_id: string,
+    workbook_id: string,
     opts?: {
       targetIds?: ReadonlySet<string>;
       ruleIds?: ReadonlySet<string>;
       minLevel?: "info" | "warning" | "error";
     },
   ): {
-    project_id: string;
+    workbook_id: string;
     revision: number;
     summary: { errors: number; warnings: number; info: number };
     primitives: ValidationReport[];
     relations: ValidationReport[];
   } {
-    const slice = this.store.getProject(project_id);
-    const profile = this.profiles.getResolved(slice.project.profile_id);
-    const ctx = this.validationContext(project_id);
+    const slice = this.store.getProject(workbook_id);
+    const profile = this.profiles.getResolved(slice.workbook.profile_id);
+    const ctx = this.validationContext(workbook_id);
     const prims = new Map(Object.entries(slice.primitives));
 
     const minRank = LEVEL_RANK[opts?.minLevel ?? "info"] ?? LEVEL_RANK.info!;
@@ -1619,8 +1619,8 @@ export class Host {
     }
 
     return {
-      project_id,
-      revision: slice.project.revision,
+      workbook_id,
+      revision: slice.workbook.revision,
       summary: { errors, warnings, info },
       primitives: primitiveReports,
       relations: relationReports,

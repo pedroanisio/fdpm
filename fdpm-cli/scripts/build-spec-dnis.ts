@@ -1150,7 +1150,7 @@ const references: PrimitiveSpec[] = [
     type: "spec:Reference",
     fields: {
       kind: "repo_file",
-      citation: "CLAUDE.md — Project Guidelines for FDPM agent collaboration.",
+      citation: "CLAUDE.md — Workbook Guidelines for FDPM agent collaboration.",
       locator: "CLAUDE.md",
       verification: "verified",
       verification_note:
@@ -1309,7 +1309,7 @@ const revisions: PrimitiveSpec[] = [
         "",
         "Open-question ordinals renumbered Q1..Q5 contiguously: the blocking question (cross-document references) is now ordinal 1 so the renderer's lead-with-blocking treatment doesn't leave a hole in the 'Other open questions' list (the v0.1.1 rendered output emitted Q1, Q3, Q4, Q5).",
         "",
-        "Required reads expanded to include CLAUDE.md, PURPOSE.md, DISCLAIMER.md, SPEC-CORE.md, and SPEC-UID.md — matching the project's documentation conventions and the new §1.3 cross-spec positioning.",
+        "Required reads expanded to include CLAUDE.md, PURPOSE.md, DISCLAIMER.md, SPEC-CORE.md, and SPEC-UID.md — matching the workbook's documentation conventions and the new §1.3 cross-spec positioning.",
         "",
         "References added: spec-core, spec-uid, claude-md, purpose-md (all `verified`).",
       ].join("\n"),
@@ -1374,7 +1374,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "DNIS sits alongside two existing FDPM specifications that solve overlapping problems and which a reader is likely to encounter first. The relationship is **complementary**, not redundant:",
         "",
-        "- **SPEC-CORE** defines an event-sourced operation log for typed primitives and relations within a single FDPM project. Its `op_id`, `parent_op_id`, and `causation_op_id` fields form an audit-trail layer comparable to DNIS Operations and lineage. SPEC-CORE's primitive store is **not** a document model — it has no built-in concept of paragraph-grain identity or fractional positions. DNIS layers a document-grain identity story on top of (or alongside) such a store.",
+        "- **SPEC-CORE** defines an event-sourced operation log for typed primitives and relations within a single FDPM workbook. Its `op_id`, `parent_op_id`, and `causation_op_id` fields form an audit-trail layer comparable to DNIS Operations and lineage. SPEC-CORE's primitive store is **not** a document model — it has no built-in concept of paragraph-grain identity or fractional positions. DNIS layers a document-grain identity story on top of (or alongside) such a store.",
         "- **SPEC-UID** introduces a dual-ID model (slug + ULID) for SPEC-CORE primitives and relations. The ULID-as-stable-identity insight is the same as DNIS §4.1, and SPEC-UID's `mintUidFromSeed` upcaster pattern (deterministic mint from `op_id`) is directly applicable to DNIS implementations that need to migrate v1.1-shaped logs.",
         "",
         "**Updated in v0.1.7.** SPEC-CORE 1.2.0 §5.6 supersedes the prior \"MAY layer on top of SPEC-CORE\" wording for FDPM-CLI hosts: such hosts **MUST** be built on top of a SPEC-CORE host per the §5.6 integration profile (every DNIS Document is a `dnis:Document` SPEC-CORE primitive; every DNIS Node is a `dnis:Node` SPEC-CORE primitive; every DNIS Operation produces SPEC-CORE op-log entries that double as the §8 OperationResult idempotency map; lineage is carried as `dnis:DerivedFrom` typed relations whose `parent_op_id` chain mirrors the SPEC-DNIS `derivedFrom` graph). The reference adapter is `fdpm-cli/src/core/dnis/adapter.ts`; the §5.6.6 conformance fixture is `fdpm-cli/tests/dnis-host-adapter.test.ts`. Standalone implementations that do not host a SPEC-CORE op log are out of v0.1.7 conformance scope.",
@@ -2126,7 +2126,7 @@ async function main(): Promise<void> {
   // §A and §B are top-level appendices with letter labels — they get
   // number_override="A" / "B" so the rendered heading prints the
   // letter instead of the DFS-derived integer index.
-  const adapter = new DnisHostAdapter(host, { projectId: PROJECT_ID });
+  const adapter = new DnisHostAdapter(host, { workbookId: PROJECT_ID });
   const dnisDoc = await adapter.createDocument({
     createdBy: SPEC_DNIS_BUILD_AGENT,
     schemaVersion: "0.1.7",
@@ -2184,7 +2184,7 @@ async function main(): Promise<void> {
   console.log("Phase 2 — dnis:Node section tree built:");
   console.log("  dnis:Document:", dnisDoc.id);
   console.log("  sections     :", opCounter);
-  console.log("  revision     :", host.getProject(PROJECT_ID).project.revision);
+  console.log("  revision     :", host.getProject(PROJECT_ID).workbook.revision);
   console.log("");
   console.log("Render with:");
   console.log(

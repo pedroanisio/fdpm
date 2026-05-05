@@ -2,7 +2,7 @@ import type { CategoryDef } from "../../src/core/models/meta.js";
 
 /**
  * Categories — four buckets that map onto the Roadmap/Gantt/Board lenses
- * the renderers project. Each primitive sits in exactly one category; cross-
+ * the renderers workbook. Each primitive sits in exactly one category; cross-
  * cutting properties (e.g., a task's deadline) live as fields on the
  * primitive itself, not as a fifth category.
  */

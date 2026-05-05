@@ -25,7 +25,7 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // `statProjectLog` is the freshness-check primitive consumed by
   // dispatcher middleware. It is not a tool — it is a building block.
   "statProjectLog",
-  // `reloadProjectTail` is the per-project lenient-replay primitive
+  // `reloadProjectTail` is the per-workbook lenient-replay primitive
   // (SPEC-REPL §13). Like `reload` it is operator-triggered, not LLM-
   // facing. The dispatcher's freshness check calls it from Tier-1
   // lenient mode, but it is never advertised as a tool.
@@ -40,11 +40,11 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // Resolved-profile read; deferred until a `fdpm.profile.resolved.get`
   // tool exists. Profile reads in this slice return the raw form.
   "requireResolvedProfile",
-  // Cross-project uid lookups — useful but not yet on the surface.
+  // Cross-workbook uid lookups — useful but not yet on the surface.
   "lookupUid",
   "resolvePrimitiveByUid",
   "resolveRelationByUid",
-  // Project-wide read surfaces deferred. `diffProject` and
+  // Workbook-wide read surfaces deferred. `diffProject` and
   // `validateProject` produce non-trivial response shapes; defer until
   // a stable wire format is agreed.
   "diffProject",

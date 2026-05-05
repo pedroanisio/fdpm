@@ -39,8 +39,8 @@ describe("REPL tokenizer (SPEC-REPL §8.4)", () => {
   });
 
   it("respects backslash escape", () => {
-    expect(tokenizeLine("project create --name foo\\ bar")).toEqual([
-      "project",
+    expect(tokenizeLine("workbook create --name foo\\ bar")).toEqual([
+      "workbook",
       "create",
       "--name",
       "foo bar",
@@ -66,7 +66,7 @@ describe("REPL comment stripping", () => {
   it("strips trailing whitespace-prefixed comments (including the leading whitespace)", () => {
     // Note: my-proj has no trailing space — the regex `(^|\s)#` matches
     // the whitespace + hash and clips both, so the returned string
-    // ends right after the project id token.
+    // ends right after the workbook id token.
     expect(stripComment("primitive list my-proj # a note")).toBe("primitive list my-proj");
   });
 

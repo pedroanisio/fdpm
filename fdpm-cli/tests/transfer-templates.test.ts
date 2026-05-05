@@ -10,9 +10,9 @@ import {
 } from "../src/core/host-extra.js";
 
 describe("transfer + templates + test-suites", () => {
-  it("transfer round-trips a project verbatim", async () => {
+  it("transfer round-trips a workbook verbatim", async () => {
     const a = await newHost();
-    await a.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await a.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await a.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",
@@ -22,16 +22,16 @@ describe("transfer + templates + test-suites", () => {
     expect(transfer.spec_core).toBe("1.2");
 
     const b = await newHost();
-    // Re-target the transfer's project id for the destination host.
-    transfer.project = { ...transfer.project, id: "p1-imported" };
+    // Re-target the transfer's workbook id for the destination host.
+    transfer.workbook = { ...transfer.workbook, id: "p1-imported" };
     const imported = await importTransfer(b, transfer);
-    expect(imported.project_id).toBe("p1-imported");
+    expect(imported.workbook_id).toBe("p1-imported");
     expect(b.getProject("p1-imported").primitives["section:a"]).toBeDefined();
   });
 
   it("templates: create + apply expands per-primitive operations under one parent_op_id", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await createTemplate(host, "p1", {
       id: "tmpl:basic",
       label: "Basic",
@@ -54,7 +54,7 @@ describe("transfer + templates + test-suites", () => {
 
   it("test-suite: run produces a SuiteRunReport", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await createTestSuite(host, "p1", {
       id: "suite:demo",
       label: "Demo",

@@ -74,7 +74,7 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "0.1.1 — pass-2 refinement: per-project log freshness, error-taxonomy alignment, persistence-layer claim correction, removal of unverified latency numbers, removal of hazardous :cd.",
+      "0.1.1 — pass-2 refinement: per-workbook log freshness, error-taxonomy alignment, persistence-layer claim correction, removal of unverified latency numbers, removal of hazardous :cd.",
     source_script: "fdpm-cli/scripts/build-spec-repl.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-repl",
@@ -101,7 +101,7 @@ const terms: Array<[string, string, string?]> = [
   ],
   [
     "Freshness check",
-    "A bounded per-command stat against the project log file(s) the command addresses. Detects out-of-band writes by another process before dispatching.",
+    "A bounded per-command stat against the workbook log file(s) the command addresses. Detects out-of-band writes by another process before dispatching.",
   ],
   [
     "Strict mode",
@@ -109,7 +109,7 @@ const terms: Array<[string, string, string?]> = [
   ],
   [
     "Lenient mode",
-    "Default freshness policy for read-only commands. On detected out-of-band writes, perform an incremental tail-replay of the changed project log(s) into the in-memory Store, then dispatch.",
+    "Default freshness policy for read-only commands. On detected out-of-band writes, perform an incremental tail-replay of the changed workbook log(s) into the in-memory Store, then dispatch.",
   ],
   [
     "Scripted mode",
@@ -277,7 +277,7 @@ const principles: Array<{
     ordinal: 4,
     title: "Staleness is surfaced, not hidden.",
     statement:
-      "On detected out-of-band writes to a project's log, the REPL MUST refuse write-capable commands (strict mode) or perform an explicit incremental replay (lenient mode for read-only). The REPL MUST NOT silently background-reload.",
+      "On detected out-of-band writes to a workbook's log, the REPL MUST refuse write-capable commands (strict mode) or perform an explicit incremental replay (lenient mode for read-only). The REPL MUST NOT silently background-reload.",
     strength: "MUST",
   },
   {
@@ -308,7 +308,7 @@ const optA: PrimitiveSpec = {
   fields: {
     label: "Option A — In-process REPL reusing the Commander tree",
     description:
-      "A new `fdpm repl` subcommand. One Host per session. Each input line is tokenized and re-parsed through the same Commander program the one-shot CLI uses. Freshness is enforced by `mtime`/`size` checks on the per-project JSONL log before each command.",
+      "A new `fdpm repl` subcommand. One Host per session. Each input line is tokenized and re-parsed through the same Commander program the one-shot CLI uses. Freshness is enforced by `mtime`/`size` checks on the per-workbook JSONL log before each command.",
     pros: [
       "Zero new state paths.",
       "Adding a command requires no REPL change.",
@@ -380,7 +380,7 @@ const adr: PrimitiveSpec = {
     context:
       "The `fdpm` CLI pays significant cold-start cost on every invocation (JSONL replay, plugin discovery, profile registration). Authoring, plugin development, and agent-driven workflows all need a faster iterative loop. A REPL is the smallest change that delivers this. Decision space bounded by: (a) latency must drop substantially per command; (b) consistency with concurrent CLI invocations must remain explicit — silent stale reads/writes are unacceptable; (c) the REPL must add zero new state-mutation paths (Core invariants must be preserved verbatim); (d) modifiability — adding a new top-level command must require zero REPL-specific work.",
     decision:
-      "Build the REPL as a thin dispatcher inside the existing `fdpm` binary, reusing the Commander command tree by re-parsing each input line through the same root program with a long-lived `Host`. Maintain process-local cache invalidation by treating each per-project JSONL log file's `mtime`/`size` as a freshness signal and reloading affected state when staleness is detected on the next command. Provide an explicit `:reload` meta-command for forced reload. No daemon, no new IPC, no new persistence path.",
+      "Build the REPL as a thin dispatcher inside the existing `fdpm` binary, reusing the Commander command tree by re-parsing each input line through the same root program with a long-lived `Host`. Maintain process-local cache invalidation by treating each per-workbook JSONL log file's `mtime`/`size` as a freshness signal and reloading affected state when staleness is detected on the next command. Provide an explicit `:reload` meta-command for forced reload. No daemon, no new IPC, no new persistence path.",
     consequences: [
       {
         polarity: "positive",
@@ -534,7 +534,7 @@ const scenarios: PrimitiveSpec[] = [
       artifact: "REPL read loop + Host.",
       response: "Command returns successfully.",
       response_measure:
-        "Wall-clock dispatch time on the second invocation must be a small constant fraction of the one-shot CLI's wall-clock for the same command on the same data dir. Threshold: REPL p50 ≤ 25 % of one-shot CLI p50, measured by the test harness on the project's standard fixture set. The exact ratio depends on fixture size; the SPEC asserts the threshold, not a specific millisecond figure.",
+        "Wall-clock dispatch time on the second invocation must be a small constant fraction of the one-shot CLI's wall-clock for the same command on the same data dir. Threshold: REPL p50 ≤ 25 % of one-shot CLI p50, measured by the test harness on the workbook's standard fixture set. The exact ratio depends on fixture size; the SPEC asserts the threshold, not a specific millisecond figure.",
     },
   },
   {
@@ -775,7 +775,7 @@ const invariants: PrimitiveSpec[] = [
     fields: {
       label: "Every command runs the freshness check before dispatch.",
       statement:
-        "Before dispatching each command (except meta-commands), the REPL MUST run the per-project freshness check defined in §7.2. Disabling it requires the explicit `FDPM_REPL_FRESHNESS=off` opt-out.",
+        "Before dispatching each command (except meta-commands), the REPL MUST run the per-workbook freshness check defined in §7.2. Disabling it requires the explicit `FDPM_REPL_FRESHNESS=off` opt-out.",
       enforcement: "runtime_check",
       scope_ref: "fdpm-cli/src/commands/repl.ts §7.2",
     },
@@ -825,9 +825,9 @@ const requirements: PrimitiveSpec[] = [
     id: "spec:req:r-004",
     type: "spec:Requirement",
     fields: {
-      label: "Per-project freshness check",
+      label: "Per-workbook freshness check",
       statement:
-        "Before dispatching each command, the REPL MUST stat each addressed project's JSONL log file and the profiles directory. On detected change, refuse (strict) or replay tail (lenient) per §7.2.",
+        "Before dispatching each command, the REPL MUST stat each addressed workbook's JSONL log file and the profiles directory. On detected change, refuse (strict) or replay tail (lenient) per §7.2.",
       strength: "MUST",
       verifiability: "test",
       verifier_ref: "fdpm-cli/tests/repl/freshness.test.ts",
@@ -960,7 +960,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 3,
       criterion:
-        "Strict-mode freshness test: after a concurrent CLI write to project P, a write-capable REPL command targeting P refuses with `permission` + `evidence.reason: \"stale_state\"`.",
+        "Strict-mode freshness test: after a concurrent CLI write to workbook P, a write-capable REPL command targeting P refuses with `permission` + `evidence.reason: \"stale_state\"`.",
       status: "open",
     },
   },
@@ -1038,7 +1038,7 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 2,
       name: "Strict-mode staleness refusal",
       procedure:
-        "Start REPL session A against project P. From a separate process, run `fdpm primitive create --project P ...`. Then in A, attempt a write-capable command against P.",
+        "Start REPL session A against workbook P. From a separate process, run `fdpm primitive create --workbook P ...`. Then in A, attempt a write-capable command against P.",
       expected:
         "A refuses with category=`permission`, evidence.reason=`stale_state`, evidence.advice mentioning `:reload`. After `:reload`, the same command succeeds.",
     },
@@ -1050,7 +1050,7 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 3,
       name: "Lenient-mode incremental replay",
       procedure:
-        "Start REPL session A. From a separate process, append an op to project P's log. In A, run `primitive list --project P` (read-only).",
+        "Start REPL session A. From a separate process, append an op to workbook P's log. In A, run `primitive list --workbook P` (read-only).",
       expected:
         "A replays the new tail incrementally and returns the post-write state. No `permission` error.",
     },
@@ -1085,7 +1085,7 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 6,
       name: "Torn-write recovery after kill -9",
       procedure:
-        "Start a write-capable command in REPL session A. Mid-flight, send SIGKILL. Restart `fdpm` and run `validate --project P`.",
+        "Start a write-capable command in REPL session A. Mid-flight, send SIGKILL. Restart `fdpm` and run `validate --workbook P`.",
       expected:
         "The operation is either fully on disk or fully absent; no torn record. Validate returns no findings caused by JSONL malformation.",
     },
@@ -1134,7 +1134,7 @@ const changes: PrimitiveSpec[] = [
     fields: {
       area: "fdpm-cli/src/core/host.ts",
       change:
-        "Add `Host.reload()` (atomically swaps store/registry/runtime) and `Host.reloadProjectTail(project_id)` for §7.2 lenient-mode incremental replay.",
+        "Add `Host.reload()` (atomically swaps store/registry/runtime) and `Host.reloadProjectTail(workbook_id)` for §7.2 lenient-mode incremental replay.",
       complexity: "M",
       status: "not_started",
     },
@@ -1145,7 +1145,7 @@ const changes: PrimitiveSpec[] = [
     fields: {
       area: "fdpm-cli/src/persistence/jsonl-log.ts",
       change:
-        "Expose a public `statProjectLog(project_id) => {mtime, size} | null`. NO `flush()` is needed — `appendOp` already writes per call.",
+        "Expose a public `statProjectLog(workbook_id) => {mtime, size} | null`. NO `flush()` is needed — `appendOp` already writes per call.",
       complexity: "S",
       status: "not_started",
     },
@@ -1206,7 +1206,7 @@ const migration: PrimitiveSpec[] = [
       ordinal: 2,
       label: "Add Host.reload() and Host.reloadProjectTail()",
       action:
-        "Implement atomic swap of store/registry/runtime, and per-project tail replay. Cover with unit tests before the REPL lands.",
+        "Implement atomic swap of store/registry/runtime, and per-workbook tail replay. Cover with unit tests before the REPL lands.",
       affected_paths: ["fdpm-cli/src/core/host.ts"],
       depends_on: ["spec:mig:1"],
     },
@@ -1218,7 +1218,7 @@ const migration: PrimitiveSpec[] = [
       ordinal: 3,
       label: "Expose statProjectLog on JsonlLogStore",
       action:
-        "Public `statProjectLog(project_id) => {mtime, size} | null`. Used exclusively by the REPL freshness check.",
+        "Public `statProjectLog(workbook_id) => {mtime, size} | null`. Used exclusively by the REPL freshness check.",
       affected_paths: ["fdpm-cli/src/persistence/jsonl-log.ts"],
       depends_on: ["spec:mig:2"],
     },
@@ -1571,7 +1571,7 @@ const references: PrimitiveSpec[] = [
     fields: {
       kind: "repo_file",
       citation:
-        "JsonlLogStore — per-project append-only log targeted by the freshness stat check.",
+        "JsonlLogStore — per-workbook append-only log targeted by the freshness stat check.",
       locator: "fdpm-cli/src/persistence/jsonl-log.ts",
       verification: "verified",
       verification_note: "Read at SPEC-authoring time.",
@@ -1593,7 +1593,7 @@ const references: PrimitiveSpec[] = [
     type: "spec:Reference",
     fields: {
       kind: "repo_file",
-      citation: "FDPM project guidelines (PALS-LAW, formalization-means-research).",
+      citation: "FDPM workbook guidelines (PALS-LAW, formalization-means-research).",
       locator: "CLAUDE.md",
       verification: "self_evident",
     },
@@ -1624,7 +1624,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Pass-2 refinement.",
       notes:
-        "Per-project log freshness (replaces a single-global-log assumption); error-taxonomy alignment with FDPMException (no new categories); persistence-layer claim correction (no flush() needed); removal of unverified latency numbers in favor of a ratio threshold; removal of hazardous `:cd` meta-command. Re-authored as a typed graph via fdpm.spec-authoring.",
+        "Per-workbook log freshness (replaces a single-global-log assumption); error-taxonomy alignment with FDPMException (no new categories); persistence-layer claim correction (no flush() needed); removal of unverified latency numbers in favor of a ratio threshold; removal of hazardous `:cd` meta-command. Re-authored as a typed graph via fdpm.spec-authoring.",
       affected_sections: ["5", "7", "8", "9", "13", "14"],
       kind: "patch",
     },
@@ -1798,9 +1798,9 @@ const sections: PrimitiveSpec[] = [
         "",
         "### 10.2 The freshness check",
         "",
-        "Persistence in FDPM is **per-project**: `JsonlLogStore.appendOp` writes to `logPathFor(dataDir, op.project_id)`. There is no single global log file to stat. The freshness check must be project-scoped.",
+        "Persistence in FDPM is **per-workbook**: `JsonlLogStore.appendOp` writes to `logPathFor(dataDir, op.workbook_id)`. There is no single global log file to stat. The freshness check must be workbook-scoped.",
         "",
-        "Before dispatching each command: (1) statically determine the set of project_ids the command will touch via `projectIdsFromArgs`; (2) for each, stat its log file and track `(mtime, size)` per-project; (3) for commands that read `profile_id`, additionally stat the profiles directory; (4) on detected change, refuse with `permission`+`stale_state` (strict, default for write-capable) or replay tail (lenient, default for read-only).",
+        "Before dispatching each command: (1) statically determine the set of project_ids the command will touch via `projectIdsFromArgs`; (2) for each, stat its log file and track `(mtime, size)` per-workbook; (3) for commands that read `profile_id`, additionally stat the profiles directory; (4) on detected change, refuse with `permission`+`stale_state` (strict, default for write-capable) or replay tail (lenient, default for read-only).",
         "",
         "Read-only vs. write-capable classification is determined by each command module's exported `readOnly: boolean` flag.",
         "",
@@ -1840,7 +1840,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "### 11.4 Abrupt shutdown",
         "",
-        "If clean shutdown cannot complete (double Ctrl-C, kill -9, OOM), each per-project JSONL log MUST remain in a recoverable state. The store's append-per-operation model already guarantees this for one-shot CLI crashes; the REPL inherits it. The SPEC's invariant is therefore negative, not positive: the REPL **MUST NOT** introduce write batching, deferred persistence, or any other mechanism that holds an `appendAndPersist` result in memory beyond the single command boundary.",
+        "If clean shutdown cannot complete (double Ctrl-C, kill -9, OOM), each per-workbook JSONL log MUST remain in a recoverable state. The store's append-per-operation model already guarantees this for one-shot CLI crashes; the REPL inherits it. The SPEC's invariant is therefore negative, not positive: the REPL **MUST NOT** introduce write batching, deferred persistence, or any other mechanism that holds an `appendAndPersist` result in memory beyond the single command boundary.",
       ].join("\n"),
     },
   },
@@ -1889,7 +1889,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "### 14.3 Verification contract (PALS's law)",
         "",
-        "When an LLM drives the REPL, every response that produces a state change must be verified by the agent against the project state. The REPL provides the read-only commands (`primitive list`, `relation list`, `validate`, `health readiness`, etc.). The REPL itself does not perform agent-side verification — that is the agent's architectural responsibility per CLAUDE.md. The REPL **does** enforce the Core's own boundary verification for every operation it dispatches: the §8 schema gate, the §7 validation pipeline. There is no path through the REPL that bypasses these.",
+        "When an LLM drives the REPL, every response that produces a state change must be verified by the agent against the workbook state. The REPL provides the read-only commands (`primitive list`, `relation list`, `validate`, `health readiness`, etc.). The REPL itself does not perform agent-side verification — that is the agent's architectural responsibility per CLAUDE.md. The REPL **does** enforce the Core's own boundary verification for every operation it dispatches: the §8 schema gate, the §7 validation pipeline. There is no path through the REPL that bypasses these.",
       ].join("\n"),
     },
   },
@@ -2453,7 +2453,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

@@ -40,7 +40,7 @@ const TYPE = {
   fields: [
     { name: "title", kind: "string" as const, required: false, validations: [] },
   ],
-  id_format: { pattern: "^.*$", uniqueness: "project" as const },
+  id_format: { pattern: "^.*$", uniqueness: "workbook" as const },
   inline_structs: [],
   is_partition_unit: false,
 };

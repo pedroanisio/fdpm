@@ -1,7 +1,7 @@
 /**
  * `fdpm.primitive.search` — Tier 1 (read-only).
  *
- * Substring search across primitives in a single project. Backs the
+ * Substring search across primitives in a single workbook. Backs the
  * "find me the primitive whose name approximately matches X" workflow.
  * The result is a list of small summaries (id, type_id, optional
  * scope_id, and a short field-values excerpt) — enough for an LLM to
@@ -24,7 +24,7 @@ import type { McpToolEntry } from "../types.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     query: z.string().optional(),
     type_id: z.string().optional(),
     limit: z.number().int().positive().max(1000).optional(),
@@ -52,7 +52,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.primitive.search",
   tier: "read_only",
   description:
-    "Search primitives in one project by case-insensitive substring on field_values. Optional type_id narrows by primitive type. Returns id, type_id, scope_id, and a short fields_excerpt.",
+    "Search primitives in one workbook by case-insensitive substring on field_values. Optional type_id narrows by primitive type. Returns id, type_id, scope_id, and a short fields_excerpt.",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
@@ -65,7 +65,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
     if (args.query !== undefined && args.query.length > 0) {
       filter.fieldMatch = [{ needle: args.query }];
     }
-    const found = host.searchPrimitives(args.project_id, filter);
+    const found = host.searchPrimitives(args.workbook_id, filter);
     const limit = args.limit ?? 100;
     const matches = found.slice(0, limit).map((p) => {
       const summary: {

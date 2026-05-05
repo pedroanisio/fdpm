@@ -8,7 +8,7 @@ import { Tier2EnvelopeBase, type Tier2Envelope } from "../tier2-envelope.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     primitive: z
       .object({
         id: z.string().min(1),
@@ -24,7 +24,7 @@ const Input = z
 const PostStateSummary = z
   .object({
     primitive_id: z.string(),
-    project_id: z.string(),
+    workbook_id: z.string(),
     replaced_at_revision: z.number().int().positive(),
   })
   .strict();
@@ -49,7 +49,7 @@ export const tool: McpToolEntry<
   annotations: { destructiveHint: false },
   handler: async (host, args) => {
     const { append, report } = await host.replacePrimitive(
-      args.project_id,
+      args.workbook_id,
       args.primitive,
     );
     return {
@@ -58,7 +58,7 @@ export const tool: McpToolEntry<
       validation_report: report,
       post_state_summary: {
         primitive_id: args.primitive.id,
-        project_id: args.project_id,
+        workbook_id: args.workbook_id,
         replaced_at_revision: append.op.revision,
       },
     };

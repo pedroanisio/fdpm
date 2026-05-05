@@ -36,13 +36,13 @@ async function freshHost(): Promise<Host> {
   return host;
 }
 
-async function newProject(host: Host, projectId: string, docTitle: string): Promise<void> {
+async function newProject(host: Host, workbookId: string, docTitle: string): Promise<void> {
   await host.createProject({
-    project_id: projectId,
-    name: projectId,
+    workbook_id: workbookId,
+    name: workbookId,
     profile_id: PROFILE,
   });
-  await host.createPrimitive(projectId, {
+  await host.createPrimitive(workbookId, {
     id: "spec:doc:fixture",
     type_id: "spec:Document",
     field_values: {
@@ -93,17 +93,17 @@ async function createSection(
   return result.affectedNodeIds[0]!;
 }
 
-async function renderText(host: Host, projectId: string): Promise<{
+async function renderText(host: Host, workbookId: string): Promise<{
   text: string;
   findings: ReadonlyArray<{ message: string; expression?: string }>;
 }> {
-  const slice = host.getProject(projectId);
-  const profile = host.profiles.getResolved(slice.project.profile_id);
+  const slice = host.getProject(workbookId);
+  const profile = host.profiles.getResolved(slice.workbook.profile_id);
   const out = await host.plugins.runRenderer(
     "text/markdown",
     {
-      projectId,
-      project: slice.project,
+      workbookId,
+      workbook: slice.workbook,
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       templates: Object.values(slice.templates),
@@ -124,7 +124,7 @@ describe("spec:SpecMarkdownRenderer — body_md template evaluation", () => {
   it("default eval_body=false emits body_md verbatim (literal ${doc.title} survives)", async () => {
     const host = await freshHost();
     await newProject(host, "test-be-default-off", "Doc title");
-    const adapter = new DnisHostAdapter(host, { projectId: "test-be-default-off" });
+    const adapter = new DnisHostAdapter(host, { workbookId: "test-be-default-off" });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -152,7 +152,7 @@ describe("spec:SpecMarkdownRenderer — body_md template evaluation", () => {
   it("opt-in eval_body=true resolves ${doc.title} to the spec:Document's title", async () => {
     const host = await freshHost();
     await newProject(host, "test-be-opt-in", "Resolved title");
-    const adapter = new DnisHostAdapter(host, { projectId: "test-be-opt-in" });
+    const adapter = new DnisHostAdapter(host, { workbookId: "test-be-opt-in" });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -178,7 +178,7 @@ describe("spec:SpecMarkdownRenderer — body_md template evaluation", () => {
   it("eval_body=true plus slug-keyed section_index resolves ${fn.section_of(\"section:other\")}", async () => {
     const host = await freshHost();
     await newProject(host, "test-be-section-of", "Body eval + section_of");
-    const adapter = new DnisHostAdapter(host, { projectId: "test-be-section-of" });
+    const adapter = new DnisHostAdapter(host, { workbookId: "test-be-section-of" });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -206,7 +206,7 @@ describe("spec:SpecMarkdownRenderer — body_md template evaluation", () => {
   it("eval_body=true with an unknown section slug surfaces a render-error finding (not silent empty)", async () => {
     const host = await freshHost();
     await newProject(host, "test-be-bad-ref", "Bad ref");
-    const adapter = new DnisHostAdapter(host, { projectId: "test-be-bad-ref" });
+    const adapter = new DnisHostAdapter(host, { workbookId: "test-be-bad-ref" });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",

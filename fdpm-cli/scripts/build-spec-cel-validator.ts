@@ -105,7 +105,7 @@ const terms: Array<[string, string, string?]> = [
   ],
   [
     "Graph helper",
-    "A host-bound CEL function that exposes graph-shaped queries needed by predicates that reason about relations or cross-primitive id resolution. As of helper-set v1.1.0 the inventory is: `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, `graph.target_exists(rel_id)`. The last two are the v1.1.0 additions: `exists` answers id-membership over the project's primitive set; `target_exists` answers whether every outbound edge of a given relation type from the current instance points at a primitive that actually exists.",
+    "A host-bound CEL function that exposes graph-shaped queries needed by predicates that reason about relations or cross-primitive id resolution. As of helper-set v1.1.0 the inventory is: `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, `graph.target_exists(rel_id)`. The last two are the v1.1.0 additions: `exists` answers id-membership over the workbook's primitive set; `target_exists` answers whether every outbound edge of a given relation type from the current instance points at a primitive that actually exists.",
   ],
   [
     "Legacy DSL",
@@ -113,7 +113,7 @@ const terms: Array<[string, string, string?]> = [
   ],
   [
     "Behavioral parity",
-    "For a rule `R` with legacy predicate `P` and CEL translation `P'`, the property that for every primitive instance `i` in the project, `evaluate_legacy(P, i) == evaluate_cel(P', i)` — same finding emitted at the same level on the same target_id and field_path.",
+    "For a rule `R` with legacy predicate `P` and CEL translation `P'`, the property that for every primitive instance `i` in the workbook, `evaluate_legacy(P, i) == evaluate_cel(P', i)` — same finding emitted at the same level on the same target_id and field_path.",
   ],
 ];
 const termSpecs: PrimitiveSpec[] = terms.map(([term, definition, synonyms]) => ({
@@ -150,7 +150,7 @@ const stakeholders: Array<{ id: string; role: string; primary_concern: string; c
     id: "spec:stk:operator",
     role: "Operator",
     primary_concern:
-      "Existing projects continue to validate without re-import; predicate-not-evaluated `info` findings disappear once rules are migrated.",
+      "Existing workbooks continue to validate without re-import; predicate-not-evaluated `info` findings disappear once rules are migrated.",
     category: "human",
   },
 ];
@@ -461,7 +461,7 @@ const scenarios: PrimitiveSpec[] = [
     fields: {
       title: "Performance — validation throughput",
       source: "Operator running the fdpm CLI.",
-      stimulus: "`fdpm validate <project>` on a 10k-primitive fs project.",
+      stimulus: "`fdpm validate <workbook>` on a 10k-primitive fs workbook.",
       environment: "Local CLI; warm Host; standard benchmark fixture.",
       artifact: "ValidationPipeline + CEL evaluator.",
       response:
@@ -530,7 +530,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Graph helpers are pure",
       statement:
-        "Every standard `graph.*` helper MUST be a pure function over the project graph. As of helper-set v1.1.0 the closed inventory is `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, and `graph.target_exists(rel_id)`. None MAY perform I/O, spawn processes, invoke `eval`, or read clock/RNG. Adding a graph helper is a SPEC amendment AND a helper-set semver bump.",
+        "Every standard `graph.*` helper MUST be a pure function over the workbook graph. As of helper-set v1.1.0 the closed inventory is `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, and `graph.target_exists(rel_id)`. None MAY perform I/O, spawn processes, invoke `eval`, or read clock/RNG. Adding a graph helper is a SPEC amendment AND a helper-set semver bump.",
       strength: "MUST",
       verifiability: "ci_check",
       verifier_ref: "CI grep over fdpm-cli/src/core/expr/helpers.ts",
@@ -637,7 +637,7 @@ const conformance: PrimitiveSpec[] = [
     fields: {
       ordinal: 2,
       name: "Acyclic helper terminates on adversarial graph",
-      procedure: "Build a project with 10⁴ primitives and a deeply cyclic relation set; run `graph.acyclic(rel_id)`.",
+      procedure: "Build a workbook with 10⁴ primitives and a deeply cyclic relation set; run `graph.acyclic(rel_id)`.",
       expected: "Helper returns false in <50 ms p95 and emits no host log spam.",
     },
   },
@@ -648,9 +648,9 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 3,
       name: "Existence helpers reject dangling references",
       procedure:
-        "Push a CEL rule `graph.exists(\"<missing-id>\")` against a seeded project; assert finding fires. Push `graph.target_exists(\"<rel-type>\")` from a primitive whose only outbound edge of that type points at a missing id; assert finding fires. Then add the missing primitive and assert both findings disappear.",
+        "Push a CEL rule `graph.exists(\"<missing-id>\")` against a seeded workbook; assert finding fires. Push `graph.target_exists(\"<rel-type>\")` from a primitive whose only outbound edge of that type points at a missing id; assert finding fires. Then add the missing primitive and assert both findings disappear.",
       expected:
-        "Both helpers return the expected boolean against the project graph; findings appear and disappear deterministically.",
+        "Both helpers return the expected boolean against the workbook graph; findings appear and disappear deterministically.",
     },
   },
 ];
@@ -827,7 +827,7 @@ const risks: PrimitiveSpec[] = [
     fields: {
       label: "Per-call parse cost",
       description:
-        "Re-parsing a predicate on every validate call dominates p50 latency on small projects.",
+        "Re-parsing a predicate on every validate call dominates p50 latency on small workbooks.",
       likelihood: "medium",
       impact: "medium",
     },
@@ -985,7 +985,7 @@ const references: PrimitiveSpec[] = [
     type: "spec:Reference",
     fields: {
       kind: "repo_file",
-      citation: "FDPM project guidelines (PALS-LAW, formalization-means-research).",
+      citation: "FDPM workbook guidelines (PALS-LAW, formalization-means-research).",
       locator: "CLAUDE.md",
       verification: "self_evident",
     },
@@ -1029,7 +1029,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Helper-set v1.1.0 — graph.exists / graph.target_exists added.",
       notes:
-        "Additive amendment landing two new graph helpers requested by the upcoming fdpm.planning plugin. `graph.exists(target_id)` answers id-membership over the project's primitive set. `graph.target_exists(rel_id)` answers whether every outbound edge of the given relation type from the current instance points at a primitive that exists. Both are pure (no I/O, no clock, no RNG); both extend §6 Graph helper definition and §11 Requirement r-003. New §18 Conformance item `spec:conf:3` exercises them. Helper-set semver bumped from 1.0.0 to 1.1.0 (additive → minor per SPEC-EXPRESSION-RUNTIME §M14). The existing 5 graph-helper inventory now reads: incoming, outgoing, acyclic, exists, target_exists.",
+        "Additive amendment landing two new graph helpers requested by the upcoming fdpm.planning plugin. `graph.exists(target_id)` answers id-membership over the workbook's primitive set. `graph.target_exists(rel_id)` answers whether every outbound edge of the given relation type from the current instance points at a primitive that exists. Both are pure (no I/O, no clock, no RNG); both extend §6 Graph helper definition and §11 Requirement r-003. New §18 Conformance item `spec:conf:3` exercises them. Helper-set semver bumped from 1.0.0 to 1.1.0 (additive → minor per SPEC-EXPRESSION-RUNTIME §M14). The existing 5 graph-helper inventory now reads: incoming, outgoing, acyclic, exists, target_exists.",
       affected_sections: ["6", "11", "18"],
       kind: "minor",
     },
@@ -1384,7 +1384,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

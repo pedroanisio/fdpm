@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-repl.ts"
-revision: "0.1.1 — pass-2 refinement: per-project log freshness, error-taxonomy alignment, persistence-layer claim correction, removal of unverified latency numbers, removal of hazardous :cd."
+revision: "0.1.1 — pass-2 refinement: per-workbook log freshness, error-taxonomy alignment, persistence-layer claim correction, removal of unverified latency numbers, removal of hazardous :cd."
 status: "Proposal"
 ---
 
@@ -130,7 +130,7 @@ Each principle is testable; the renderer enumerates them in declared order.
 1. (MUST) **Zero new state-mutation paths.** Every state-mutating call in the REPL handler MUST go through `Host.*` methods — the same methods the one-shot CLI uses. The REPL adds no new persistence model, no new operation kind, no new validation gate.
 2. (MUST) **No eval, no shell, no code-as-string.** Input lines are tokenized and dispatched through the Commander tree. No `eval`, no `Function`, no `child_process.exec*`, no `vm.runInNewContext`, no `:!shell-cmd` in v0.1.
 3. (MUST) **Reuse the Commander tree verbatim.** The REPL parses each input line through the same Commander program the one-shot CLI uses. Adding a new top-level command must require zero REPL-specific work.
-4. (MUST) **Staleness is surfaced, not hidden.** On detected out-of-band writes to a project's log, the REPL MUST refuse write-capable commands (strict mode) or perform an explicit incremental replay (lenient mode for read-only). The REPL MUST NOT silently background-reload.
+4. (MUST) **Staleness is surfaced, not hidden.** On detected out-of-band writes to a workbook's log, the REPL MUST refuse write-capable commands (strict mode) or perform an explicit incremental replay (lenient mode for read-only). The REPL MUST NOT silently background-reload.
 5. (MUST) **Scriptable without a TTY.** The REPL must run end-to-end without a terminal allocated. `--script <file>` and stdin redirection are first-class; the test harness depends on this.
 
 ---
@@ -139,8 +139,8 @@ Each principle is testable; the renderer enumerates them in declared order.
 
 | Term | Definition |
 | --- | --- |
-| **Freshness check** | A bounded per-command stat against the project log file(s) the command addresses. Detects out-of-band writes by another process before dispatching. |
-| **Lenient mode** | Default freshness policy for read-only commands. On detected out-of-band writes, perform an incremental tail-replay of the changed project log(s) into the in-memory Store, then dispatch. |
+| **Freshness check** | A bounded per-command stat against the workbook log file(s) the command addresses. Detects out-of-band writes by another process before dispatching. |
+| **Lenient mode** | Default freshness policy for read-only commands. On detected out-of-band writes, perform an incremental tail-replay of the changed workbook log(s) into the in-memory Store, then dispatch. |
 | **Meta-command** | A REPL-only command prefixed with `:` (e.g., `:reload`, `:quit`). Never reaches the Commander tree, never persists to the JSONL log. |
 | **projectIdsFromArgs** | Per-command-module exported function that statically determines the set of project_ids the command will touch. Consumed by the freshness check; required on every command module. |
 | **REPL** | Read-Eval-Print Loop. A long-lived interactive process that reads input lines, dispatches each as a command, and prints the result — peer to the one-shot CLI, sharing one Host. _(also: Read-Eval-Print Loop)_ |
@@ -166,7 +166,7 @@ The `fdpm` CLI pays significant cold-start cost on every invocation (JSONL repla
 
 ###### Option A — In-process REPL reusing the Commander tree _(chosen)_
 
-A new `fdpm repl` subcommand. One Host per session. Each input line is tokenized and re-parsed through the same Commander program the one-shot CLI uses. Freshness is enforced by `mtime`/`size` checks on the per-project JSONL log before each command.
+A new `fdpm repl` subcommand. One Host per session. Each input line is tokenized and re-parsed through the same Commander program the one-shot CLI uses. Freshness is enforced by `mtime`/`size` checks on the per-workbook JSONL log before each command.
 
 - Pros:
   - Zero new state paths.
@@ -209,7 +209,7 @@ A Node REPL with `host` bound in scope. Operators type JS expressions.
 
 ##### Decision
 
-Build the REPL as a thin dispatcher inside the existing `fdpm` binary, reusing the Commander command tree by re-parsing each input line through the same root program with a long-lived `Host`. Maintain process-local cache invalidation by treating each per-project JSONL log file's `mtime`/`size` as a freshness signal and reloading affected state when staleness is detected on the next command. Provide an explicit `:reload` meta-command for forced reload. No daemon, no new IPC, no new persistence path.
+Build the REPL as a thin dispatcher inside the existing `fdpm` binary, reusing the Commander command tree by re-parsing each input line through the same root program with a long-lived `Host`. Maintain process-local cache invalidation by treating each per-workbook JSONL log file's `mtime`/`size` as a freshness signal and reloading affected state when staleness is detected on the next command. Provide an explicit `:reload` meta-command for forced reload. No daemon, no new IPC, no new persistence path.
 
 ##### Consequences
 
@@ -307,9 +307,9 @@ A REPL session is a single in-process holder of one Store, one ProfileRegistry, 
 
 ### 10.2 The freshness check
 
-Persistence in FDPM is **per-project**: `JsonlLogStore.appendOp` writes to `logPathFor(dataDir, op.project_id)`. There is no single global log file to stat. The freshness check must be project-scoped.
+Persistence in FDPM is **per-workbook**: `JsonlLogStore.appendOp` writes to `logPathFor(dataDir, op.workbook_id)`. There is no single global log file to stat. The freshness check must be workbook-scoped.
 
-Before dispatching each command: (1) statically determine the set of project_ids the command will touch via `projectIdsFromArgs`; (2) for each, stat its log file and track `(mtime, size)` per-project; (3) for commands that read `profile_id`, additionally stat the profiles directory; (4) on detected change, refuse with `permission`+`stale_state` (strict, default for write-capable) or replay tail (lenient, default for read-only).
+Before dispatching each command: (1) statically determine the set of project_ids the command will touch via `projectIdsFromArgs`; (2) for each, stat its log file and track `(mtime, size)` per-workbook; (3) for commands that read `profile_id`, additionally stat the profiles directory; (4) on detected change, refuse with `permission`+`stale_state` (strict, default for write-capable) or replay tail (lenient, default for read-only).
 
 Read-only vs. write-capable classification is determined by each command module's exported `readOnly: boolean` flag.
 
@@ -343,7 +343,7 @@ First SIGINT (Ctrl-C): cancel input editing, return to a fresh prompt. Second SI
 
 ### 11.4 Abrupt shutdown
 
-If clean shutdown cannot complete (double Ctrl-C, kill -9, OOM), each per-project JSONL log MUST remain in a recoverable state. The store's append-per-operation model already guarantees this for one-shot CLI crashes; the REPL inherits it. The SPEC's invariant is therefore negative, not positive: the REPL **MUST NOT** introduce write batching, deferred persistence, or any other mechanism that holds an `appendAndPersist` result in memory beyond the single command boundary.
+If clean shutdown cannot complete (double Ctrl-C, kill -9, OOM), each per-workbook JSONL log MUST remain in a recoverable state. The store's append-per-operation model already guarantees this for one-shot CLI crashes; the REPL inherits it. The SPEC's invariant is therefore negative, not positive: the REPL **MUST NOT** introduce write batching, deferred persistence, or any other mechanism that holds an `appendAndPersist` result in memory beyond the single command boundary.
 
 ---
 
@@ -375,7 +375,7 @@ No streaming partial responses (a v0.2 concern). No multi-line command continuat
 
 ### 14.3 Verification contract (PALS's law)
 
-When an LLM drives the REPL, every response that produces a state change must be verified by the agent against the project state. The REPL provides the read-only commands (`primitive list`, `relation list`, `validate`, `health readiness`, etc.). The REPL itself does not perform agent-side verification — that is the agent's architectural responsibility per CLAUDE.md. The REPL **does** enforce the Core's own boundary verification for every operation it dispatches: the §8 schema gate, the §7 validation pipeline. There is no path through the REPL that bypasses these.
+When an LLM drives the REPL, every response that produces a state change must be verified by the agent against the workbook state. The REPL provides the read-only commands (`primitive list`, `relation list`, `validate`, `health readiness`, etc.). The REPL itself does not perform agent-side verification — that is the agent's architectural responsibility per CLAUDE.md. The REPL **does** enforce the Core's own boundary verification for every operation it dispatches: the §8 schema gate, the §7 validation pipeline. There is no path through the REPL that bypasses these.
 
 ---
 
@@ -417,7 +417,7 @@ The REPL reuses the existing FDPMException taxonomy without extension. Categorie
 [Environment]       Default mode; data dir on local disk; no concurrent writer.
 [Artifact]          REPL read loop + Host.
 [Response]          Command returns successfully.
-[Response measure]  Wall-clock dispatch time on the second invocation must be a small constant fraction of the one-shot CLI's wall-clock for the same command on the same data dir. Threshold: REPL p50 ≤ 25 % of one-shot CLI p50, measured by the test harness on the project's standard fixture set. The exact ratio depends on fixture size; the SPEC asserts the threshold, not a specific millisecond figure.
+[Response measure]  Wall-clock dispatch time on the second invocation must be a small constant fraction of the one-shot CLI's wall-clock for the same command on the same data dir. Threshold: REPL p50 ≤ 25 % of one-shot CLI p50, measured by the test harness on the workbook's standard fixture set. The exact ratio depends on fixture size; the SPEC asserts the threshold, not a specific millisecond figure.
 ```
 
 ### Consistency — out-of-band write detection
@@ -466,7 +466,7 @@ Invariants are the non-negotiable properties the implementation MUST preserve. C
 - **(MUST) fdpm repl subcommand** — The CLI MUST expose a top-level `fdpm repl` subcommand accepting `--data-dir`, `--no-persist`, `--no-banner`, `--script`, `--exit-on-error`, `--json` flags.
 - **(MUST) Single Host per session** — The REPL MUST construct exactly one Host at startup (with `host.load()` awaited) and reuse it across every dispatched command for the session's lifetime.
 - **(MUST) POSIX shell-word tokenization** — Input lines MUST be tokenized with POSIX shell-word splitting (single quotes, double quotes, backslash escape). NO variable expansion, NO command substitution, NO glob expansion.
-- **(MUST) Per-project freshness check** — Before dispatching each command, the REPL MUST stat each addressed project's JSONL log file and the profiles directory. On detected change, refuse (strict) or replay tail (lenient) per §7.2.
+- **(MUST) Per-workbook freshness check** — Before dispatching each command, the REPL MUST stat each addressed workbook's JSONL log file and the profiles directory. On detected change, refuse (strict) or replay tail (lenient) per §7.2.
 - **(MUST) Per-command-module readOnly + projectIdsFromArgs** — Every `fdpm-cli/src/commands/*.ts` module MUST export both `readOnly: boolean` and `projectIdsFromArgs(parsed) => string[]`. CI MUST fail the build if any module omits either export. No defaults.
 - **(MUST) exitOverride on Commander program** — The Commander program MUST be configured with `.exitOverride()` so a per-command parse error does NOT `process.exit` the whole REPL. Errors return to the prompt instead.
 - **(MUST) JSON-mode framing** — In `--json` mode, every command response MUST be a single JSON value on one line followed by `\n` on stdout. Banners, prompts, and diagnostic messages MUST go to stderr only.
@@ -482,7 +482,7 @@ Invariants are the non-negotiable properties the implementation MUST preserve. C
 
 - [ ] **1.** `fdpm repl` boots, prints a banner (or suppresses with `--no-banner`), enters the read loop, and exits cleanly on `:quit`. _(open)_
 - [ ] **2.** Every `fdpm-cli/src/commands/*.ts` module exports `readOnly` and `projectIdsFromArgs`; CI rejects builds that omit either. _(open)_
-- [ ] **3.** Strict-mode freshness test: after a concurrent CLI write to project P, a write-capable REPL command targeting P refuses with `permission` + `evidence.reason: "stale_state"`. _(open)_
+- [ ] **3.** Strict-mode freshness test: after a concurrent CLI write to workbook P, a write-capable REPL command targeting P refuses with `permission` + `evidence.reason: "stale_state"`. _(open)_
 - [ ] **4.** Lenient-mode freshness test: after a concurrent CLI write, a read-only REPL command incrementally replays the new tail and returns the post-write state. _(open)_
 - [ ] **5.** JSON-mode framing test: every command response is exactly one JSON line on stdout; banner and prompt are on stderr only; agents can parse without TTY. _(open)_
 - [ ] **6.** Scripted-mode `--exit-on-error` test: first failing command exits with the matching `EXIT_CODE_FOR_CATEGORY` value; without the flag, exit code is the highest seen at session end. _(open)_
@@ -495,15 +495,15 @@ Invariants are the non-negotiable properties the implementation MUST preserve. C
 
 - **1. Single Host across the session** — Start `fdpm repl --no-banner`. Run two read-only commands back-to-back. Inspect process memory / instrumentation to verify no second `Host.load()` was called.
   - expected: Exactly one `Host.load()` invocation per session. Second-command latency is dominated by dispatch, not load.
-- **2. Strict-mode staleness refusal** — Start REPL session A against project P. From a separate process, run `fdpm primitive create --project P ...`. Then in A, attempt a write-capable command against P.
+- **2. Strict-mode staleness refusal** — Start REPL session A against workbook P. From a separate process, run `fdpm primitive create --workbook P ...`. Then in A, attempt a write-capable command against P.
   - expected: A refuses with category=`permission`, evidence.reason=`stale_state`, evidence.advice mentioning `:reload`. After `:reload`, the same command succeeds.
-- **3. Lenient-mode incremental replay** — Start REPL session A. From a separate process, append an op to project P's log. In A, run `primitive list --project P` (read-only).
+- **3. Lenient-mode incremental replay** — Start REPL session A. From a separate process, append an op to workbook P's log. In A, run `primitive list --workbook P` (read-only).
   - expected: A replays the new tail incrementally and returns the post-write state. No `permission` error.
 - **4. JSON framing for agents** — Pipe `--script` input through `fdpm repl --json --no-banner`. Assert stdout contains exactly one JSON object per command line plus one final `{"summary": ...}`.
   - expected: stdout is a stream of JSON values, one per line. stderr carries banner/prompt diagnostics only.
 - **5. Forbidden meta-commands rejected** — In an interactive REPL, type `:cd /tmp` then `:!ls`.
   - expected: Both produce a one-line error referencing this SPEC's §5.5/§5.5.1 and §12. Neither performs its action.
-- **6. Torn-write recovery after kill -9** — Start a write-capable command in REPL session A. Mid-flight, send SIGKILL. Restart `fdpm` and run `validate --project P`.
+- **6. Torn-write recovery after kill -9** — Start a write-capable command in REPL session A. Mid-flight, send SIGKILL. Restart `fdpm` and run `validate --workbook P`.
   - expected: The operation is either fully on disk or fully absent; no torn record. Validate returns no findings caused by JSONL malformation.
 
 ---
@@ -515,8 +515,8 @@ Invariants are the non-negotiable properties the implementation MUST preserve. C
 | fdpm-cli/src/bin/fdpm.ts | Register a new `buildReplCommand(host, programFactory)` subcommand. Factor `handleError` so the REPL can reuse the framing without the `process.exit` call. | S | not_started |
 | fdpm-cli/src/commands/repl.ts | New file: read loop, meta-commands, freshness check, signal handling, JSON framing, scripted-mode driver. | M | not_started |
 | fdpm-cli/src/commands/*.ts | Export `readOnly: boolean` and `projectIdsFromArgs(parsed) => string[]` alongside the existing `buildXCommand`. CI fails the build if any command module omits either. | M | not_started |
-| fdpm-cli/src/core/host.ts | Add `Host.reload()` (atomically swaps store/registry/runtime) and `Host.reloadProjectTail(project_id)` for §7.2 lenient-mode incremental replay. | M | not_started |
-| fdpm-cli/src/persistence/jsonl-log.ts | Expose a public `statProjectLog(project_id) => {mtime, size} \| null`. NO `flush()` is needed — `appendOp` already writes per call. | S | not_started |
+| fdpm-cli/src/core/host.ts | Add `Host.reload()` (atomically swaps store/registry/runtime) and `Host.reloadProjectTail(workbook_id)` for §7.2 lenient-mode incremental replay. | M | not_started |
+| fdpm-cli/src/persistence/jsonl-log.ts | Expose a public `statProjectLog(workbook_id) => {mtime, size} \| null`. NO `flush()` is needed — `appendOp` already writes per call. | S | not_started |
 | fdpm-cli/src/core/errors/fdpm-exception.ts | NO taxonomy change required. Staleness reuses `permission` with `evidence.reason: "stale_state"`. | XS | not_started |
 | fdpm-cli/tests/repl/ | Scripted-mode tests covering §5, §6, §7, §8, §9. Tokenize, freshness, reload, JSON framing, scripted-mode summary, signals, forbidden-meta, error recovery, command-metadata. Coverage target ≥ 60 % (CLI rule). | M | not_started |
 | AGENTS.md | New section documenting `fdpm repl` for agent integrators (frame, JSON contract, exit codes). | S | not_started |
@@ -529,9 +529,9 @@ Order matters: per-command-module metadata lands first; Host.reload() and statPr
 
 1. **Land per-command-module metadata** — Add `readOnly` and `projectIdsFromArgs` exports to every fdpm-cli/src/commands/*.ts module. Add CI check that fails on missing exports. Mechanical and decoupled from REPL itself.
    - touches: `fdpm-cli/src/commands/`
-2. **Add Host.reload() and Host.reloadProjectTail()** — Implement atomic swap of store/registry/runtime, and per-project tail replay. Cover with unit tests before the REPL lands.
+2. **Add Host.reload() and Host.reloadProjectTail()** — Implement atomic swap of store/registry/runtime, and per-workbook tail replay. Cover with unit tests before the REPL lands.
    - touches: `fdpm-cli/src/core/host.ts`
-3. **Expose statProjectLog on JsonlLogStore** — Public `statProjectLog(project_id) => {mtime, size} | null`. Used exclusively by the REPL freshness check.
+3. **Expose statProjectLog on JsonlLogStore** — Public `statProjectLog(workbook_id) => {mtime, size} | null`. Used exclusively by the REPL freshness check.
    - touches: `fdpm-cli/src/persistence/jsonl-log.ts`
 4. **Implement REPL command and entry** — Land fdpm-cli/src/commands/repl.ts with read loop, meta-commands, freshness, signals, JSON framing. Wire `buildReplCommand` in fdpm.ts. Factor handleError.
    - touches: `fdpm-cli/src/commands/repl.ts`
@@ -583,7 +583,7 @@ Other open questions (defaulted):
 ## 28. References — verify independently
 
 - Existing one-shot CLI entry point. (fdpm-cli/src/bin/fdpm.ts) _[verified]_ — Read at SPEC-authoring time.
-- FDPM project guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
+- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
 
 >    1 | doc.fields.verification_note
                     ^]]
@@ -591,7 +591,7 @@ Other open questions (defaulted):
 - Greshake, K. et al., 'Not what you've Signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection', arXiv:2302.12173, 2023. (https://arxiv.org/abs/2302.12173) _[unverified]_ — Cited as the canonical reference for the prompt-injection threat class invoked in §12.
 - Host class — composition the REPL holds. (fdpm-cli/src/core/host.ts) _[verified]_ — Read at SPEC-authoring time.
 - ISO/IEC/IEEE 42010:2011, Systems and software engineering — Architecture description. (https://www.iso.org/standard/50508.html) _[unverified]_ — Cited for the stakeholders / concerns / views vocabulary used in §2 and elsewhere.
-- JsonlLogStore — per-project append-only log targeted by the freshness stat check. (fdpm-cli/src/persistence/jsonl-log.ts) _[verified]_ — Read at SPEC-authoring time.
+- JsonlLogStore — per-workbook append-only log targeted by the freshness stat check. (fdpm-cli/src/persistence/jsonl-log.ts) _[verified]_ — Read at SPEC-authoring time.
 - Nygard, M., Documenting Architecture Decisions, 2011. (https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) _[unverified]_ — ADR format used in §15.
 - SEI Carnegie Mellon, Quality Attribute Scenarios template. (https://insights.sei.cmu.edu/library/quality-attribute-workshop-qaw/) _[unverified]_ — Used for §14 scenario shape.
 - SPEC-CORE — Core invariants the REPL must preserve. (docs/specs/SPEC-CORE.md) _[verified]_ — Read at SPEC-authoring time.
@@ -604,7 +604,7 @@ Other open questions (defaulted):
 
 ### 0.1.1 — 2026-05-04 — Pass-2 refinement.
 
-Per-project log freshness (replaces a single-global-log assumption); error-taxonomy alignment with FDPMException (no new categories); persistence-layer claim correction (no flush() needed); removal of unverified latency numbers in favor of a ratio threshold; removal of hazardous `:cd` meta-command. Re-authored as a typed graph via fdpm.spec-authoring.
+Per-workbook log freshness (replaces a single-global-log assumption); error-taxonomy alignment with FDPMException (no new categories); persistence-layer claim correction (no flush() needed); removal of unverified latency numbers in favor of a ratio threshold; removal of hazardous `:cd` meta-command. Re-authored as a typed graph via fdpm.spec-authoring.
 
 Affected sections: 5, 7, 8, 9, 13, 14
 

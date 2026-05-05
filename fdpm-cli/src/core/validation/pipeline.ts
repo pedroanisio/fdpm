@@ -48,7 +48,7 @@ import {
  */
 export interface CustomValidatorContext {
   relations: readonly RelationInstance[];
-  project?: ProjectStateSlice;
+  workbook?: ProjectStateSlice;
   projectFingerprint?: string;
   permissions?: ReadonlySet<string>;
   locale?: string;
@@ -396,7 +396,7 @@ export class ValidationPipeline {
           context?.relations ?? [],
           rule.id,
           {
-            project: context?.project,
+            workbook: context?.workbook,
             projectFingerprint: context?.projectFingerprint,
             permissions: context?.permissions,
             locale: context?.locale,

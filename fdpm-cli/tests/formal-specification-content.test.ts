@@ -157,10 +157,10 @@ describe("formal_specification — content parity with Python source", () => {
     expect(comp?.inline_structs[0]?.fields).toHaveLength(4);
   });
 
-  it("end-to-end: create project on the profile, add a Section, list works", async () => {
+  it("end-to-end: create workbook on the profile, add a Section, list works", async () => {
     const host = await loadHostWithPlugin();
     await host.createProject({
-      project_id: "paper",
+      workbook_id: "paper",
       name: "Demo Paper",
       profile_id: PROFILE_ID,
     });
@@ -184,7 +184,7 @@ describe("formal_specification — content parity with Python source", () => {
   it("validation rejects an fs:Section with bad enum value", async () => {
     const host = await loadHostWithPlugin();
     await host.createProject({
-      project_id: "paper",
+      workbook_id: "paper",
       name: "Demo",
       profile_id: PROFILE_ID,
     });

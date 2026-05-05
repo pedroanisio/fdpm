@@ -258,7 +258,7 @@ implemented.
   - formal_specification content parity: 32/30/23/5/3 counts match
     Python source; primitive ids match `_ALL_PRIMITIVE_IDS`; inline
     structs (Alternative, Variable, TensorSpec) carry expected
-    fields; end-to-end create-project/create-Section flow +
+    fields; end-to-end create-workbook/create-Section flow +
     validation rejection on bad enum value.
   - Legacy spec parser: every Python source field-type spec form
     (string, ConstrainedText, Enum[...], T[], StructField[X][])
@@ -277,7 +277,7 @@ npm --prefix fdpm-cli run dev -- version     # tsx, no build needed
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and project logs. |
+| `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
 | `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths (colon-separated). |
 | `FDPM_LOG_LEVEL` | `info` | Plugin logger threshold: `debug`, `info`, `warn`, `error`, `silent`. |
 | `FDPM_DEBUG` | unset | Truthy -> also emit plugin debug logs. |
@@ -318,8 +318,8 @@ fdpm profile list --json
 # Register your own profile (persisted under ~/.fdpm-cli/profiles/)
 fdpm profile register -f my-profile.json
 
-# Create a project
-fdpm project create --id demo --name "Demo" --profile test:demo
+# Create a workbook
+fdpm workbook create --id demo --name "Demo" --profile test:demo
 
 # Add a primitive (validated against the §7 pipeline)
 fdpm primitive create demo -f section.json
@@ -340,25 +340,25 @@ fdpm log audit demo         # AuditRecord projection (§13.3)
 | `fdpm profile get <id>`          | `GET /profiles/{id}`                           |
 | `fdpm profile get <id> --raw`    | `GET /profiles/{id}/raw`                       |
 | `fdpm profile register`          | (CLI-only; equivalent to plugin `activate()`)  |
-| `fdpm project create`            | `POST /projects`                               |
-| `fdpm project list`              | `GET /projects`                                |
-| `fdpm project get <id>`          | `GET /projects/{id}`                           |
-| `fdpm project delete <id>`       | `DELETE /projects/{id}`                        |
-| `fdpm project split <id>`        | `POST /projects/{id}:split`                    |
-| `fdpm project clone <id>`        | `POST /projects/{id}:clone`                    |
-| `fdpm project rebuild-from-log`  | `POST /projects/{id}:rebuild-from-log`         |
-| `fdpm primitive {list,get,create,replace,patch,delete,field-patch}` | `/projects/{id}/primitives/...` |
-| `fdpm relation {list,get,create,replace,patch,delete,field-patch}`  | `/projects/{id}/relations/...`  |
-| `fdpm structure reorder`         | `POST /projects/{id}/structure:reorder`        |
-| `fdpm structure reparent`        | `POST /projects/{id}/structure:reparent`       |
-| `fdpm edit <project>`            | `POST /projects/{id}/edits`                    |
-| `fdpm template {list,create,apply}` | `/projects/{id}/templates`                  |
-| `fdpm test-suite {list,create,run}` | `/projects/{id}/test-suites`                |
+| `fdpm workbook create`            | `POST /workbooks`                               |
+| `fdpm workbook list`              | `GET /workbooks`                                |
+| `fdpm workbook get <id>`          | `GET /workbooks/{id}`                           |
+| `fdpm workbook delete <id>`       | `DELETE /workbooks/{id}`                        |
+| `fdpm workbook split <id>`        | `POST /workbooks/{id}:split`                    |
+| `fdpm workbook clone <id>`        | `POST /workbooks/{id}:clone`                    |
+| `fdpm workbook rebuild-from-log`  | `POST /workbooks/{id}:rebuild-from-log`         |
+| `fdpm primitive {list,get,create,replace,patch,delete,field-patch}` | `/workbooks/{id}/primitives/...` |
+| `fdpm relation {list,get,create,replace,patch,delete,field-patch}`  | `/workbooks/{id}/relations/...`  |
+| `fdpm structure reorder`         | `POST /workbooks/{id}/structure:reorder`        |
+| `fdpm structure reparent`        | `POST /workbooks/{id}/structure:reparent`       |
+| `fdpm edit <workbook>`            | `POST /workbooks/{id}/edits`                    |
+| `fdpm template {list,create,apply}` | `/workbooks/{id}/templates`                  |
+| `fdpm test-suite {list,create,run}` | `/workbooks/{id}/test-suites`                |
 | `fdpm transfer {export,import}`  | `/transfer/...`                                |
-| `fdpm log show`                  | `GET /projects/{id}/log`                       |
-| `fdpm log at <id> <revision>`    | `GET /projects/{id}/at?revision=N`             |
-| `fdpm log undo <id>`             | `POST /projects/{id}:undo`                     |
-| `fdpm log audit <id>`            | `GET /projects/{id}/log` projected as AuditRecord |
+| `fdpm log show`                  | `GET /workbooks/{id}/log`                       |
+| `fdpm log at <id> <revision>`    | `GET /workbooks/{id}/at?revision=N`             |
+| `fdpm log undo <id>`             | `POST /workbooks/{id}:undo`                     |
+| `fdpm log audit <id>`            | `GET /workbooks/{id}/log` projected as AuditRecord |
 | `fdpm health liveness`           | `GET /healthz`                                 |
 | `fdpm health readiness`          | `GET /readyz`                                  |
 | `fdpm version`                   | `GET /version`                                 |
@@ -370,7 +370,7 @@ fdpm log audit demo         # AuditRecord projection (§13.3)
 | `fdpm plugin disable <id>`       | `POST /plugins/{id}:disable`                   |
 | `fdpm plugin reload <id>`        | `POST /plugins/{id}:reload`                    |
 | `fdpm plugin quarantine-clear`   | `POST /plugins/{id}:quarantine-clear`          |
-| `fdpm render <project> <target>` | invokes the matching `cap:renderer`; output gated by §6.5 |
+| `fdpm render <workbook> <target>` | invokes the matching `cap:renderer`; output gated by §6.5 |
 | `fdpm workspace init`            | SPEC-WORKSPACE §16.1 (mint workspace.json + register)        |
 | `fdpm workspace list`            | SPEC-WORKSPACE §12 (registry catalog)                        |
 | `fdpm workspace info [lookup]`   | SPEC-WORKSPACE §11 (workspace.json identity)                 |
@@ -391,8 +391,8 @@ Server-side plugin runtime under `fdpm-cli/src/plugin/`. Capabilities supported:
 | `cap:validator`          | Custom validator function for a primitive type. Runs in §7.1 step 6 with exception barrier. |
 | `cap:renderer`           | Server-side renderer; gated by `render:server`.|
 | `cap:transformer`        | Primitive→primitive transform; emits Core operation list. |
-| `cap:importer`           | `ProjectTransfer` ingest; gated by `import:project`. |
-| `cap:exporter`           | `ProjectTransfer` egress; gated by `export:project`. |
+| `cap:importer`           | `ProjectTransfer` ingest; gated by `import:workbook`. |
+| `cap:exporter`           | `ProjectTransfer` egress; gated by `export:workbook`. |
 | `cap:lifecycle-hook`     | One callback per `on-install`/`on-enable`/`on-disable`/`on-uninstall` event. |
 
 Out of scope by design (not a CLI concern): `cap:route` (no HTTP server),
@@ -409,13 +409,13 @@ which propagates out of `activate()` and quarantines the offending
 plugin. The first plugin stays `active`. Reaching that quarantine path
 without breaking the host is covered in `tests/plugin-runtime.test.ts`.
 
-**Importer dispatch** (`cap:importer`, gated by `import:project`):
+**Importer dispatch** (`cap:importer`, gated by `import:workbook`):
 operators run a registered importer via:
 
 ```bash
 fdpm transfer import-as <format> -f raw.json \
-  --project-id <id> --project-name "<name>" \
-  [--project-description <text>] \
+  --workbook-id <id> --workbook-name "<name>" \
+  [--workbook-description <text>] \
   [--extra-profile-id <id>] \
   [--extra key=value ...]
 ```
@@ -434,7 +434,7 @@ time rather than silently accepted.
 **Renderer dispatch** (`cap:renderer`, gated by `render:server`):
 
 ```bash
-fdpm render <project> <target> \
+fdpm render <workbook> <target> \
   [--renderer-id <id>] \   # disambiguate when multiple renderers match the target
   [-o <path>]              # write bytes to file (required for binary targets)
 ```
@@ -529,7 +529,7 @@ SPEC-CORE op-log entries.
   `extends` both `profile:spec-authoring:0.1` and
   `profile:dnis:0.1`. Build scripts opting into DNIS-backed sections
   target this profile_id; existing `profile:spec-authoring:0.1`
-  projects are unaffected.
+  workbooks are unaffected.
 - `src/core/dnis/` — the SPEC-DNIS surface:
   - `store.ts` — `InMemoryDnisStore`, the planning/cache layer.
   - `adapter.ts` — `DnisHostAdapter`, the §5.6.6 reference fixture.
@@ -547,12 +547,12 @@ SPEC-CORE op-log entries.
 **Section-tree integration (SPEC-SECTIONS-TREE v0.2):**
 
 The `spec:SpecMarkdownRenderer` gains a DNIS-backed section path:
-when a project contains a `dnis:Document` and one or more active
+when a workbook contains a `dnis:Document` and one or more active
 `dnis:Node` primitives of `kind: "section"`, the renderer DFS-walks
 the dnis:Node graph (parent_node_id, sorted by SPEC-DNIS Position)
 and derives §N.M.K headings from the path. The legacy
 `spec:Section` / `spec:HasSection` path stays available verbatim
-for unmigrated projects; mixed-mode projects emit a
+for unmigrated workbooks; mixed-mode workbooks emit a
 `spec:render:mixed-mode-sections` warning and the DNIS path wins.
 
 A dnis:Node section's `content` JSON supports four optional fields
@@ -641,7 +641,7 @@ the Python source's declarations faithfully:
   CLI native regex patterns from Python template patterns
   (`"section:{number}"`). The validation pipeline normalises template
   patterns into regex at evaluation time.
-- `IDFormatRule.uniqueness` widened to `"global" | "project" |
+- `IDFormatRule.uniqueness` widened to `"global" | "workbook" |
   "per_scope" | "per_parent"`.
 - `CategoryDef`/`ScopeDef`/`ValidationRuleDef`/`RendererBinding`:
   Python aliases (`name` for `label`, `applies_to` for `targets`,
@@ -712,7 +712,7 @@ FDPM_DATA_DIR=/tmp/fdpm-adrs npx tsx fdpm-cli/scripts/build-adrs.ts
 
 Per §6.4: the operation log shape is SPEC-locked; on-disk persistence
 is deferred to a future `SPEC-CORE-PERSISTENCE`. The CLI ships a
-straightforward JSONL writer (one file per project) so a CLI is useful
+straightforward JSONL writer (one file per workbook) so a CLI is useful
 between invocations. The shape on disk is exactly the locked
 `Operation` shape, so a future bytes-on-disk SPEC supersedes this file
 without changing semantics.
@@ -723,7 +723,7 @@ $FDPM_DATA_DIR/                     (default: ~/.fdpm-cli)
 ├── manifest.json
 ├── profiles/
 │   └── test_demo.json              (registered DomainProfiles)
-└── projects/<project_id>/log.jsonl (one Operation per line)
+└── workbooks/<workbook_id>/log.jsonl (one Operation per line)
 ```
 
 `--no-persist` runs in-memory only; `--data-dir <path>` overrides.
@@ -895,14 +895,14 @@ Everything listed in SPEC §20 (Out of Scope) plus:
   imported v0.4 roadmap data (the v3.2 schema completion locks in the
   `fs:Phase.reads` / `fs:Phase.writes` shape that supports it), but no
   CLI command performs the analysis yet. The natural next step is a
-  `fdpm analyse parallelism <project>` subcommand that walks the
+  `fdpm analyse parallelism <workbook>` subcommand that walks the
   per-phase reads/writes and reports the Bernstein-safe set + the
   longest serial RAW chain.
 
 ## Limitations and honest gaps
 
 - **§5.4.1 split atomicity**: rollback on per-target failure issues
-  forward `project.delete` ops rather than rewinding the log
+  forward `workbook.delete` ops rather than rewinding the log
   (consistent with §5.5.7's "no history rewriting"). The projection
   ends up correct; the audit trail records the failed split as
   attempted-then-undone. This is the conservative reading of the
@@ -931,7 +931,7 @@ Everything listed in SPEC §20 (Out of Scope) plus:
 
 ## License
 
-Same as the parent project (see [../LICENSE](../LICENSE) if present).
+Same as the parent workbook (see [../LICENSE](../LICENSE) if present).
 
 ## See also
 
@@ -943,5 +943,5 @@ Same as the parent project (see [../LICENSE](../LICENSE) if present).
 - [docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) — companion SPEC; server-side capabilities implemented (see "Plugin runtime" above).
 - [docs/adrs/decisions.md](docs/adrs/decisions.md) — architectural decision records, generated from `sw:Decision` primitives by [fdpm-cli/scripts/build-adrs.ts](fdpm-cli/scripts/build-adrs.ts).
 - [fdpm-cli/references/python-sources/formal_specification.py](fdpm-cli/references/python-sources/formal_specification.py) — the Python source the formal_specification plugin ports.
-- [CLAUDE.md](CLAUDE.md) — project-level engineering rules.
+- [CLAUDE.md](CLAUDE.md) — workbook-level engineering rules.
 - [PURPOSE.md](PURPOSE.md) — repository purpose and non-goals.

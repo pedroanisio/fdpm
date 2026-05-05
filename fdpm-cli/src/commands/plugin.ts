@@ -181,8 +181,8 @@ export const commandMetadata: CommandMetadataMap = {
   "plugin enable":            PLUGIN_GLOBAL_WRITE,
   "plugin disable":           PLUGIN_GLOBAL_WRITE,
   // `plugin reload` re-runs discovery and activation; profile/type
-  // registries change which can affect every project's renderers and
-  // validators. Mark as touching every project so the freshness gate
+  // registries change which can affect every workbook's renderers and
+  // validators. Mark as touching every workbook so the freshness gate
   // re-stats them after the reload completes.
   "plugin reload": {
     readOnly: false,

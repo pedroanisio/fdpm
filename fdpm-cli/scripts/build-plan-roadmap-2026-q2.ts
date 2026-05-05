@@ -1,6 +1,6 @@
 /**
  * 2026-Q2 roadmap — eight in-flight phases of FDPM development,
- * built as a planning project so it renders through `plan:RoadmapRenderer`,
+ * built as a planning workbook so it renders through `plan:RoadmapRenderer`,
  * `plan:GanttSvgRenderer`, and `plan:AgentBoardRenderer`.
  *
  * Phase order (per operator selection 2026-05-05):
@@ -10,7 +10,7 @@
  *   4. SECTIONS-TREE v0.2 — codemod ship + deprecation removal
  *   5. spec-authoring + formal-spec DNIS migration of remaining build-spec-*.ts
  *   6. Plugin batch-load improvements / hot-reload semantics
- *   7. Cross-plugin search / project-level search across primitives
+ *   7. Cross-plugin search / workbook-level search across primitives
  *   8. Operator docs cleanup — collapse MANUAL.md / README.md / AGENTS.md
  *
  * Layout:
@@ -105,7 +105,7 @@ const PHASES: PhaseDef[] = [
     id: "wbs:p1-mcp-slice-2",
     name: "phase-1-mcp-slice-2",
     summary:
-      "MCP server slice 2 — resource subscriptions, per-resource size cap, additional resource providers (project transfer, validate report, primitive view).",
+      "MCP server slice 2 — resource subscriptions, per-resource size cap, additional resource providers (workbook transfer, validate report, primitive view).",
     priority: "P0",
   },
   {
@@ -147,7 +147,7 @@ const PHASES: PhaseDef[] = [
     id: "wbs:p7-cross-plugin-search",
     name: "phase-7-cross-plugin-search",
     summary:
-      "Cross-plugin / project-level search — `fdpm primitive search` extended with --across-projects, --type-class (e.g. all `*:Section`), --field-equals filters that span multiple profiles.",
+      "Cross-plugin / workbook-level search — `fdpm primitive search` extended with --across-workbooks, --type-class (e.g. all `*:Section`), --field-equals filters that span multiple profiles.",
     priority: "P2",
   },
   {
@@ -162,7 +162,7 @@ const PHASES: PhaseDef[] = [
 const wbsSpecs: PrimitiveSpec[] = PHASES.map((p) => ({
   id: p.id,
   type: PLAN_WORK_BREAKDOWN,
-  scope: SCOPE_IDS.project,
+  scope: SCOPE_IDS.workbook,
   fields: {
     name: p.name,
     summary: p.summary,
@@ -176,7 +176,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:p1-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p1-mcp-slice-2-ships",
       target_date: "2026-05-30",
@@ -188,7 +188,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:p2-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p2-mcp-tier3-ships",
       target_date: "2026-06-15",
@@ -200,7 +200,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:p3-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p3-repl-v0-2-ships",
       target_date: "2026-06-30",
@@ -212,7 +212,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:p4-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p4-sections-tree-v0-2-ships",
       target_date: "2026-07-15",
@@ -224,7 +224,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:p5-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p5-dnis-migration-ships",
       target_date: "2026-07-31",
@@ -236,7 +236,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:p6-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p6-plugin-lifecycle-ships",
       target_date: "2026-08-15",
@@ -248,19 +248,19 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:p7-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p7-cross-plugin-search-ships",
       target_date: "2026-08-25",
       summary:
-        "Cross-plugin search lands. Operators can grep across all project primitives without writing a script.",
+        "Cross-plugin search lands. Operators can grep across all workbook primitives without writing a script.",
       status: "Upcoming",
     },
   },
   {
     id: "milestone:p8-ships",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "p8-docs-cleanup-ships",
       target_date: "2026-08-31",
@@ -277,7 +277,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p1-subs-and-sizecap",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-P1: resources/subscribe + notifications/resources/updated work end-to-end against a watcher polling host.statProjectLog; FDPM_MCP_MAX_RESOURCE_BYTES rejects oversized renders with a structured envelope; transfer + validate + primitive resource providers all return content via resources/read.",
@@ -293,7 +293,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p2-tier3-hardened",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-P2: every Tier-3 destructive tool accepts --dry-run, requires an idempotency key on first call, writes a pre-execution audit entry, and refuses on a sub-second-old re-issue without the same key. Coverage gate: 100% of Tier-3 tools.",
@@ -309,7 +309,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p3-repl-streaming",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-P3: a render of >1 MB streams partial chunks to stdout in JSON-mode (each chunk a JSON envelope with sequence + final flag); multi-line input via trailing backslash works at the prompt; tab completion suggests primitive ids when the cursor is after `--id`.",
@@ -325,7 +325,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p4-sections-tree-stable",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-P4: SPEC-SECTIONS-TREE status flipped to Stable; every build-spec-*.ts is migrated and renders byte-equal pre/post; spec:Section.number removed from the active schema (or hard-deprecated with an error finding).",
@@ -341,7 +341,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p5-dnis-everywhere",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-P5: zero remaining build-spec-*.ts hand-authors `number` strings on spec:Section; renderSectionsLegacy in spec_md.ts is removable (the dnis:Node path is the only path used in production).",
@@ -357,7 +357,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p6-plugin-lifecycle-safe",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-P6: :reload plugins survives a single plugin failing activate() (the others stay loaded); incremental discovery skips unchanged plugin dirs (verified via stat-mtime cache); SPEC-PLUGIN-LIFECYCLE documents the activation order.",
@@ -373,10 +373,10 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p7-search-cross-plugin",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
-        "AC-P7: `fdpm primitive search --across-projects` returns matches from every loaded project; `--type-class '*:Section'` matches across spec/fs/sw section primitives; field-equals filters work without a custom script.",
+        "AC-P7: `fdpm primitive search --across-workbooks` returns matches from every loaded workbook; `--type-class '*:Section'` matches across spec/fs/sw section primitives; field-equals filters work without a custom script.",
       expression:
         'graph.exists("task:p7-host-impl") && graph.exists("task:p7-cli-flags")',
       status: "open",
@@ -389,7 +389,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:p8-docs-single-source",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-P8: the env-contract test passes without manual edits to MANUAL.md and README.md after adding a new env var (i.e. the docs are generated from src/core/config/env.ts, or the duplication is eliminated by a content-include mechanism).",
@@ -471,7 +471,7 @@ const tasks: TaskDef[] = [
     id: "task:p1-providers",
     name: "p1-additional-providers",
     summary:
-      "Add three more resource providers: (a) project transfer at fdpm://project/{id}/transfer, (b) validate report at fdpm://project/{id}/validate, (c) primitive view at fdpm://project/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.",
+      "Add three more resource providers: (a) workbook transfer at fdpm://workbook/{id}/transfer, (b) validate report at fdpm://workbook/{id}/validate, (c) primitive view at fdpm://workbook/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 60,
@@ -485,7 +485,7 @@ const tasks: TaskDef[] = [
     id: "task:p1-tests",
     name: "p1-tests",
     summary:
-      "End-to-end JSON-RPC smoke against fdpm-mcp via stdio: subscribe, modify project log, observe notification; oversized render → quota envelope; each new provider returns content.",
+      "End-to-end JSON-RPC smoke against fdpm-mcp via stdio: subscribe, modify workbook log, observe notification; oversized render → quota envelope; each new provider returns content.",
     kind: "Test",
     executor: "Either",
     ai_minutes: 60,
@@ -529,7 +529,7 @@ const tasks: TaskDef[] = [
     id: "task:p2-audit-gates",
     name: "p2-audit-pre-execution",
     summary:
-      "Write the McpAuditLog entry BEFORE invoking host.delete* (today it's after) — on crash the audit shows intent; on success it's amended with outcome=ok. Add a debounce gate: refuse re-issue if the prior same-project audit entry is <100ms old.",
+      "Write the McpAuditLog entry BEFORE invoking host.delete* (today it's after) — on crash the audit shows intent; on success it's amended with outcome=ok. Add a debounce gate: refuse re-issue if the prior same-workbook audit entry is <100ms old.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
@@ -645,7 +645,7 @@ const tasks: TaskDef[] = [
     id: "task:p4-deprecation-removal",
     name: "p4-deprecation-removal",
     summary:
-      "Remove the spec:Section.number field from the active schema OR escalate the deprecation to an error finding (decide based on whether any external project still uses it). Update SPEC-SECTIONS-TREE §11 / §15.",
+      "Remove the spec:Section.number field from the active schema OR escalate the deprecation to an error finding (decide based on whether any external workbook still uses it). Update SPEC-SECTIONS-TREE §11 / §15.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 30,
@@ -763,7 +763,7 @@ const tasks: TaskDef[] = [
     id: "task:p7-host-impl",
     name: "p7-host-search-across",
     summary:
-      "Add Host.searchPrimitivesAcross(filters) that walks every loaded project and returns a flat array of (project_id, primitive). Reuses the per-project searchPrimitives implementation; coalesces results by id when --dedupe is passed.",
+      "Add Host.searchPrimitivesAcross(filters) that walks every loaded workbook and returns a flat array of (workbook_id, primitive). Reuses the per-workbook searchPrimitives implementation; coalesces results by id when --dedupe is passed.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 60,
@@ -777,7 +777,7 @@ const tasks: TaskDef[] = [
     id: "task:p7-cli-flags",
     name: "p7-cli-cross-search-flags",
     summary:
-      "Extend `fdpm primitive search` with --across-projects, --type-class GLOB (e.g. `*:Section` matches spec:Section, fs:Section, sw:Section), --field-equals key=value (multiple). Output groups results by project_id in human mode, flat array in JSON mode.",
+      "Extend `fdpm primitive search` with --across-workbooks, --type-class GLOB (e.g. `*:Section` matches spec:Section, fs:Section, sw:Section), --field-equals key=value (multiple). Output groups results by workbook_id in human mode, flat array in JSON mode.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
@@ -791,7 +791,7 @@ const tasks: TaskDef[] = [
     id: "task:p7-tests",
     name: "p7-tests",
     summary:
-      "Tests against a multi-project fixture (3 projects, 2 profiles, ~20 primitives total). Cover: --across-projects returns all matches, --type-class glob matches across profiles, --field-equals composes with the others.",
+      "Tests against a multi-workbook fixture (3 workbooks, 2 profiles, ~20 primitives total). Cover: --across-workbooks returns all matches, --type-class glob matches across profiles, --field-equals composes with the others.",
     kind: "Test",
     executor: "Either",
     ai_minutes: 45,
@@ -850,7 +850,7 @@ const tasks: TaskDef[] = [
 const taskSpecs: PrimitiveSpec[] = tasks.map((t) => ({
   id: t.id,
   type: PLAN_TASK,
-  scope: SCOPE_IDS.project,
+  scope: SCOPE_IDS.workbook,
   fields: {
     name: t.name,
     summary: t.summary,
@@ -872,7 +872,7 @@ const blockerSpecs: PrimitiveSpec[] = [
   {
     id: "blocker:resource-size-cap-design",
     type: PLAN_BLOCKER,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       description:
         "FDPM_MCP_MAX_RESOURCE_BYTES default needs operator agreement: 1 MiB is friendly to LLM context budgets but rejects most real PDF outputs. Options: (a) 1 MiB hard cap with --enable-large-resources opt-in; (b) different caps per content_type (text=1MB, binary=10MB); (c) no cap, document the risk. Decision blocks p1-sizecap.",
@@ -883,7 +883,7 @@ const blockerSpecs: PrimitiveSpec[] = [
   {
     id: "blocker:codemod-byte-equal-strategy",
     type: PLAN_BLOCKER,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       description:
         "p4-codemod-write's byte-equal gate may legitimately fail for SPECs where the legacy compareSectionNumbers ordering differs subtly from DFS-of-(parent_node_id, position). Need to decide: (a) hand-fix divergent SPECs and document the fix, (b) accept a short list of intentionally-divergent SPECs with explanation, (c) discover none diverge in practice. Resolution requires running the codemod against the corpus first.",
@@ -1017,7 +1017,7 @@ async function main(): Promise<void> {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

@@ -53,7 +53,7 @@ const documentSpec: PrimitiveSpec = {
   fields: {
     title: "SPEC — Render-Time DSL for FDPM Document Templates v0.1",
     subtitle:
-      "A small, sandboxed expression language evaluated at render time. Variables, project-graph queries, and conditional sections — no Turing-complete escape hatches.",
+      "A small, sandboxed expression language evaluated at render time. Variables, workbook-graph queries, and conditional sections — no Turing-complete escape hatches.",
     spec_id: "spec:fdpm:render-dsl:0.1",
     version: "0.1.6",
     status: "Proposal",
@@ -114,7 +114,7 @@ const terms: Array<[string, string, string?]> = [
   ],
   [
     "Variable expression",
-    "A placeholder that resolves to a scalar value, e.g., `${doc.title}` or `${project.fingerprint}`. The path before the first `.` MUST name a Tier-A binding (per SPEC-EXPRESSION-RUNTIME §M7) or a Tier-B binding the plugin has opted into.",
+    "A placeholder that resolves to a scalar value, e.g., `${doc.title}` or `${workbook.fingerprint}`. The path before the first `.` MUST name a Tier-A binding (per SPEC-EXPRESSION-RUNTIME §M7) or a Tier-B binding the plugin has opted into.",
   ],
   [
     "Conditional block",
@@ -170,7 +170,7 @@ const stakeholders = [
     id: "spec:stk:operator",
     role: "Operator",
     primary_concern:
-      "Determinism: same project state + same template ⇒ byte-identical output. Required for the GENERATED-DOCUMENT banner's claims to hold.",
+      "Determinism: same workbook state + same template ⇒ byte-identical output. Required for the GENERATED-DOCUMENT banner's claims to hold.",
     category: "human",
   },
 ];
@@ -187,7 +187,7 @@ const qas = [
     id: "spec:qa:determinism",
     attribute: "Determinism",
     pressure:
-      "Two renders of the same project state MUST produce byte-identical output. Any non-determinism (system clock, env var drift, map iteration order) is a contract violation.",
+      "Two renders of the same workbook state MUST produce byte-identical output. Any non-determinism (system clock, env var drift, map iteration order) is a contract violation.",
     priority: "primary",
   },
   {
@@ -493,9 +493,9 @@ const adr: PrimitiveSpec = {
     status: "proposed",
     date: "2026-05-04",
     context:
-      "Two recent observations push toward formalising a render-time DSL. (1) The GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings that contain literal project ids — the natural form is `${doc.spec_id}` (a Tier-A binding). (2) The renderer in fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts has ~20 small TS helpers (renderADRs, renderRevisions, renderRisks, renderReferences, ...) each doing the same shape: filter primitives by type_id, sort by some field, project specific columns. That shape is exactly what a CEL list comprehension expresses. CLAUDE.md's PALS-LAW posture also penalises silently-empty output — the right time to formalise the evaluator's behaviour on undefined names is now, before authors come to depend on the silent-coerce behaviour. SPEC-EXPRESSION-RUNTIME defines the evaluator contract this SPEC consumes; type mapping (M1), error model (M2), activation tiers (M7), and helper-set versioning (M14) are inherited verbatim.",
+      "Two recent observations push toward formalising a render-time DSL. (1) The GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings that contain literal workbook ids — the natural form is `${doc.spec_id}` (a Tier-A binding). (2) The renderer in fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts has ~20 small TS helpers (renderADRs, renderRevisions, renderRisks, renderReferences, ...) each doing the same shape: filter primitives by type_id, sort by some field, workbook specific columns. That shape is exactly what a CEL list comprehension expresses. CLAUDE.md's PALS-LAW posture also penalises silently-empty output — the right time to formalise the evaluator's behaviour on undefined names is now, before authors come to depend on the silent-coerce behaviour. SPEC-EXPRESSION-RUNTIME defines the evaluator contract this SPEC consumes; type mapping (M1), error model (M2), activation tiers (M7), and helper-set versioning (M14) are inherited verbatim.",
     decision:
-      "Adopt a CEL-only render-time DSL. The render-DSL adds NOTHING to CEL beyond a thin placeholder envelope (`${...}`) and three directive keywords (`if:`, `endif`, `include:`). Iteration over the project graph uses CEL list comprehensions (`project.primitives.filter(p, p.type_id == \"spec:ADR\")`). The activation surface — `{ doc, project, env, host, fn }` — is defined by SPEC-EXPRESSION-RUNTIME §M7; adding a binding is a SPEC amendment there. The closed helper inventory (§6.4) is the SPEC-EXPRESSION-RUNTIME standard set; this SPEC names the subset rendering uses but defines no new helpers.",
+      "Adopt a CEL-only render-time DSL. The render-DSL adds NOTHING to CEL beyond a thin placeholder envelope (`${...}`) and three directive keywords (`if:`, `endif`, `include:`). Iteration over the workbook graph uses CEL list comprehensions (`workbook.primitives.filter(p, p.type_id == \"spec:ADR\")`). The activation surface — `{ doc, workbook, env, host, fn }` — is defined by SPEC-EXPRESSION-RUNTIME §M7; adding a binding is a SPEC amendment there. The closed helper inventory (§6.4) is the SPEC-EXPRESSION-RUNTIME standard set; this SPEC names the subset rendering uses but defines no new helpers.",
     consequences: [
       { polarity: "positive", text: "One evaluator across validate-time and render-time." },
       { polarity: "positive", text: "Renderer authors can ship a template (data) instead of a TS module." },
@@ -509,12 +509,12 @@ const adr: PrimitiveSpec = {
       "CI: every shipped renderer is parsed against the §6.5 grammar; parse failures block the build.",
       "CI: a fuzz harness supplies 10⁴ adversarial templates to the evaluator and asserts no host crash, no I/O, and no helper outside §6.4 is invoked.",
       "Test: a typo'd variable name produces a `render-error` finding with file, line, column, and expression text — never an empty string.",
-      "Test: re-rendering the same project twice produces byte-identical output.",
+      "Test: re-rendering the same workbook twice produces byte-identical output.",
     ],
     revisit_signals: [
       "If the §6.4 helper set grows past ~25 entries via amendments, reconsider whether a richer language is justified.",
       "If render-time CPU on representative SPECs exceeds 200 ms p50, reconsider per-render compilation strategy (likely cache compiled programs by template-id).",
-      "If a use case demands cross-project queries, revisit the activation surface (today `project` is single-bound).",
+      "If a use case demands cross-workbook queries, revisit the activation surface (today `workbook` is single-bound).",
     ],
   },
 };
@@ -578,8 +578,8 @@ const scenarios: PrimitiveSpec[] = [
     type: "spec:QAScenario",
     fields: {
       title: "Determinism — twice-rendered SPEC is byte-identical",
-      source: "CI on a representative fixture (the SPEC-CEL-VALIDATOR project).",
-      stimulus: "Render the project twice from a fresh data dir and `diff -q` the outputs.",
+      source: "CI on a representative fixture (the SPEC-CEL-VALIDATOR workbook).",
+      stimulus: "Render the workbook twice from a fresh data dir and `diff -q` the outputs.",
       environment: "CI; warm Host; fixed FDPM_DATA_DIR seed.",
       artifact: "ValidationPipeline + render-time DSL evaluator + spec:SpecMarkdownRenderer.",
       response: "diff exits 0. No clock-, env-, or hash-dependent drift.",
@@ -593,7 +593,7 @@ const scenarios: PrimitiveSpec[] = [
       title: "Debuggability — typo'd variable produces a located error",
       source: "Renderer author writing a template.",
       stimulus: "A template references `${doc.titel}` (typo) instead of `${doc.title}`.",
-      environment: "Local CLI; `fdpm render <project> text/markdown`.",
+      environment: "Local CLI; `fdpm render <workbook> text/markdown`.",
       artifact: "DSL evaluator's name-resolution path.",
       response:
         "Render emits an inline marker at the placeholder site and records a `RenderFinding` carrying template-id, line, column, and expression text. With default CLI policy bytes are still emitted; `--strict` fails the command while preserving the bytes.",
@@ -687,7 +687,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Queries are read-only",
       statement:
-        "Render-time CEL list-comprehension expressions and helper calls MUST never produce side effects. Iteration over `project.primitives` / `project.relations` is read-only; the DSL MUST NOT introduce mutation forms.",
+        "Render-time CEL list-comprehension expressions and helper calls MUST never produce side effects. Iteration over `workbook.primitives` / `workbook.relations` is read-only; the DSL MUST NOT introduce mutation forms.",
       strength: "MUST",
       verifiability: "test",
       verifier_ref: "fdpm-cli/tests/render.test.ts",
@@ -711,7 +711,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Determinism across runs",
       statement:
-        "Given identical project state and identical template, two render invocations MUST produce byte-identical output. Implementations MUST NOT depend on Map iteration order for output assembly.",
+        "Given identical workbook state and identical template, two render invocations MUST produce byte-identical output. Implementations MUST NOT depend on Map iteration order for output assembly.",
       strength: "MUST",
       verifiability: "test",
       verifier_ref: "fdpm-cli/tests/render-dsl-determinism.test.ts",
@@ -800,7 +800,7 @@ const conformance: PrimitiveSpec[] = [
     fields: {
       ordinal: 2,
       name: "Bounded iteration cap fires on adversarial input",
-      procedure: "Render a template whose CEL expression would enumerate more than the configured bound from `project.primitives` on a 200 000-primitive project.",
+      procedure: "Render a template whose CEL expression would enumerate more than the configured bound from `workbook.primitives` on a 200 000-primitive workbook.",
       expected: "render-error: iteration bound exceeded, with the rendered bytes carrying inline markers under default CLI policy.",
     },
   },
@@ -810,7 +810,7 @@ const conformance: PrimitiveSpec[] = [
     fields: {
       ordinal: 3,
       name: "Two renders are byte-identical",
-      procedure: "Render the SPEC-CEL-VALIDATOR project twice from independent fresh data dirs; diff -q.",
+      procedure: "Render the SPEC-CEL-VALIDATOR workbook twice from independent fresh data dirs; diff -q.",
       expected: "diff exits 0.",
     },
   },
@@ -969,7 +969,7 @@ const risks: PrimitiveSpec[] = [
     fields: {
       label: "Per-render parse cost",
       description:
-        "Parsing each template per render dominates p50 latency on small projects.",
+        "Parsing each template per render dominates p50 latency on small workbooks.",
       likelihood: "medium",
       impact: "medium",
     },
@@ -1105,17 +1105,17 @@ const futureWork: PrimitiveSpec[] = [
     fields: {
       label: "Per-section schema scoping in the renderer",
       description:
-        "Today `kind: \"schema\"` emits every spec:SchemaDefinition in the project. Once two SPECs need separate schemas in distinct sections (this SPEC's grammar vs. helpers), add a `target_id` (or relation-based) scoping mechanism so each section selects its own schema.",
+        "Today `kind: \"schema\"` emits every spec:SchemaDefinition in the workbook. Once two SPECs need separate schemas in distinct sections (this SPEC's grammar vs. helpers), add a `target_id` (or relation-based) scoping mechanism so each section selects its own schema.",
       target_version: "spec_authoring 0.2",
     },
   },
   {
-    id: "spec:fw:cross-project",
+    id: "spec:fw:cross-workbook",
     type: "spec:FutureWork",
     fields: {
-      label: "Cross-project queries",
+      label: "Cross-workbook queries",
       description:
-        "Today `project` is single-bound. A future cross-project CEL activation surface could let one document reference another project's state for portfolio-level rollups, but v0.1 intentionally stays single-project.",
+        "Today `workbook` is single-bound. A future cross-workbook CEL activation surface could let one document reference another workbook's state for portfolio-level rollups, but v0.1 intentionally stays single-workbook.",
       target_version: "0.3",
     },
   },
@@ -1172,7 +1172,7 @@ const references: PrimitiveSpec[] = [
     type: "spec:Reference",
     fields: {
       kind: "repo_file",
-      citation: "FDPM project guidelines (PALS-LAW, formalization-means-research, no-deferrals).",
+      citation: "FDPM workbook guidelines (PALS-LAW, formalization-means-research, no-deferrals).",
       locator: "CLAUDE.md",
       verification: "self_evident",
     },
@@ -1201,7 +1201,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Source-of-truth cleanup: remove stale SQL query surface and repoint architecture references to core/expr.",
       notes:
-        "No intended surface expansion. This patch removes contradictions and stale path references in the generator itself:\n\n1. SQL-shaped `${query: SELECT …}` examples, requirements, conformance text, and migration steps are removed. The source now consistently describes a CEL-only render-time DSL with iteration expressed as list comprehensions over `project.primitives` / `project.relations`.\n\n2. ADR consequences no longer claim renderer helpers collapse into `${query: ...}` forms; they now describe CEL expressions plus the closed `fn.*` helper set.\n\n3. The helper-count claim now derives from the shared inventory (`STANDARD_HELPER_COUNT`) instead of hard-coding an obsolete value.\n\n4. Implementation references and migration steps now point at the host-owned runtime in `fdpm-cli/src/core/expr/` and render-time glue that consumes it, instead of the old `fdpm-cli/src/core/render/dsl/` / `fdpm-cli/src/core/validation/cel/` paths.\n\n5. The row-template and cross-project future-work notes no longer reintroduce the removed SQL surface.",
+        "No intended surface expansion. This patch removes contradictions and stale path references in the generator itself:\n\n1. SQL-shaped `${query: SELECT …}` examples, requirements, conformance text, and migration steps are removed. The source now consistently describes a CEL-only render-time DSL with iteration expressed as list comprehensions over `workbook.primitives` / `workbook.relations`.\n\n2. ADR consequences no longer claim renderer helpers collapse into `${query: ...}` forms; they now describe CEL expressions plus the closed `fn.*` helper set.\n\n3. The helper-count claim now derives from the shared inventory (`STANDARD_HELPER_COUNT`) instead of hard-coding an obsolete value.\n\n4. Implementation references and migration steps now point at the host-owned runtime in `fdpm-cli/src/core/expr/` and render-time glue that consumes it, instead of the old `fdpm-cli/src/core/render/dsl/` / `fdpm-cli/src/core/validation/cel/` paths.\n\n5. The row-template and cross-workbook future-work notes no longer reintroduce the removed SQL surface.",
       affected_sections: ["§15", "§17", "§18", "§19", "Future Work", "Migration"],
       kind: "patch",
     },
@@ -1253,7 +1253,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Pass-2: corrected sortBy as 3-arg macro; aligned helper inventory with SPEC-EXPRESSION-RUNTIME §M14.",
       notes:
-        "No surface-form changes (still CEL-only, four placeholder forms). Three corrections:\n\n1. `fn.sortBy` shown with the wrong 2-arg signature in the iteration capability description and §6.4 inventory. Fixed: it is a 3-arg MACRO `fn.sortBy(list, var, key)` mirroring CEL's `list.filter(p, expr)` / `list.map(p, expr)` form. The previous example `${project.primitives.filter(...).sortBy(p, p.id)}` was invalid CEL — CEL has no `.sortBy` method; sort lives in the host helper set.\n2. The `dsl:helper` capability description omitted `fn.replace` and used a `fn.date(iso, fmt)` formulation instead of the namespaced `fn.date.short` / `fn.date.long` / `fn.date.iso`. Fixed to enumerate the standard set verbatim from SPEC-EXPRESSION-RUNTIME §M14.\n3. Iteration definition in §3 Definitions updated to use the corrected sortBy form.\n\nNo Open Questions resolved or added.",
+        "No surface-form changes (still CEL-only, four placeholder forms). Three corrections:\n\n1. `fn.sortBy` shown with the wrong 2-arg signature in the iteration capability description and §6.4 inventory. Fixed: it is a 3-arg MACRO `fn.sortBy(list, var, key)` mirroring CEL's `list.filter(p, expr)` / `list.map(p, expr)` form. The previous example `${workbook.primitives.filter(...).sortBy(p, p.id)}` was invalid CEL — CEL has no `.sortBy` method; sort lives in the host helper set.\n2. The `dsl:helper` capability description omitted `fn.replace` and used a `fn.date(iso, fmt)` formulation instead of the namespaced `fn.date.short` / `fn.date.long` / `fn.date.iso`. Fixed to enumerate the standard set verbatim from SPEC-EXPRESSION-RUNTIME §M14.\n3. Iteration definition in §3 Definitions updated to use the corrected sortBy form.\n\nNo Open Questions resolved or added.",
       affected_sections: ["§3", "§6", "§6.4"],
       kind: "patch",
     },
@@ -1266,7 +1266,7 @@ const revisions: PrimitiveSpec[] = [
       date: "2026-05-04",
       title: "Initial draft.",
       notes:
-        "Initial draft authored via the fdpm.spec-authoring plugin. Couples to SPEC-CEL-VALIDATOR by design (Principle 1). Surface is intentionally small — variables, CEL list comprehensions, conditional blocks, helper functions, template includes — with explicit Future Work for `${else}`, row templates, and cross-project queries.",
+        "Initial draft authored via the fdpm.spec-authoring plugin. Couples to SPEC-CEL-VALIDATOR by design (Principle 1). Surface is intentionally small — variables, CEL list comprehensions, conditional blocks, helper functions, template includes — with explicit Future Work for `${else}`, row templates, and cross-workbook queries.",
       affected_sections: ["all"],
       kind: "minor",
     },
@@ -1288,7 +1288,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "This SPEC defines a small render-time template DSL evaluated by FDPM's `cap:renderer` execution path. The template envelope is the only surface this SPEC introduces; everything inside `${...}` is a CEL expression evaluated by the runtime defined in SPEC-EXPRESSION-RUNTIME. The four surface forms:",
         "",
-        "1. **Variable / scalar expression** — `${doc.title}`, `${project.fingerprint}`, `${env.NOW}`. Any CEL expression that yields a value the renderer can stringify.",
+        "1. **Variable / scalar expression** — `${doc.title}`, `${workbook.fingerprint}`, `${env.NOW}`. Any CEL expression that yields a value the renderer can stringify.",
         "2. **Iteration / projection** — `${project.primitives.filter(p, p.type_id == \"spec:ADR\").map(p, p.fields.title)}`. Plain CEL list comprehensions over the project graph; no SQL-shaped sugar.",
         "3. **Conditional block** — `${if: doc.status == \"Draft\"}…${endif}`. Single-pass; inverse via `${if: !x}`; no `${else}` in v0.1 (see Open Question `spec:q:else-block`). Use CEL ternary `${cond ? a : b}` for inline two-branch.",
         "4. **Template inclusion** — `${include: spec:tpl:adr-only}`. Inline another DomainProfile-declared template by id.",
@@ -1301,12 +1301,12 @@ const sections: PrimitiveSpec[] = [
         "- A SQL-shaped query surface. Earlier drafts proposed `${query: SELECT … FROM …}`; the v0.1 decision drops it (ADR-DSL-001 §Decision). Iteration is plain CEL list comprehension. One engine, one parser, no fork.",
         "- A general-purpose template language. Loops over arbitrary data beyond CEL macros, user-defined functions, recursive macros, and `${else}` are explicitly Future Work.",
         "- A side-effecting `${exec: ...}` form. Renders are pure projections from project state plus the activation; that property is what makes the GENERATED-DOCUMENT banner's claims honest.",
-        "- Cross-project queries (Future Work).",
+        "- Cross-workbook queries (Future Work).",
         "- Authoring tooling (LSP, syntax highlighting). Tooling can be built on the §6.4 grammar later.",
         "",
         "### 1.3 Why now",
         "",
-        "Two observations pushed toward this SPEC. First, the GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings containing literal paths and project ids — the natural form is `${doc.spec_id}`. Second, the renderer in `spec_md.ts` has ~20 small TS helpers (`renderADRs`, `renderRevisions`, `renderRisks`, `renderReferences`, …) each doing the same shape: filter primitives by `type_id`, sort by some field, project specific columns. That shape is exactly what a CEL list comprehension expresses. Formalising this now — before authors come to depend on undocumented silent-coerce behaviour — is the PALS-LAW move.",
+        "Two observations pushed toward this SPEC. First, the GENERATED-DOCUMENT banner introduced in commit a37208f hard-codes `regeneration_command` strings containing literal paths and workbook ids — the natural form is `${doc.spec_id}`. Second, the renderer in `spec_md.ts` has ~20 small TS helpers (`renderADRs`, `renderRevisions`, `renderRisks`, `renderReferences`, …) each doing the same shape: filter primitives by `type_id`, sort by some field, workbook specific columns. That shape is exactly what a CEL list comprehension expresses. Formalising this now — before authors come to depend on undocumented silent-coerce behaviour — is the PALS-LAW move.",
       ].join("\n"),
     },
   },
@@ -1368,7 +1368,7 @@ const sections: PrimitiveSpec[] = [
         "The `fn.*` set is closed. Adding a helper requires a SPEC amendment per Principle 3.",
         "The grammar is the contract. CI parses every shipped renderer's templates against it; parse failures block the build.",
         "",
-        "_Note: the renderer's `kind: \"schema\"` section currently emits **all** spec:SchemaDefinition primitives in the project — see Future Work spec:fw:per-section-schemas. Both schemas below are surfaced under this single section as a workaround._",
+        "_Note: the renderer's `kind: \"schema\"` section currently emits **all** spec:SchemaDefinition primitives in the workbook — see Future Work spec:fw:per-section-schemas. Both schemas below are surfaced under this single section as a workaround._",
       ].join("\n\n"),
     },
   },
@@ -1597,7 +1597,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

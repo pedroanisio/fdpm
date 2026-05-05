@@ -1,5 +1,5 @@
 /**
- * Build a planning project that tracks implementation of the
+ * Build a planning workbook that tracks implementation of the
  * sections-as-tree numbering rollout described by
  * `fdpm-cli/scripts/build-spec-sections-tree.ts` (SPEC-SECTIONS-TREE v0.1).
  *
@@ -89,7 +89,7 @@ const wbsSpecs: PrimitiveSpec[] = [
   {
     id: WBS_ID,
     type: PLAN_WORK_BREAKDOWN,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "sections-tree-rollout",
       summary:
@@ -105,7 +105,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:back-compat-shipped",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "back-compat-shipped",
       target_date: "2026-05-08",
@@ -117,7 +117,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:codemod-shipped",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "codemod-shipped",
       target_date: "2026-05-11",
@@ -128,7 +128,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:deprecation-marked",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "deprecation-marked",
       target_date: "2026-05-13",
@@ -140,7 +140,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:v0-2-removal",
     type: PLAN_MILESTONE,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "v0-2-removal",
       target_date: "2026-05-15",
@@ -157,7 +157,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:order-field-registered",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "AC-1: spec:HasSection.order field is registered and accepts non-negative integers. Verified by the profile schema test once the relation declaration in fdpm-cli/plugins/spec_authoring/relations.ts grows the field.",
@@ -172,10 +172,10 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:dfs-headings-correct",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
-        "AC-2: rendering a project with `order` edges produces correct §N.M.K headings via DFS (1 → 1.1 → 1.1.1 plus a 1.2 sibling and a §2 root sibling). Verified by the new fixture in spec_md.test.ts.",
+        "AC-2: rendering a workbook with `order` edges produces correct §N.M.K headings via DFS (1 → 1.1 → 1.1.1 plus a 1.2 sibling and a §2 root sibling). Verified by the new fixture in spec_md.test.ts.",
       expression:
         'graph.exists("task:renderer-dfs") && graph.exists("task:tests-dfs-fixture")',
       status: "open",
@@ -188,7 +188,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:zero-diff-pre-codemod",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion: `AC-3: all ${ALL_BUILD_SPEC_PATHS.length} existing build-spec-*.ts scripts render byte-equal output before and after the renderer change, when the migration codemod has NOT been run. Verified by a differential CI test diffing pre- and post-renderer outputs.`,
       expression:
@@ -203,7 +203,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:zero-diff-post-codemod",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion: `AC-4: after running the codemod, all ${ALL_BUILD_SPEC_PATHS.length} existing build-spec-*.ts scripts no longer set \`number\` on any spec:Section and still render byte-equal output. Verified by a per-SPEC byte-diff gate inside the codemod.`,
       expression:
@@ -218,10 +218,10 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:replay-determinism",
     type: PLAN_ACCEPTANCE_CRITERION,
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
-        "AC-5: byte-equal SHA-256 across two consecutive replays of any sections-tree project's log. Verified by extending the replay-determinism harness inherited from SPEC-UID coverage to also exercise (order, uid)-keyed sibling ordering.",
+        "AC-5: byte-equal SHA-256 across two consecutive replays of any sections-tree workbook's log. Verified by extending the replay-determinism harness inherited from SPEC-UID coverage to also exercise (order, uid)-keyed sibling ordering.",
       expression: 'graph.exists("task:tests-determinism")',
       status: "open",
       evidence_refs: [
@@ -297,7 +297,7 @@ const tasks: Task[] = [
     id: "task:fallback-detection",
     name: "fallback-detection",
     summary:
-      "CHG-3: Detect 'no `order` edges in project' and route through the legacy compareSectionNumbers path; emit `info`-level deprecation findings on mixed-mode projects (Section with both authored `number` and a derivable position).",
+      "CHG-3: Detect 'no `order` edges in workbook' and route through the legacy compareSectionNumbers path; emit `info`-level deprecation findings on mixed-mode workbooks (Section with both authored `number` and a derivable position).",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
@@ -326,7 +326,7 @@ const tasks: Task[] = [
     id: "task:tests-fallback-fixture",
     name: "tests-fallback-fixture",
     summary:
-      "Fallback fixture in spec_md.test.ts: a project authored with the v0.0 pattern (only authored `number`, no `order` edges) renders byte-equal to its pre-renderer-change output.",
+      "Fallback fixture in spec_md.test.ts: a workbook authored with the v0.0 pattern (only authored `number`, no `order` edges) renders byte-equal to its pre-renderer-change output.",
     kind: "Test",
     executor: "Either",
     ai_minutes: 30,
@@ -340,7 +340,7 @@ const tasks: Task[] = [
     id: "task:tests-mixed-mode",
     name: "tests-mixed-mode",
     summary:
-      "Mixed-mode fixture in spec_md.test.ts: a project with both authored `number` and `order` edges produces the expected count of `info`-level deprecation findings — one per mixed Section.",
+      "Mixed-mode fixture in spec_md.test.ts: a workbook with both authored `number` and `order` edges produces the expected count of `info`-level deprecation findings — one per mixed Section.",
     kind: "Test",
     executor: "Either",
     ai_minutes: 30,
@@ -485,7 +485,7 @@ const tasks: Task[] = [
 const taskSpecs: PrimitiveSpec[] = tasks.map((t) => ({
   id: t.id,
   type: PLAN_TASK,
-  scope: SCOPE_IDS.project,
+  scope: SCOPE_IDS.workbook,
   fields: {
     name: t.name,
     summary: t.summary,
@@ -590,7 +590,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

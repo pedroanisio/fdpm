@@ -67,7 +67,7 @@ interface ValidateSummary {
   info: number;
 }
 
-function buildAndValidate(scriptPath: string, projectId: string): {
+function buildAndValidate(scriptPath: string, workbookId: string): {
   dataDir: string;
   rendered: Buffer;
   summary: ValidateSummary;
@@ -76,7 +76,7 @@ function buildAndValidate(scriptPath: string, projectId: string): {
   try {
     runScript(scriptPath, dataDir);
     const validateJson = runCli(
-      ["validate", projectId, "--json"],
+      ["validate", workbookId, "--json"],
       dataDir,
     );
     const summary = JSON.parse(validateJson).summary as ValidateSummary;
@@ -85,7 +85,7 @@ function buildAndValidate(scriptPath: string, projectId: string): {
       [
         "src/bin/fdpm.ts",
         "render",
-        projectId,
+        workbookId,
         "text/markdown",
         "--renderer-id",
         "spec:SpecMarkdownRenderer",
@@ -107,18 +107,18 @@ const SPECS = [
   {
     name: "SPEC-EXPRESSION-RUNTIME",
     script: "scripts/build-spec-expression-runtime.ts",
-    projectId: "spec-expression-runtime",
+    workbookId: "spec-expression-runtime",
   },
   {
     name: "SPEC-RENDER-DSL",
     script: "scripts/build-spec-render-dsl.ts",
-    projectId: "spec-render-dsl",
+    workbookId: "spec-render-dsl",
   },
 ];
 
 describe.each(SPECS)("$name — build + validate + determinism", (spec) => {
   it("validates with zero findings at every level", () => {
-    const { dataDir, summary } = buildAndValidate(spec.script, spec.projectId);
+    const { dataDir, summary } = buildAndValidate(spec.script, spec.workbookId);
     try {
       expect(summary.errors).toBe(0);
       expect(summary.warnings).toBe(0);
@@ -129,8 +129,8 @@ describe.each(SPECS)("$name — build + validate + determinism", (spec) => {
   });
 
   it("renders byte-identically across two fresh data dirs", () => {
-    const r1 = buildAndValidate(spec.script, spec.projectId);
-    const r2 = buildAndValidate(spec.script, spec.projectId);
+    const r1 = buildAndValidate(spec.script, spec.workbookId);
+    const r2 = buildAndValidate(spec.script, spec.workbookId);
     try {
       expect(r2.rendered.equals(r1.rendered)).toBe(true);
     } finally {
@@ -142,7 +142,7 @@ describe.each(SPECS)("$name — build + validate + determinism", (spec) => {
 
 describe("Shared constants are reflected in rendered SPECs (no drift)", () => {
   it("EXPR-RT mentions every Tier-A binding path", () => {
-    const r = buildAndValidate(SPECS[0]!.script, SPECS[0]!.projectId);
+    const r = buildAndValidate(SPECS[0]!.script, SPECS[0]!.workbookId);
     try {
       const md = r.rendered.toString("utf8");
       const missing = TIER_A_BINDINGS.filter((b) => !md.includes(b.path));
@@ -153,7 +153,7 @@ describe("Shared constants are reflected in rendered SPECs (no drift)", () => {
   });
 
   it("EXPR-RT mentions every Tier-B binding path", () => {
-    const r = buildAndValidate(SPECS[0]!.script, SPECS[0]!.projectId);
+    const r = buildAndValidate(SPECS[0]!.script, SPECS[0]!.workbookId);
     try {
       const md = r.rendered.toString("utf8");
       const missing = TIER_B_BINDINGS.filter((b) => !md.includes(b.path));
@@ -165,7 +165,7 @@ describe("Shared constants are reflected in rendered SPECs (no drift)", () => {
 
   it("BOTH SPECs mention every standard helper name", () => {
     for (const spec of SPECS) {
-      const r = buildAndValidate(spec.script, spec.projectId);
+      const r = buildAndValidate(spec.script, spec.workbookId);
       try {
         const md = r.rendered.toString("utf8");
         const missing = STANDARD_HELPERS.filter((h) => !md.includes(h.name));
@@ -180,7 +180,7 @@ describe("Shared constants are reflected in rendered SPECs (no drift)", () => {
 
   it("BOTH SPECs mention the helper-set version", () => {
     for (const spec of SPECS) {
-      const r = buildAndValidate(spec.script, spec.projectId);
+      const r = buildAndValidate(spec.script, spec.workbookId);
       try {
         const md = r.rendered.toString("utf8");
         expect(md).toContain(HELPER_SET_VERSION);
@@ -191,13 +191,13 @@ describe("Shared constants are reflected in rendered SPECs (no drift)", () => {
   });
 
   it("RENDER-DSL mentions the canonical activation list (not a stale form)", () => {
-    const r = buildAndValidate(SPECS[1]!.script, SPECS[1]!.projectId);
+    const r = buildAndValidate(SPECS[1]!.script, SPECS[1]!.workbookId);
     try {
       const md = r.rendered.toString("utf8");
       // The pass-3-canonical form
       expect(md).toContain(ACTIVATION_TIER_A_LIST);
       // Stale forms from earlier drafts MUST NOT appear
-      expect(md).not.toContain("{ doc, project, env, query, fn }");
+      expect(md).not.toContain("{ doc, workbook, env, query, fn }");
       // No `${VERSION}` example survives — was a stale binding
       expect(md).not.toContain("${VERSION}");
       // No invented env.DATA_DIR binding survives
@@ -212,7 +212,7 @@ describe("Shared constants are reflected in rendered SPECs (no drift)", () => {
 
   it("BOTH SPECs declare the standard helper count consistently", () => {
     for (const spec of SPECS) {
-      const r = buildAndValidate(spec.script, spec.projectId);
+      const r = buildAndValidate(spec.script, spec.workbookId);
       try {
         const md = r.rendered.toString("utf8");
         // The count appears in the inventory headings on both sides.
@@ -225,7 +225,7 @@ describe("Shared constants are reflected in rendered SPECs (no drift)", () => {
   });
 
   it("EXPR-RT does not regress on semver guidance or AC/migration consistency", () => {
-    const r = buildAndValidate(SPECS[0]!.script, SPECS[0]!.projectId);
+    const r = buildAndValidate(SPECS[0]!.script, SPECS[0]!.workbookId);
     try {
       const md = r.rendered.toString("utf8");
       expect(md).not.toContain('Major must be 1 for FDPM Core 1.x.');

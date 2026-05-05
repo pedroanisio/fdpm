@@ -14,8 +14,8 @@ import { TEST_PROFILE } from "../fixtures.js";
 import { tool as healthTool } from "../../src/mcp/tools/health.js";
 import { tool as profileListTool } from "../../src/mcp/tools/profile-list.js";
 import { tool as profileGetTool } from "../../src/mcp/tools/profile-get.js";
-import { tool as projectListTool } from "../../src/mcp/tools/project-list.js";
-import { tool as projectGetTool } from "../../src/mcp/tools/project-get.js";
+import { tool as projectListTool } from "../../src/mcp/tools/workbook-list.js";
+import { tool as projectGetTool } from "../../src/mcp/tools/workbook-get.js";
 import { createSession } from "../../src/mcp/session.js";
 import type { DispatchCtx } from "../../src/mcp/types.js";
 import { FDPMException } from "../../src/core/errors/fdpm-exception.js";
@@ -113,26 +113,26 @@ describe("fdpm.profile.get", () => {
   });
 });
 
-describe("fdpm.project.list", () => {
+describe("fdpm.workbook.list", () => {
   let host: Host;
   beforeEach(async () => {
     host = await makeHost();
   });
 
-  it("happy path — empty list when no projects, populated after createProject", async () => {
+  it("happy path — empty list when no workbooks, populated after createProject", async () => {
     const ctx = makeCtx();
     const args = projectListTool.input.parse({});
     let out = await projectListTool.handler(host, args, ctx);
-    expect(out.projects).toEqual([]);
+    expect(out.workbooks).toEqual([]);
 
     await host.createProject({
-      project_id: "p1",
-      name: "Project One",
+      workbook_id: "p1",
+      name: "Workbook One",
       profile_id: "test:demo",
     });
     out = await projectListTool.handler(host, args, ctx);
-    expect(out.projects.length).toBe(1);
-    expect(out.projects[0]?.id).toBe("p1");
+    expect(out.workbooks.length).toBe(1);
+    expect(out.workbooks[0]?.id).toBe("p1");
     expect(projectListTool.output.safeParse(out).success).toBe(true);
   });
 
@@ -141,30 +141,30 @@ describe("fdpm.project.list", () => {
   });
 });
 
-describe("fdpm.project.get", () => {
+describe("fdpm.workbook.get", () => {
   let host: Host;
   beforeEach(async () => {
     host = await makeHost();
     await host.createProject({
-      project_id: "p1",
-      name: "Project One",
+      workbook_id: "p1",
+      name: "Workbook One",
       profile_id: "test:demo",
     });
   });
 
-  it("happy path — returns the project row and counts", async () => {
+  it("happy path — returns the workbook row and counts", async () => {
     const ctx = makeCtx();
-    const args = projectGetTool.input.parse({ project_id: "p1" });
+    const args = projectGetTool.input.parse({ workbook_id: "p1" });
     const out = await projectGetTool.handler(host, args, ctx);
-    expect((out as { project: { id: string } }).project.id).toBe("p1");
+    expect((out as { workbook: { id: string } }).workbook.id).toBe("p1");
     expect((out as { primitive_count: number }).primitive_count).toBe(0);
     expect((out as { relation_count: number }).relation_count).toBe(0);
     expect(projectGetTool.output.safeParse(out).success).toBe(true);
   });
 
-  it("not_found is thrown for an unknown project_id", async () => {
+  it("not_found is thrown for an unknown workbook_id", async () => {
     const ctx = makeCtx();
-    const args = projectGetTool.input.parse({ project_id: "no-such" });
+    const args = projectGetTool.input.parse({ workbook_id: "no-such" });
     await expect(projectGetTool.handler(host, args, ctx)).rejects.toBeInstanceOf(
       FDPMException,
     );
@@ -172,6 +172,6 @@ describe("fdpm.project.get", () => {
 
   it("invalid input is rejected (missing required field, wrong type)", () => {
     expect(projectGetTool.input.safeParse({}).success).toBe(false);
-    expect(projectGetTool.input.safeParse({ project_id: 5 }).success).toBe(false);
+    expect(projectGetTool.input.safeParse({ workbook_id: 5 }).success).toBe(false);
   });
 });

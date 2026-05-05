@@ -3,7 +3,7 @@ import { newHost } from "./fixtures.js";
 import { importTransfer } from "../src/core/host-extra.js";
 
 /**
- * #1 — `host.validateProject` (read-only project-wide validation).
+ * #1 — `host.validateProject` (read-only workbook-wide validation).
  *
  * The CLI surface is tested indirectly through host APIs; the same
  * validators run in both pathways, so unit-testing the host method is
@@ -16,11 +16,11 @@ import { importTransfer } from "../src/core/host-extra.js";
 
 const longTitle = "x".repeat(300); // exceeds test:section.title max_length 200
 
-async function seedViolatingProject(host: Awaited<ReturnType<typeof newHost>>, projectId: string) {
+async function seedViolatingProject(host: Awaited<ReturnType<typeof newHost>>, workbookId: string) {
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
-      id: projectId,
+    workbook: {
+      id: workbookId,
       name: "Imported",
       profile_id: "test:demo",
       created_at: new Date().toISOString(),
@@ -54,9 +54,9 @@ async function seedViolatingProject(host: Awaited<ReturnType<typeof newHost>>, p
 }
 
 describe("host.validateProject", () => {
-  it("returns empty findings for a clean project", async () => {
+  it("returns empty findings for a clean workbook", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -121,15 +121,15 @@ describe("host.validateProject", () => {
   it("is read-only: revision unchanged after multiple validate calls", async () => {
     const host = await newHost();
     await seedViolatingProject(host, "imp");
-    const before = host.getProject("imp").project.revision;
+    const before = host.getProject("imp").workbook.revision;
     host.validateProject("imp");
     host.validateProject("imp", { minLevel: "error" });
     host.validateProject("imp", { targetIds: new Set(["section:bad"]) });
-    const after = host.getProject("imp").project.revision;
+    const after = host.getProject("imp").workbook.revision;
     expect(after).toBe(before);
   });
 
-  it("throws when project does not exist", async () => {
+  it("throws when workbook does not exist", async () => {
     const host = await newHost();
     expect(() => host.validateProject("ghost")).toThrow();
   });

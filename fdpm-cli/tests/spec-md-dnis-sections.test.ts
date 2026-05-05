@@ -2,14 +2,14 @@
  * spec:SpecMarkdownRenderer — DNIS-Node section path.
  *
  * Verifies SPEC-SECTIONS-TREE v0.2 / SPEC-CORE 1.2 §5.6 contract:
- * when a project carries a dnis:Document and one or more dnis:Node
+ * when a workbook carries a dnis:Document and one or more dnis:Node
  * primitives of kind "section", the renderer walks the DNIS Node graph
  * (DFS over parent_node_id, sorted by SPEC-DNIS Position) and emits
  * §N.M.K headings derived from the DFS path.
  *
- * Also asserts the mixed-mode warning (a project containing both
+ * Also asserts the mixed-mode warning (a workbook containing both
  * spec:Section and dnis:Node sections is a defect; the DNIS path wins
- * but the renderer surfaces a finding so the project author can clean
+ * but the renderer surfaces a finding so the workbook author can clean
  * up).
  *
  * The fixtures are constructed via DnisHostAdapter against a real
@@ -40,10 +40,10 @@ async function freshHost(): Promise<Host> {
   return host;
 }
 
-async function newComposedProject(host: Host, project_id: string): Promise<void> {
+async function newComposedProject(host: Host, workbook_id: string): Promise<void> {
   await host.createProject({
-    project_id,
-    name: project_id,
+    workbook_id,
+    name: workbook_id,
     profile_id: SPEC_AUTHORING_DNIS_PROFILE,
   });
 }
@@ -88,17 +88,17 @@ async function createSection(
   return { nodeId: result.affectedNodeIds[0]! };
 }
 
-async function renderWithRenderer(host: Host, project_id: string): Promise<{
+async function renderWithRenderer(host: Host, workbook_id: string): Promise<{
   text: string;
   findings: ReadonlyArray<{ message: string; expression?: string }>;
 }> {
-  const slice = host.getProject(project_id);
-  const profile = host.profiles.getResolved(slice.project.profile_id);
+  const slice = host.getProject(workbook_id);
+  const profile = host.profiles.getResolved(slice.workbook.profile_id);
   const out = await host.plugins.runRenderer(
     "text/markdown",
     {
-      projectId: project_id,
-      project: slice.project,
+      workbookId: workbook_id,
+      workbook: slice.workbook,
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       templates: Object.values(slice.templates),
@@ -115,13 +115,13 @@ async function renderWithRenderer(host: Host, project_id: string): Promise<{
 describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
   it("walks dnis:Node tree DFS and emits §N.M.K headings derived from the path", async () => {
     const host = await freshHost();
-    const projectId = "test-spec-dnis-fixture";
-    await newComposedProject(host, projectId);
+    const workbookId = "test-spec-dnis-fixture";
+    await newComposedProject(host, workbookId);
 
     // The renderer needs a spec:Document to populate the frontmatter
     // and §0 Document Status table; that primitive lives in the
     // spec-authoring side of the composed profile.
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: "spec:doc:fixture",
       type_id: "spec:Document",
       field_values: {
@@ -137,7 +137,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
       },
     });
 
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -192,7 +192,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     });
     void s3;
 
-    const { text, findings } = await renderWithRenderer(host, projectId);
+    const { text, findings } = await renderWithRenderer(host, workbookId);
 
     // No mixed-mode warning since there are no spec:Section primitives.
     expect(findings.filter((f) => f.expression === "spec:render:mixed-mode-sections")).toHaveLength(0);
@@ -224,9 +224,9 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
 
   it("ignores retired dnis:Node sections (renders only the active document state)", async () => {
     const host = await freshHost();
-    const projectId = "test-spec-dnis-retire";
-    await newComposedProject(host, projectId);
-    await host.createPrimitive(projectId, {
+    const workbookId = "test-spec-dnis-retire";
+    await newComposedProject(host, workbookId);
+    await host.createPrimitive(workbookId, {
       id: "spec:doc:retire",
       type_id: "spec:Document",
       field_values: {
@@ -241,7 +241,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
         generated_by: "vitest fixture",
       },
     });
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -265,16 +265,16 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     });
     void keep;
 
-    const { text } = await renderWithRenderer(host, projectId);
+    const { text } = await renderWithRenderer(host, workbookId);
     expect(text).toContain("## 1. Kept section");
     expect(text).not.toContain("Retired section");
   });
 
   it("emits a mixed-mode warning when both spec:Section and dnis:Node sections coexist; DNIS path is canonical", async () => {
     const host = await freshHost();
-    const projectId = "test-spec-dnis-mixed";
-    await newComposedProject(host, projectId);
-    await host.createPrimitive(projectId, {
+    const workbookId = "test-spec-dnis-mixed";
+    await newComposedProject(host, workbookId);
+    await host.createPrimitive(workbookId, {
       id: "spec:doc:mixed",
       type_id: "spec:Document",
       field_values: {
@@ -291,7 +291,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     });
     // Legacy spec:Section: should be ignored by the renderer when the
     // DNIS path is active, but the warning MUST fire.
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: "spec:sec:legacy",
       type_id: "spec:Section",
       field_values: {
@@ -302,7 +302,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
       },
     });
 
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -313,7 +313,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
       body_md: "DNIS-path content wins.",
     });
 
-    const { text, findings } = await renderWithRenderer(host, projectId);
+    const { text, findings } = await renderWithRenderer(host, workbookId);
     const mixed = findings.filter((f) => f.expression === "spec:render:mixed-mode-sections");
     expect(mixed).toHaveLength(1);
     expect(mixed[0]!.message).toMatch(/dnis:Node section.*spec:Section primitive.*DNIS path is canonical/);
@@ -326,7 +326,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
   it("buildSectionIndex emits slug-keyed entries (title-derived + author-supplied ref_slug + collision suffix)", async () => {
     // End-to-end proof: build a real dnis:Document with three top-level
     // sections (one with explicit ref_slug, two with colliding titles),
-    // call buildSectionIndex against the project's primitives, and
+    // call buildSectionIndex against the workbook's primitives, and
     // assert the slug-keyed entries land. Then exercise the lookups
     // through fn.section_of via the renderTemplate facade — using the
     // EXACT map buildSectionIndex produced.
@@ -335,9 +335,9 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     );
 
     const host = await freshHost();
-    const projectId = "test-spec-dnis-slugs";
-    await newComposedProject(host, projectId);
-    await host.createPrimitive(projectId, {
+    const workbookId = "test-spec-dnis-slugs";
+    await newComposedProject(host, workbookId);
+    await host.createPrimitive(workbookId, {
       id: "spec:doc:slugs",
       type_id: "spec:Document",
       field_values: {
@@ -352,7 +352,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
         generated_by: "vitest fixture",
       },
     });
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -378,13 +378,13 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     });
 
     // Sanity-check the raw renderer outputs the right §-numbers.
-    const { text } = await renderWithRenderer(host, projectId);
+    const { text } = await renderWithRenderer(host, workbookId);
     expect(text).toContain("## 1. Purpose and Scope");
     expect(text).toContain("## 2. References");
     expect(text).toContain("## 3. References");
 
     // Real test: buildSectionIndex emits the slug entries.
-    const slice = host.getProject(projectId);
+    const slice = host.getProject(workbookId);
     const index = buildSectionIndex(Object.values(slice.primitives));
     expect(index.get("section:purpose-and-scope")).toBe("1");
     // §2 used an author-supplied ref_slug, so its baseSlug is
@@ -396,7 +396,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     expect(index.has("section:references-2")).toBe(false);
 
     // End-to-end via fn.section_of.
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({ slice, profile });
     const a = facade.renderTemplate(
       "see §${fn.section_of(\"section:purpose-and-scope\")}",
@@ -424,9 +424,9 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     );
 
     const host = await freshHost();
-    const projectId = "test-spec-dnis-slug-collision";
-    await newComposedProject(host, projectId);
-    await host.createPrimitive(projectId, {
+    const workbookId = "test-spec-dnis-slug-collision";
+    await newComposedProject(host, workbookId);
+    await host.createPrimitive(workbookId, {
       id: "spec:doc:slug-collision",
       type_id: "spec:Document",
       field_values: {
@@ -441,7 +441,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
         generated_by: "vitest fixture",
       },
     });
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -462,7 +462,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
       body_md: "Third.",
     });
 
-    const slice = host.getProject(projectId);
+    const slice = host.getProject(workbookId);
     const index = buildSectionIndex(Object.values(slice.primitives));
     expect(index.get("section:open-questions")).toBe("1");
     expect(index.get("section:open-questions-2")).toBe("2");
@@ -485,9 +485,9 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     );
 
     const host = await freshHost();
-    const projectId = "test-spec-dnis-number-override";
-    await newComposedProject(host, projectId);
-    await host.createPrimitive(projectId, {
+    const workbookId = "test-spec-dnis-number-override";
+    await newComposedProject(host, workbookId);
+    await host.createPrimitive(workbookId, {
       id: "spec:doc:override",
       type_id: "spec:Document",
       field_values: {
@@ -502,7 +502,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
         generated_by: "vitest fixture",
       },
     });
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: AGENT,
       schemaVersion: "0.1.7",
@@ -540,7 +540,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
       ref_slug: "revisions",
     });
 
-    const { text, findings } = await renderWithRenderer(host, projectId);
+    const { text, findings } = await renderWithRenderer(host, workbookId);
     expect(findings.filter((f) => f.expression?.startsWith("spec:render:dnis"))).toHaveLength(0);
 
     // Heading labels match the overrides where set, DFS where not.
@@ -557,7 +557,7 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
 
     // section_index value is the override when set, DFS otherwise.
     const index = buildSectionIndex(
-      Object.values(host.getProject(projectId).primitives),
+      Object.values(host.getProject(workbookId).primitives),
     );
     expect(index.get("section:instance-model")).toBe("1");
     expect(index.get("section:dnis-adoption")).toBe("5.6");
@@ -567,8 +567,8 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
 
     // fn.section_of returns the literal override when callers
     // reference the slug.
-    const slice = host.getProject(projectId);
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const slice = host.getProject(workbookId);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({ slice, profile });
     const r = facade.renderTemplate(
       "see §${fn.section_of(\"section:dnis-adoption\")} and appendix §${fn.section_of(\"section:open-questions\")}",

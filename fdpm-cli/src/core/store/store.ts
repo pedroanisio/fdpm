@@ -19,7 +19,7 @@ import { FDPMException } from "../errors/fdpm-exception.js";
 
 export interface AppendInput {
   kind: OperationKind;
-  project_id: string;
+  workbook_id: string;
   payload: Record<string, unknown>;
   actor?: string;
   plugin_id?: string | null;
@@ -34,7 +34,7 @@ export interface AppendInput {
    * DNIS Operation up front so each entry's `causation_op_id` can be
    * set to the lead entry's `op_id` before any append runs. The id
    * MUST be a fresh ULID; the store does not re-validate uniqueness
-   * across a project log because op_ids are globally unique by
+   * across a workbook log because op_ids are globally unique by
    * construction.
    */
   op_id?: string;
@@ -65,18 +65,18 @@ export class Store {
     this.state = replay(allLogs);
   }
 
-  rebuildProject(project_id: string): void {
-    const log = this.state.operation_log[project_id] ?? [];
+  rebuildProject(workbook_id: string): void {
+    const log = this.state.operation_log[workbook_id] ?? [];
     // Discard projection for this project.
-    delete this.state.projects[project_id];
-    delete this.state.primitives[project_id];
-    delete this.state.relations[project_id];
-    delete this.state.templates[project_id];
-    delete this.state.test_suites[project_id];
-    delete this.state.scope_membership[project_id];
+    delete this.state.workbooks[workbook_id];
+    delete this.state.primitives[workbook_id];
+    delete this.state.relations[workbook_id];
+    delete this.state.templates[workbook_id];
+    delete this.state.test_suites[workbook_id];
+    delete this.state.scope_membership[workbook_id];
     // Snapshots are perf optimisation; safe to discard.
-    delete this.state.snapshots[project_id];
-    // Replay only this project's log.
+    delete this.state.snapshots[workbook_id];
+    // Replay only this workbook's log.
     for (const op of [...log].sort((a, b) => a.revision - b.revision)) {
       applyOperation(this.state, op);
     }
@@ -92,7 +92,7 @@ export class Store {
   append(input: AppendInput): AppendOutput {
     verifyOperationPayload({ kind: input.kind, payload: input.payload });
 
-    const projectLog = this.state.operation_log[input.project_id] ?? [];
+    const projectLog = this.state.operation_log[input.workbook_id] ?? [];
     const lastRevision = projectLog.length > 0 ? projectLog[projectLog.length - 1]!.revision : 0;
 
     if (
@@ -109,7 +109,7 @@ export class Store {
     const op: Operation = {
       op_id: input.op_id ?? mintUid(),
       kind: input.kind,
-      project_id: input.project_id,
+      workbook_id: input.workbook_id,
       payload: input.payload,
       actor: input.actor ?? "cli:operator",
       plugin_id: input.plugin_id ?? null,
@@ -122,44 +122,44 @@ export class Store {
     };
 
     // Try-apply with rollback: snapshot the projection slice for this
-    // project, attempt the apply, on failure restore the slice.
-    const before = sliceProject(this.state, input.project_id);
-    const beforeMembership = this.state.scope_membership[input.project_id]
-      ? structuredClone(this.state.scope_membership[input.project_id]!)
+    // workbook, attempt the apply, on failure restore the slice.
+    const before = sliceProject(this.state, input.workbook_id);
+    const beforeMembership = this.state.scope_membership[input.workbook_id]
+      ? structuredClone(this.state.scope_membership[input.workbook_id]!)
       : undefined;
     try {
       applyOperation(this.state, op);
     } catch (err) {
       // Restore prior projection.
-      this.restoreSlice(input.project_id, before, beforeMembership);
+      this.restoreSlice(input.workbook_id, before, beforeMembership);
       throw err;
     }
     // Now commit the op to the log.
-    this.state.operation_log[input.project_id] = [...projectLog, op];
+    this.state.operation_log[input.workbook_id] = [...projectLog, op];
 
     // Snapshot cadence per §5.5.5.
     if (op.revision % this.snapshotEvery === 0) {
-      this.takeSnapshot(input.project_id, op.revision);
+      this.takeSnapshot(input.workbook_id, op.revision);
     }
 
-    const finalRevision = this.state.projects[input.project_id]?.revision ?? op.revision;
+    const finalRevision = this.state.workbooks[input.workbook_id]?.revision ?? op.revision;
     return { op, project_revision: finalRevision };
   }
 
   /** Append many under one request_id (§9.7.5 batch atomicity). */
   appendBatch(inputs: AppendInput[]): AppendOutput[] {
     if (inputs.length === 0) return [];
-    const project_id = inputs[0]!.project_id;
+    const workbook_id = inputs[0]!.workbook_id;
     const request_id = inputs[0]!.request_id ?? uuidv7();
-    if (inputs.some((i) => i.project_id !== project_id))
-      throw new FDPMException("verification", "batch must target a single project");
+    if (inputs.some((i) => i.workbook_id !== workbook_id))
+      throw new FDPMException("verification", "batch must target a single workbook");
 
     // Snapshot for rollback.
-    const before = sliceProject(this.state, project_id);
-    const beforeMembership = this.state.scope_membership[project_id]
-      ? structuredClone(this.state.scope_membership[project_id]!)
+    const before = sliceProject(this.state, workbook_id);
+    const beforeMembership = this.state.scope_membership[workbook_id]
+      ? structuredClone(this.state.scope_membership[workbook_id]!)
       : undefined;
-    const beforeLog = [...(this.state.operation_log[project_id] ?? [])];
+    const beforeLog = [...(this.state.operation_log[workbook_id] ?? [])];
 
     const outputs: AppendOutput[] = [];
     try {
@@ -169,38 +169,38 @@ export class Store {
       return outputs;
     } catch (err) {
       // Roll back: restore projection AND log.
-      this.restoreSlice(project_id, before, beforeMembership);
-      this.state.operation_log[project_id] = beforeLog;
+      this.restoreSlice(workbook_id, before, beforeMembership);
+      this.state.operation_log[workbook_id] = beforeLog;
       throw err;
     }
   }
 
   private restoreSlice(
-    project_id: string,
+    workbook_id: string,
     before: ProjectStateSlice | null,
     beforeMembership?: Record<string, string[]>,
   ): void {
     if (before) {
       // before is already a deep clone; assigning is safe and isolates
       // the live state from the snapshot's references.
-      this.state.projects[project_id] = before.project;
-      this.state.primitives[project_id] = before.primitives;
-      this.state.relations[project_id] = before.relations;
-      this.state.templates[project_id] = before.templates;
-      this.state.test_suites[project_id] = before.test_suites;
-      this.state.scope_membership[project_id] = beforeMembership ?? before.scope_membership;
+      this.state.workbooks[workbook_id] = before.workbook;
+      this.state.primitives[workbook_id] = before.primitives;
+      this.state.relations[workbook_id] = before.relations;
+      this.state.templates[workbook_id] = before.templates;
+      this.state.test_suites[workbook_id] = before.test_suites;
+      this.state.scope_membership[workbook_id] = beforeMembership ?? before.scope_membership;
     } else {
-      delete this.state.projects[project_id];
-      delete this.state.primitives[project_id];
-      delete this.state.relations[project_id];
-      delete this.state.templates[project_id];
-      delete this.state.test_suites[project_id];
-      delete this.state.scope_membership[project_id];
+      delete this.state.workbooks[workbook_id];
+      delete this.state.primitives[workbook_id];
+      delete this.state.relations[workbook_id];
+      delete this.state.templates[workbook_id];
+      delete this.state.test_suites[workbook_id];
+      delete this.state.scope_membership[workbook_id];
     }
   }
 
   /**
-   * Snapshot a project's slice + scope_membership for rollback by an
+   * Snapshot a workbook's slice + scope_membership for rollback by an
    * outer orchestrator (e.g. `Host.appendBatchWithCausation`, which
    * appends entries one at a time so each can validate against the
    * projection that includes prior entries). The complementary restore
@@ -208,13 +208,13 @@ export class Store {
    *
    * The returned snapshot is fully detached from live state.
    */
-  snapshotProjectForRollback(project_id: string): {
+  snapshotProjectForRollback(workbook_id: string): {
     slice: ProjectStateSlice | null;
     membership: Record<string, string[]> | undefined;
   } {
-    const slice = sliceProject(this.state, project_id);
-    const membership = this.state.scope_membership[project_id]
-      ? structuredClone(this.state.scope_membership[project_id]!)
+    const slice = sliceProject(this.state, workbook_id);
+    const membership = this.state.scope_membership[workbook_id]
+      ? structuredClone(this.state.scope_membership[workbook_id]!)
       : undefined;
     return { slice, membership };
   }
@@ -227,21 +227,21 @@ export class Store {
    * succeeds end-to-end.
    */
   restoreFromBatchSnapshot(
-    project_id: string,
+    workbook_id: string,
     beforeLog: Operation[],
     snapshot: {
       slice: ProjectStateSlice | null;
       membership: Record<string, string[]> | undefined;
     },
   ): void {
-    this.restoreSlice(project_id, snapshot.slice, snapshot.membership);
-    this.state.operation_log[project_id] = [...beforeLog];
+    this.restoreSlice(workbook_id, snapshot.slice, snapshot.membership);
+    this.state.operation_log[workbook_id] = [...beforeLog];
   }
 
   // -- Read API --------------------------------------------------------
 
   listProjects(): { id: string; name: string; profile_id: string; revision: number }[] {
-    return Object.values(this.state.projects).map((p) => ({
+    return Object.values(this.state.workbooks).map((p) => ({
       id: p.id,
       name: p.name,
       profile_id: p.profile_id,
@@ -251,48 +251,48 @@ export class Store {
 
   getProject(id: string): ProjectStateSlice {
     const slice = sliceProject(this.state, id);
-    if (!slice) throw new FDPMException("not_found", `project not found: ${id}`);
+    if (!slice) throw new FDPMException("not_found", `workbook not found: ${id}`);
     return slice;
   }
 
   /** SPEC-UID §14: O(1) host-level uid → location lookup. */
   lookupUid(
     uid: string,
-  ): { project_id: string; kind: "primitive" | "relation"; id: string } | null {
+  ): { workbook_id: string; kind: "primitive" | "relation"; id: string } | null {
     return this.state.uid_index[uid] ?? null;
   }
 
-  getOperationLog(project_id: string): Operation[] {
-    return [...(this.state.operation_log[project_id] ?? [])];
+  getOperationLog(workbook_id: string): Operation[] {
+    return [...(this.state.operation_log[workbook_id] ?? [])];
   }
 
-  getProjectAt(project_id: string, revision: number): ProjectStateSlice {
-    const log = this.state.operation_log[project_id];
-    if (!log) throw new FDPMException("not_found", `project not found: ${project_id}`);
+  getProjectAt(workbook_id: string, revision: number): ProjectStateSlice {
+    const log = this.state.operation_log[workbook_id];
+    if (!log) throw new FDPMException("not_found", `workbook not found: ${workbook_id}`);
     const slice = log.filter((op) => op.revision <= revision);
     const tempState = replay(slice);
-    const result = sliceProject(tempState, project_id);
+    const result = sliceProject(tempState, workbook_id);
     if (!result)
       throw new FDPMException(
         "not_found",
-        `project ${project_id} did not exist at revision ${revision}`,
+        `workbook ${workbook_id} did not exist at revision ${revision}`,
       );
     return result;
   }
 
-  takeSnapshot(project_id: string, revision: number): void {
-    const slice = sliceProject(this.state, project_id);
+  takeSnapshot(workbook_id: string, revision: number): void {
+    const slice = sliceProject(this.state, workbook_id);
     if (!slice) return;
-    this.state.snapshots[project_id] ??= [];
-    this.state.snapshots[project_id]!.push({
-      project_id,
+    this.state.snapshots[workbook_id] ??= [];
+    this.state.snapshots[workbook_id]!.push({
+      workbook_id,
       revision,
       state: structuredClone(slice),
     });
   }
 
-  getSnapshots(project_id: string): ProjectSnapshot[] {
-    return [...(this.state.snapshots[project_id] ?? [])];
+  getSnapshots(workbook_id: string): ProjectSnapshot[] {
+    return [...(this.state.snapshots[workbook_id] ?? [])];
   }
 
   /** Internal: only the persistence layer reads this. */
@@ -307,11 +307,11 @@ export class Store {
     // not populate operation_log (the log IS the input). Persistence
     // restores it here so subsequent appends see correct revisions.
     for (const op of ops) {
-      const list = this.state.operation_log[op.project_id] ?? [];
+      const list = this.state.operation_log[op.workbook_id] ?? [];
       list.push(op);
-      this.state.operation_log[op.project_id] = list;
+      this.state.operation_log[op.workbook_id] = list;
     }
-    // Sort each project's log by revision for stable iteration.
+    // Sort each workbook's log by revision for stable iteration.
     for (const id of Object.keys(this.state.operation_log)) {
       this.state.operation_log[id]!.sort((a, b) => a.revision - b.revision);
     }
@@ -321,14 +321,14 @@ export class Store {
    * SPEC-REPL §10.2 incremental tail-replay primitive.
    *
    * Apply a contiguous sequence of operations to the existing state
-   * for one project, asserting that each op's `revision` strictly
+   * for one workbook, asserting that each op's `revision` strictly
    * succeeds the in-memory log's last revision (no gaps, no reorder).
    * Used by `Host.reloadProjectTail` after detecting an out-of-band
    * append and reading the log fresh from disk; the caller passes
    * only the suffix that's missing from the in-memory projection.
    *
    * Validation:
-   *   - Every op's `project_id` MUST equal the supplied project_id.
+   *   - Every op's `workbook_id` MUST equal the supplied workbook_id.
    *   - The first new op's `revision` MUST equal `current + 1` where
    *     `current` is the last in-memory op's revision (or 0 if none).
    *   - Subsequent ops MUST be revision-contiguous.
@@ -337,32 +337,32 @@ export class Store {
    * rewritten log to the operator instead of silently writing past
    * a divergent prefix.
    */
-  appendReplayedOps(project_id: string, newOps: readonly Operation[]): void {
+  appendReplayedOps(workbook_id: string, newOps: readonly Operation[]): void {
     if (newOps.length === 0) return;
-    const log = this.state.operation_log[project_id] ?? [];
+    const log = this.state.operation_log[workbook_id] ?? [];
     const currentRev = log.length > 0 ? log[log.length - 1]!.revision : 0;
 
     for (let i = 0; i < newOps.length; i += 1) {
       const op = newOps[i]!;
-      if (op.project_id !== project_id) {
+      if (op.workbook_id !== workbook_id) {
         throw new FDPMException(
           "host_compat",
-          `appendReplayedOps: op[${i}] project_id mismatch (got ${op.project_id}, expected ${project_id})`,
-          { evidence: { index: i, expected: project_id, got: op.project_id } },
+          `appendReplayedOps: op[${i}] workbook_id mismatch (got ${op.workbook_id}, expected ${workbook_id})`,
+          { evidence: { index: i, expected: workbook_id, got: op.workbook_id } },
         );
       }
       const expectedRev = currentRev + i + 1;
       if (op.revision !== expectedRev) {
         throw new FDPMException(
           "host_compat",
-          `appendReplayedOps: revision gap for ${project_id} at index ${i} (got rev=${op.revision}, expected ${expectedRev})`,
+          `appendReplayedOps: revision gap for ${workbook_id} at index ${i} (got rev=${op.revision}, expected ${expectedRev})`,
           { evidence: { index: i, expected: expectedRev, got: op.revision, current: currentRev } },
         );
       }
       applyOperation(this.state, op);
-      const list = this.state.operation_log[project_id] ?? [];
+      const list = this.state.operation_log[workbook_id] ?? [];
       list.push(op);
-      this.state.operation_log[project_id] = list;
+      this.state.operation_log[workbook_id] = list;
     }
   }
 }

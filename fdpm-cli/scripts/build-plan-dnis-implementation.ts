@@ -1,5 +1,5 @@
 /**
- * Build a planning project that tracks implementation of DNIS
+ * Build a planning workbook that tracks implementation of DNIS
  * (`scripts/build-spec-dnis.ts`) using the fdpm.planning profile.
  *
  * Primary target:
@@ -54,7 +54,7 @@ const wbsSpecs: PrimitiveSpec[] = [
   {
     id: "wbs:dnis-rollout",
     type: "plan:WorkBreakdown",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "dnis-rollout",
       summary:
@@ -68,7 +68,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:l1-core",
     type: "plan:Milestone",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "l1-core",
       target_date: "2026-05-09",
@@ -79,7 +79,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:l1-lineage",
     type: "plan:Milestone",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "l1-lineage",
       target_date: "2026-05-13",
@@ -90,7 +90,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:l1-proof",
     type: "plan:Milestone",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "l1-proof",
       target_date: "2026-05-16",
@@ -101,7 +101,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:l2-concurrency",
     type: "plan:Milestone",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "l2-concurrency",
       target_date: "2026-05-20",
@@ -115,7 +115,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:l1-model-and-ops",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "The implementation ships the DNIS Level 1 model and primary operation surface: Document, Node, Operation, OperationResult, plus create/edit/move/split/merge/retire/compact semantics.",
@@ -135,7 +135,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:idempotency-and-resolution",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "The store preserves the retry contract and resolver contract: OperationId snapshots are persisted atomically, payload mismatches are rejected, and active/retired/evolved/purged/not-found outcomes resolve correctly.",
@@ -155,7 +155,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:hash-determinism",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "Canonicalization and content hashing are deterministic, document-wide, and never reused as identity.",
@@ -173,7 +173,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:l1-proof",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "DNIS Level 1 stops being speculative: TV-1, TV-2, TV-3, TV-4, and TV-6 are executable and pass against the implementation.",
@@ -193,7 +193,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:l2-concurrency",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "Level 2 optimistic concurrency is real: single-target expectedRevision rejection works, merge Mode A is implemented, and stale writes do not mutate state.",
@@ -210,7 +210,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:boundary-honesty",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "The implementation and docs preserve DNIS boundary honesty: Level 3 remains deferred, purge is explicitly operator-gated, and unresolved open questions are not silently guessed away.",
@@ -484,7 +484,7 @@ const tasks: Task[] = [
 const taskSpecs: PrimitiveSpec[] = tasks.map((t) => ({
   id: t.id,
   type: "plan:Task",
-  scope: SCOPE_IDS.project,
+  scope: SCOPE_IDS.workbook,
   fields: {
     name: t.name,
     summary: t.summary,
@@ -585,7 +585,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);
@@ -596,7 +596,7 @@ async function main() {
   const doneTasks = tasks.filter((t) => t.status === "Done");
   for (const t of doneTasks) {
     await patchPrimitive(host, {
-      project: PROJECT_ID,
+      workbook: PROJECT_ID,
       id: t.id,
       fields: { status: "Done" },
     });

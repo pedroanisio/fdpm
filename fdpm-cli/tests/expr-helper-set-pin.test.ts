@@ -29,7 +29,7 @@ function writePlugin(
 const TYPE: PrimitiveTypeDef = {
   id: "test:section",
   fields: [{ name: "title", kind: "string", required: false, validations: [] }],
-  id_format: { pattern: "^.*$", uniqueness: "project" },
+  id_format: { pattern: "^.*$", uniqueness: "workbook" },
   inline_structs: [],
   is_partition_unit: false,
 };
@@ -55,11 +55,11 @@ const INSTANCE: PrimitiveInstance = {
   revision: 0,
 };
 
-async function seedProject(host: Host, projectId: string, primitives: any[], relations: any[] = []) {
+async function seedProject(host: Host, workbookId: string, primitives: any[], relations: any[] = []) {
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
-      id: projectId,
+    workbook: {
+      id: workbookId,
       name: "Imported",
       profile_id: "test:demo",
       created_at: new Date().toISOString(),
@@ -237,7 +237,7 @@ export default { manifest, activate: () => {} };
 });
 
 describe("expression runtime Tier-A and Tier-B surface", () => {
-  it("evaluates doc/project/env/host bindings and standard helpers through the validation pipeline", async () => {
+  it("evaluates doc/workbook/env/host bindings and standard helpers through the validation pipeline", async () => {
     const host = await newHost();
     const profile = host.profiles.getRaw("test:demo");
 
@@ -248,8 +248,8 @@ describe("expression runtime Tier-A and Tier-B surface", () => {
       level: "error",
       expression:
         'doc.type_id == "test:section" && ' +
-        'project.id == "p" && ' +
-        'project.profile_id == "test:demo" && ' +
+        'workbook.id == "p" && ' +
+        'workbook.profile_id == "test:demo" && ' +
         // helper-set 1.0.0 → 1.1.0: graph.exists / graph.target_exists.
         // helper-set 1.1.0 → 1.2.0: fn.section_of (SPEC-SECTIONS-TREE v0.2 §6.4).
         'host.helper_set_version == "1.2.0" && ' +
@@ -324,20 +324,20 @@ describe("expression runtime Tier-A and Tier-B surface", () => {
 
   it("supports full fn.sortBy key expressions, not just path lookups", async () => {
     const host = await newHost();
-    await seedProject(host, "sort-project", [
+    await seedProject(host, "sort-workbook", [
       { id: "section:b", type_id: "test:section", field_values: { title: "Zulu" } },
       { id: "section:a", type_id: "test:section", field_values: { title: "alpha" } },
     ]);
     expect(
       host.expr.evaluateValidationCEL(
-        'fn.sortBy(project.primitives, item, fn.lower(item.fields.title))[0].id == "section:a"',
+        'fn.sortBy(workbook.primitives, item, fn.lower(item.fields.title))[0].id == "section:a"',
         INSTANCE,
         TYPE,
         PROFILE,
         [],
         "rule:sort-by",
         {
-          project: host.store.getProject("sort-project"),
+          workbook: host.store.getProject("sort-workbook"),
           projectFingerprint: "fp:test",
         },
       ),

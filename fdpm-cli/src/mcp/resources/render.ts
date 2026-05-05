@@ -1,13 +1,13 @@
 /**
- * `fdpm://project/{project_id}/render/{target}` — render resources.
+ * `fdpm://workbook/{workbook_id}/render/{target}` — render resources.
  *
- * Each (project, registered renderer target) pair is a resource. The
+ * Each (workbook, registered renderer target) pair is a resource. The
  * provider walks `host.listProjects()` × `host.plugins.listRenderers()`
  * to enumerate. `read` invokes `host.plugins.runRenderer` against the
- * project's current state (with a SPEC-REPL §10.2 lenient tail-replay
+ * workbook's current state (with a SPEC-REPL §10.2 lenient tail-replay
  * first to pick up any out-of-band writes — render is read-only).
  *
- * URI parser: `fdpm://project/<id>/render/<target>` where `<target>`
+ * URI parser: `fdpm://workbook/<id>/render/<target>` where `<target>`
  * may itself contain a `/` (most renderer targets are MIME types like
  * `text/markdown`). The split point is the literal `/render/` segment
  * — anything after is treated as one opaque target string. No URL-
@@ -34,7 +34,7 @@ const URI_SCHEME = "fdpm://";
 const RENDER_SEGMENT = "/render/";
 
 export interface RenderUriMatch {
-  projectId: string;
+  workbookId: string;
   target: string;
   /** Optional disambiguator when multiple renderers share `target`. */
   rendererId?: string;
@@ -42,8 +42,8 @@ export interface RenderUriMatch {
 
 /**
  * Parse a render URI. Returns `null` if the URI doesn't match the
- * `fdpm://project/<id>/render/<target>[#<renderer_id>]` pattern;
- * throws nothing (validation of {project_id, target, rendererId}
+ * `fdpm://workbook/<id>/render/<target>[#<renderer_id>]` pattern;
+ * throws nothing (validation of {workbook_id, target, rendererId}
  * existence happens in `read`).
  *
  * The optional `#<renderer_id>` fragment disambiguates when more
@@ -55,21 +55,21 @@ export interface RenderUriMatch {
 export function parseRenderUri(uri: string): RenderUriMatch | null {
   if (!uri.startsWith(URI_SCHEME)) return null;
   const rest = uri.slice(URI_SCHEME.length);
-  if (!rest.startsWith("project/")) return null;
-  const afterProjectKeyword = rest.slice("project/".length);
+  if (!rest.startsWith("workbook/")) return null;
+  const afterProjectKeyword = rest.slice("workbook/".length);
   const renderIdx = afterProjectKeyword.indexOf(RENDER_SEGMENT);
   if (renderIdx <= 0) return null;
-  const projectId = afterProjectKeyword.slice(0, renderIdx);
+  const workbookId = afterProjectKeyword.slice(0, renderIdx);
   const tail = afterProjectKeyword.slice(renderIdx + RENDER_SEGMENT.length);
-  if (projectId.length === 0 || tail.length === 0) return null;
+  if (workbookId.length === 0 || tail.length === 0) return null;
   // Fragment split: `text/markdown#spec:SpecMarkdownRenderer`
   // → { target: "text/markdown", rendererId: "spec:SpecMarkdownRenderer" }.
   const hashIdx = tail.indexOf("#");
-  if (hashIdx === -1) return { projectId, target: tail };
+  if (hashIdx === -1) return { workbookId, target: tail };
   const target = tail.slice(0, hashIdx);
   const rendererId = tail.slice(hashIdx + 1);
   if (target.length === 0) return null;
-  const out: RenderUriMatch = { projectId, target };
+  const out: RenderUriMatch = { workbookId, target };
   if (rendererId.length > 0) out.rendererId = rendererId;
   return out;
 }
@@ -82,11 +82,11 @@ export function parseRenderUri(uri: string): RenderUriMatch | null {
  * shape automatically.
  */
 export function buildRenderUri(
-  projectId: string,
+  workbookId: string,
   target: string,
   rendererId: string = "",
 ): string {
-  const base = `${URI_SCHEME}project/${projectId}${RENDER_SEGMENT}${target}`;
+  const base = `${URI_SCHEME}workbook/${workbookId}${RENDER_SEGMENT}${target}`;
   return rendererId.length > 0 ? `${base}#${rendererId}` : base;
 }
 
@@ -96,37 +96,37 @@ export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
   templates(_host: Host): readonly ResourceTemplateEntry[] {
     return [
       {
-        uriTemplate: `${URI_SCHEME}project/{project_id}/render/{target}`,
-        name: "Project render",
+        uriTemplate: `${URI_SCHEME}workbook/{workbook_id}/render/{target}`,
+        name: "Workbook render",
         description:
-          "Render a project through a registered renderer. `target` is the MIME type or symbolic id the renderer was registered under (e.g. `text/markdown`, `text/html`, `application/pdf`). Read-only; the freshness gate runs a SPEC-REPL §10.2 lenient tail-replay before invoking the renderer.",
+          "Render a workbook through a registered renderer. `target` is the MIME type or symbolic id the renderer was registered under (e.g. `text/markdown`, `text/html`, `application/pdf`). Read-only; the freshness gate runs a SPEC-REPL §10.2 lenient tail-replay before invoking the renderer.",
         mimeType: undefined,
       },
     ];
   },
 
   enumerate(host: Host): readonly ResourceEntry[] {
-    const projects = host.listProjects();
+    const workbooks = host.listProjects();
     const renderers = host.plugins.listRenderers();
     // Count renderers per target so we can emit the fragment-
     // disambiguated URI only when needed (single-renderer targets
-    // keep the pretty `fdpm://project/{id}/render/{target}` form).
+    // keep the pretty `fdpm://workbook/{id}/render/{target}` form).
     const targetCounts = new Map<string, number>();
     for (const r of renderers) {
       targetCounts.set(r.target, (targetCounts.get(r.target) ?? 0) + 1);
     }
     const out: ResourceEntry[] = [];
-    for (const project of projects) {
+    for (const workbook of workbooks) {
       for (const r of renderers) {
         const ambiguous = (targetCounts.get(r.target) ?? 0) > 1;
         out.push({
           uri: ambiguous
-            ? buildRenderUri(project.id, r.target, r.rendererId)
-            : buildRenderUri(project.id, r.target),
+            ? buildRenderUri(workbook.id, r.target, r.rendererId)
+            : buildRenderUri(workbook.id, r.target),
           name: ambiguous
-            ? `${project.id} → ${r.target} (${r.rendererId})`
-            : `${project.id} → ${r.target}`,
-          description: `${r.rendererId} (plugin ${r.pluginId}) rendering of project ${project.id}`,
+            ? `${workbook.id} → ${r.target} (${r.rendererId})`
+            : `${workbook.id} → ${r.target}`,
+          description: `${r.rendererId} (plugin ${r.pluginId}) rendering of workbook ${workbook.id}`,
           mimeType: r.target,
           // size omitted: we'd have to render to know it. Cheap to
           // omit; the client knows it'll get the bytes on read.
@@ -146,12 +146,12 @@ export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
     // path is correct (no `staleStateException`); a `host_compat`
     // throw from `reloadProjectTail` (truncated/rewritten log) is
     // surfaced verbatim — it's a real operator error.
-    await host.reloadProjectTail(matched.projectId);
+    await host.reloadProjectTail(matched.workbookId);
 
-    // Verify the project exists. Host.getProject throws not_found
+    // Verify the workbook exists. Host.getProject throws not_found
     // with a structured envelope — let it propagate.
-    const slice = host.getProject(matched.projectId);
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const slice = host.getProject(matched.workbookId);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
 
     // Verify the renderer is registered before invoking. Pass the
     // optional `rendererId` so a fragment-disambiguated URI selects
@@ -163,7 +163,7 @@ export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
         `renderer not found: ${matched.target}`,
         {
           evidence: {
-            project_id: matched.projectId,
+            workbook_id: matched.workbookId,
             target: matched.target,
             ...(matched.rendererId !== undefined && {
               renderer_id: matched.rendererId,
@@ -179,8 +179,8 @@ export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
     const result = await host.plugins.runRenderer(
       matched.target,
       {
-        projectId: matched.projectId,
-        project: slice.project,
+        workbookId: matched.workbookId,
+        workbook: slice.workbook,
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         templates: Object.values(slice.templates),
@@ -190,7 +190,7 @@ export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
     );
 
     const uri = buildRenderUri(
-      matched.projectId,
+      matched.workbookId,
       matched.target,
       matched.rendererId ?? "",
     );

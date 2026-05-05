@@ -73,7 +73,7 @@ This work is subject to the methodological caveats and commitments described in 
 
 ### 1.1 What this document defines
 
-This SPEC defines **Workspace** — a first-class primitive that represents the named, identified container for FDPM project state. The unit of backup, restore, and (in Phase 3+ of the R2 remote-server roadmap) addressing.
+This SPEC defines **Workspace** — a first-class primitive that represents the named, identified container for FDPM workbook state. The unit of backup, restore, and (in Phase 3+ of the R2 remote-server roadmap) addressing.
 
 Today, FDPM binds the data directory to `Host` via `FDPM_DATA_DIR` (a path with no identity). This SPEC lifts the data directory to a typed primitive: it has a stable id (ULID), a friendly name, provenance metadata, and an interface boundary that future implementations (`RemoteWorkspace` against `fdpm-server`) will plug into without breaking existing consumers.
 
@@ -87,14 +87,14 @@ Three concrete things the operator gets in v0.1:
 - **A wire protocol or remote-server implementation.** The interface defined here MUST be implementable by a future `RemoteWorkspace`, but Phase 3+ of the R2 roadmap is where that implementation lands.
 - **An architectural inversion.** `Host` continues to own the in-memory `Store`, `ProfileRegistry`, `PluginRuntime`. A future SPEC-WORKSPACE-AS-PRIMARY may invert that ownership; this SPEC explicitly defers the question (ADR-WS-001 Option C).
 - **Cryptographic identity.** workspace.json is operator-writable; sha256 in the backup manifest catches accidents and bit-rot. Adversarial substitution requires Phase 4 of the R2 roadmap.
-- **The workbook rename.** When `project → workbook` ships, workspace.json may grow a `vocab_version` field; this SPEC does NOT pre-decide that question.
+- **The workbook rename.** When `workbook → workbook` ships, workspace.json may grow a `vocab_version` field; this SPEC does NOT pre-decide that question.
 - **Incremental backup, encryption, cross-workspace queries.** All explicitly deferred to v0.2 or later (see §27).
 
 ### 1.3 Why now
 
 Three converging signals:
 
-1. **No verifiable backup story.** Operators have `fdpm transfer export` (per-project, JSON-only) and `cp -r` (no manifest, no verification). Neither answers 'I have a verified backup of this workspace.'
+1. **No verifiable backup story.** Operators have `fdpm transfer export` (per-workbook, JSON-only) and `cp -r` (no manifest, no verification). Neither answers 'I have a verified backup of this workspace.'
 2. **Remote workspaces are on the roadmap.** R2 (server protocol) is the chosen direction. The interface boundary defined here is what Phase 3 plugs into.
 3. **Identity for agents.** When an LLM agent is told 'work on workspace X,' there is currently no way for the agent to verify it's working on the right one. workspace.json + the registry give that answer.
 
@@ -159,7 +159,7 @@ Each principle is testable; the renderer enumerates them in declared order. Prin
 | **Registry** | A per-operator JSON file (default `${XDG_STATE_HOME:-~/.local/state}/fdpm/workspaces.json`) that maps friendly workspace names to their `(workspace_id, path, last_used)` tuples and tracks the `current` workspace. |
 | **Remote workspace** | A workspace whose state lives on a remote `fdpm-server`. NOT implemented in v0.1; reserved as a future interface implementation. The interface defined by this SPEC MUST be sufficient for a future `RemoteWorkspace` without breaking the local one. |
 | **Restore** | The inverse of backup: read a `.fdpmbak`, verify the manifest's sha256s and the in-zip CRC32s, atomically write the data directory, run `Host.load()` against the restored state to prove replayability. _(also: restore operation)_ |
-| **Workspace** | A named, identified container for FDPM project state. The unit of backup, restore, and (in Phase 3+) addressing. Today implemented as `LocalWorkspace` over a filesystem path; future implementations may include `RemoteWorkspace` over an HTTP/gRPC protocol. _(also: data dir, workspace)_ |
+| **Workspace** | A named, identified container for FDPM workbook state. The unit of backup, restore, and (in Phase 3+) addressing. Today implemented as `LocalWorkspace` over a filesystem path; future implementations may include `RemoteWorkspace` over an HTTP/gRPC protocol. _(also: data dir, workspace)_ |
 | **Workspace identity** | The (`workspace_id`, `name`, `created_at`, `created_by_host_version`, `spec_core_version`) tuple stamped at workspace `init` and persisted as `workspace.json` inside the data directory. The `workspace_id` is a ULID, stable across path moves and restores. |
 | **Workspace switch** | An operator action that changes the `current` workspace in the registry. Per-process the switch is invisible (each `fdpm` invocation reads the registry at startup); concurrent processes only see the change after their next startup. |
 
@@ -247,7 +247,7 @@ Define `Workspace` as a TypeScript interface (or abstract class) in `fdpm-cli/sr
 - If Phase 3+ discovers the v0.1 interface lacks affordances RemoteWorkspace needs (e.g., explicit transaction boundaries, batch reads with continuation tokens), revisit and extend the interface — but the *existence* of the interface stays correct.
 - If three or more independent Workspace implementations land, consider promoting to a separate SPEC-WORKSPACE-INTERFACE document.
 
-#### ADR-WS-002 — workspace.json shape — identity + provenance, no project list.
+#### ADR-WS-002 — workspace.json shape — identity + provenance, no workbook list.
 
 - **Status:** proposed
 - **Date:** 2026-05-05
@@ -258,13 +258,13 @@ Every workspace needs a self-describing identity file. The file has to: (a) surv
 
 ##### Options considered
 
-###### Option A — workspace.json carries identity + provenance + tags; project list derived from filesystem _(chosen)_
+###### Option A — workspace.json carries identity + provenance + tags; workbook list derived from filesystem _(chosen)_
 
-workspace.json fields: spec_workspace, id (ULID), name, created_at, created_by_host_version, spec_core_version, description, tags. Project list is NOT in workspace.json; computed from `${path}/projects/*/log.jsonl` on demand.
+workspace.json fields: spec_workspace, id (ULID), name, created_at, created_by_host_version, spec_core_version, description, tags. Workbook list is NOT in workspace.json; computed from `${path}/workbooks/*/log.jsonl` on demand.
 
 - Pros:
   - Identity is fully self-contained: a workspace's id, name, and provenance travel with the file.
-  - Project list never goes stale (it's the filesystem itself).
+  - Workbook list never goes stale (it's the filesystem itself).
   - Operator-meaningful fields (description, tags) enable later querying without schema changes.
 - Cons:
   - workspace.json is hand-editable — operators can break it. Mitigated by validation on load.
@@ -282,22 +282,22 @@ Strip workspace.json to the absolute minimum: spec_workspace, id, name. Everythi
   - Loses operator metadata (description, tags). Operators end up storing this somewhere else (README in the data dir, external sheet) — guaranteed to drift.
 - Rejection reason: The minimum is too minimal. Provenance is load-bearing for restore-across-versions; tags/description are cheap to add now and expensive to add later (every existing workspace.json would need migration).
 
-###### Option C — workspace.json includes a denormalized project list _(rejected)_
+###### Option C — workspace.json includes a denormalized workbook list _(rejected)_
 
-In addition to identity/provenance, workspace.json carries a `projects` array with each project's id, name, profile_id, last_modified.
+In addition to identity/provenance, workspace.json carries a `workbooks` array with each workbook's id, name, profile_id, last_modified.
 
 - Pros:
   - `fdpm workspace info` doesn't need a filesystem walk.
-  - Backup/restore can trivially diff project sets between bundle and target.
+  - Backup/restore can trivially diff workbook sets between bundle and target.
 - Cons:
-  - Denormalization invites drift: every project create/delete/rename would need to update workspace.json. Forget once and the workspace's project list lies.
+  - Denormalization invites drift: every workbook create/delete/rename would need to update workspace.json. Forget once and the workspace's workbook list lies.
   - Filesystem is already authoritative; duplicating the list adds a sync bug.
-  - The `projects` list would also have to be migrated if/when the workbook rename lands.
+  - The `workbooks` list would also have to be migrated if/when the workbook rename lands.
 - Rejection reason: Filesystem is the source of truth; denormalizing creates a sync bug. The workspace info command can do a filesystem walk in milliseconds; that's not a bottleneck worth introducing a consistency hazard for.
 
 ##### Decision
 
-workspace.json is a JSON file at `${data_dir}/workspace.json` with fields: `spec_workspace` (this SPEC's version), `id` (ULID, immutable), `name` (operator-chosen, mutable via `fdpm workspace rename`), `created_at` (ISO-8601), `created_by_host_version` (semver), `spec_core_version`, optional `description` (free text), optional `tags` (string array). The list of projects in the workspace is NOT stored in workspace.json; it is computed from `${data_dir}/projects/*/` on demand.
+workspace.json is a JSON file at `${data_dir}/workspace.json` with fields: `spec_workspace` (this SPEC's version), `id` (ULID, immutable), `name` (operator-chosen, mutable via `fdpm workspace rename`), `created_at` (ISO-8601), `created_by_host_version` (semver), `spec_core_version`, optional `description` (free text), optional `tags` (string array). The list of workbooks in the workspace is NOT stored in workspace.json; it is computed from `${data_dir}/workbooks/*/` on demand.
 
 ##### Consequences
 
@@ -316,7 +316,7 @@ workspace.json is a JSON file at `${data_dir}/workspace.json` with fields: `spec
 ##### Signals to revisit
 
 - If operators routinely add metadata that doesn't fit `description` or `tags`, consider adding a typed `metadata: Record<string, unknown>` escape hatch.
-- If the workbook rename lands and changes how projects are named, workspace.json may grow a `vocab_version` field at that time.
+- If the workbook rename lands and changes how workbooks are named, workspace.json may grow a `vocab_version` field at that time.
 
 #### ADR-WS-003 — Operator-local registry at the XDG state-data path.
 
@@ -442,7 +442,7 @@ Length-prefixed framing with per-file `(path, sha256, size, content)` records, o
 
 ##### Decision
 
-`.fdpmbak` is a zip archive. Root entry: `backup-manifest.json` (lives at offset 0 by exporter convention so `head -c 64K` can recover it). Data tree: `data/manifest.json`, `data/profiles/`, `data/projects/`. `backup-manifest.json` carries: spec_backup version, fdpm_host_version, spec_core_version, created_at, the workspace's identity (id, name, created_at, created_by_host_version), per-file sha256, exit_status. Compression: `deflate` for text/json, `store` for already-compressed.
+`.fdpmbak` is a zip archive. Root entry: `backup-manifest.json` (lives at offset 0 by exporter convention so `head -c 64K` can recover it). Data tree: `data/manifest.json`, `data/profiles/`, `data/workbooks/`. `backup-manifest.json` carries: spec_backup version, fdpm_host_version, spec_core_version, created_at, the workspace's identity (id, name, created_at, created_by_host_version), per-file sha256, exit_status. Compression: `deflate` for text/json, `store` for already-compressed.
 
 ##### Consequences
 
@@ -595,10 +595,10 @@ Options scored across the axes that drove each ADR.
 
 ### Trade-off matrix — ADR-WS-002
 
-| Axis | Option A — workspace.json carries identity + provenance + tags; project list derived from filesystem | Option B — workspace.json carries only id + name | Option C — workspace.json includes a denormalized project list |
+| Axis | Option A — workspace.json carries identity + provenance + tags; workbook list derived from filesystem | Option B — workspace.json carries only id + name | Option C — workspace.json includes a denormalized workbook list |
 | --- | --- | --- | --- |
 | Cross-version restore detectability | Yes (provenance present) | No (no provenance) | Yes |
-| Sync-bug risk (workspace.json vs filesystem) | None | None | Real (project list drifts) |
+| Sync-bug risk (workspace.json vs filesystem) | None | None | Real (workbook list drifts) |
 
 ### Trade-off matrix — ADR-WS-003
 
@@ -648,7 +648,7 @@ fdpm workspace forget <name|id>
 
 **`list`** prints every workspace in the registry. Marks the current one. Shows id, name, path, last_used. Output respects `--json`.
 
-**`info`** shows a workspace's identity, path, project count (filesystem walk), last backup timestamp (registry-tracked), health (`Host.load()` succeeded recently?). Defaults to current.
+**`info`** shows a workspace's identity, path, workbook count (filesystem walk), last backup timestamp (registry-tracked), health (`Host.load()` succeeded recently?). Defaults to current.
 
 **`switch`** updates the registry's `current` to point at the named workspace. Persistent across processes. Subsequent `fdpm` invocations operate on the switched-to workspace.
 
@@ -660,7 +660,7 @@ fdpm workspace forget <name|id>
 
 ```
 fdpm workspace backup [-o <file>] [--include-mcp-audit]
-                      [--exclude-project <id>...] [--compression-level <0-9>]
+                      [--exclude-workbook <id>...] [--compression-level <0-9>]
                       [--force] [--json]
 
 fdpm workspace restore <file> [--data-dir <dir>] [--name <new>]
@@ -670,7 +670,7 @@ fdpm workspace restore <file> [--data-dir <dir>] [--name <new>]
 fdpm workspace verify [<name|id>]
 ```
 
-**`backup`** writes a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. By default includes every project, every profile, the workspace manifest, and (if it exists) the MCP audit log. `--exclude-project <id>` skips listed projects. `--compression-level` controls deflate; `0` = store-only.
+**`backup`** writes a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. By default includes every workbook, every profile, the workspace manifest, and (if it exists) the MCP audit log. `--exclude-workbook <id>` skips listed workbooks. `--compression-level` controls deflate; `0` = store-only.
 
 **`restore`** is the inverse. `--data-dir <dir>` selects the target (default: current workspace's path). On identity collision: refuses unless `--force-overwrite` (replaces the existing workspace) or `--name <new>` (clones with a fresh id). `--dry-run` reports what would happen without writing. `--skip-verify` skips the post-restore Host.load() round-trip (use only when you've already verified externally).
 
@@ -700,11 +700,11 @@ An existing data dir with no `workspace.json` triggers **auto-mint** on `Host.lo
 Workspace inherits SPEC-REPL §10's freshness model wholesale. The workspace surface adds no new concurrency primitives:
 
 - **Single Host per workspace per process.** A long-lived process (REPL, MCP server) is bound to one workspace. Switching requires a new process or `Host.reload()` against the same workspace.
-- **Cross-process concurrency** on the same workspace is governed by SPEC-REPL §10's per-project freshness gate. Two processes writing to the same project's log race at the JSONL append level (covered by OS file locking) and detect each other on the next freshness check.
+- **Cross-process concurrency** on the same workspace is governed by SPEC-REPL §10's per-workbook freshness gate. Two processes writing to the same workbook's log race at the JSONL append level (covered by OS file locking) and detect each other on the next freshness check.
 - **Registry concurrency**: two `fdpm workspace switch` calls racing on the same operator can clobber each other's writes. Acceptable for v0.1; the registry uses the same temp-write + atomic-rename pattern as restore so corruption is impossible, but one switch may be lost.
 
 What's explicitly not designed:
-- No workspace-level lock. Two processes operating on the same workspace are subject only to per-project freshness, not to a workspace-wide mutex.
+- No workspace-level lock. Two processes operating on the same workspace are subject only to per-workbook freshness, not to a workspace-wide mutex.
 - No cross-workspace transactions. Each `fdpm` invocation operates on exactly one workspace; multi-workspace operations (future work) would need their own design.
 
 ---
@@ -736,16 +736,16 @@ interface Workspace {
   /** PluginRuntime the Host operates on. */
   getPluginRuntime(): PluginRuntime;
 
-  /** Append an operation to a project's log. Persists. */
-  appendOp(project_id: string, op: Operation): Promise<void>;
+  /** Append an operation to a workbook's log. Persists. */
+  appendOp(workbook_id: string, op: Operation): Promise<void>;
 
-  /** Read a project's full operation log. */
-  getOperationLog(project_id: string): Promise<Operation[]>;
+  /** Read a workbook's full operation log. */
+  getOperationLog(workbook_id: string): Promise<Operation[]>;
 
   /** SPEC-REPL §10.2 freshness check. Cheap; per-call. */
-  statProjectLog(project_id: string): { mtime_ns: bigint; size: bigint } | null;
+  statProjectLog(workbook_id: string): { mtime_ns: bigint; size: bigint } | null;
 
-  /** Project ids known to this workspace. */
+  /** Workbook ids known to this workspace. */
   listProjects(): string[];
 
   /** Backup the workspace to a destination. Implementation-defined format. */
@@ -854,8 +854,8 @@ bundle.fdpmbak (zip)
     ├── manifest.json        (legacy spec_core data-dir manifest)
     ├── profiles/
     │   └── *.json
-    └── projects/
-        └── <project-id>/
+    └── workbooks/
+        └── <workbook-id>/
             └── log.jsonl
 ```
 
@@ -881,13 +881,13 @@ bundle.fdpmbak (zip)
       "content_type": "application/json"
     },
     {
-      "path": "data/projects/spec-core/log.jsonl",
+      "path": "data/workbooks/spec-core/log.jsonl",
       "sha256": "def456...",
       "bytes": 248910,
       "content_type": "application/jsonl"
     }
   ],
-  "projects": [
+  "workbooks": [
     { "id": "spec-core", "log_size": 248910, "log_sha256": "def456..." }
   ],
   "profiles": [
@@ -969,7 +969,7 @@ A workspace's full lifecycle:
 [Stimulus]          Operator backs up a non-empty workspace, deletes the data dir, restores from the bundle.
 [Environment]       Local filesystem with atomic-rename support; same fs for source and target.
 [Artifact]          LocalWorkspace, BackupBundle, RestorePipeline.
-[Response]          After restore, the data dir is bit-equivalent to its pre-deletion state (modulo workspace.json's _restoredAt marker if the operator opts into recording it). `Host.load()` succeeds. `fdpm validate` on every project produces the same findings as before the backup.
+[Response]          After restore, the data dir is bit-equivalent to its pre-deletion state (modulo workspace.json's _restoredAt marker if the operator opts into recording it). `Host.load()` succeeds. `fdpm validate` on every workbook produces the same findings as before the backup.
 [Response measure]  100% file-by-file sha256 equality between pre-backup data dir and post-restore data dir; zero new validation findings post-restore that weren't present pre-backup.
 ```
 
@@ -1045,7 +1045,7 @@ Invariants are the non-negotiable properties the implementation MUST preserve. C
 - [ ] **1.** `Workspace` interface exists in `src/core/workspace/types.ts`. `LocalWorkspace` implements it. `Host` holds `Workspace`, not `JsonlLogStore`. CI grep verifies no consumer outside `src/core/workspace/` imports JsonlLogStore directly. _(open)_
 - [ ] **2.** An existing data dir without workspace.json triggers auto-mint on next `fdpm` invocation. workspace.json is created with a valid ULID and a basename-derived name; registry is updated; one-time warning is emitted on stderr; the operator's command runs normally. _(open)_
 - [ ] **3.** `fdpm workspace backup` produces a valid .fdpmbak zip. `unzip -l` lists `backup-manifest.json` and the data tree. `unzip -p bundle.fdpmbak backup-manifest.json` returns valid JSON without extracting other files. _(open)_
-- [ ] **4.** `fdpm workspace restore <bundle>` to an empty target dir succeeds. Post-restore, `fdpm validate` against every project produces the same findings as the pre-backup state. _(open)_
+- [ ] **4.** `fdpm workspace restore <bundle>` to an empty target dir succeeds. Post-restore, `fdpm validate` against every workbook produces the same findings as the pre-backup state. _(open)_
 - [ ] **5.** Restore detects integrity tampering: corrupting one byte of one entry's content (without updating the manifest sha256) causes restore to refuse with `category=verification` and leaves the target dir unchanged. _(open)_
 - [ ] **6.** Identity-collision test: restore a bundle whose workspace_id matches an existing registry entry, with no flags. Refuse with `category=conflict`, `evidence.reason="workspace_id_collision"`. With `--force-overwrite`, succeed and replace. With `--name <new>`, succeed and mint a new id. _(open)_
 - [ ] **7.** FDPM_DATA_DIR continues to take precedence over FDPM_WORKSPACE and the registry's `current`. Setting both produces a host that operates on the FDPM_DATA_DIR path. _(open)_
@@ -1059,9 +1059,9 @@ Invariants are the non-negotiable properties the implementation MUST preserve. C
 
 - **1. Interface boundary holds** — Run `grep -r 'JsonlLogStore' src/ tests/ plugins/ | grep -v 'src/core/workspace/' | grep -v 'src/persistence/jsonl-log.ts'`. Inspect output.
   - expected: Empty result. The only consumers of JsonlLogStore are LocalWorkspace and the JsonlLogStore module itself.
-- **2. Auto-mint on first touch** — Create a fresh data dir with a project log but no workspace.json. Run `fdpm health readiness` against it.
+- **2. Auto-mint on first touch** — Create a fresh data dir with a workbook log but no workspace.json. Run `fdpm health readiness` against it.
   - expected: workspace.json is created with a valid ULID, the registry gains an entry, a single warning is printed on stderr, and the readiness command succeeds.
-- **3. Backup-restore round-trip on identical data** — Pick a workspace with at least one project. Run `fdpm workspace backup -o /tmp/a.fdpmbak`. Run `fdpm workspace restore /tmp/a.fdpmbak --name restored --data-dir /tmp/restored`. Compare project-by-project: `fdpm validate` against the original and the restored.
+- **3. Backup-restore round-trip on identical data** — Pick a workspace with at least one workbook. Run `fdpm workspace backup -o /tmp/a.fdpmbak`. Run `fdpm workspace restore /tmp/a.fdpmbak --name restored --data-dir /tmp/restored`. Compare workbook-by-workbook: `fdpm validate` against the original and the restored.
   - expected: Identical findings, identical primitive counts, identical relation counts. The restored workspace has a different `name` and `id` (because of `--name`), same data.
 - **4. Tampering detection** — Take a valid bundle; unzip, modify one byte of any data entry, re-zip without updating backup-manifest.json. Run restore.
   - expected: Restore fails with `FDPMException(category=verification, evidence.reason="sha256_mismatch", evidence.path=<modified file>)`. Target dir unchanged.
@@ -1144,7 +1144,7 @@ Seven risks identified. The most consequential (RSK-WRONG-INTERFACE) is mitigate
 | **Cross-filesystem rename undetected** — If the implementation doesn't detect cross-fs rename, the rename silently degrades to copy-then-delete which is not atomic. | Restore uses `fs.statSync` to compare device numbers between temp dir parent and target dir. On mismatch, refuse with a clear error pointing at the workaround (--data-dir <same-fs-path>) before any write happens. |
 | **Host refactor breaks plugin call sites** — The audit of `host.store.X` consumers misses a call site; a plugin that worked yesterday breaks after the workspace refactor. | CI grep for `host.store`, `host.profiles`, `host.plugins`, `host.persistence` across plugins/. Every call site enumerated; failing to delegate correctly fails the test suite. Extra: a sample plugin operation (createPrimitive on a fixture) runs in tests as the canary. |
 | **Concurrent fdpm processes corrupt the registry** — Two concurrent `fdpm workspace switch` calls race; the second's write overwrites the first; one switch is lost. Registry has no file lock today. | Registry writes use the same write-temp + atomic-rename pattern as restore. Concurrent writes lose one update but never corrupt the file. Acceptable for v0.1 (operator-local, low contention). |
-| **Multi-GiB workspaces produce backups too large to handle** — A workspace with years of operation logs or a project carrying large binary assets produces a >1 GiB backup. archiver buffers the central directory in memory; very large bundles may OOM. | Backup surfaces a warning when source data dir exceeds 500 MiB. `--exclude-project` and `--compression-level 9` are documented escapes. Streaming backup format reserved for v0.2 if this becomes a real bottleneck. |
+| **Multi-GiB workspaces produce backups too large to handle** — A workspace with years of operation logs or a workbook carrying large binary assets produces a >1 GiB backup. archiver buffers the central directory in memory; very large bundles may OOM. | Backup surfaces a warning when source data dir exceeds 500 MiB. `--exclude-workbook` and `--compression-level 9` are documented escapes. Streaming backup format reserved for v0.2 if this becomes a real bottleneck. |
 | **Operator over-trusts workspace.json identity** — An operator assumes workspace.json proves identity and uses it as a security primitive (e.g., 'this is definitely the prod workspace, I can run destructive commands'). workspace.json is filesystem-trust only; an attacker with write access can forge identity. | Documentation explicitly states workspace.json is NOT cryptographically signed. PALS-banner extension on this SPEC notes the trust posture. Operators wanting cryptographic identity can layer their own GPG/cosign on the .fdpmbak; in-band signing is reserved for Phase 4 of the R2 roadmap. |
 
 ---
@@ -1153,12 +1153,12 @@ Seven risks identified. The most consequential (RSK-WRONG-INTERFACE) is mitigate
 
 Five open questions, all with default resolutions. None blocking.
 
-- **Q1.** When the workbook rename ships (project → workbook), should workspace.json grow a vocab_version field to discriminate between vocabulary generations?
-  - default: No — until the workbook rename is designed, adding the field guesses at the answer. workspace.json stays free of project/workbook vocabulary in v0.1; the workbook rename's SPEC will decide whether vocab_version is needed.
+- **Q1.** When the workbook rename ships (workbook → workbook), should workspace.json grow a vocab_version field to discriminate between vocabulary generations?
+  - default: No — until the workbook rename is designed, adding the field guesses at the answer. workspace.json stays free of workbook/workbook vocabulary in v0.1; the workbook rename's SPEC will decide whether vocab_version is needed.
 - **Q2.** Should there be a `fdpm workspace delete <name>` that removes both the registry entry AND the data dir (vs. `forget` which removes only the registry entry)?
   - default: Not in v0.1. Deletion of an entire data dir is destructive enough to warrant a separate operator-confirmed step. Operators can `rm -rf` after `forget` if they really want both. Revisit if the missing command becomes a recurring complaint.
 - **Q3.** Should backup support `--since <timestamp|revision>` to ship only operations after a baseline?
-  - default: Not in v0.1. The operation log is already append-only — incremental backup is just `tail -c +<offset>` on each project log. Add when the use case is concrete; speculatively designing incremental backup risks the wrong format.
+  - default: Not in v0.1. The operation log is already append-only — incremental backup is just `tail -c +<offset>` on each workbook log. Add when the use case is concrete; speculatively designing incremental backup risks the wrong format.
 - **Q4.** Should `fdpm workspace backup --encrypt` integrate with age/GPG/cosign?
   - default: Not in v0.1. Operators can pipe through their crypto tool of choice (`fdpm workspace backup -o - | age -r ... > bundle.fdpmbak.age`). In-band encryption introduces key-management questions that don't belong in v0.1's scope.
 - **Q5.** When auto-minting, should the default name be `basename(path)` or something more obviously-temporary (e.g., `auto-<short-ulid>`)?
@@ -1173,7 +1173,7 @@ Six items deferred. RemoteWorkspace (R2 Phase 3+) is the load-bearing future com
 - **RemoteWorkspace implementation against fdpm-server** — Phase 3 of the R2 roadmap. New `RemoteWorkspace` class implementing the v0.1 interface against the fdpm-server protocol. Same Host can switch between LocalWorkspace and RemoteWorkspace transparently.
 - **Cryptographic identity (GPG/cosign signed workspace.json + manifest)** — Phase 4 of the R2 roadmap. workspace.json grows an `signature` field; backup-manifest.json grows an `signature` field. Restore can verify against a known public key. Out of scope for v0.1.
 - **Incremental backup** — `--since <revision>` to ship only operations after a baseline. Restore would compose: full bundle + zero-or-more incrementals. Worth designing when there's a real use case (large workspaces with frequent backup cadence).
-- **Cross-workspace queries** — `fdpm workspace exec --all <subcommand>` to run a command across every registered workspace. Useful for fleet-wide reads (`fdpm workspace exec --all project list`). Designed in v0.2 once workspace usage patterns are clearer.
+- **Cross-workspace queries** — `fdpm workspace exec --all <subcommand>` to run a command across every registered workspace. Useful for fleet-wide reads (`fdpm workspace exec --all workbook list`). Designed in v0.2 once workspace usage patterns are clearer.
 - **Workspace as MCP resource family** — Add `fdpm://workspace/<name>` resource family to fdpm-mcp's resources surface (slice 2). resources/list shows registered workspaces; resources/read returns workspace info as JSON. Subscriptions notify when the registry changes.
 - **Coordinate with the workbook rename** — When SPEC-WORKBOOK-RENAME ships, decide whether workspace.json grows a vocab_version field or whether the rename is purely surface-level. Tracked in spec:q:workbook-rename-interaction.
 
@@ -1190,11 +1190,11 @@ Environment variables / flags governing the workspace surface. Inherits FDPM_DAT
 | `FDPM_REGISTRY_PATH` | ${XDG_STATE_HOME:-~/.local/state}/fdpm/workspaces.json | Override the registry file location. Useful for non-XDG environments or CI. |
 | `fdpm workspace init [--name N] [--path P] [--description D]` | — | Mint a fresh workspace at --path (default: cwd or FDPM_DATA_DIR). Creates workspace.json, registers in the registry, prints the new workspace_id. |
 | `fdpm workspace list [--json]` | — | Print every workspace in the registry. Marks the current one. Shows id, name, path, last_used. |
-| `fdpm workspace info [<name\|id>] [--json]` | — | Show a workspace's identity, path, project count, last backup timestamp, health status. Defaults to the current workspace. |
+| `fdpm workspace info [<name\|id>] [--json]` | — | Show a workspace's identity, path, workbook count, last backup timestamp, health status. Defaults to the current workspace. |
 | `fdpm workspace switch <name\|id>` | — | Change the registry's `current` to point at the named workspace. Persistent across processes (no env var needed). Subsequent fdpm invocations operate on the switched-to workspace. |
 | `fdpm workspace rename <old> <new>` | — | Change a workspace's friendly name. Updates workspace.json AND the registry. Clears the `_minted: true` marker if present. |
 | `fdpm workspace forget <name\|id>` | — | Remove a workspace from the registry without deleting the data dir. Symmetric counterpart to `init` for cleaning up the registry. The data dir remains; running fdpm against it would auto-mint a new identity. |
-| `fdpm workspace backup [-o <file.fdpmbak>] [--include-mcp-audit] [--exclude-project <id>...] [--compression-level N] [--force]` | — | Write the current workspace as a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. Inclusion defaults: every project, every profile, the manifest, the MCP audit log if it exists. |
+| `fdpm workspace backup [-o <file.fdpmbak>] [--include-mcp-audit] [--exclude-workbook <id>...] [--compression-level N] [--force]` | — | Write the current workspace as a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. Inclusion defaults: every workbook, every profile, the manifest, the MCP audit log if it exists. |
 | `fdpm workspace restore <file.fdpmbak> [--data-dir <dir>] [--name <new>] [--force-overwrite] [--dry-run] [--skip-verify]` | — | Restore a bundle to a target data dir (default: current workspace's path). Refuses on identity collision unless --force-overwrite or --name <new>. Atomic; verifies all sha256s before writing; runs Host.load() to prove replayability unless --skip-verify. |
 | `fdpm workspace verify [<name\|id>]` | — | Run Host.load() against a workspace's data dir without dispatching any commands. Health-checks replayability. Useful after a restore or a suspected disk corruption event. |
 
@@ -1217,7 +1217,7 @@ Workspace surfaces issues using the existing FDPMException taxonomy.
 ## 30. References
 
 - archiver — Node zip writer for the .fdpmbak format. https://github.com/archiverjs/node-archiver (https://github.com/archiverjs/node-archiver) _[unverified]_ — Cited as the chosen zip writer in ADR-WS-004. MIT licensed; ~3 MB transitive deps; no native build step. Mature (10+ year history).
-- CLAUDE.md — process and standards (PALS-LAW). (CLAUDE.md) _[self_evident]_ — Project guidelines that govern this SPEC's PALS-banner extension. Workspace identity is a *claim* (operator-writable filesystem state), not a *proof* — exactly the kind of unverified-by-default surface PALS-LAW addresses.
+- CLAUDE.md — process and standards (PALS-LAW). (CLAUDE.md) _[self_evident]_ — Workbook guidelines that govern this SPEC's PALS-banner extension. Workspace identity is a *claim* (operator-writable filesystem state), not a *proof* — exactly the kind of unverified-by-default surface PALS-LAW addresses.
 - Host class — refactor target for the workspace abstraction seam. (fdpm-cli/src/core/host.ts) _[verified]_ — Read at SPEC-authoring time. `host.store`, `host.profiles`, `host.plugins`, `host.persistence` are the surface that gets re-routed through Workspace.
 - JsonlLogStore — wrapped by LocalWorkspace. (fdpm-cli/src/persistence/jsonl-log.ts) _[verified]_ — Read at SPEC-authoring time. The local persistence layer LocalWorkspace owns. After this SPEC, only LocalWorkspace and the JsonlLogStore module itself import this class.
 - SPEC-CORE — operation-log invariants the workspace surface preserves. (docs/specs/SPEC-CORE.md) _[verified]_ — Read at SPEC-authoring time. §5.5 (replay determinism) and §6 (Store contract) are the invariants the workspace MUST preserve through the LocalWorkspace implementation.

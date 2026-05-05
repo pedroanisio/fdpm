@@ -5,10 +5,10 @@ import { z } from "zod";
  * kinds; adding one is a Core SPEC minor bump.
  */
 export const OPERATION_KINDS = [
-  "project.create",
-  "project.delete",
-  "project.split",
-  "project.clone",
+  "workbook.create",
+  "workbook.delete",
+  "workbook.split",
+  "workbook.clone",
   "primitive.create",
   "primitive.replace",
   "primitive.patch",

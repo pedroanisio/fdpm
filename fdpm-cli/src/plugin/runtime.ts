@@ -601,14 +601,14 @@ export class PluginRuntime implements PluginRuntimeFacade {
     let output: RendererOutput;
     let enrichedInput: RendererInput = input;
     try {
-      const slice = this.host.getProject(input.projectId);
+      const slice = this.host.getProject(input.workbookId);
       const docCandidates = Object.values(slice.primitives)
         .filter((primitive) => primitive.type_id === "spec:Document")
         .sort((left, right) => left.id.localeCompare(right.id));
       const defaultDoc = docCandidates[0];
       enrichedInput = {
         ...input,
-        project: slice.project,
+        workbook: slice.workbook,
         templates: Object.values(slice.templates),
         renderDsl: this.host.renderDsl.createFacade({
           slice,

@@ -36,7 +36,7 @@ export const TEST_PROFILE: DomainProfile = {
           validations: [],
         },
       ],
-      id_format: { pattern: "^section:[a-z0-9-]+$", uniqueness: "project" },
+      id_format: { pattern: "^section:[a-z0-9-]+$", uniqueness: "workbook" },
       inline_structs: [],
       is_partition_unit: true,
     },
@@ -45,7 +45,7 @@ export const TEST_PROFILE: DomainProfile = {
       fields: [
         { name: "text", kind: "text", required: true, validations: [] },
       ],
-      id_format: { pattern: "^para:[a-z0-9-]+$", uniqueness: "project" },
+      id_format: { pattern: "^para:[a-z0-9-]+$", uniqueness: "workbook" },
       inline_structs: [],
       is_partition_unit: false,
     },

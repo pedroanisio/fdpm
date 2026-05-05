@@ -2,17 +2,17 @@
  * SPEC-MCP-SERVER resources surface — render provider tests.
  *
  * Slice 1 ships render-as-resource at
- * `fdpm://project/{project_id}/render/{target}`. These tests exercise:
+ * `fdpm://workbook/{workbook_id}/render/{target}`. These tests exercise:
  *
  *   - URI parser (round-trip, mid-target slashes, malformed inputs)
- *   - resources/list shape (one entry per project × renderer target)
+ *   - resources/list shape (one entry per workbook × renderer target)
  *   - resources/templates/list shape (the URI template advertised to clients)
  *   - resources/read for a text/* output (lands in `text`)
  *   - resources/read for a binary output (application/pdf — base64 in `blob`)
  *   - lenient tail-replay path: an out-of-band log append surfaces in
  *     the next read without an error envelope (read-only resources
  *     follow SPEC-REPL §10.2 lenient mode)
- *   - error envelopes: unknown URI, unknown project, unknown target
+ *   - error envelopes: unknown URI, unknown workbook, unknown target
  */
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -53,46 +53,46 @@ const FS_PROFILE = "profile:formal-specification:3.0";
 // ── URI parser ─────────────────────────────────────────────────────
 
 describe("parseRenderUri / buildRenderUri", () => {
-  it("round-trips a simple (project, target) pair", () => {
+  it("round-trips a simple (workbook, target) pair", () => {
     const uri = buildRenderUri("my-proj", "text/markdown");
-    expect(uri).toBe("fdpm://project/my-proj/render/text/markdown");
+    expect(uri).toBe("fdpm://workbook/my-proj/render/text/markdown");
     expect(parseRenderUri(uri)).toEqual({
-      projectId: "my-proj",
+      workbookId: "my-proj",
       target: "text/markdown",
     });
   });
 
   it("accepts mid-target slashes (target may itself contain `/`)", () => {
-    const uri = "fdpm://project/foo/render/application/pdf";
+    const uri = "fdpm://workbook/foo/render/application/pdf";
     expect(parseRenderUri(uri)).toEqual({
-      projectId: "foo",
+      workbookId: "foo",
       target: "application/pdf",
     });
   });
 
   it("returns null on the wrong scheme", () => {
     expect(parseRenderUri("https://example.com/foo")).toBeNull();
-    expect(parseRenderUri("fdpm:project/foo/render/text/markdown")).toBeNull();
+    expect(parseRenderUri("fdpm:workbook/foo/render/text/markdown")).toBeNull();
   });
 
-  it("returns null when the `project/` keyword is missing", () => {
+  it("returns null when the `workbook/` keyword is missing", () => {
     expect(parseRenderUri("fdpm://other/foo/render/text/markdown")).toBeNull();
   });
 
   it("returns null when the `/render/` segment is missing", () => {
-    expect(parseRenderUri("fdpm://project/foo/text/markdown")).toBeNull();
+    expect(parseRenderUri("fdpm://workbook/foo/text/markdown")).toBeNull();
   });
 
-  it("returns null when project_id or target is empty", () => {
-    expect(parseRenderUri("fdpm://project//render/text/markdown")).toBeNull();
-    expect(parseRenderUri("fdpm://project/foo/render/")).toBeNull();
+  it("returns null when workbook_id or target is empty", () => {
+    expect(parseRenderUri("fdpm://workbook//render/text/markdown")).toBeNull();
+    expect(parseRenderUri("fdpm://workbook/foo/render/")).toBeNull();
   });
 
   it("parses an optional `#renderer_id` fragment for disambiguation", () => {
     const uri =
-      "fdpm://project/foo/render/text/markdown#spec:SpecMarkdownRenderer";
+      "fdpm://workbook/foo/render/text/markdown#spec:SpecMarkdownRenderer";
     expect(parseRenderUri(uri)).toEqual({
-      projectId: "foo",
+      workbookId: "foo",
       target: "text/markdown",
       rendererId: "spec:SpecMarkdownRenderer",
     });
@@ -100,18 +100,18 @@ describe("parseRenderUri / buildRenderUri", () => {
 
   it("buildRenderUri emits the fragment when rendererId is provided", () => {
     expect(buildRenderUri("foo", "text/markdown")).toBe(
-      "fdpm://project/foo/render/text/markdown",
+      "fdpm://workbook/foo/render/text/markdown",
     );
     expect(buildRenderUri("foo", "text/markdown", "spec:SpecMarkdownRenderer")).toBe(
-      "fdpm://project/foo/render/text/markdown#spec:SpecMarkdownRenderer",
+      "fdpm://workbook/foo/render/text/markdown#spec:SpecMarkdownRenderer",
     );
   });
 
   it("an empty fragment after `#` parses without rendererId", () => {
     // Defensive: `text/markdown#` is malformed but shouldn't crash;
     // returns the URI with no rendererId.
-    expect(parseRenderUri("fdpm://project/foo/render/text/markdown#")).toEqual({
-      projectId: "foo",
+    expect(parseRenderUri("fdpm://workbook/foo/render/text/markdown#")).toEqual({
+      workbookId: "foo",
       target: "text/markdown",
     });
   });
@@ -121,12 +121,12 @@ describe("listResources collision handling", () => {
   it("emits fragment-disambiguated URIs only when multiple renderers share a target", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "coll-proj",
+      workbook_id: "coll-proj",
       name: "Collision",
       profile_id: FS_PROFILE,
     });
     const resources = listResources(host).filter((r) =>
-      r.uri.includes("/project/coll-proj/"),
+      r.uri.includes("/workbook/coll-proj/"),
     );
 
     // For each target with >1 renderer, every resource entry should
@@ -157,15 +157,15 @@ describe("listResources / listTemplates", () => {
     const renderTpl = tpls.find((t) => t.uriTemplate.includes("/render/"));
     expect(renderTpl).toBeDefined();
     expect(renderTpl!.uriTemplate).toBe(
-      "fdpm://project/{project_id}/render/{target}",
+      "fdpm://workbook/{workbook_id}/render/{target}",
     );
-    expect(renderTpl!.name).toBe("Project render");
+    expect(renderTpl!.name).toBe("Workbook render");
   });
 
-  it("returns one resource entry per (project × renderer target) pair", async () => {
+  it("returns one resource entry per (workbook × renderer target) pair", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "rl-proj",
+      workbook_id: "rl-proj",
       name: "RL",
       profile_id: FS_PROFILE,
     });
@@ -173,24 +173,24 @@ describe("listResources / listTemplates", () => {
     const resources = listResources(host);
     const renderers = host.plugins.listRenderers();
     expect(renderers.length).toBeGreaterThan(0);
-    // For one project, the resource count equals the renderer count.
-    const projectRes = resources.filter((r) => r.uri.includes("/project/rl-proj/"));
+    // For one workbook, the resource count equals the renderer count.
+    const projectRes = resources.filter((r) => r.uri.includes("/workbook/rl-proj/"));
     expect(projectRes.length).toBe(renderers.length);
 
     // Every entry has the canonical URI shape.
     for (const r of projectRes) {
       const parsed = parseRenderUri(r.uri);
-      expect(parsed?.projectId).toBe("rl-proj");
+      expect(parsed?.workbookId).toBe("rl-proj");
       expect(typeof parsed?.target).toBe("string");
       // mimeType matches the target.
       expect(r.mimeType).toBe(parsed?.target);
-      // name has both project and target.
+      // name has both workbook and target.
       expect(r.name).toContain("rl-proj");
       expect(r.name).toContain(parsed!.target);
     }
   });
 
-  it("returns no entries when there are no projects", async () => {
+  it("returns no entries when there are no workbooks", async () => {
     const host = await freshHost();
     const resources = listResources(host);
     expect(resources.length).toBe(0);
@@ -200,11 +200,11 @@ describe("listResources / listTemplates", () => {
 // ── resources/read — text output ───────────────────────────────────
 
 describe("dispatchRead (text/markdown)", () => {
-  it("renders a project to text/markdown and returns it as `text`", async () => {
+  it("renders a workbook to text/markdown and returns it as `text`", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "md-proj",
-      name: "Markdown Project",
+      workbook_id: "md-proj",
+      name: "Markdown Workbook",
       profile_id: FS_PROFILE,
     });
     await host.createPrimitive("md-proj", {
@@ -224,7 +224,7 @@ describe("dispatchRead (text/markdown)", () => {
       buildRenderUri("md-proj", "text/markdown"),
     );
 
-    expect(result.uri).toBe("fdpm://project/md-proj/render/text/markdown");
+    expect(result.uri).toBe("fdpm://workbook/md-proj/render/text/markdown");
     expect(result.mimeType).toBe("text/markdown");
     expect(result.text).toBeDefined();
     expect(result.blob).toBeUndefined();
@@ -237,11 +237,11 @@ describe("dispatchRead (text/markdown)", () => {
 // ── resources/read — binary output ─────────────────────────────────
 
 describe("dispatchRead (application/pdf)", () => {
-  it("renders a project to application/pdf and returns it as base64 `blob`", async () => {
+  it("renders a workbook to application/pdf and returns it as base64 `blob`", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "pdf-proj",
-      name: "PDF Project",
+      workbook_id: "pdf-proj",
+      name: "PDF Workbook",
       profile_id: FS_PROFILE,
     });
 
@@ -264,7 +264,7 @@ describe("dispatchRead — SPEC-REPL §10.2 lenient mode", () => {
   it("surfaces an out-of-band log append on the next read without throwing", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "oob-proj",
+      workbook_id: "oob-proj",
       name: "OOB",
       profile_id: FS_PROFILE,
     });
@@ -278,11 +278,11 @@ describe("dispatchRead — SPEC-REPL §10.2 lenient mode", () => {
 
     // Now inject an op directly into the JSONL log (mimics another
     // process appending). The op_id must be exactly 26 chars per the
-    // Operation schema; revision = current + 1 (project.create was rev 1).
+    // Operation schema; revision = current + 1 (workbook.create was rev 1).
     appendRawOp(dataDir, "oob-proj", {
       op_id: "01TESTRESOURCEOOB000000RES",
       kind: "primitive.create",
-      project_id: "oob-proj",
+      workbook_id: "oob-proj",
       payload: {
         id: "section:oob",
         type_id: "fs:Section",
@@ -342,7 +342,7 @@ describe("dispatchRead — error envelopes", () => {
     }
   });
 
-  it("throws not_found for an unknown project", async () => {
+  it("throws not_found for an unknown workbook", async () => {
     const host = await freshHost();
     await expect(
       dispatchRead(host, buildRenderUri("nonexistent", "text/markdown")),
@@ -354,7 +354,7 @@ describe("dispatchRead — error envelopes", () => {
   it("throws not_found for an unknown renderer target", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "tgt-proj",
+      workbook_id: "tgt-proj",
       name: "Target",
       profile_id: FS_PROFILE,
     });

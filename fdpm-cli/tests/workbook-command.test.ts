@@ -4,13 +4,13 @@ import {
   renderProjectGetHuman,
   renderProjectListHuman,
   splitCanonicalProfileId,
-} from "../src/commands/project.js";
+} from "../src/commands/workbook.js";
 
 describe("renderProjectGetHuman", () => {
   it("renders a structured operator-facing summary", () => {
     const out = renderProjectGetHuman(
       {
-        project: {
+        workbook: {
           id: "sw-arch-rust-cli-greet",
           name: "Rust CLI greet",
           profile_id: "profile:software-architecture:1.0",
@@ -20,7 +20,7 @@ describe("renderProjectGetHuman", () => {
       },
       { primitives: 64, relations: 57, templates: 0, test_suites: 0 },
     );
-    expect(out).toContain("Project: sw-arch-rust-cli-greet");
+    expect(out).toContain("Workbook: sw-arch-rust-cli-greet");
     expect(out).toContain("Name: Rust CLI greet");
     expect(out).toContain("Profile: profile:software-architecture:1.0");
     expect(out).toContain("Revision: 130");
@@ -29,28 +29,28 @@ describe("renderProjectGetHuman", () => {
     expect(out).toContain("  Primitives: 64");
     expect(out).toContain("  Relations: 57");
   });
-  it("omits the description line when the project has no description", () => {
+  it("omits the description line when the workbook has no description", () => {
     const out = renderProjectGetHuman(
       {
-        project: {
-          id: "demo-project",
-          name: "Demo project",
+        workbook: {
+          id: "demo-workbook",
+          name: "Demo workbook",
           profile_id: "profile:formal-specification:3.0",
           revision: 1,
         },
       },
       { primitives: 0, relations: 0, templates: 0, test_suites: 0 },
     );
-    expect(out).toContain("Project: demo-project");
-    expect(out).toContain("Name: Demo project");
+    expect(out).toContain("Workbook: demo-workbook");
+    expect(out).toContain("Name: Demo workbook");
     expect(out).toContain("Counts:");
     expect(out).not.toContain("Description:");
-    expect(out).not.toContain("demo-project@");
+    expect(out).not.toContain("demo-workbook@");
     expect(out).not.toContain("primitives=0 relations=0");
   });
 });
 
-describe("project list profile presentation", () => {
+describe("workbook list profile presentation", () => {
   it("splits canonical profile ids into slug and version", () => {
     expect(splitCanonicalProfileId("profile:software-architecture:1.0")).toEqual({
       labelSlug: "software-architecture",

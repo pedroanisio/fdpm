@@ -182,7 +182,7 @@ describe("commit referential pre-flight", () => {
     expect(dangling).toHaveLength(3);
   });
 
-  it("does NOT create the project when pre-flight fails", async () => {
+  it("does NOT create the workbook when pre-flight fails", async () => {
     const host = await newHostWithProfile();
     await expect(
       defineProject(host, { id: "p9-noproject", name: "P", profile: "test:demo" })
@@ -192,7 +192,7 @@ describe("commit referential pre-flight", () => {
         ])
         .commit(),
     ).rejects.toThrow(FDPMException);
-    // Project must not exist — no rollback was needed because no
+    // Workbook must not exist — no rollback was needed because no
     // host write ever ran.
     expect(() => host.getProject("p9-noproject")).toThrow(/not found|not_found/i);
   });
@@ -252,7 +252,7 @@ describe("commit partial_commit evidence", () => {
     expect(caught).toBeInstanceOf(FDPMException);
     const pc = caught!.evidence?.["partial_commit"] as PartialCommitFailure;
     expect(pc).toBeDefined();
-    expect(pc.project_id).toBe("p10-prim");
+    expect(pc.workbook_id).toBe("p10-prim");
     expect(pc.failed_at).toBe("primitive");
     expect(pc.failed_id).toBe("section:bad");
     expect(pc.primitives_created).toBe(2); // section:a and section:b persisted
@@ -313,7 +313,7 @@ describe("commit partial_commit evidence", () => {
     expect(pc).toBeDefined();
     expect(pc.failed_at).toBe("primitive");
     expect(pc.primitives_created).toBe(1);
-    // The project itself should be gone — rollback ran.
+    // The workbook itself should be gone — rollback ran.
     expect(() => host.getProject("p10-roll")).toThrow(/not found|not_found/i);
   });
 
@@ -356,7 +356,7 @@ describe("commit partial_commit evidence", () => {
     // Type-only assertion — compiles because the import at top of
     // file resolves.
     const _shape: PartialCommitFailure = {
-      project_id: "x",
+      workbook_id: "x",
       primitives_created: 0,
       relations_created: 0,
       failed_at: "preflight",

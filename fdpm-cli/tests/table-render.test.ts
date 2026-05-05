@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderTable } from "../src/commands/util.js";
-import { renderProjectListHuman } from "../src/commands/project.js";
+import { renderProjectListHuman } from "../src/commands/workbook.js";
 
 describe("renderTable", () => {
   it("renders a header row with aligned columns", () => {
@@ -39,7 +39,7 @@ describe("renderProjectListHuman", () => {
         name: "Roadmap Unified v0.5.2",
       },
     ]);
-    expect(out).toContain("PROJECT ID");
+    expect(out).toContain("WORKBOOK ID");
     expect(out).toContain("PROFILE");
     expect(out).toContain("REV");
     expect(out).toContain("NAME");

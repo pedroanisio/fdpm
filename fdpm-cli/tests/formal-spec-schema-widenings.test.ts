@@ -29,9 +29,9 @@ async function freshHost(): Promise<Host> {
   return host;
 }
 
-async function newProject(host: Host, projectId = "p"): Promise<void> {
+async function newProject(host: Host, workbookId = "p"): Promise<void> {
   await host.createProject({
-    project_id: projectId,
+    workbook_id: workbookId,
     name: "P",
     profile_id: PROFILE_ID,
   });

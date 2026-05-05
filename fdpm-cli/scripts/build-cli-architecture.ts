@@ -1,11 +1,11 @@
 /**
- * Build a software-architecture project that documents the FDPM CLI itself,
+ * Build a software-architecture workbook that documents the FDPM CLI itself,
  * using the `fdpm.software-architecture` plugin profile.
  *
  * Pass-1 of this script wrote ~120 individual Host calls. This rewrite
  * uses the @fdpm/cli SDK (`openHost` + `defineProject`) so the
  * authoring code is mostly data: a few arrays of primitive specs and
- * relation specs, then one `commit()`. The resulting project is
+ * relation specs, then one `commit()`. The resulting workbook is
  * byte-identical to the prior version (same ids, same field shapes,
  * same relation graph).
  *
@@ -13,7 +13,7 @@
  *   FDPM_DATA_DIR=/tmp/fdpm-cli-arch npx tsx scripts/build-cli-architecture.ts
  *
  * Then export to JSON:
- *   FDPM_DATA_DIR=/tmp/fdpm-cli-arch npx tsx src/bin/fdpm.ts project get fdpm-cli-arch --json > arch.json
+ *   FDPM_DATA_DIR=/tmp/fdpm-cli-arch npx tsx src/bin/fdpm.ts workbook get fdpm-cli-arch --json > arch.json
  */
 
 import {
@@ -31,7 +31,7 @@ const PROJECT_ID = "fdpm-cli-arch";
 
 // ── Concepts (cat:identity) ────────────────────────────────────────────────
 const concepts: Array<[string, string]> = [
-  ["Project", "A versioned container of primitives and relations bound to a single DomainProfile."],
+  ["Workbook", "A versioned container of primitives and relations bound to a single DomainProfile."],
   ["Primitive", "A typed, scoped, field-bearing record defined by the active profile."],
   ["Relation", "A typed directed edge between primitives, also defined by the active profile."],
   ["DomainProfile", "A registered vocabulary: categories, scopes, primitive types, relation types, validators, renderers, templates."],
@@ -63,7 +63,7 @@ const entities: EntitySpec[] = [
   { id: "domain:Component:Store", scope: "domain", kind: "Component", name: "Store",
     description: "In-memory event-sourced projection of primitives and relations; mutates only via append." },
   { id: "domain:Component:ProfileRegistry", scope: "domain", kind: "Component", name: "ProfileRegistry",
-    description: "Holds registered DomainProfiles and resolves the active profile per project." },
+    description: "Holds registered DomainProfiles and resolves the active profile per workbook." },
   { id: "domain:Component:ValidationPipeline", scope: "domain", kind: "Component", name: "ValidationPipeline",
     description: "Runs profile-defined validation rules over a proposed primitive or relation." },
   { id: "domain:Component:VerificationGate", scope: "domain", kind: "Component", name: "VerificationGate",
@@ -77,7 +77,7 @@ const entities: EntitySpec[] = [
   { id: "domain:Service:CliBin", scope: "domain", kind: "Service", name: "CliBin",
     description: "The fdpm executable: src/bin/fdpm.ts. Wires Commander, instantiates Host, dispatches commands." },
   { id: "domain:Module:CommandsModule", scope: "domain", kind: "Module", name: "CommandsModule",
-    description: "src/commands/* — one Commander subcommand group per CLI noun (project, primitive, relation, etc.)." },
+    description: "src/commands/* — one Commander subcommand group per CLI noun (workbook, primitive, relation, etc.)." },
 
   // Plugins (modules contributed by built-in plugin discovery)
   { id: "domain:Module:PluginSoftwareArchitecture", scope: "domain", kind: "Module", name: "PluginSoftwareArchitecture",
@@ -143,7 +143,7 @@ const decisions = [
     rationale: "Port at parity first, evolve later. Quirks like single-valued StructField with min_items are preserved verbatim so existing exports validate identically.",
     consequences: "Some field shapes look counterintuitive in TS (single-object struct fields). Documented as known idiosyncrasies in plugin READMEs.",
     altName: "Idiomatic TypeScript redesign",
-    altReason: "Breaks compatibility with existing project transfers; expands scope beyond the port.",
+    altReason: "Breaks compatibility with existing workbook transfers; expands scope beyond the port.",
   },
   {
     id: "decision:0005",
@@ -177,8 +177,8 @@ const invariants: Array<{ id: string; statement: string; enforcement: "Compile" 
   { id: "invariant:domain:validate-before-append",
     statement: "No Operation is appended unless ValidationPipeline accepts the proposed post-state.",
     enforcement: "Runtime" },
-  { id: "invariant:domain:profile-immutable-per-project",
-    statement: "A Project's bound DomainProfile id is immutable for the project's lifetime.",
+  { id: "invariant:domain:profile-immutable-per-workbook",
+    statement: "A Workbook's bound DomainProfile id is immutable for the workbook's lifetime.",
     enforcement: "Runtime" },
   { id: "invariant:domain:type-id-immutable",
     statement: "type_id is immutable on Primitive and Relation replace/patch operations.",
@@ -219,27 +219,27 @@ const guaranteeSpecs: PrimitiveSpec[] = [
     } },
   { id: "guarantee:domain:replay-determinism", type: "sw:Guarantee", scope: SCOPE_IDS.domain,
     fields: {
-      statement: "Replaying the JSONL log on an empty Store reconstructs an identical Project state.",
+      statement: "Replaying the JSONL log on an empty Store reconstructs an identical Workbook state.",
       conditions: "No external mutation of the log file; profile registry is restored to the same versions.",
     } },
 ];
 
 // ── Endpoints (CLI command surface, treated as Endpoints with protocol=CLI)
 const endpoints: Array<{ id: string; name: string; method?: string; path?: string }> = [
-  { id: "endpoint:POST:project-create", name: "project create", method: "POST", path: "/projects" },
-  { id: "endpoint:GET:project-get", name: "project get", method: "GET", path: "/projects/{id}" },
-  { id: "endpoint:GET:project-list", name: "project list", method: "GET", path: "/projects" },
-  { id: "endpoint:POST:primitive-create", name: "primitive create", method: "POST", path: "/projects/{id}/primitives" },
-  { id: "endpoint:PATCH:primitive-patch", name: "primitive patch", method: "PATCH", path: "/projects/{id}/primitives/{pid}" },
-  { id: "endpoint:POST:relation-create", name: "relation create", method: "POST", path: "/projects/{id}/relations" },
-  { id: "endpoint:POST:edit", name: "edit", method: "POST", path: "/projects/{id}/edits" },
-  { id: "endpoint:GET:validate", name: "validate", method: "GET", path: "/projects/{id}/validate" },
-  { id: "endpoint:POST:render", name: "render", method: "POST", path: "/projects/{id}/render/{target}" },
+  { id: "endpoint:POST:workbook-create", name: "workbook create", method: "POST", path: "/workbooks" },
+  { id: "endpoint:GET:workbook-get", name: "workbook get", method: "GET", path: "/workbooks/{id}" },
+  { id: "endpoint:GET:workbook-list", name: "workbook list", method: "GET", path: "/workbooks" },
+  { id: "endpoint:POST:primitive-create", name: "primitive create", method: "POST", path: "/workbooks/{id}/primitives" },
+  { id: "endpoint:PATCH:primitive-patch", name: "primitive patch", method: "PATCH", path: "/workbooks/{id}/primitives/{pid}" },
+  { id: "endpoint:POST:relation-create", name: "relation create", method: "POST", path: "/workbooks/{id}/relations" },
+  { id: "endpoint:POST:edit", name: "edit", method: "POST", path: "/workbooks/{id}/edits" },
+  { id: "endpoint:GET:validate", name: "validate", method: "GET", path: "/workbooks/{id}/validate" },
+  { id: "endpoint:POST:render", name: "render", method: "POST", path: "/workbooks/{id}/render/{target}" },
   { id: "endpoint:GET:transfer-export", name: "transfer export", method: "GET", path: "/transfer/export" },
   { id: "endpoint:POST:transfer-import", name: "transfer import", method: "POST", path: "/transfer/import" },
   { id: "endpoint:GET:plugin-list", name: "plugin list", method: "GET", path: "/plugins" },
-  { id: "endpoint:GET:log-tail", name: "log tail", method: "GET", path: "/projects/{id}/log" },
-  { id: "endpoint:POST:log-undo", name: "log undo", method: "POST", path: "/projects/{id}/log/undo" },
+  { id: "endpoint:GET:log-tail", name: "log tail", method: "GET", path: "/workbooks/{id}/log" },
+  { id: "endpoint:POST:log-undo", name: "log undo", method: "POST", path: "/workbooks/{id}/log/undo" },
 ];
 const endpointSpecs: PrimitiveSpec[] = endpoints.map((e) => ({
   id: e.id,
@@ -268,9 +268,9 @@ const transitionSpecs: PrimitiveSpec[] = [
   { id: "transition:Populated:Empty", type: "sw:Transition",
     fields: { from_state: "state:store:Populated", to_state: "state:store:Empty", trigger: "all primitives deleted" } },
   { id: "transition:Empty:Deleted", type: "sw:Transition",
-    fields: { from_state: "state:store:Empty", to_state: "state:store:Deleted", trigger: "project.delete accepted" } },
+    fields: { from_state: "state:store:Empty", to_state: "state:store:Deleted", trigger: "workbook.delete accepted" } },
   { id: "transition:Populated:Deleted", type: "sw:Transition",
-    fields: { from_state: "state:store:Populated", to_state: "state:store:Deleted", trigger: "project.delete accepted" } },
+    fields: { from_state: "state:store:Populated", to_state: "state:store:Deleted", trigger: "workbook.delete accepted" } },
 ];
 
 // ── Failure modes ──────────────────────────────────────────────────────────
@@ -349,9 +349,9 @@ const relations: RelationSpec[] = [
   { id: "rel:cli-deps-node", type: "sw:DependsOn", from: "domain:Service:CliBin", to: "deployment:ExternalSystem:NodeRuntime", fields: { kind: "runtime" } },
 
   // Exposure of CLI endpoints
-  { id: "rel:cli-exposes-project-create", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:POST:project-create" },
-  { id: "rel:cli-exposes-project-get", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:GET:project-get" },
-  { id: "rel:cli-exposes-project-list", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:GET:project-list" },
+  { id: "rel:cli-exposes-workbook-create", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:POST:workbook-create" },
+  { id: "rel:cli-exposes-workbook-get", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:GET:workbook-get" },
+  { id: "rel:cli-exposes-workbook-list", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:GET:workbook-list" },
   { id: "rel:cli-exposes-prim-create", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:POST:primitive-create" },
   { id: "rel:cli-exposes-prim-patch", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:PATCH:primitive-patch" },
   { id: "rel:cli-exposes-rel-create", type: "sw:Exposes", from: "domain:Service:CliBin", to: "endpoint:POST:relation-create" },
@@ -369,7 +369,7 @@ const relations: RelationSpec[] = [
   { id: "rel:max-bytes-constrains-edit", type: "sw:Constrains", from: "constraint:runtime:max-request-bytes", to: "endpoint:POST:edit" },
   { id: "rel:append-only-constrains-store", type: "sw:Constrains", from: "invariant:domain:append-only-log", to: "domain:Component:Store" },
   { id: "rel:validate-first-constrains-store", type: "sw:Constrains", from: "invariant:domain:validate-before-append", to: "domain:Component:Store" },
-  { id: "rel:profile-immutable-constrains-store", type: "sw:Constrains", from: "invariant:domain:profile-immutable-per-project", to: "domain:Component:Store" },
+  { id: "rel:profile-immutable-constrains-store", type: "sw:Constrains", from: "invariant:domain:profile-immutable-per-workbook", to: "domain:Component:Store" },
   { id: "rel:type-id-immutable-constrains-store", type: "sw:Constrains", from: "invariant:domain:type-id-immutable", to: "domain:Component:Store" },
 
   // Failure / guarantee
@@ -397,7 +397,7 @@ const relations: RelationSpec[] = [
   { id: "rel:manual-justifies-atomic", type: "sw:Justifies", from: "evidence:ref:manual", to: "guarantee:runtime:atomic-edits" },
 
   // Concept references
-  { id: "rel:host-refers-project", type: "sw:RefersTo", from: "domain:Component:Host", to: "concept:Project" },
+  { id: "rel:host-refers-workbook", type: "sw:RefersTo", from: "domain:Component:Host", to: "concept:Workbook" },
   { id: "rel:store-refers-operation", type: "sw:RefersTo", from: "domain:Component:Store", to: "concept:Operation" },
   { id: "rel:registry-refers-profile", type: "sw:RefersTo", from: "domain:Component:ProfileRegistry", to: "concept:DomainProfile" },
   { id: "rel:pipeline-refers-validation", type: "sw:RefersTo", from: "domain:Component:ValidationPipeline", to: "concept:ValidationPipeline" },
@@ -432,7 +432,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

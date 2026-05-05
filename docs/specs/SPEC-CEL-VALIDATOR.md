@@ -97,7 +97,7 @@ If a concern has no listed stakeholder, no one will defend it. Flag any gap befo
 | Plugin author | Declare validation rules as one-line strings; have them evaluated; not maintain hand-written TS validators. |
 | Core maintainer | One canonical evaluator path; deletion of the 408-line _register_validators.ts file; type-safe activation surface. |
 | Security reviewer | CEL evaluator runs in a pure sandbox: no I/O, no host-call allowlist gaps, no parser-level DoS via crafted predicates. |
-| Operator | Existing projects continue to validate without re-import; predicate-not-evaluated `info` findings disappear once rules are migrated. |
+| Operator | Existing workbooks continue to validate without re-import; predicate-not-evaluated `info` findings disappear once rules are migrated. |
 
 ---
 
@@ -141,9 +141,9 @@ The decision in one paragraph per ADR:
 | Term | Definition |
 | --- | --- |
 | **Activation environment** | The set of named values bound into the evaluator before execution. For this SPEC: `{ instance, type, profile, graph }`. |
-| **Behavioral parity** | For a rule `R` with legacy predicate `P` and CEL translation `P'`, the property that for every primitive instance `i` in the project, `evaluate_legacy(P, i) == evaluate_cel(P', i)` — same finding emitted at the same level on the same target_id and field_path. |
+| **Behavioral parity** | For a rule `R` with legacy predicate `P` and CEL translation `P'`, the property that for every primitive instance `i` in the workbook, `evaluate_legacy(P, i) == evaluate_cel(P', i)` — same finding emitted at the same level on the same target_id and field_path. |
 | **CEL** | Common Expression Language. A side-effect-free, single-expression language designed for evaluating boolean / scalar / list / map predicates against a typed activation environment. _(also: Common Expression Language)_ |
-| **Graph helper** | A host-bound CEL function that exposes graph-shaped queries needed by predicates that reason about relations or cross-primitive id resolution. As of helper-set v1.1.0 the inventory is: `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, `graph.target_exists(rel_id)`. The last two are the v1.1.0 additions: `exists` answers id-membership over the project's primitive set; `target_exists` answers whether every outbound edge of a given relation type from the current instance points at a primitive that actually exists. |
+| **Graph helper** | A host-bound CEL function that exposes graph-shaped queries needed by predicates that reason about relations or cross-primitive id resolution. As of helper-set v1.1.0 the inventory is: `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, `graph.target_exists(rel_id)`. The last two are the v1.1.0 additions: `exists` answers id-membership over the workbook's primitive set; `target_exists` answers whether every outbound edge of a given relation type from the current instance points at a primitive that actually exists. |
 | **Legacy DSL** | The non-standard predicate strings shipped by the formal_specification and software_architecture plugins (`non_trivial(field)`, `min_items(field, n)`, `field(x) != y`, `has_incoming(rel)`, `has_outgoing(rel)`, `acyclic(rel)`, `when(cond, expr)`). Stored verbatim today; not evaluated by Core. |
 | **Predicate** | A boolean expression carried by a `ValidationRuleDef` that fires against a primitive instance and (optionally) the relation graph. |
 
@@ -278,7 +278,7 @@ Options scored across the axes that drove the decision.
 
 ```
 [Source]            Operator running the fdpm CLI.
-[Stimulus]          `fdpm validate <project>` on a 10k-primitive fs project.
+[Stimulus]          `fdpm validate <workbook>` on a 10k-primitive fs workbook.
 [Environment]       Local CLI; warm Host; standard benchmark fixture.
 [Artifact]          ValidationPipeline + CEL evaluator.
 [Response]          Total wall-clock for the validate command stays within the same envelope as the current TS-only path (within +20 % p50, +30 % p95).
@@ -291,7 +291,7 @@ Options scored across the axes that drove the decision.
 
 - **(MUST) Embed cel-js in the host** — The host MUST embed a CEL evaluator (cel-js or equivalent) accessible from the §7 ValidationPipeline.
 - **(MUST) Activation environment is fixed** — Predicates evaluate against exactly `{ instance, type, profile, graph }`. No other names are bound. Adding a new binding is a SPEC amendment.
-- **(MUST) Graph helpers are pure** — Every standard `graph.*` helper MUST be a pure function over the project graph. As of helper-set v1.1.0 the closed inventory is `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, and `graph.target_exists(rel_id)`. None MAY perform I/O, spawn processes, invoke `eval`, or read clock/RNG. Adding a graph helper is a SPEC amendment AND a helper-set semver bump.
+- **(MUST) Graph helpers are pure** — Every standard `graph.*` helper MUST be a pure function over the workbook graph. As of helper-set v1.1.0 the closed inventory is `graph.incoming(rel_id)`, `graph.outgoing(rel_id)`, `graph.acyclic(rel_id)`, `graph.exists(target_id)`, and `graph.target_exists(rel_id)`. None MAY perform I/O, spawn processes, invoke `eval`, or read clock/RNG. Adding a graph helper is a SPEC amendment AND a helper-set semver bump.
 - **(SHOULD) Field-path attribution preserved** — When a predicate references a field path expressible as `instance.field_values.<name>`, the resulting finding's `field_path` SHOULD be `field_values.<name>`.
 - **(MUST) Parse-failure fallback** — An unparseable `expression` MUST NOT block validation. The pipeline MUST emit the existing `info: predicate not evaluated` finding and continue.
 
@@ -314,10 +314,10 @@ Options scored across the axes that drove the decision.
 
 - **1. Activation environment is closed** — Run a representative predicate that references an undeclared name (`foo.bar`); evaluator MUST report a CEL compile-time / type-check error converted to a finding, not silently coerce to undefined.
   - expected: error finding with rule_id `plugin-validator-raised:<rule_id>`.
-- **2. Acyclic helper terminates on adversarial graph** — Build a project with 10⁴ primitives and a deeply cyclic relation set; run `graph.acyclic(rel_id)`.
+- **2. Acyclic helper terminates on adversarial graph** — Build a workbook with 10⁴ primitives and a deeply cyclic relation set; run `graph.acyclic(rel_id)`.
   - expected: Helper returns false in <50 ms p95 and emits no host log spam.
-- **3. Existence helpers reject dangling references** — Push a CEL rule `graph.exists("<missing-id>")` against a seeded project; assert finding fires. Push `graph.target_exists("<rel-type>")` from a primitive whose only outbound edge of that type points at a missing id; assert finding fires. Then add the missing primitive and assert both findings disappear.
-  - expected: Both helpers return the expected boolean against the project graph; findings appear and disappear deterministically.
+- **3. Existence helpers reject dangling references** — Push a CEL rule `graph.exists("<missing-id>")` against a seeded workbook; assert finding fires. Push `graph.target_exists("<rel-type>")` from a primitive whose only outbound edge of that type points at a missing id; assert finding fires. Then add the missing primitive and assert both findings disappear.
+  - expected: Both helpers return the expected boolean against the workbook graph; findings appear and disappear deterministically.
 
 ---
 
@@ -361,7 +361,7 @@ Order matters: the host evaluator (step 1) must land before any plugin migrates;
 | --- | --- |
 | **fs parity gap** — A subtle CEL semantic difference (e.g., null-handling, empty-array equality) produces different findings than the hand-coded TS validator. Migration ships a behavioural regression. | Per-plugin CEL test files exercise every shipped rule on representative fixtures and assert findings match the legacy evaluator's behaviour. fs's 23 rules and sw's 7 rules each have evaluation coverage in fdpm-cli/tests/cel-validation.test.ts and fdpm-cli/tests/sw-cel-validation.test.ts. |
 | **Helper creep** — Plugin authors request more graph helpers; the activation surface grows; the 'pure evaluator' invariant erodes. | Adding a CEL helper requires a SPEC amendment, not just a code change (§4 of this SPEC). Forces design review before surface grows. Process discipline; not a code artifact. |
-| **Per-call parse cost** — Re-parsing a predicate on every validate call dominates p50 latency on small projects. | Compiled CEL programs are cached by predicate-string identity in fdpm-cli/src/core/expr/runtime.ts (`programCache`). Per-call work is bind+eval, not parse+bind+eval. |
+| **Per-call parse cost** — Re-parsing a predicate on every validate call dominates p50 latency on small workbooks. | Compiled CEL programs are cached by predicate-string identity in fdpm-cli/src/core/expr/runtime.ts (`programCache`). Per-call work is bind+eval, not parse+bind+eval. |
 
 ---
 
@@ -391,7 +391,7 @@ Other open questions (defaulted):
 
 - cel-js — TypeScript implementation of CEL. (https://www.npmjs.com/package/cel-js) _[unverified]_ — Existence and license to be verified before adoption; PR must pin a specific version.
 - Common Expression Language Specification, Google, github.com/google/cel-spec. (https://github.com/google/cel-spec) _[unverified]_ — Reader must verify the spec revision pinned at implementation time; CEL has shipped behaviour-affecting clarifications.
-- FDPM project guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
+- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
 
 >    1 | doc.fields.verification_note
                     ^]]
@@ -405,7 +405,7 @@ Other open questions (defaulted):
 
 ### 0.3.0 — 2026-05-04 — Helper-set v1.1.0 — graph.exists / graph.target_exists added.
 
-Additive amendment landing two new graph helpers requested by the upcoming fdpm.planning plugin. `graph.exists(target_id)` answers id-membership over the project's primitive set. `graph.target_exists(rel_id)` answers whether every outbound edge of the given relation type from the current instance points at a primitive that exists. Both are pure (no I/O, no clock, no RNG); both extend §6 Graph helper definition and §11 Requirement r-003. New §18 Conformance item `spec:conf:3` exercises them. Helper-set semver bumped from 1.0.0 to 1.1.0 (additive → minor per SPEC-EXPRESSION-RUNTIME §M14). The existing 5 graph-helper inventory now reads: incoming, outgoing, acyclic, exists, target_exists.
+Additive amendment landing two new graph helpers requested by the upcoming fdpm.planning plugin. `graph.exists(target_id)` answers id-membership over the workbook's primitive set. `graph.target_exists(rel_id)` answers whether every outbound edge of the given relation type from the current instance points at a primitive that exists. Both are pure (no I/O, no clock, no RNG); both extend §6 Graph helper definition and §11 Requirement r-003. New §18 Conformance item `spec:conf:3` exercises them. Helper-set semver bumped from 1.0.0 to 1.1.0 (additive → minor per SPEC-EXPRESSION-RUNTIME §M14). The existing 5 graph-helper inventory now reads: incoming, outgoing, acyclic, exists, target_exists.
 
 Affected sections: 6, 11, 18
 

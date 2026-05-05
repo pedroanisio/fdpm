@@ -41,7 +41,7 @@ async function makeHost(): Promise<Host> {
 
 interface T2Envelope {
   ok: boolean;
-  operation?: { kind: string; project_id: string };
+  operation?: { kind: string; workbook_id: string };
   validation_report: {
     accepted: boolean;
     findings: unknown[];
@@ -56,12 +56,12 @@ describe("Tier 2 — happy paths return populated validation_report", () => {
     host = await makeHost();
   });
 
-  it("fdpm.project.create envelope includes operation, accepted report, and summary", async () => {
+  it("fdpm.workbook.create envelope includes operation, accepted report, and summary", async () => {
     const ctx = makeCtx();
     const dispatcher = createDispatcher(host, ctx, null);
-    const result = await dispatcher.call("fdpm.project.create", {
-      project_id: "p1",
-      name: "Project One",
+    const result = await dispatcher.call("fdpm.workbook.create", {
+      workbook_id: "p1",
+      name: "Workbook One",
       profile_id: "test:demo",
     });
     expect(result.isError).toBe(false);
@@ -69,21 +69,21 @@ describe("Tier 2 — happy paths return populated validation_report", () => {
     expect(sc.ok).toBe(true);
     expect(sc.validation_report.accepted).toBe(true);
     expect(Array.isArray(sc.validation_report.findings)).toBe(true);
-    expect(sc.operation?.kind).toBe("project.create");
-    expect(sc.post_state_summary["project_id"]).toBe("p1");
+    expect(sc.operation?.kind).toBe("workbook.create");
+    expect(sc.post_state_summary["workbook_id"]).toBe("p1");
     expect(sc.post_state_summary["profile_id"]).toBe("test:demo");
   });
 
   it("fdpm.primitive.create envelope on a valid primitive", async () => {
     await host.createProject({
-      project_id: "p1",
-      name: "Project One",
+      workbook_id: "p1",
+      name: "Workbook One",
       profile_id: "test:demo",
     });
     const ctx = makeCtx();
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:one",
         type_id: "test:section",
@@ -99,8 +99,8 @@ describe("Tier 2 — happy paths return populated validation_report", () => {
 
   it("fdpm.relation.create envelope on a valid relation", async () => {
     await host.createProject({
-      project_id: "p1",
-      name: "Project One",
+      workbook_id: "p1",
+      name: "Workbook One",
       profile_id: "test:demo",
     });
     await host.createPrimitive("p1", {
@@ -116,7 +116,7 @@ describe("Tier 2 — happy paths return populated validation_report", () => {
     const ctx = makeCtx();
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.relation.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       relation: {
         id: "rel:contains:one",
         type_id: "test:rel:contains",
@@ -137,8 +137,8 @@ describe("Tier 2 — §7 rejections surface with isError:false and ok:false", ()
   beforeEach(async () => {
     host = await makeHost();
     await host.createProject({
-      project_id: "p1",
-      name: "Project One",
+      workbook_id: "p1",
+      name: "Workbook One",
       profile_id: "test:demo",
     });
   });
@@ -148,7 +148,7 @@ describe("Tier 2 — §7 rejections surface with isError:false and ok:false", ()
     const dispatcher = createDispatcher(host, ctx, null);
     // TEST_PROFILE limits title to max 200 chars; 250 is over.
     const result = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:big",
         type_id: "test:section",
@@ -167,7 +167,7 @@ describe("Tier 2 — §7 rejections surface with isError:false and ok:false", ()
     const ctx = makeCtx();
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.relation.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       relation: {
         id: "rel:bad",
         type_id: "test:rel:contains",
@@ -182,11 +182,11 @@ describe("Tier 2 — §7 rejections surface with isError:false and ok:false", ()
     expect(sc.validation_report.findings.length).toBeGreaterThan(0);
   });
 
-  it("fdpm.project.create with unknown profile rejects with not_found (genuine protocol error)", async () => {
+  it("fdpm.workbook.create with unknown profile rejects with not_found (genuine protocol error)", async () => {
     const ctx = makeCtx();
     const dispatcher = createDispatcher(host, ctx, null);
-    const result = await dispatcher.call("fdpm.project.create", {
-      project_id: "px",
+    const result = await dispatcher.call("fdpm.workbook.create", {
+      workbook_id: "px",
       name: "Px",
       profile_id: "missing:profile",
     });

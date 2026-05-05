@@ -15,7 +15,7 @@ async function seedWithDriftedPrimitive() {
   const host = await newHost();
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
+    workbook: {
       id: "p",
       name: "P",
       profile_id: "test:demo",
@@ -66,7 +66,7 @@ describe("§7 schema-drift detection", () => {
     const host = await newHost();
     await importTransfer(host, {
       spec_core: "1.1",
-      project: {
+      workbook: {
         id: "p",
         name: "P",
         profile_id: "test:demo",
@@ -114,7 +114,7 @@ describe("§7 schema-drift detection", () => {
   it("validation gate still permits writes despite undeclared fields", async () => {
     // Confirm no regression: a clean primitive still creates fine.
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     const result = await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",

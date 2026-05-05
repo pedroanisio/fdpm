@@ -83,9 +83,9 @@ export interface Workspace {
   getProfileRegistry(): ProfileRegistry;
   getPluginRuntime(): PluginRuntime;
 
-  appendOp(project_id: string, op: Operation): Promise<void>;
-  getOperationLog(project_id: string): Promise<Operation[]>;
+  appendOp(workbook_id: string, op: Operation): Promise<void>;
+  getOperationLog(workbook_id: string): Promise<Operation[]>;
   /** SPEC-REPL §10.2 freshness key. Sync; safe per-command. */
-  statProjectLog(project_id: string): { mtime_ns: bigint; size: bigint } | null;
+  statProjectLog(workbook_id: string): { mtime_ns: bigint; size: bigint } | null;
   listProjects(): Promise<string[]>;
 }

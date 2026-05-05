@@ -32,10 +32,10 @@ import {
  */
 export function buildEditCommand(host: Host): Command {
   const cmd = new Command("edit");
-  cmd.description("Batch transactional edits (§9.7.5 POST /projects/{id}/edits)");
+  cmd.description("Batch transactional edits (§9.7.5 POST /workbooks/{id}/edits)");
 
   cmd
-    .argument("[project]", "project id (omitted when using --print-schema)")
+    .argument("[workbook]", "workbook id (omitted when using --print-schema)")
     .option("-f, --file <path>", "JSON body file (or - for stdin)")
     .option(
       "--dry-run",
@@ -46,7 +46,7 @@ export function buildEditCommand(host: Host): Command {
       "print the JSON schema(s) for batch op payloads; pass a kind to scope (e.g. primitive.patch)",
     )
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
 
       if (opts.printSchema !== undefined) {
@@ -78,17 +78,17 @@ export function buildEditCommand(host: Host): Command {
           per_kind: examples,
           notes: [
             "Per-kind example payloads show the minimum required field shape.",
-            "Run `fdpm edit <project> -f file.json --dry-run` to verify a batch before applying.",
+            "Run `fdpm edit <workbook> -f file.json --dry-run` to verify a batch before applying.",
             "All ops in a batch share one request_id; if any op fails, the entire batch is rolled back.",
           ],
         });
         return;
       }
 
-      if (project == null || opts.file == null) {
+      if (workbook == null || opts.file == null) {
         throw new FDPMException(
           "verification",
-          "edit requires <project> and -f <file> (use --print-schema for shape help)",
+          "edit requires <workbook> and -f <file> (use --print-schema for shape help)",
         );
       }
 
@@ -96,7 +96,7 @@ export function buildEditCommand(host: Host): Command {
       const body = parseEditEnvelope(raw);
       const result = await batchEdit(
         host,
-        project,
+        workbook,
         body.operations,
         body.expected_project_revision,
         { dryRun: opts.dryRun === true },
@@ -240,6 +240,6 @@ export const commandMetadata: CommandMetadataMap = {
   edit: {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(1),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

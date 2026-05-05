@@ -39,18 +39,18 @@ const COLUMN_ORDER = [
 ] as const;
 
 export const renderAgentBoard: RendererFn = (input): RendererOutput => {
-  const { primitives, projectId, profile } = input;
+  const { primitives, workbookId, profile } = input;
 
   const tasks = primitives.filter((p) => p.type_id === "plan:Task");
 
-  // Renderer pulls "now" from the project graph indirectly: each task's
+  // Renderer pulls "now" from the workbook graph indirectly: each task's
   // claim_until is compared against env.NOW frozen in the activation. CEL
   // evaluator enforces env.NOW determinism. For renderers, we use the
   // wall clock on entry — same string for the lifetime of this render.
   const now = new Date().toISOString();
 
   const lines: string[] = [];
-  lines.push(`# ${projectId} — Agent Board`);
+  lines.push(`# ${workbookId} — Agent Board`);
   lines.push("");
   lines.push(
     `> Profile: \`${profile.id}\` v${profile.version}. ${tasks.length} task${tasks.length === 1 ? "" : "s"}. Generated at ${now}.`,

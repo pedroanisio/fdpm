@@ -67,7 +67,7 @@ Cutting across all four: **discovery tools** (`list_verbs`,
 `describe_language`, `workbook.dry_run(expr)`).
 
 The conceptual reframe in the human-facing surface is captured by the
-`project` → `workbook` rename ([fdpm-cli/scripts/rename_project_to_workbook.py](../../fdpm-cli/scripts/rename_project_to_workbook.py)).
+`workbook` → `workbook` rename ([fdpm-cli/scripts/rename_project_to_workbook.py](../../fdpm-cli/scripts/rename_project_to_workbook.py)).
 The naming change matters for the agent surface too — agents primed on
 "workbook" arrive thinking in spreadsheet-shaped composition, which
 the expression language deliberately rewards.
@@ -106,7 +106,7 @@ Each row records a decision, the alternative we rejected, and why.
 | Decision | Rejected alternative | Why |
 |---|---|---|
 | Plugins emit first-class operation kinds (`planning.task.complete`) | Generic CRUD with state encoded as field-patches | Audit log records intent, not just mechanism. Replay handler registry is the price; we pay it. |
-| Operation log is the truth; expressions never re-execute at replay time | `workbook.operation` op stores expression, replay re-evaluates | Couples project history to expression-engine semantics forever. Replay must be deterministic across language versions. |
+| Operation log is the truth; expressions never re-execute at replay time | `workbook.operation` op stores expression, replay re-evaluates | Couples workbook history to expression-engine semantics forever. Replay must be deterministic across language versions. |
 | Verbs are syntactically distinct from formulas (`plugin.entity.verb`) | Verbs as Excel-style functions inline anywhere a value can go | Excel formulas are pure and re-evaluating; verbs have side effects, transactionality, and (sometimes) async. Conflating them invites every Excel idiom that doesn't apply (`IFERROR`, recalculation, in-band error values). |
 | Per-verb MCP tools are the primary surface; expressions are the batch escape hatch | Expression language as primary | Cold-start agents need typed tool descriptions. Per-verb tools win debuggability when something fails mid-workflow. |
 | Reads through resources, not `get_*` tools | "Just expose what agents need as tools" | Tool catalog size degrades agent attention. Resources are the read surface. |
@@ -173,7 +173,7 @@ Deliverables:
 - Plugin-version migration contract: `plugin_id@semver` per op kind,
   declared migrations, refused upgrade if any historical kind has no
   migration path.
-- Required-plugins manifest stored alongside the project log; replay
+- Required-plugins manifest stored alongside the workbook log; replay
   refuses to start without all required plugins loaded.
 - Per-verb MCP tools auto-generated from registered verbs.
 - One plugin (planning) ships three verbs (`task.complete`, `task.start`,
@@ -182,7 +182,7 @@ Deliverables:
 - `ctx.registerPrompt(reg)` API in the plugin context, even though no
   prompts use it yet. Locking the API shape early.
 
-**Exit criteria:** `rebuild-from-log` round-trips a project that used
+**Exit criteria:** `rebuild-from-log` round-trips a workbook that used
 all three verbs. Plugin-version migration tested end-to-end against a
 hand-crafted scenario. No eval.
 

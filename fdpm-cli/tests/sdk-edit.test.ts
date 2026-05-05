@@ -14,7 +14,7 @@ import { FDPMException } from "../src/core/errors/fdpm-exception.js";
  * SDK edit-helper regression tests — covers patchPrimitive,
  * patchRelation, deletePrimitive, deleteRelation. These were added
  * after the P1 audit revealed the SDK only supported greenfield
- * project construction and forced embedders to drop down to raw
+ * workbook construction and forced embedders to drop down to raw
  * Host methods for any post-create edit.
  */
 
@@ -56,7 +56,7 @@ describe("patchPrimitive", () => {
     const host = await seedHost();
     const before = host.getProject("p").primitives["section:a"]!;
     const result = await patchPrimitive(host, {
-      project: "p",
+      workbook: "p",
       id: "section:a",
       fields: { title: "A — updated" },
     });
@@ -75,7 +75,7 @@ describe("patchPrimitive", () => {
   it("forwards `scope` as scope_id on the underlying Host call", async () => {
     const host = await seedHost();
     await patchPrimitive(host, {
-      project: "p",
+      workbook: "p",
       id: "section:a",
       fields: {},
       scope: "test:scope:appendix",
@@ -89,7 +89,7 @@ describe("patchPrimitive", () => {
     const stored = host.getProject("p").primitives["section:a"]!;
     await expect(
       patchPrimitive(host, {
-        project: "p",
+        workbook: "p",
         id: "section:a",
         fields: { title: "x" },
         expectedRevision: stored.revision + 99,
@@ -101,7 +101,7 @@ describe("patchPrimitive", () => {
     const host = await seedHost();
     await expect(
       patchPrimitive(host, {
-        project: "p",
+        workbook: "p",
         id: "section:a",
         fields: { title: "x".repeat(300) },
       }),
@@ -112,7 +112,7 @@ describe("patchPrimitive", () => {
     const host = await seedHost();
     await expect(
       patchPrimitive(host, {
-        project: "p",
+        workbook: "p",
         id: "section:does-not-exist",
         fields: { title: "x" },
       }),
@@ -126,7 +126,7 @@ describe("patchPrimitive", () => {
     // path both succeed when the record is clean.
     const host = await seedHost();
     const out = await patchPrimitive(host, {
-      project: "p",
+      workbook: "p",
       id: "section:a",
       fields: { title: "ok" },
       fullValidate: true,
@@ -140,11 +140,11 @@ describe("patchPrimitive", () => {
 describe("patchRelation", () => {
   it("succeeds for an empty patch on a fields-less relation type", async () => {
     // test:rel:contains has zero fields; an empty patch is a valid
-    // no-op that still bumps the project revision.
+    // no-op that still bumps the workbook revision.
     const host = await seedHost();
     const before = host.getProject("p").relations["rel:1"]!;
     const result = await patchRelation(host, {
-      project: "p",
+      workbook: "p",
       id: "rel:1",
       fields: {},
     });
@@ -158,7 +158,7 @@ describe("patchRelation", () => {
     const host = await seedHost();
     await expect(
       patchRelation(host, {
-        project: "p",
+        workbook: "p",
         id: "rel:missing",
         fields: {},
       }),
@@ -170,7 +170,7 @@ describe("patchRelation", () => {
     const stored = host.getProject("p").relations["rel:1"]!;
     await expect(
       patchRelation(host, {
-        project: "p",
+        workbook: "p",
         id: "rel:1",
         fields: {},
         expectedRevision: stored.revision + 99,
@@ -184,9 +184,9 @@ describe("patchRelation", () => {
 describe("deletePrimitive", () => {
   it("removes the primitive and returns the new revision", async () => {
     const host = await seedHost();
-    const before = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
     const result = await deletePrimitive(host, {
-      project: "p",
+      workbook: "p",
       id: "section:b",
     });
     const slice = host.getProject("p");
@@ -199,14 +199,14 @@ describe("deletePrimitive", () => {
   it("throws `not_found` for an unknown primitive id", async () => {
     const host = await seedHost();
     await expect(
-      deletePrimitive(host, { project: "p", id: "section:nope" }),
+      deletePrimitive(host, { workbook: "p", id: "section:nope" }),
     ).rejects.toMatchObject({ category: "not_found" });
   });
 
-  it("throws (FDPMException) when the project itself is unknown", async () => {
+  it("throws (FDPMException) when the workbook itself is unknown", async () => {
     const host = await seedHost();
     await expect(
-      deletePrimitive(host, { project: "no-such-project", id: "section:a" }),
+      deletePrimitive(host, { workbook: "no-such-workbook", id: "section:a" }),
     ).rejects.toThrow(FDPMException);
   });
 });
@@ -216,9 +216,9 @@ describe("deletePrimitive", () => {
 describe("deleteRelation", () => {
   it("removes the relation and returns the new revision", async () => {
     const host = await seedHost();
-    const before = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
     const result = await deleteRelation(host, {
-      project: "p",
+      workbook: "p",
       id: "rel:1",
     });
     const slice = host.getProject("p");
@@ -230,7 +230,7 @@ describe("deleteRelation", () => {
   it("throws `not_found` for an unknown relation id", async () => {
     const host = await seedHost();
     await expect(
-      deleteRelation(host, { project: "p", id: "rel:does-not-exist" }),
+      deleteRelation(host, { workbook: "p", id: "rel:does-not-exist" }),
     ).rejects.toMatchObject({ category: "not_found" });
   });
 });
@@ -238,15 +238,15 @@ describe("deleteRelation", () => {
 // -- end-to-end roundtrip ----------------------------------------------
 
 describe("edit helpers compose with defineProject", () => {
-  it("create -> patch -> delete cycle keeps the project consistent", async () => {
+  it("create -> patch -> delete cycle keeps the workbook consistent", async () => {
     const host = await seedHost();
     await patchPrimitive(host, {
-      project: "p",
+      workbook: "p",
       id: "section:a",
       fields: { title: "renamed", number: 99 },
     });
-    await deletePrimitive(host, { project: "p", id: "section:b" });
-    await deleteRelation(host, { project: "p", id: "rel:1" });
+    await deletePrimitive(host, { workbook: "p", id: "section:b" });
+    await deleteRelation(host, { workbook: "p", id: "rel:1" });
 
     const slice = host.getProject("p");
     expect(slice.primitives["section:a"]?.field_values["title"]).toBe("renamed");

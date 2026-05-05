@@ -46,10 +46,10 @@ async function freshHost(): Promise<Host> {
   return host;
 }
 
-async function newProject(host: Host, projectId: string): Promise<void> {
+async function newProject(host: Host, workbookId: string): Promise<void> {
   await host.createProject({
-    project_id: projectId,
-    name: projectId,
+    workbook_id: workbookId,
+    name: workbookId,
     profile_id: PROFILE,
   });
   // The spec-authoring-dnis profile requires a spec:Document to render,
@@ -85,7 +85,7 @@ async function createSection(
 
 interface Fixture {
   host: Host;
-  projectId: string;
+  workbookId: string;
   documentId: DocumentId;
   purpose: NodeId;
   why: NodeId;
@@ -93,10 +93,10 @@ interface Fixture {
   rules: NodeId;
 }
 
-async function buildFixture(projectId: string): Promise<Fixture> {
+async function buildFixture(workbookId: string): Promise<Fixture> {
   const host = await freshHost();
-  await newProject(host, projectId);
-  const adapter = new DnisHostAdapter(host, { projectId });
+  await newProject(host, workbookId);
+  const adapter = new DnisHostAdapter(host, { workbookId });
   const document = await adapter.createDocument({
     createdBy: AGENT,
     schemaVersion: "0.1.7",
@@ -120,7 +120,7 @@ async function buildFixture(projectId: string): Promise<Fixture> {
   });
   return {
     host,
-    projectId,
+    workbookId,
     documentId: document.id,
     purpose: purpose.nodeId,
     why: why.nodeId,
@@ -141,7 +141,7 @@ describe("DnisHostAdapter.hydrate", () => {
     const fx = await buildFixture("hydrate-basic");
 
     // A fresh adapter against the same Host starts with an empty cache.
-    const fresh = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const fresh = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     expect(() => fresh.getDocument(fx.documentId)).toThrow(FDPMException);
     expect(fresh.listActiveNodes(fx.documentId, null)).toHaveLength(0);
 
@@ -173,7 +173,7 @@ describe("DnisHostAdapter.hydrate", () => {
 
   it("is idempotent — calling hydrate twice does not duplicate or corrupt nodes", async () => {
     const fx = await buildFixture("hydrate-idempotent");
-    const fresh = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const fresh = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     fresh.hydrate();
     fresh.hydrate();
     const roots = fresh.listActiveNodes(fx.documentId, null);
@@ -188,7 +188,7 @@ describe("fdpm dnis edit", () => {
     const fx = await buildFixture("edit-basic");
     await runDnis(fx.host, [
       "edit",
-      fx.projectId,
+      fx.workbookId,
       "--document",
       fx.documentId,
       "--node",
@@ -204,7 +204,7 @@ describe("fdpm dnis edit", () => {
       "0",
     ]);
 
-    const adapter = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const adapter = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     adapter.hydrate();
     const why = adapter.getNode(fx.why);
     expect(why.revision).toBe(1);
@@ -219,7 +219,7 @@ describe("fdpm dnis edit", () => {
     await expect(
       runDnis(fx.host, [
         "edit",
-        fx.projectId,
+        fx.workbookId,
         "--document",
         fx.documentId,
         "--node",
@@ -237,7 +237,7 @@ describe("fdpm dnis edit", () => {
     await expect(
       runDnis(fx.host, [
         "edit",
-        fx.projectId,
+        fx.workbookId,
         "--document",
         fx.documentId,
         "--node",
@@ -251,7 +251,7 @@ describe("fdpm dnis edit", () => {
       ]),
     ).rejects.toThrow();
     // Node is unchanged.
-    const adapter = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const adapter = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     adapter.hydrate();
     expect(adapter.getNode(fx.why).revision).toBe(0);
   });
@@ -263,7 +263,7 @@ describe("fdpm dnis move", () => {
     const fx = await buildFixture("move-after-root");
     await runDnis(fx.host, [
       "move",
-      fx.projectId,
+      fx.workbookId,
       "--document",
       fx.documentId,
       "--node",
@@ -274,7 +274,7 @@ describe("fdpm dnis move", () => {
       fx.rules,
     ]);
 
-    const adapter = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const adapter = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     adapter.hydrate();
 
     // Purpose's children: only 'Why naps' remains.
@@ -297,7 +297,7 @@ describe("fdpm dnis move", () => {
     const fx = await buildFixture("move-before-child");
     await runDnis(fx.host, [
       "move",
-      fx.projectId,
+      fx.workbookId,
       "--document",
       fx.documentId,
       "--node",
@@ -308,7 +308,7 @@ describe("fdpm dnis move", () => {
       fx.why,
     ]);
 
-    const adapter = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const adapter = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     adapter.hydrate();
     expect(adapter.listActiveNodes(fx.documentId, fx.purpose).map((n) => n.id)).toEqual([
       fx.rules,
@@ -326,7 +326,7 @@ describe("fdpm dnis move", () => {
     const fx = await buildFixture("move-parent-override");
     await runDnis(fx.host, [
       "move",
-      fx.projectId,
+      fx.workbookId,
       "--document",
       fx.documentId,
       "--node",
@@ -339,7 +339,7 @@ describe("fdpm dnis move", () => {
       // We test the override below in a second call, not here, so this
       // first call confirms baseline inference.
     ]);
-    const adapter = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const adapter = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     adapter.hydrate();
     expect(adapter.getNode(fx.scope).parentNodeId).toBe(fx.purpose);
     // Order under Purpose: Why naps, Out of scope (Out of scope was
@@ -353,7 +353,7 @@ describe("fdpm dnis move", () => {
     // Now: same --after, but --parent=<root> wins.
     await runDnis(fx.host, [
       "move",
-      fx.projectId,
+      fx.workbookId,
       "--document",
       fx.documentId,
       "--node",
@@ -368,7 +368,7 @@ describe("fdpm dnis move", () => {
     // Issue the override explicitly:
     await runDnis(fx.host, [
       "move",
-      fx.projectId,
+      fx.workbookId,
       "--document",
       fx.documentId,
       "--node",
@@ -381,7 +381,7 @@ describe("fdpm dnis move", () => {
       fx.rules,
     ]);
 
-    const adapter2 = new DnisHostAdapter(fx.host, { projectId: fx.projectId });
+    const adapter2 = new DnisHostAdapter(fx.host, { workbookId: fx.workbookId });
     adapter2.hydrate();
     // Scope now lives under Rules, not under Purpose.
     expect(adapter2.getNode(fx.scope).parentNodeId).toBe(fx.rules);
@@ -398,7 +398,7 @@ describe("fdpm dnis move", () => {
     await expect(
       runDnis(fx.host, [
         "move",
-        fx.projectId,
+        fx.workbookId,
         "--document",
         fx.documentId,
         "--node",

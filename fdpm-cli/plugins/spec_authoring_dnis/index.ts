@@ -10,7 +10,7 @@
  * time and the resulting profile registers every primitive/relation/
  * scope from both parents.
  *
- * What this enables: a single SPEC-CORE project can hold both
+ * What this enables: a single SPEC-CORE workbook can hold both
  *   - spec-authoring's typed primitives (spec:Document, spec:Stakeholder,
  *     spec:Term, spec:Reference, spec:ADR, ...) — the typed records the
  *     spec_md renderer dispatches on, and
@@ -20,7 +20,7 @@
  *
  * Why this lives as a separate plugin: blast-radius. Adding `extends`
  * to plugins/spec_authoring/index.ts directly would couple every
- * existing spec-authoring project to the dnis plugin. A composition
+ * existing spec-authoring workbook to the dnis plugin. A composition
  * profile is opt-in — only build scripts that explicitly target this
  * profile's id pull in the DNIS surface. Existing build-spec-*.ts
  * scripts continue to use profile:spec-authoring:0.1 verbatim.
@@ -44,7 +44,7 @@ export const PROFILE: DomainProfile = {
   name: "Spec-Authoring DNIS Composition",
   label: "Spec-Authoring + DNIS",
   description:
-    "Composition profile extending profile:spec-authoring:0.1 and profile:dnis:0.1. A project on this profile can hold both spec-authoring's typed primitives and a DNIS Node tree for graph-derived section numbering. Contributes no types of its own.",
+    "Composition profile extending profile:spec-authoring:0.1 and profile:dnis:0.1. A workbook on this profile can hold both spec-authoring's typed primitives and a DNIS Node tree for graph-derived section numbering. Contributes no types of its own.",
   // Resolution order matters only for collision diagnostics; the two
   // parent profiles use disjoint id namespaces (spec:* vs. dnis:*) so
   // no collisions are possible.

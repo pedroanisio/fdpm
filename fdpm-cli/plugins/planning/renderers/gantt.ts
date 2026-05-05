@@ -74,7 +74,7 @@ function formatDate(ms: number): string {
 }
 
 export const renderGantt: RendererFn = (input): RendererOutput => {
-  const { primitives, projectId, profile } = input;
+  const { primitives, workbookId, profile } = input;
   const tasks = primitives.filter((p) => p.type_id === "plan:Task");
 
   // Bucket: scheduled vs. unscheduled.
@@ -119,7 +119,7 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
   lines.push(
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${chartWidth} ${chartHeight}" width="${chartWidth}" height="${chartHeight}" font-family="sans-serif" font-size="12">`,
-    `<title>${escapeXml(projectId)} — Gantt</title>`,
+    `<title>${escapeXml(workbookId)} — Gantt</title>`,
     `<desc>Profile: ${escapeXml(profile.id)} v${escapeXml(profile.version)}. ${scheduled.length} scheduled, ${unscheduled.length} unscheduled.</desc>`,
     `<style><![CDATA[
   .grid { stroke: #e5e7eb; stroke-width: 1; }
@@ -138,7 +138,7 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
   .unscheduled-row { fill: #6b7280; font-size: 11px; }
 ]]></style>`,
     // Title.
-    `<text class="title" x="${LEFT_GUTTER}" y="24">${escapeXml(projectId)} — Gantt</text>`,
+    `<text class="title" x="${LEFT_GUTTER}" y="24">${escapeXml(workbookId)} — Gantt</text>`,
     `<text class="subtitle" x="${LEFT_GUTTER}" y="42">${scheduled.length} scheduled, ${unscheduled.length} unscheduled · profile ${escapeXml(profile.id)} v${escapeXml(profile.version)}</text>`,
   );
 

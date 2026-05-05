@@ -11,9 +11,9 @@ import {
 } from "./metadata.js";
 
 /**
- * `fdpm render <project> <target>` — invoke a registered cap:renderer
+ * `fdpm render <workbook> <target>` — invoke a registered cap:renderer
  * for `target` (MIME type, e.g. text/markdown, text/html, application/pdf)
- * against the project's current state.
+ * against the workbook's current state.
  *
  * The host's runRenderer:
  *   1. resolves the renderer (target + optional --renderer-id),
@@ -31,9 +31,9 @@ export function buildRenderCommand(host: Host): Command {
   const cmd = new Command("render");
   cmd
     .description(
-      "Invoke a plugin-registered cap:renderer for <target> against <project>",
+      "Invoke a plugin-registered cap:renderer for <target> against <workbook>",
     )
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<target>", "renderer target (MIME type, e.g. text/markdown)")
     .option(
       "--renderer-id <id>",
@@ -44,7 +44,7 @@ export function buildRenderCommand(host: Host): Command {
     .option("--strict", "set a verification exit code when render findings are present")
     .action(
       async (
-        projectId: string,
+        workbookId: string,
         target: string,
         opts: {
           rendererId?: string;
@@ -54,12 +54,12 @@ export function buildRenderCommand(host: Host): Command {
         },
       ) => {
         const ctx: OutputContext = { json: !!opts.json };
-        const slice = host.getProject(projectId);
-        const profile = host.profiles.getResolved(slice.project.profile_id);
+        const slice = host.getProject(workbookId);
+        const profile = host.profiles.getResolved(slice.workbook.profile_id);
         const result = await host.plugins.runRenderer(
           target,
           {
-            projectId,
+            workbookId,
             primitives: Object.values(slice.primitives),
             relations: Object.values(slice.relations),
             profile,
@@ -69,7 +69,7 @@ export function buildRenderCommand(host: Host): Command {
 
         const isText = target.startsWith("text/");
         const summary = {
-          project_id: projectId,
+          workbook_id: workbookId,
           target,
           renderer_id: result.rendererId,
           plugin_id: result.pluginId,
@@ -131,6 +131,6 @@ export const commandMetadata: CommandMetadataMap = {
   render: {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(1),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

@@ -28,14 +28,14 @@ export const ASSURANCE_PRIMITIVES: PrimitiveTypeDef[] = [
     id: "plan:AcceptanceCriterion",
     name: "AcceptanceCriterion",
     category: "cat:plan:assurance",
-    description: "A check that decides whether a task is done. Free-text by default; optionally also a CEL expression evaluable against the project graph (recommended for AI-executable tasks).",
+    description: "A check that decides whether a task is done. Free-text by default; optionally also a CEL expression evaluable against the workbook graph (recommended for AI-executable tasks).",
     scoped: true,
     id_format: idTemplate("ac:{slug}"),
     fields: [
       text("criterion", "Human-readable acceptance check.", { maxLength: 500 }),
       str(
         "expression",
-        "Optional CEL expression evaluating to bool against the project graph. When non-empty AND `met` is set, host pipelines can corroborate the human-set status against the predicate. The full helper-set v1.1.0 is available, including graph.exists / graph.target_exists for cross-primitive id resolution.",
+        "Optional CEL expression evaluating to bool against the workbook graph. When non-empty AND `met` is set, host pipelines can corroborate the human-set status against the predicate. The full helper-set v1.1.0 is available, including graph.exists / graph.target_exists for cross-primitive id resolution.",
         { required: false },
       ),
       enumOf("status", "Current AC status.", [

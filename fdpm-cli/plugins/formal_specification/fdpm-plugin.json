@@ -9,12 +9,12 @@
   "license": "MIT",
   "host_compatibility": { "fdpm": ">=1.1,<2" },
   "permissions": [
-    "read:projects",
+    "read:workbooks",
     "read:primitives",
     "read:relations",
     "render:server",
-    "import:project",
-    "export:project"
+    "import:workbook",
+    "export:workbook"
   ],
   "capabilities": [
     {

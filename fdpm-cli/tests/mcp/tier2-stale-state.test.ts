@@ -1,7 +1,7 @@
 /**
  * SPEC-MCP-SERVER §10 / §21 / §23.4 — Tier 2 strict-mode staleness.
  *
- * After a Tier-2 call records the freshness tuple for project P, any
+ * After a Tier-2 call records the freshness tuple for workbook P, any
  * out-of-band write to P MUST cause the next Tier-2 call against P
  * to refuse with an MCP error envelope:
  *   - `isError: true`
@@ -42,8 +42,8 @@ async function makeHostAndProject(dataDir: string): Promise<Host> {
   await host.load();
   await host.registerProfile(TEST_PROFILE, { persist: true });
   await host.createProject({
-    project_id: "p1",
-    name: "Project One",
+    workbook_id: "p1",
+    name: "Workbook One",
     profile_id: "test:demo",
   });
   return host;
@@ -66,7 +66,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
 
     // First Tier-2 call seeds the freshness map.
     const r1 = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:one",
         type_id: "test:section",
@@ -81,7 +81,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
     const op = {
       op_id: mintUid(),
       kind: "primitive.create",
-      project_id: "p1",
+      workbook_id: "p1",
       payload: {
         id: "section:two",
         uid: mintUid(),
@@ -98,7 +98,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
 
     // Second Tier-2 call MUST refuse with stale_state.
     const r2 = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:three",
         type_id: "test:section",
@@ -130,7 +130,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
 
     // Seed freshness.
     await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:one",
         type_id: "test:section",
@@ -143,7 +143,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
     const op = {
       op_id: mintUid(),
       kind: "primitive.create",
-      project_id: "p1",
+      workbook_id: "p1",
       payload: {
         id: "section:two",
         uid: mintUid(),
@@ -160,7 +160,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
 
     // Verify the refusal first.
     const refused = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:three",
         type_id: "test:section",
@@ -175,7 +175,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
 
     // The same call now succeeds.
     const r3 = await dispatcher.call("fdpm.primitive.create", {
-      project_id: "p1",
+      workbook_id: "p1",
       primitive: {
         id: "section:three",
         type_id: "test:section",

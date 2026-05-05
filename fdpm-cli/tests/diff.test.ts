@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { newHost } from "./fixtures.js";
 
 /**
- * #6 — `host.diffProject` (time-travel and cross-project structural diff).
+ * #6 — `host.diffProject` (time-travel and cross-workbook structural diff).
  *
  * The CLI surface is a thin wrapper; testing the host method covers the
  * underlying diff semantics.
@@ -10,15 +10,15 @@ import { newHost } from "./fixtures.js";
 describe("host.diffProject — time-travel mode", () => {
   it("reports an added primitive", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
-    const beforeRev = host.getProject("p").project.revision;
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
+    const beforeRev = host.getProject("p").workbook.revision;
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "A", number: 1 },
     });
     const d = host.diffProject({
-      project_id: "p",
+      workbook_id: "p",
       from: { revision: beforeRev },
     });
     expect(d.primitives.added).toEqual(["section:a"]);
@@ -28,16 +28,16 @@ describe("host.diffProject — time-travel mode", () => {
 
   it("reports a removed primitive", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "A", number: 1 },
     });
-    const afterCreate = host.getProject("p").project.revision;
+    const afterCreate = host.getProject("p").workbook.revision;
     await host.deletePrimitive("p", "section:a");
     const d = host.diffProject({
-      project_id: "p",
+      workbook_id: "p",
       from: { revision: afterCreate },
     });
     expect(d.primitives.added).toEqual([]);
@@ -46,19 +46,19 @@ describe("host.diffProject — time-travel mode", () => {
 
   it("reports modified field paths", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "A", number: 1 },
     });
-    const before = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
     await host.patchPrimitive("p", {
       id: "section:a",
       field_values: { title: "A-updated" },
     });
     const d = host.diffProject({
-      project_id: "p",
+      workbook_id: "p",
       from: { revision: before },
     });
     expect(d.primitives.modified).toEqual([
@@ -70,7 +70,7 @@ describe("host.diffProject — time-travel mode", () => {
 
   it("reports added relation", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:s",
       type_id: "test:section",
@@ -81,7 +81,7 @@ describe("host.diffProject — time-travel mode", () => {
       type_id: "test:para",
       field_values: { text: "alpha" },
     });
-    const before = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
     await host.createRelation("p", {
       id: "rel:s-a",
       type_id: "test:rel:contains",
@@ -90,7 +90,7 @@ describe("host.diffProject — time-travel mode", () => {
       field_values: {},
     });
     const d = host.diffProject({
-      project_id: "p",
+      workbook_id: "p",
       from: { revision: before },
     });
     expect(d.relations.added).toEqual(["rel:s-a"]);
@@ -98,15 +98,15 @@ describe("host.diffProject — time-travel mode", () => {
 
   it("returns empty diff for identical revisions", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "A", number: 1 },
     });
-    const rev = host.getProject("p").project.revision;
+    const rev = host.getProject("p").workbook.revision;
     const d = host.diffProject({
-      project_id: "p",
+      workbook_id: "p",
       from: { revision: rev },
       to: { revision: rev },
     });
@@ -117,17 +117,17 @@ describe("host.diffProject — time-travel mode", () => {
 
   it("is read-only: revision unchanged after diff", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
-    const projectCreateRev = host.getProject("p").project.revision;
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
+    const projectCreateRev = host.getProject("p").workbook.revision;
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "A", number: 1 },
     });
-    const before = host.getProject("p").project.revision;
-    host.diffProject({ project_id: "p", from: { revision: projectCreateRev } });
-    host.diffProject({ project_id: "p", from: { revision: projectCreateRev } });
-    const after = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
+    host.diffProject({ workbook_id: "p", from: { revision: projectCreateRev } });
+    host.diffProject({ workbook_id: "p", from: { revision: projectCreateRev } });
+    const after = host.getProject("p").workbook.revision;
     expect(after).toBe(before);
   });
 });
@@ -135,19 +135,19 @@ describe("host.diffProject — time-travel mode", () => {
 describe("host.diffProject — --detail mode", () => {
   it("includes before/after values for modified fields when detail=true", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "Original", number: 1 },
     });
-    const before = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
     await host.patchPrimitive("p", {
       id: "section:a",
       field_values: { title: "Updated" },
     });
     const d = host.diffProject({
-      project_id: "p",
+      workbook_id: "p",
       from: { revision: before },
       detail: true,
     });
@@ -163,29 +163,29 @@ describe("host.diffProject — --detail mode", () => {
 
   it("omits before/after when detail is not set (no regression)", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "X", number: 1 },
     });
-    const before = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
     await host.patchPrimitive("p", {
       id: "section:a",
       field_values: { title: "Y" },
     });
-    const d = host.diffProject({ project_id: "p", from: { revision: before } });
+    const d = host.diffProject({ workbook_id: "p", from: { revision: before } });
     const m = d.primitives.modified[0]!;
     expect(m.before).toBeUndefined();
     expect(m.after).toBeUndefined();
   });
 });
 
-describe("host.diffProject — cross-project mode", () => {
-  it("compares two distinct projects", async () => {
+describe("host.diffProject — cross-workbook mode", () => {
+  it("compares two distinct workbooks", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
-    await host.createProject({ project_id: "p2", name: "P2", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p2", name: "P2", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",
@@ -202,9 +202,9 @@ describe("host.diffProject — cross-project mode", () => {
       field_values: { title: "Extra", number: 2 },
     });
     const d = host.diffProject({
-      project_id: "p1",
-      from: { project_id: "p1" },
-      to: { project_id: "p2" },
+      workbook_id: "p1",
+      from: { workbook_id: "p1" },
+      to: { workbook_id: "p2" },
     });
     expect(d.primitives.added).toEqual(["section:extra"]);
     expect(d.primitives.modified).toEqual([

@@ -2,7 +2,7 @@ import type { DomainProfile } from "../core/models/meta.js";
 import type {
   PrimitiveInstance,
   RelationInstance,
-  Project,
+  Workbook,
   ProjectTemplate,
   ProjectTransfer,
   ValidationFinding,
@@ -39,11 +39,11 @@ export interface PluginContext {
   listProfiles(): readonly DomainProfile[];
   getProfile(id: string): DomainProfile | undefined;
   listProjects(): readonly { id: string; name: string; profile_id: string; revision: number }[];
-  getProject(id: string): Project | undefined;
-  listPrimitives(projectId: string): readonly PrimitiveInstance[];
-  getPrimitive(projectId: string, id: string): PrimitiveInstance | undefined;
-  listRelations(projectId: string): readonly RelationInstance[];
-  getRelation(projectId: string, id: string): RelationInstance | undefined;
+  getProject(id: string): Workbook | undefined;
+  listPrimitives(workbookId: string): readonly PrimitiveInstance[];
+  getPrimitive(workbookId: string, id: string): PrimitiveInstance | undefined;
+  listRelations(workbookId: string): readonly RelationInstance[];
+  getRelation(workbookId: string, id: string): RelationInstance | undefined;
 }
 
 export interface PluginLogger {
@@ -78,8 +78,8 @@ export interface ValidatorRegistration {
 }
 
 export interface RendererInput {
-  projectId: string;
-  project?: Project;
+  workbookId: string;
+  workbook?: Workbook;
   primitives: readonly PrimitiveInstance[];
   relations: readonly RelationInstance[];
   templates?: readonly ProjectTemplate[];
@@ -100,7 +100,7 @@ export interface RendererRegistration {
 }
 
 export interface TransformerInput {
-  projectId: string;
+  workbookId: string;
   source: PrimitiveInstance | RelationInstance;
   profile: DomainProfile;
 }
@@ -119,11 +119,11 @@ export interface TransformerRegistration {
 }
 
 export interface ImporterOptions {
-  /** Caller-supplied project id (importer formats without an embedded project envelope use this). */
-  projectId?: string;
-  /** Caller-supplied project display name. */
+  /** Caller-supplied workbook id (importer formats without an embedded workbook envelope use this). */
+  workbookId?: string;
+  /** Caller-supplied workbook display name. */
   projectName?: string;
-  /** Caller-supplied project description. */
+  /** Caller-supplied workbook description. */
   projectDescription?: string;
   /** Format-specific options forwarded by the CLI / API caller. */
   extra?: Record<string, unknown>;

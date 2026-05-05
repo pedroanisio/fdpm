@@ -63,7 +63,7 @@ export const DOCUMENT_PRIMITIVES: PrimitiveTypeDef[] = [
       ),
       text(
         "disclaimer_path",
-        "Relative path to the project DISCLAIMER.md (e.g., '../../DISCLAIMER.md').",
+        "Relative path to the workbook DISCLAIMER.md (e.g., '../../DISCLAIMER.md').",
         { maxLength: 200 },
       ),
       bool("pals_banner", "Emit the PALS-LAW banner blockquote at the top."),

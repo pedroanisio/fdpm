@@ -1,7 +1,7 @@
 /**
  * `fdpm.health` — Tier 1 (read-only).
  *
- * Liveness probe with a small operational summary. No project state
+ * Liveness probe with a small operational summary. No workbook state
  * is touched — safe to call without freshness checks.
  */
 
@@ -32,19 +32,19 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.health",
   tier: "read_only",
   description:
-    "Liveness probe. Returns server version, MCP tool manifest version, and a summary of loaded profiles and projects.",
+    "Liveness probe. Returns server version, MCP tool manifest version, and a summary of loaded profiles and workbooks.",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
   handler: async (host, _args, ctx) => {
     const profiles = host.profiles.listRaw();
-    const projects = host.listProjects();
+    const workbooks = host.listProjects();
     return {
       ok: true as const,
       version: HOST_VERSION,
       manifest_version: MCP_TOOL_MANIFEST_VERSION,
       profiles_loaded: profiles.length,
-      projects_loaded: projects.length,
+      projects_loaded: workbooks.length,
       host_options: {
         data_dir: ctx.hostOptions.dataDir,
         no_plugins: ctx.hostOptions.noPlugins,

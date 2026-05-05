@@ -16,7 +16,7 @@ import type { Operation } from "../src/core/operations/operation.js";
 const stubOp = (kind: Operation["kind"] = "primitive.create"): Operation => ({
   op_id: "01HZZZZZZZZZZZZZZZZZZZZZZZ",
   kind,
-  project_id: "p",
+  workbook_id: "p",
   schema_version: "1.1.0",
   revision: 0,
   timestamp: "2026-05-04T00:00:00.000Z",
@@ -53,7 +53,7 @@ describe("Issue-B — JSONL corrupt log surfaces as `verification`", () => {
   it("throws FDPMException with category=verification on bad JSON", async () => {
     const dir = makeTempDir();
     try {
-      const projectDir = join(dir, "projects", "demo");
+      const projectDir = join(dir, "workbooks", "demo");
       mkdirSync(projectDir, { recursive: true });
       const logPath = join(projectDir, "log.jsonl");
       // Corrupt JSON on line 1 — `JSON.parse` fails before the schema
@@ -87,7 +87,7 @@ describe("Issue-B — JSONL corrupt log surfaces as `verification`", () => {
   it("attaches structured evidence (path, line, parse_error)", async () => {
     const dir = makeTempDir();
     try {
-      const projectDir = join(dir, "projects", "demo");
+      const projectDir = join(dir, "workbooks", "demo");
       mkdirSync(projectDir, { recursive: true });
       const logPath = join(projectDir, "log.jsonl");
       await fs.writeFile(logPath, "{not-json\n", "utf8");
@@ -115,7 +115,7 @@ describe("Issue-B — JSONL corrupt log surfaces as `verification`", () => {
     // sync. If a future change splits them again, this test fails first.
     const dir = makeTempDir();
     try {
-      const projectDir = join(dir, "projects", "demo");
+      const projectDir = join(dir, "workbooks", "demo");
       mkdirSync(projectDir, { recursive: true });
       const logPath = join(projectDir, "log.jsonl");
       // Valid JSON, but does not match Operation schema.

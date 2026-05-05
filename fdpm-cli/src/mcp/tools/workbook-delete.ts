@@ -1,7 +1,7 @@
 /**
- * `fdpm.project.delete` — Tier 3 (destructive).
+ * `fdpm.workbook.delete` — Tier 3 (destructive).
  *
- * Deletes an existing project. NOT advertised when
+ * Deletes an existing workbook. NOT advertised when
  * `--enable-destructive` / `FDPM_MCP_ENABLE_DESTRUCTIVE=1` is unset
  * (SPEC-MCP-SERVER §8.3, §22.3, §23.1). Even when advertised, the
  * dispatcher's tier gate still refuses the call when destructive mode
@@ -19,7 +19,7 @@ import { Operation } from "../../core/operations/operation.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
   })
   .strict();
 
@@ -29,26 +29,26 @@ const Output = z
     operation: Operation,
     post_state_summary: z
       .object({
-        project_id: z.string(),
+        workbook_id: z.string(),
       })
       .strict(),
   })
   .strict();
 
 export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> = {
-  name: "fdpm.project.delete",
+  name: "fdpm.workbook.delete",
   tier: "destructive",
   description:
-    "Delete an existing project. Destructive: the operation cannot be undone by another tool call. Returns the recorded operation. Refuses with category=permission, reason=destructive_disabled when destructive tools are not enabled.",
+    "Delete an existing workbook. Destructive: the operation cannot be undone by another tool call. Returns the recorded operation. Refuses with category=permission, reason=destructive_disabled when destructive tools are not enabled.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: true },
   handler: async (host, args) => {
-    const append = await host.deleteProject(args.project_id);
+    const append = await host.deleteProject(args.workbook_id);
     return {
       ok: true as const,
       operation: append.op,
-      post_state_summary: { project_id: args.project_id },
+      post_state_summary: { workbook_id: args.workbook_id },
     };
   },
 };

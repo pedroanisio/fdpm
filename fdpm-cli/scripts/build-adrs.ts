@@ -1,5 +1,5 @@
 /**
- * Build a `software-architecture` project that contains every ADR
+ * Build a `software-architecture` workbook that contains every ADR
  * recorded for the FDPM CLI codebase, then render the canonical
  * `decisions.md` ADR document via the `sw:ADRRenderer`.
  *
@@ -7,7 +7,7 @@
  * -------------
  * The five ADRs below are the same decisions encoded in
  * `scripts/build-cli-architecture.ts` (decision:0001 .. decision:0005).
- * That script bundles them inside a much larger architecture project;
+ * That script bundles them inside a much larger architecture workbook;
  * this script isolates the ADR surface so the rendered Markdown is
  * exactly the architectural decision record and nothing else.
  *
@@ -19,7 +19,7 @@
  *   FDPM_DATA_DIR=/tmp/fdpm-adrs npx tsx scripts/build-adrs.ts
  *
  * Output:
- *   - Project `fdpm-cli-adrs` persisted under FDPM_DATA_DIR.
+ *   - Workbook `fdpm-cli-adrs` persisted under FDPM_DATA_DIR.
  *   - `docs/adrs/decisions.md` at the repository root (override with --out).
  *     The directory is created if it does not exist.
  */
@@ -109,7 +109,7 @@ const decisions: DecisionInput[] = [
       "Some field shapes look counterintuitive in TS (single-object struct fields). Documented as known idiosyncrasies in plugin READMEs.",
     altName: "Idiomatic TypeScript redesign",
     altReason:
-      "Breaks compatibility with existing project transfers; expands scope beyond the port.",
+      "Breaks compatibility with existing workbook transfers; expands scope beyond the port.",
   },
   {
     id: "decision:0005",
@@ -227,14 +227,14 @@ async function main(): Promise<void> {
     .relations(relations)
     .commit();
 
-  console.log("Built ADR project:", built.project_id);
+  console.log("Built ADR workbook:", built.workbook_id);
   console.log("  decisions:", decisionSpecs.length);
   console.log("  evidence: ", evidenceSpecs.length);
   console.log("  edges:    ", relations.length);
   console.log("  revision: ", built.revision);
 
   const rendered = await renderProject(host, {
-    project: PROJECT_ID,
+    workbook: PROJECT_ID,
     target: "text/markdown",
     // The SDK's flat-args convention drops `_id`/`Id` suffixes on
     // input fields (see RenderOptions in sdk.ts), so pass `renderer`

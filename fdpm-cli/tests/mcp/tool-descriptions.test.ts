@@ -24,7 +24,7 @@ const MIN_LEN_READ_PROJECTED = 120;
 const TIER_2_TOOLS = MANIFEST.filter((t) => t.tier === "validating_write");
 const TIER_3_TOOLS = MANIFEST.filter((t) => t.tier === "destructive");
 
-const PROJECTION_TOOLS = ["fdpm.profile.get", "fdpm.project.get", "fdpm.primitive.get"];
+const PROJECTION_TOOLS = ["fdpm.profile.get", "fdpm.workbook.get", "fdpm.primitive.get"];
 
 const CREATE_TOOLS_THAT_NEED_TYPE_INFO_HINT = [
   "fdpm.primitive.create",

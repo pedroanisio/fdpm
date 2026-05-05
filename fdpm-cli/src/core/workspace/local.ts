@@ -243,12 +243,12 @@ export class LocalWorkspace implements Workspace {
     await this.persistence.appendOp(op);
   }
 
-  async getOperationLog(project_id: string): Promise<Operation[]> {
-    return this.persistence.readLog(project_id);
+  async getOperationLog(workbook_id: string): Promise<Operation[]> {
+    return this.persistence.readLog(workbook_id);
   }
 
-  statProjectLog(project_id: string): { mtime_ns: bigint; size: bigint } | null {
-    return this.persistence.statProjectLog(project_id);
+  statProjectLog(workbook_id: string): { mtime_ns: bigint; size: bigint } | null {
+    return this.persistence.statProjectLog(workbook_id);
   }
 
   async listProjects(): Promise<string[]> {

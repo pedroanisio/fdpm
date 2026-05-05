@@ -7,20 +7,20 @@
  *   1. `openHost(opts)` — convenience opener that awaits load() so
  *      consumers don't forget the bootstrap step.
  *   2. `defineProject(host, header).primitives([...]).relations([...])
- *      .commit()` — a builder that creates a project plus N primitives
+ *      .commit()` — a builder that creates a workbook plus N primitives
  *      and N relations as a sequence of validated Host calls, with
  *      naming aliases (`type` for type_id, `from` / `to` for source_id
  *      / target_id, `fields` for field_values, and `scope` for
  *      scope_id) that match how operators talk about the domain. The
- *      builder is append-only and intended for greenfield project
+ *      builder is append-only and intended for greenfield workbook
  *      construction. NOT transactional — see `commit()` for the
  *      validation/atomicity trade-off.
  *   3. Edit helpers: `patchPrimitive`, `deletePrimitive`,
  *      `patchRelation`, `deleteRelation` — flat-args wrappers around
  *      the Host's edit/delete methods that share the same
  *      operator-friendly aliases as `defineProject`. Use these for
- *      modifying an existing project after it has been built.
- *   4. `renderProject(host, {project, target, ...})` — flat-args
+ *      modifying an existing workbook after it has been built.
+ *   4. `renderProject(host, {workbook, target, ...})` — flat-args
  *      wrapper around `host.plugins.runRenderer` so callers don't have
  *      to assemble the renderer input envelope themselves.
  *
@@ -40,7 +40,7 @@
  *   alias without consulting the docs:
  *
  *     - Drop the `_id` / `Id` suffix on inputs:
- *         `project_id`         → `project`
+ *         `workbook_id`         → `workbook`
  *         `type_id`            → `type`
  *         `scope_id`           → `scope`
  *         `source_id`          → `from`
@@ -52,7 +52,7 @@
  *
  *   OUTPUT shapes (CommitResult, RenderResult, PartialCommitFailure)
  *   keep the Host-flavoured names because they document provenance
- *   precisely (`pluginId`, `rendererId`, `project_id`). Stripping the
+ *   precisely (`pluginId`, `rendererId`, `workbook_id`). Stripping the
  *   suffix on outputs would lose meaning.
  *
  * Stability contract: SDK helpers forward to Host methods; they don't
@@ -87,7 +87,7 @@ export async function openHost(opts?: HostOptions): Promise<Host> {
   return host;
 }
 
-/** Header passed to `defineProject` — the project's identity + profile. */
+/** Header passed to `defineProject` — the workbook's identity + profile. */
 export interface ProjectHeader {
   id: string;
   name: string;
@@ -136,7 +136,7 @@ export interface RelationSpec<F extends Record<string, unknown> = Record<string,
 export interface CommitOptions {
   /**
    * On any commit failure, attempt to delete the partially-built
-   * project before re-throwing. Pre-commit state is restored on
+   * workbook before re-throwing. Pre-commit state is restored on
    * success. If the delete itself fails, the original error is
    * wrapped in an `internal`-category FDPMException with both
    * messages in the chain.
@@ -146,7 +146,7 @@ export interface CommitOptions {
 
 /** Result returned by `commit()`. */
 export interface CommitResult {
-  project_id: string;
+  workbook_id: string;
   revision: number;
   primitives_created: number;
   relations_created: number;
@@ -160,18 +160,18 @@ export interface CommitResult {
  * one create call succeeded before the failure.
  */
 export interface PartialCommitFailure {
-  project_id: string;
+  workbook_id: string;
   /** Number of primitives that successfully persisted before the failure. */
   primitives_created: number;
   /** Number of relations that successfully persisted before the failure. */
   relations_created: number;
   /**
-   * Where the failure happened. `project` means createProject itself
+   * Where the failure happened. `workbook` means createProject itself
    * failed; `primitive` means a createPrimitive call failed; `relation`
    * means a createRelation call failed; `preflight` means a queue-time
    * referential check failed before any host call.
    */
-  failed_at: "project" | "primitive" | "relation" | "preflight";
+  failed_at: "workbook" | "primitive" | "relation" | "preflight";
   /** Id of the spec that triggered the failure, when applicable. */
   failed_id?: string;
 }
@@ -181,7 +181,7 @@ export interface PartialCommitFailure {
  * `.relations(...)` then `.commit()`.
  *
  * The builder is intentionally append-only — there's no remove(), and
- * no commit(false). For modifying an existing project, use the Host
+ * no commit(false). For modifying an existing workbook, use the Host
  * methods directly (createPrimitive, patchPrimitive, etc.) or wrap
  * them in your own batch via `batchEdit`.
  */
@@ -261,7 +261,7 @@ export class ProjectBuilder {
   }
 
   /**
-   * Commit the project + all queued primitives and relations.
+   * Commit the workbook + all queued primitives and relations.
    *
    * Validation: every primitive and relation passes through the full
    * §7 validation pipeline (the same gate that `host.createX` uses for
@@ -269,7 +269,7 @@ export class ProjectBuilder {
    * type_ids, etc. all surface as typed FDPMException with structured
    * findings before any state mutation for that op.
    *
-   * Atomicity: NOT all-or-nothing. The project is created first; then
+   * Atomicity: NOT all-or-nothing. The workbook is created first; then
    * each primitive and relation is created via its own Host call (which
    * commits independently). On first failure, the FDPMException carries
    * the failing op's findings, but every op up to that point is already
@@ -277,7 +277,7 @@ export class ProjectBuilder {
    *
    * Recovery options on failure:
    *   - Pass `{ rollbackOnError: true }` and the builder will delete
-   *     the project before re-throwing, returning state to pre-commit.
+   *     the workbook before re-throwing, returning state to pre-commit.
    *   - Or call `host.deleteProject(id)` after catching the exception.
    *   - Or fix the failing spec and call `defineProject` again with a
    *     pruned input list.
@@ -297,13 +297,13 @@ export class ProjectBuilder {
     // Pre-flight: referential integrity for queued relations. The
     // host's createRelation will fail with a validation finding if
     // `from` or `to` doesn't resolve, but failing here means we can
-    // do it BEFORE createProject runs — no project to roll back, no
+    // do it BEFORE createProject runs — no workbook to roll back, no
     // partial state, and we can report all dangling refs at once
     // instead of one per host round-trip.
     const dangling = this.collectDanglingRelationRefs();
     if (dangling.length > 0) {
       const partial: PartialCommitFailure = {
-        project_id: this.header.id,
+        workbook_id: this.header.id,
         primitives_created: 0,
         relations_created: 0,
         failed_at: "preflight",
@@ -319,12 +319,12 @@ export class ProjectBuilder {
     }
 
     const projectInput: {
-      project_id: string;
+      workbook_id: string;
       name: string;
       profile_id: string;
       description?: string;
     } = {
-      project_id: this.header.id,
+      workbook_id: this.header.id,
       name: this.header.name,
       profile_id: this.header.profile,
     };
@@ -335,10 +335,10 @@ export class ProjectBuilder {
       await this.host.createProject(projectInput);
     } catch (err) {
       throw decorateWithPartialCommit(err, {
-        project_id: this.header.id,
+        workbook_id: this.header.id,
         primitives_created: 0,
         relations_created: 0,
-        failed_at: "project",
+        failed_at: "workbook",
       });
     }
 
@@ -382,7 +382,7 @@ export class ProjectBuilder {
       }
     } catch (err) {
       const partial: PartialCommitFailure = {
-        project_id: this.header.id,
+        workbook_id: this.header.id,
         primitives_created: primitivesCreated,
         relations_created: relationsCreated,
         failed_at: failedAt ?? "primitive",
@@ -391,7 +391,7 @@ export class ProjectBuilder {
       const decorated = decorateWithPartialCommit(err, partial);
       if (opts?.rollbackOnError === true) {
         // Best-effort rollback: deleteProject removes the partially-
-        // built project so the caller sees pre-commit state. If the
+        // built workbook so the caller sees pre-commit state. If the
         // delete itself fails (e.g. the host's projection has gone
         // sideways), we surface BOTH errors — the original error is
         // attached via Error.cause, and structured findings/evidence
@@ -432,8 +432,8 @@ export class ProjectBuilder {
 
     const slice = this.host.getProject(this.header.id);
     return {
-      project_id: this.header.id,
-      revision: slice.project.revision,
+      workbook_id: this.header.id,
+      revision: slice.workbook.revision,
       primitives_created: primitivesCreated,
       relations_created: relationsCreated,
     };
@@ -466,10 +466,10 @@ export class ProjectBuilder {
    * runs so embedders don't have to deal with rollback for what is
    * fundamentally a typed-data wiring mistake.
    *
-   * Note: only checks against queued primitives. The project doesn't
+   * Note: only checks against queued primitives. The workbook doesn't
    * exist yet at commit start, so there are no pre-existing primitives
    * to consult — and the builder is greenfield-only by design (see the
-   * class docstring). For edits to an existing project, embedders use
+   * class docstring). For edits to an existing workbook, embedders use
    * the standalone `patchPrimitive` / `patchRelation` helpers, which
    * delegate referential checks to the host's §7 pipeline.
    */
@@ -540,13 +540,13 @@ export function defineProject(host: Host, header: ProjectHeader): ProjectBuilder
 // for field_values, `scope` for scope_id, `expectedRevision` for
 // expected_revision). They are NOT methods on ProjectBuilder by design:
 // the builder is documented as append-only and intended for greenfield
-// project construction. Edits to a persisted project belong to a
+// workbook construction. Edits to a persisted workbook belong to a
 // different workflow and live as separate top-level functions so the
 // two paths don't blur.
 
 /** Flat-args input for `patchPrimitive`. */
 export interface PatchPrimitiveInput {
-  project: string;
+  workbook: string;
   id: string;
   fields: Record<string, unknown>;
   scope?: string;
@@ -562,7 +562,7 @@ export interface PatchPrimitiveInput {
 
 /** Result returned by `patchPrimitive` and `patchRelation`. */
 export interface PatchResult {
-  /** Project revision after the patch was appended. */
+  /** Workbook revision after the patch was appended. */
   revision: number;
   /** §7 validation report for the touched record. */
   report: ValidationReport;
@@ -570,7 +570,7 @@ export interface PatchResult {
 
 /** Result returned by `deletePrimitive` and `deleteRelation`. */
 export interface DeleteResult {
-  /** Project revision after the delete was appended. */
+  /** Workbook revision after the delete was appended. */
   revision: number;
 }
 
@@ -597,13 +597,13 @@ export async function patchPrimitive(
   if (input.expectedRevision !== undefined)
     patch.expected_revision = input.expectedRevision;
   if (input.fullValidate !== undefined) patch.fullValidate = input.fullValidate;
-  const out = await host.patchPrimitive(input.project, patch);
+  const out = await host.patchPrimitive(input.workbook, patch);
   return { revision: out.append.project_revision, report: out.report };
 }
 
 /** Flat-args input for `patchRelation`. */
 export interface PatchRelationInput {
-  project: string;
+  workbook: string;
   id: string;
   fields: Record<string, unknown>;
   expectedRevision?: number;
@@ -627,32 +627,32 @@ export async function patchRelation(
   if (input.expectedRevision !== undefined)
     patch.expected_revision = input.expectedRevision;
   if (input.fullValidate !== undefined) patch.fullValidate = input.fullValidate;
-  const out = await host.patchRelation(input.project, patch);
+  const out = await host.patchRelation(input.workbook, patch);
   return { revision: out.append.project_revision, report: out.report };
 }
 
 /**
  * Delete a primitive by id. The Host enforces referential integrity —
  * dangling relations cascade per §7. Throws `not_found` if the
- * primitive doesn't exist on the project.
+ * primitive doesn't exist on the workbook.
  */
 export async function deletePrimitive(
   host: Host,
-  args: { project: string; id: string },
+  args: { workbook: string; id: string },
 ): Promise<DeleteResult> {
-  const out = await host.deletePrimitive(args.project, args.id);
+  const out = await host.deletePrimitive(args.workbook, args.id);
   return { revision: out.project_revision };
 }
 
 /**
  * Delete a relation by id. Throws `not_found` if the relation doesn't
- * exist on the project.
+ * exist on the workbook.
  */
 export async function deleteRelation(
   host: Host,
-  args: { project: string; id: string },
+  args: { workbook: string; id: string },
 ): Promise<DeleteResult> {
-  const out = await host.deleteRelation(args.project, args.id);
+  const out = await host.deleteRelation(args.workbook, args.id);
   return { revision: out.project_revision };
 }
 
@@ -660,7 +660,7 @@ export async function deleteRelation(
  * Flat-args options for `renderProject`.
  *
  * Naming follows the SDK alias convention (see the file-level
- * docstring): `project` rather than `project_id`, and `renderer`
+ * docstring): `workbook` rather than `workbook_id`, and `renderer`
  * rather than `rendererId` — `_id` / `Id` suffixes are dropped on
  * INPUT shapes throughout the SDK. `target` keeps its bare name
  * because it's already operator-vocabulary (a MIME type or symbolic
@@ -668,7 +668,7 @@ export async function deleteRelation(
  * strip.
  */
 export interface RenderOptions {
-  project: string;
+  workbook: string;
   target: string;
   /**
    * Disambiguate when more than one renderer matches `target`.
@@ -726,10 +726,10 @@ function assertSpecShape(
 }
 
 /**
- * Render a project through a registered renderer.
+ * Render a workbook through a registered renderer.
  *
  * Thin wrapper around `host.plugins.runRenderer` that builds the
- * renderer input envelope from the project's current state. Use
+ * renderer input envelope from the workbook's current state. Use
  * `host.plugins.runRenderer` directly if you need to render a
  * synthetic primitives/relations set without persisting them.
  */
@@ -737,13 +737,13 @@ export async function renderProject(
   host: Host,
   opts: RenderOptions,
 ): Promise<RenderResult> {
-  const slice = host.getProject(opts.project);
-  const profile = host.profiles.getResolved(slice.project.profile_id);
+  const slice = host.getProject(opts.workbook);
+  const profile = host.profiles.getResolved(slice.workbook.profile_id);
   const result = await host.plugins.runRenderer(
     opts.target,
     {
-      projectId: opts.project,
-      project: slice.project,
+      workbookId: opts.workbook,
+      workbook: slice.workbook,
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       templates: Object.values(slice.templates),

@@ -67,7 +67,7 @@ export function renderTable<T>(
  * write was buffered but not flushed. A short-lived CLI that exits
  * immediately after writing a large payload to a pipe can lose any
  * bytes still in the buffer. The default pipe buffer on Linux is
- * 64 KiB; large JSON outputs (e.g. `validate --json` on a project with
+ * 64 KiB; large JSON outputs (e.g. `validate --json` on a workbook with
  * hundreds of primitives) silently truncate to that boundary when
  * piped through a slow-ish consumer.
  *

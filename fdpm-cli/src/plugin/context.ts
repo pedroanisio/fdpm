@@ -3,7 +3,7 @@ import type { DomainProfile } from "../core/models/meta.js";
 import type {
   PrimitiveInstance,
   RelationInstance,
-  Project,
+  Workbook,
 } from "../core/models/instance.js";
 import type {
   PluginContext,
@@ -182,14 +182,14 @@ export function makeContext(args: {
 
     registerImporter(reg: ImporterRegistration): void {
       requireMutable("registerImporter");
-      requirePerm("import:project");
+      requirePerm("import:workbook");
       pluginRuntime.installImporter(manifest.id, reg);
       contributions.importers.push(reg);
     },
 
     registerExporter(reg: ExporterRegistration): void {
       requireMutable("registerExporter");
-      requirePerm("export:project");
+      requirePerm("export:workbook");
       pluginRuntime.installExporter(manifest.id, reg);
       contributions.exporters.push(reg);
     },
@@ -202,45 +202,45 @@ export function makeContext(args: {
     },
 
     listProjects() {
-      requirePerm("read:projects");
+      requirePerm("read:workbooks");
       return host.listProjects();
     },
-    getProject(id: string): Project | undefined {
-      requirePerm("read:projects");
+    getProject(id: string): Workbook | undefined {
+      requirePerm("read:workbooks");
       try {
-        return host.getProject(id).project;
+        return host.getProject(id).workbook;
       } catch {
         return undefined;
       }
     },
-    listPrimitives(projectId: string): readonly PrimitiveInstance[] {
+    listPrimitives(workbookId: string): readonly PrimitiveInstance[] {
       requirePerm("read:primitives");
       try {
-        return Object.values(host.getProject(projectId).primitives);
+        return Object.values(host.getProject(workbookId).primitives);
       } catch {
         return [];
       }
     },
-    getPrimitive(projectId: string, id: string): PrimitiveInstance | undefined {
+    getPrimitive(workbookId: string, id: string): PrimitiveInstance | undefined {
       requirePerm("read:primitives");
       try {
-        return host.getProject(projectId).primitives[id];
+        return host.getProject(workbookId).primitives[id];
       } catch {
         return undefined;
       }
     },
-    listRelations(projectId: string): readonly RelationInstance[] {
+    listRelations(workbookId: string): readonly RelationInstance[] {
       requirePerm("read:relations");
       try {
-        return Object.values(host.getProject(projectId).relations);
+        return Object.values(host.getProject(workbookId).relations);
       } catch {
         return [];
       }
     },
-    getRelation(projectId: string, id: string): RelationInstance | undefined {
+    getRelation(workbookId: string, id: string): RelationInstance | undefined {
       requirePerm("read:relations");
       try {
-        return host.getProject(projectId).relations[id];
+        return host.getProject(workbookId).relations[id];
       } catch {
         return undefined;
       }

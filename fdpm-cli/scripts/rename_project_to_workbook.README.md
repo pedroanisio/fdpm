@@ -10,7 +10,7 @@ disclaimer:
 
 # rename_project_to_workbook.py
 
-One-shot rename tool: rewrites the domain term `project` to `workbook`
+One-shot rename tool: rewrites the domain term `workbook` to `workbook`
 across the fdpm-cli codebase — content, identifiers, and file/directory
 names — with a curated skip list to avoid corrupting unrelated tokens.
 
@@ -26,7 +26,7 @@ described in [@DISCLAIMER.md](../../../DISCLAIMER.md).
 ## What it does
 
 By default `--apply` creates a fresh git branch (default name:
-`rename/project-to-workbook`) before doing anything else, performs the
+`rename/workbook-to-workbook`) before doing anything else, performs the
 rewrite on that branch, stages everything, and **does not commit** —
 the operator reviews `git diff --staged` and commits manually. This
 keeps the rename diff isolated and reversible.
@@ -41,15 +41,15 @@ The tool runs in three passes against a repo root (defaults to the
 
    | from         | to            |
    | ------------ | ------------- |
-   | `PROJECTS`   | `WORKBOOKS`   |
-   | `Projects`   | `Workbooks`   |
-   | `projects`   | `workbooks`   |
-   | `project_id` | `workbook_id` |
-   | `projectId`  | `workbookId`  |
-   | `ProjectId`  | `WorkbookId`  |
-   | `PROJECT`    | `WORKBOOK`    |
-   | `Project`    | `Workbook`    |
-   | `project`    | `workbook`    |
+   | `WORKBOOKS`   | `WORKBOOKS`   |
+   | `Workbooks`   | `Workbooks`   |
+   | `workbooks`   | `workbooks`   |
+   | `workbook_id` | `workbook_id` |
+   | `workbookId`  | `workbookId`  |
+   | `WorkbookId`  | `WorkbookId`  |
+   | `WORKBOOK`    | `WORKBOOK`    |
+   | `Workbook`    | `Workbook`    |
+   | `workbook`    | `workbook`    |
 
    Any line containing the substring `projection` (case-insensitive)
    is skipped wholesale — this protects the audit-replay domain
@@ -88,7 +88,7 @@ Hard skip list (never read, never rewritten, never renamed):
   directory names, and individual lines of content.
 
 Per the operator decision recorded in the rename request, the
-`id_uniqueness` enum value `"project"` (in
+`id_uniqueness` enum value `"workbook"` (in
 `src/mcp/tools/profile-type-info.ts`) IS rewritten to `"workbook"`,
 along with its test.
 
@@ -113,7 +113,7 @@ less RENAME_REPORT.md
 # 3) ensure the working tree is clean (commit or stash any pending work)
 git status
 
-# 4) apply — creates branch `rename/project-to-workbook`, rewrites,
+# 4) apply — creates branch `rename/workbook-to-workbook`, rewrites,
 #    stages the result. Does NOT commit.
 python3 fdpm-cli/scripts/rename_project_to_workbook.py --apply
 
@@ -122,7 +122,7 @@ cd fdpm-cli && npm test
 git diff --staged --stat
 
 # 6) commit on your own
-git commit -m "refactor: rename project -> workbook"
+git commit -m "refactor: rename workbook -> workbook"
 ```
 
 To use a different branch name:
@@ -146,7 +146,7 @@ python3 fdpm-cli/scripts/rename_project_to_workbook.py --apply --no-branch
 | `--dry-run`       | Default. Print diffs to stdout, write the report, do not mutate.          |
 | `--apply`         | Mutate the working tree. Mutually exclusive with `--dry-run`.             |
 | `--no-diff`       | Suppress per-file unified diffs in dry-run output (still writes report).  |
-| `--branch NAME`   | Branch name to create on `--apply` (default: `rename/project-to-workbook`). |
+| `--branch NAME`   | Branch name to create on `--apply` (default: `rename/workbook-to-workbook`). |
 | `--no-branch`     | Do not create a branch; mutate the current branch in place. Required for non-git trees. |
 | `--reuse-branch`  | If `--branch` already exists, switch to it instead of erroring.           |
 | `--allow-dirty`   | Skip the clean-working-tree check before creating the branch.             |
@@ -183,13 +183,13 @@ On the current `main` branch, dry-run reports:
 - 250 files modified
 - 3,900 content replacements
 - 8 path renames:
-  - `fdpm-cli/src/commands/project.ts` → `workbook.ts`
-  - `fdpm-cli/src/mcp/tools/project-{create,delete,list,get}.ts` →
+  - `fdpm-cli/src/commands/workbook.ts` → `workbook.ts`
+  - `fdpm-cli/src/mcp/tools/workbook-{create,delete,list,get}.ts` →
     `workbook-{create,delete,list,get}.ts`
-  - `fdpm-cli/tests/project-command.test.ts` → `workbook-command.test.ts`
-  - `fdpm-cli/tests/host-reload-project-tail.test.ts` →
+  - `fdpm-cli/tests/workbook-command.test.ts` → `workbook-command.test.ts`
+  - `fdpm-cli/tests/host-reload-workbook-tail.test.ts` →
     `host-reload-workbook-tail.test.ts`
-  - `fdpm-cli/tests/sdk-define-project.test.ts` →
+  - `fdpm-cli/tests/sdk-define-workbook.test.ts` →
     `sdk-define-workbook.test.ts`
 - Meta docs left untouched: `CLAUDE.md` (14 candidate lines),
   `PURPOSE.md` (3 candidate lines).
@@ -202,14 +202,14 @@ expected magnitude, not a fixed contract.
 ## Residual risk the tool cannot catch
 
 - **Concatenated or templated identifiers.** A literal like
-  `` `fdpm.${"project"}.create` `` would be rewritten on the inner
+  `` `fdpm.${"workbook"}.create` `` would be rewritten on the inner
   string but the outer template might still produce a stale name at
   runtime. Verify via the test suite; a clean `npm test` is the
   authoritative check.
-- **External MCP clients** with hard-coded `fdpm.project.*` tool
+- **External MCP clients** with hard-coded `fdpm.workbook.*` tool
   names. The script renames the server-side definitions; clients
   outside this repo must be updated separately.
-- **URI compatibility.** `fdpm://project/{id}/render/...` resources
+- **URI compatibility.** `fdpm://workbook/{id}/render/...` resources
   become `fdpm://workbook/{id}/render/...`. There is no
   backwards-compat alias layer — that is a separate decision.
 - **Generated files.** Anything written by other build scripts at
@@ -226,7 +226,7 @@ a branch switch:
 ```bash
 # discard everything on the rename branch and go back to where you were
 git switch -                          # back to the previous branch
-git branch -D rename/project-to-workbook
+git branch -D rename/workbook-to-workbook
 ```
 
 If you used `--no-branch` (legacy mode):
@@ -235,7 +235,7 @@ If you used `--no-branch` (legacy mode):
 git restore .                           # discard content changes
 git restore --staged .                  # if anything was staged
 # for path renames already executed via git mv, undo with:
-git mv fdpm-cli/src/commands/workbook.ts fdpm-cli/src/commands/project.ts
+git mv fdpm-cli/src/commands/workbook.ts fdpm-cli/src/commands/workbook.ts
 # ...repeat for each rename listed in RENAME_REPORT.md
 ```
 

@@ -114,7 +114,7 @@ The `OperationKind` enum is a closed string union of 23 values
 `[CODE: fdpm-cli/src/core/operations/kinds.ts]`:
 
 ```
-project.create, project.delete, project.split, project.clone,
+workbook.create, workbook.delete, workbook.split, workbook.clone,
 primitive.create, primitive.replace, primitive.patch,
 primitive.field-patch, primitive.delete,
 relation.create, relation.replace, relation.patch,
@@ -140,7 +140,7 @@ The `Operation` Zod schema
   op_id: ULID (length 26),
   parent_op_id: ULID | null,
   kind: OperationKind,
-  project_id: string (regex: /^[a-z0-9][a-z0-9-]*$/),
+  workbook_id: string (regex: /^[a-z0-9][a-z0-9-]*$/),
   payload: record,
   actor: string,
   plugin_id: string | null,
@@ -160,7 +160,7 @@ larger; replay correctness depends on those omitted fields.
 
 ### Operation log persistence
 
-A persistent append-only JSONL log per project exists
+A persistent append-only JSONL log per workbook exists
 `[CODE: fdpm-cli/src/persistence/jsonl-log.ts]`. The host's
 `appendBatch` writes to it after the in-memory store applies the op
 `[CODE: fdpm-cli/src/core/host.ts:1008-1019]`. Replay,
@@ -200,14 +200,14 @@ the three DNIS-related plugins (which do).
   - **Tier 3** destructive: 5 tools (disabled by default; require
     `FDPM_MCP_ENABLE_DESTRUCTIVE`).
 - One resource URI scheme:
-  `fdpm://project/{project_id}/render/{target}[#{renderer_id}]`
+  `fdpm://workbook/{workbook_id}/render/{target}[#{renderer_id}]`
   `[CODE: fdpm-cli/src/mcp/resources/render.ts]`.
 - No prompts surface registered. The plugin context has no
   `registerPrompt` method `[CODE: fdpm-cli/src/plugin/types.ts]`.
 
-Note on `project` vs. `workbook`: the rename is in flight
+Note on `workbook` vs. `workbook`: the rename is in flight
 (see `fdpm-cli/scripts/rename_project_to_workbook.py`) but has not
-been applied. The URI scheme above still uses `project`, and that
+been applied. The URI scheme above still uses `workbook`, and that
 is what the current code actually exposes.
 
 ### Expression languages in production
@@ -243,7 +243,7 @@ exists, the specific helper name is unverified.
 | Surface | MCP primitive | Mapping |
 |---|---|---|
 | Generic CRUD over primitives/relations/structure | tools (Tier 1/2/3) | 30 tools total, statically registered `[CODE: fdpm-cli/src/mcp/manifest.ts]` |
-| Renderer output | resources | `fdpm://project/{id}/render/{target}` `[CODE: fdpm-cli/src/mcp/resources/render.ts]` |
+| Renderer output | resources | `fdpm://workbook/{id}/render/{target}` `[CODE: fdpm-cli/src/mcp/resources/render.ts]` |
 
 ### What's proposed but not implemented
 
@@ -284,7 +284,7 @@ about the rest of the world.
 |---|---|---|
 | Closed `OperationKind` enum | 23 hardcoded kinds; plugins can't extend | Plugin-namespaced op kinds with replay handler registry |
 | No `registerPrompt` API | `PluginContext` has 7 `register*` methods; prompt is not one | `ctx.registerPrompt(reg)` lands in v1 |
-| Single resource URI scheme | `fdpm://project/{id}/render/{target}` only | Plugin-contributed URI schemes for typed reads |
+| Single resource URI scheme | `fdpm://workbook/{id}/render/{target}` only | Plugin-contributed URI schemes for typed reads |
 | No discovery tools | Tool catalog is static at server startup | `list_verbs`, `describe_verb`, etc. as MCP tools |
 | No change notifications | MCP server doesn't emit `*/list_changed` | Long-running agents stay in sync |
 | No plugin-version migration contract for op kinds | Closed enum has no versioning problem; opening it creates one | `plugin_id@semver` per op kind, declared migrations |

@@ -24,7 +24,7 @@ export function isValidCoreId(id: string): boolean {
   return CORE_ID_PATTERN.test(id);
 }
 
-/** Project IDs are flat slugs, not colon-namespaced (operator-friendly). */
+/** Workbook IDs are flat slugs, not colon-namespaced (operator-friendly). */
 export function isValidProjectId(id: string): boolean {
   return SIMPLE_ID_PATTERN.test(id) && id.length <= 128;
 }

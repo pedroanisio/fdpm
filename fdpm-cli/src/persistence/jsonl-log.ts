@@ -6,7 +6,7 @@ import { Operation } from "../core/operations/operation.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 
 /**
- * Persistence — JSONL log per project.
+ * Persistence — JSONL log per workbook.
  *
  * §6.4 commits the operation shape but defers disk persistence to
  * SPEC-CORE-PERSISTENCE. The CLI ships a JSONL writer because a CLI
@@ -19,8 +19,8 @@ export function defaultDataDir(): string {
   return process.env["FDPM_DATA_DIR"] ?? join(homedir(), ".fdpm-cli");
 }
 
-function logPathFor(dataDir: string, project_id: string): string {
-  return join(dataDir, "projects", project_id, "log.jsonl");
+function logPathFor(dataDir: string, workbook_id: string): string {
+  return join(dataDir, "workbooks", workbook_id, "log.jsonl");
 }
 
 function manifestPath(dataDir: string): string {
@@ -37,7 +37,7 @@ export class JsonlLogStore {
   init(): void {
     if (!existsSync(this.dataDir)) mkdirSync(this.dataDir, { recursive: true });
     if (!existsSync(manifestPath(this.dataDir))) {
-      const manifest = { spec_core: "1.1", host: "fdpm-cli", projects: [] as string[] };
+      const manifest = { spec_core: "1.1", host: "fdpm-cli", workbooks: [] as string[] };
       mkdirSync(this.dataDir, { recursive: true });
       // Write atomically.
       // Sync write at startup is fine.
@@ -51,9 +51,9 @@ export class JsonlLogStore {
 
   /**
    * SPEC-REPL §10.2 freshness check: returns the (mtime_ns, size)
-   * pair for a project's JSONL log, or `null` if the log file does not
-   * yet exist (the project has been created but no operation has been
-   * persisted, or the project is unknown). Used by the REPL and
+   * pair for a workbook's JSONL log, or `null` if the log file does not
+   * yet exist (the workbook has been created but no operation has been
+   * persisted, or the workbook is unknown). Used by the REPL and
    * SPEC-MCP-SERVER to detect out-of-band writes by another process
    * between commands; never touches the file's contents and is safe
    * to call hot per-command.
@@ -69,8 +69,8 @@ export class JsonlLogStore {
    * could let an in-flight write race ahead of the stat). `statSync`
    * with `bigint: true` returns `mtimeNs` as `bigint`.
    */
-  statProjectLog(project_id: string): { mtime_ns: bigint; size: bigint } | null {
-    const path = logPathFor(this.dataDir, project_id);
+  statProjectLog(workbook_id: string): { mtime_ns: bigint; size: bigint } | null {
+    const path = logPathFor(this.dataDir, workbook_id);
     try {
       const stats = statSync(path, { bigint: true });
       return { mtime_ns: stats.mtimeNs, size: stats.size };
@@ -82,7 +82,7 @@ export class JsonlLogStore {
 
   async listProjectIds(): Promise<string[]> {
     if (!existsSync(this.dataDir)) return [];
-    const root = join(this.dataDir, "projects");
+    const root = join(this.dataDir, "workbooks");
     if (!existsSync(root)) return [];
     const entries = await fs.readdir(root, { withFileTypes: true });
     return entries.filter((e) => e.isDirectory()).map((e) => e.name);
@@ -112,8 +112,8 @@ export class JsonlLogStore {
     return JSON.parse(text);
   }
 
-  async readLog(project_id: string): Promise<Operation[]> {
-    const path = logPathFor(this.dataDir, project_id);
+  async readLog(workbook_id: string): Promise<Operation[]> {
+    const path = logPathFor(this.dataDir, workbook_id);
     if (!existsSync(path)) return [];
     const text = await fs.readFile(path, "utf8");
     const lines = text.split("\n").filter((l) => l.length > 0);
@@ -145,14 +145,14 @@ export class JsonlLogStore {
   }
 
   async appendOp(op: Operation): Promise<void> {
-    const path = logPathFor(this.dataDir, op.project_id);
+    const path = logPathFor(this.dataDir, op.workbook_id);
     const dir = dirname(path);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     await fs.appendFile(path, JSON.stringify(op) + "\n", "utf8");
   }
 
-  async deleteProject(project_id: string): Promise<void> {
-    const dir = join(this.dataDir, "projects", project_id);
+  async deleteProject(workbook_id: string): Promise<void> {
+    const dir = join(this.dataDir, "workbooks", workbook_id);
     if (existsSync(dir)) {
       await fs.rm(dir, { recursive: true, force: true });
     }

@@ -8,11 +8,11 @@
  * `not-exposed.ts`; new unclassified methods break the build.
  *
  * Slice B-final + Phase C ship 11 Tier-1 read-only tools and 11 Tier-2
- * validating-write tools. Tier-3 deletes (`project.delete`,
+ * validating-write tools. Tier-3 deletes (`workbook.delete`,
  * `primitive.delete`, `relation.delete`) are present in the registry
  * but only advertised when `--enable-destructive` is set. The freshness
- * check runs against every tool that addresses a project_id; the
- * mapping from tool name to project-id extractor lives in
+ * check runs against every tool that addresses a workbook_id; the
+ * mapping from tool name to workbook-id extractor lives in
  * `tool-metadata-map.ts`.
  */
 
@@ -24,8 +24,8 @@ import { tool as healthTool } from "./tools/health.js";
 import { tool as profileListTool } from "./tools/profile-list.js";
 import { tool as profileGetTool } from "./tools/profile-get.js";
 import { tool as profileTypeInfoTool } from "./tools/profile-type-info.js";
-import { tool as projectListTool } from "./tools/project-list.js";
-import { tool as projectGetTool } from "./tools/project-get.js";
+import { tool as projectListTool } from "./tools/workbook-list.js";
+import { tool as projectGetTool } from "./tools/workbook-get.js";
 import { tool as primitiveSearchTool } from "./tools/primitive-search.js";
 import { tool as primitiveGetTool } from "./tools/primitive-get.js";
 import { tool as relationListTool } from "./tools/relation-list.js";
@@ -35,7 +35,7 @@ import { tool as logDiffTool } from "./tools/log-diff.js";
 
 // Tier 2 — validating-write.
 import { tool as profileRegisterTool } from "./tools/profile-register.js";
-import { tool as projectCreateTool } from "./tools/project-create.js";
+import { tool as projectCreateTool } from "./tools/workbook-create.js";
 import { tool as primitiveCreateTool } from "./tools/primitive-create.js";
 import { tool as primitiveCreateBatchTool } from "./tools/primitive-create-batch.js";
 import { tool as primitiveReplaceTool } from "./tools/primitive-replace.js";
@@ -49,7 +49,7 @@ import { tool as structureReorderTool } from "./tools/structure-reorder.js";
 import { tool as structureReparentTool } from "./tools/structure-reparent.js";
 
 // Tier 3 — destructive (off by default).
-import { tool as projectDeleteTool } from "./tools/project-delete.js";
+import { tool as projectDeleteTool } from "./tools/workbook-delete.js";
 import { tool as primitiveDeleteTool } from "./tools/primitive-delete.js";
 import { tool as primitiveDeleteBatchTool } from "./tools/primitive-delete-batch.js";
 import { tool as relationDeleteTool } from "./tools/relation-delete.js";

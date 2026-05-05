@@ -9,7 +9,7 @@ const TOP_LEVEL_COMMANDS = [
   "version",
   "health",
   "profile",
-  "project",
+  "workbook",
   "primitive",
   "relation",
   "structure",
@@ -40,7 +40,7 @@ const GLOBAL_FLAGS = [
 
 const COMMAND_SUBCOMMANDS: Record<string, readonly string[]> = {
   health: ["liveness", "healthz", "readiness", "readyz"],
-  project: ["list", "get", "create", "delete"],
+  workbook: ["list", "get", "create", "delete"],
   primitive: ["list", "get", "cite", "search", "create", "replace", "patch", "delete", "field-patch"],
   relation: ["list", "get", "search", "create", "replace", "patch", "delete", "field-patch"],
   structure: ["membership", "tree", "reorder", "reparent"],
@@ -59,13 +59,13 @@ const COMMAND_SUBCOMMANDS: Record<string, readonly string[]> = {
 
 export function renderRootOnboarding(): string {
   return [
-    "FDPM — typed project graph CLI for profiles, primitives, relations, validation, and rendering.",
+    "FDPM — typed workbook graph CLI for profiles, primitives, relations, validation, and rendering.",
     "",
     "Common commands:",
     "  fdpm health liveness",
-    "  fdpm project list",
-    "  fdpm validate <project>",
-    "  fdpm render <project> text/markdown --renderer-id spec:SpecMarkdownRenderer",
+    "  fdpm workbook list",
+    "  fdpm validate <workbook>",
+    "  fdpm render <workbook> text/markdown --renderer-id spec:SpecMarkdownRenderer",
     "",
     "Next steps:",
     "  Run `fdpm --help` for the full command surface.",
@@ -78,7 +78,7 @@ export function renderRootAfterHelp(): string {
     "",
     "Examples:",
     "  fdpm health liveness",
-    "  fdpm project list",
+    "  fdpm workbook list",
     "  fdpm validate spec-render-dsl",
     "  fdpm render spec-render-dsl text/markdown --renderer-id spec:SpecMarkdownRenderer",
     "",

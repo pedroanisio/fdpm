@@ -41,7 +41,7 @@ When activated against an FDPM host, this plugin registers:
 
 - **1** `DomainProfile` (`profile:planning:0.1`)
 - **4** primitive categories (`work`, `scheduling`, `execution`, `assurance`)
-- **3** scopes (`project`, `iteration`, `execution`)
+- **3** scopes (`workbook`, `iteration`, `execution`)
 - **6** primitive types under the `plan:` namespace
 - **9** relation types
 - **12** validation rules (10 in v0.1, +2 added in pass-2 refine)
@@ -146,7 +146,7 @@ Four ops, executed in order:
 await host.createPrimitive("p", {
   id: "ac:slug",
   type_id: "plan:AcceptanceCriterion",
-  scope_id: "scope:plan:project",
+  scope_id: "scope:plan:workbook",
   field_values: {
     criterion: "test passes",
     expression: 'instance.field_values.status == "Done"',
@@ -158,7 +158,7 @@ await host.createPrimitive("p", {
 await host.createPrimitive("p", {
   id: "task:slug",
   type_id: "plan:Task",
-  scope_id: "scope:plan:project",
+  scope_id: "scope:plan:workbook",
   field_values: {
     name: "slug", summary: "...", kind: "Implementation",
     status: "Backlog", priority: "P1",
@@ -179,7 +179,7 @@ await host.createRelation("p", {
 await host.replacePrimitive("p", {
   id: "task:slug",
   type_id: "plan:Task",
-  scope_id: "scope:plan:project",
+  scope_id: "scope:plan:workbook",
   field_values: {
     /* ...same as step 2 plus: */
     executor_kind: "AI",
@@ -234,4 +234,4 @@ A claim is short-term; assignee_id is durable. The two are independent.
 - [`scripts/build-planning-self.ts`](../../scripts/build-planning-self.ts) — worked-example seed (12 tasks, 49 relations, validates clean).
 - [`SPEC-CEL-VALIDATOR`](../../../docs/specs/SPEC-CEL-VALIDATOR.md), [`SPEC-EXPRESSION-RUNTIME`](../../../docs/specs/SPEC-EXPRESSION-RUNTIME.md) — the host pipeline this plugin's rules ride on.
 - [`software_architecture/`](../software_architecture/) — sibling profile contributing `sw:Actor` referenced by `plan:Task.assignee_id` and `plan:Task.claim_holder_id`.
-- Project root: [`README.md`](../../../README.md), [`PURPOSE.md`](../../../PURPOSE.md), [`DISCLAIMER.md`](../../../DISCLAIMER.md)
+- Workbook root: [`README.md`](../../../README.md), [`PURPOSE.md`](../../../PURPOSE.md), [`DISCLAIMER.md`](../../../DISCLAIMER.md)

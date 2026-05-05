@@ -10,7 +10,7 @@ export const Operation = z
     op_id: z.string().length(26), // ulid
     parent_op_id: z.string().length(26).nullable().optional(),
     kind: OperationKind,
-    project_id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
+    workbook_id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
     payload: z.record(z.unknown()),
     actor: z.string(),
     plugin_id: z.string().nullable().optional(),

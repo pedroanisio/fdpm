@@ -21,7 +21,7 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { buildProfileCommand } from "../commands/profile.js";
-import { buildProjectCommand } from "../commands/project.js";
+import { buildProjectCommand } from "../commands/workbook.js";
 import { buildPrimitiveCommand } from "../commands/primitive.js";
 import { buildRelationCommand } from "../commands/relation.js";
 import { buildStructureCommand } from "../commands/structure.js";

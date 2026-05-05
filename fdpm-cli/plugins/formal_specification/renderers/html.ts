@@ -28,12 +28,12 @@ export const renderHtml: RendererFn = (input): RendererOutput => {
   out.push('<html lang="en">');
   out.push("<head>");
   out.push('<meta charset="utf-8">');
-  out.push(`<title>${esc(tree.project_id)}</title>`);
+  out.push(`<title>${esc(tree.workbook_id)}</title>`);
   out.push(`<style>${BASE_CSS}</style>`);
   out.push("</head>");
   out.push("<body>");
   out.push("<header class=\"fdpm-header\">");
-  out.push(`<h1>${esc(tree.project_id)}</h1>`);
+  out.push(`<h1>${esc(tree.workbook_id)}</h1>`);
   out.push(
     `<p class="fdpm-meta">Profile: <code>${esc(tree.profile.id)}</code> v${esc(
       tree.profile.version,
@@ -75,7 +75,7 @@ export const renderHtml: RendererFn = (input): RendererOutput => {
   return {
     bytes: new TextEncoder().encode(out.join("\n")),
     contentType: "text/html",
-    filename: `${tree.project_id}.html`,
+    filename: `${tree.workbook_id}.html`,
     ...(tree.findings.length > 0 ? { findings: tree.findings } : {}),
   };
 };

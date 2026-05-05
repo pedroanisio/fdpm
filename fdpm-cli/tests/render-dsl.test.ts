@@ -16,13 +16,13 @@ async function newSpecHost(args?: { dataDir?: string | null; pluginPaths?: strin
   return host;
 }
 
-async function seedSpecProject(host: Host, projectId = "spec-dsl"): Promise<void> {
+async function seedSpecProject(host: Host, workbookId = "spec-dsl"): Promise<void> {
   await host.createProject({
-    project_id: projectId,
+    workbook_id: workbookId,
     name: "Spec DSL",
     profile_id: PROFILE_ID,
   });
-  await host.createPrimitive(projectId, {
+  await host.createPrimitive(workbookId, {
     id: "spec:doc:test",
     type_id: "spec:Document",
     field_values: {
@@ -39,7 +39,7 @@ async function seedSpecProject(host: Host, projectId = "spec-dsl"): Promise<void
     },
     scope_id: "scope:spec:normative",
   });
-  await host.createPrimitive(projectId, {
+  await host.createPrimitive(workbookId, {
     id: "spec:sec:references",
     type_id: "spec:Section",
     field_values: {
@@ -50,7 +50,7 @@ async function seedSpecProject(host: Host, projectId = "spec-dsl"): Promise<void
     },
     scope_id: "scope:spec:informative",
   });
-  await host.createPrimitive(projectId, {
+  await host.createPrimitive(workbookId, {
     id: "spec:ref:cel",
     type_id: "spec:Reference",
     field_values: {
@@ -61,14 +61,14 @@ async function seedSpecProject(host: Host, projectId = "spec-dsl"): Promise<void
       verification_note: "Checked against the public site.",
     },
   });
-  await host.createRelation(projectId, {
+  await host.createRelation(workbookId, {
     id: "spec:rel:doc-section",
     type_id: "spec:HasSection",
     source_id: "spec:doc:test",
     target_id: "spec:sec:references",
     field_values: {},
   });
-  await host.createRelation(projectId, {
+  await host.createRelation(workbookId, {
     id: "spec:rel:doc-ref",
     type_id: "spec:Cites",
     source_id: "spec:doc:test",
@@ -95,14 +95,14 @@ describe("render DSL engine", () => {
     const host = await newSpecHost();
     await seedSpecProject(host);
     const slice = host.getProject("spec-dsl");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({
       slice,
       profile,
       defaultDoc: slice.primitives["spec:doc:test"],
     });
     const out = facade.renderTemplate(
-      "Title: ${doc.fields.title}${if: project.id == \"spec-dsl\"} OK${endif}",
+      "Title: ${doc.fields.title}${if: workbook.id == \"spec-dsl\"} OK${endif}",
       { templateId: "test:ok" },
     );
     expect(out.text).toBe("Title: Spec DSL OK");
@@ -113,7 +113,7 @@ describe("render DSL engine", () => {
     const host = await newSpecHost();
     await seedSpecProject(host);
     const slice = host.getProject("spec-dsl");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({
       slice,
       profile,
@@ -136,7 +136,7 @@ describe("render DSL engine", () => {
     const host = await newSpecHost();
     await seedSpecProject(host);
     const slice = host.getProject("spec-dsl");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({
       slice,
       profile,
@@ -163,7 +163,7 @@ describe("render DSL engine", () => {
     const host = await newSpecHost();
     await seedSpecProject(host);
     const slice = host.getProject("spec-dsl");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({
       slice,
       profile,
@@ -194,12 +194,12 @@ describe("render DSL engine", () => {
     const host = await newSpecHost();
     await seedSpecProject(host);
     const slice = host.getProject("spec-dsl");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const first = await host.plugins.runRenderer(
       "text/markdown",
       {
-        projectId: "spec-dsl",
-        project: slice.project,
+        workbookId: "spec-dsl",
+        workbook: slice.workbook,
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         templates: Object.values(slice.templates),
@@ -210,8 +210,8 @@ describe("render DSL engine", () => {
     const second = await host.plugins.runRenderer(
       "text/markdown",
       {
-        projectId: "spec-dsl",
-        project: slice.project,
+        workbookId: "spec-dsl",
+        workbook: slice.workbook,
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         templates: Object.values(slice.templates),
@@ -253,7 +253,7 @@ export default {
       target: "text/plain",
       rendererId: "test:strict",
       fn(input) {
-        const rendered = input.renderDsl.renderTemplate("value=\${project.id} missing=\${missing}", {
+        const rendered = input.renderDsl.renderTemplate("value=\${workbook.id} missing=\${missing}", {
           templateId: "test:strict",
         });
         return {

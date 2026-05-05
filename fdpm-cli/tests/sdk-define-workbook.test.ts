@@ -25,7 +25,7 @@ async function newHostWithProfile(): Promise<Host> {
 }
 
 describe("defineProject", () => {
-  it("creates a project with primitives and relations atomically", async () => {
+  it("creates a workbook with primitives and relations atomically", async () => {
     const host = await newHostWithProfile();
     const result = await defineProject(host, {
       id: "p",
@@ -46,7 +46,7 @@ describe("defineProject", () => {
         },
       ])
       .commit();
-    expect(result.project_id).toBe("p");
+    expect(result.workbook_id).toBe("p");
     expect(result.primitives_created).toBe(2);
     expect(result.relations_created).toBe(1);
     expect(result.revision).toBeGreaterThan(0);
@@ -91,14 +91,14 @@ describe("defineProject", () => {
     expect(r.relations_created).toBe(1);
   });
 
-  it("permits an empty project (no primitives, no relations)", async () => {
+  it("permits an empty workbook (no primitives, no relations)", async () => {
     const host = await newHostWithProfile();
     const r = await defineProject(host, { id: "empty", name: "E", profile: "test:demo" }).commit();
     expect(r.primitives_created).toBe(0);
     expect(r.relations_created).toBe(0);
   });
 
-  it("respects scope_id and description options on the project", async () => {
+  it("respects scope_id and description options on the workbook", async () => {
     const host = await newHostWithProfile();
     await defineProject(host, {
       id: "p",
@@ -116,7 +116,7 @@ describe("defineProject", () => {
       ])
       .commit();
     const slice = host.getProject("p");
-    expect(slice.project.description).toBe("Test description.");
+    expect(slice.workbook.description).toBe("Test description.");
     expect(slice.primitives["section:a"]?.scope_id).toBe("test:scope:doc");
   });
 
@@ -147,10 +147,10 @@ describe("defineProject", () => {
     ).toThrow(/duplicate primitive id/i);
   });
 
-  it("does not auto-create a project that already exists", async () => {
+  it("does not auto-create a workbook that already exists", async () => {
     const host = await newHostWithProfile();
-    await host.createProject({ project_id: "existing", name: "X", profile_id: "test:demo" });
-    // commit() should fail rather than silently no-op the project.create
+    await host.createProject({ workbook_id: "existing", name: "X", profile_id: "test:demo" });
+    // commit() should fail rather than silently no-op the workbook.create
     // (which the host rejects as conflict).
     await expect(
       defineProject(host, { id: "existing", name: "X", profile: "test:demo" }).commit(),
@@ -165,7 +165,7 @@ describe("defineProject", () => {
       ])
       .commit();
     expect(r).toEqual({
-      project_id: "p",
+      workbook_id: "p",
       revision: expect.any(Number),
       primitives_created: 1,
       relations_created: 0,
@@ -184,7 +184,7 @@ describe("openHost", () => {
   it("forwards options to the Host constructor", async () => {
     const host = await openHost({ dataDir: null, noPlugins: true });
     await host.registerProfile(TEST_PROFILE);
-    await host.createProject({ project_id: "x", name: "X", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "x", name: "X", profile_id: "test:demo" });
     expect(host.listProjects().map((p) => p.id)).toEqual(["x"]);
   });
 });
@@ -194,7 +194,7 @@ describe("renderProject", () => {
     const host = await newHostWithProfile();
     await defineProject(host, { id: "p", name: "P", profile: "test:demo" }).commit();
     await expect(
-      renderProject(host, { project: "p", target: "text/markdown" }),
+      renderProject(host, { workbook: "p", target: "text/markdown" }),
     ).rejects.toThrow();
   });
 });

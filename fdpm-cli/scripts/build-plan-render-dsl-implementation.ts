@@ -1,5 +1,5 @@
 /**
- * Build a planning project that tracks implementation of the render-DSL
+ * Build a planning workbook that tracks implementation of the render-DSL
  * rollout described by `scripts/build-spec-render-dsl.ts`.
  *
  * Run:
@@ -48,7 +48,7 @@ const wbsSpecs: PrimitiveSpec[] = [
   {
     id: "wbs:render-dsl-rollout",
     type: "plan:WorkBreakdown",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "render-dsl-rollout",
       summary:
@@ -62,7 +62,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:runtime-glue",
     type: "plan:Milestone",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "runtime-glue",
       target_date: "2026-05-07",
@@ -73,7 +73,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:first-template",
     type: "plan:Milestone",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "first-template",
       target_date: "2026-05-10",
@@ -84,7 +84,7 @@ const milestoneSpecs: PrimitiveSpec[] = [
   {
     id: "milestone:spec-sync",
     type: "plan:Milestone",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "spec-sync",
       target_date: "2026-05-12",
@@ -98,7 +98,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:runtime-path",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "Render-time placeholder evaluation consumes the host-owned fdpm-cli/src/core/expr runtime; no second evaluator or direct cel-js import exists in render-time glue.",
@@ -110,7 +110,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:error-policy",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "Default render policy emits bytes with inline markers while recording render errors; strict mode only changes exit behavior.",
@@ -122,7 +122,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:first-section",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "At least one spec:SpecMarkdownRenderer section is rendered from a template-driven DSL path with parity against the pre-DSL output.",
@@ -134,7 +134,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:test-surface",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "The live render test surface covers variable resolution, error markers, iteration, conditional structure, and determinism.",
@@ -146,7 +146,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:spec-sync",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
         "SPEC-RENDER-DSL, SPEC-EXPRESSION-RUNTIME, and the renderer implementation describe the same runtime policy and dependency ordering.",
@@ -332,7 +332,7 @@ const tasks: Task[] = [
 const taskSpecs: PrimitiveSpec[] = tasks.map((t) => ({
   id: t.id,
   type: "plan:Task",
-  scope: SCOPE_IDS.project,
+  scope: SCOPE_IDS.workbook,
   fields: {
     name: t.name,
     summary: t.summary,
@@ -416,7 +416,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

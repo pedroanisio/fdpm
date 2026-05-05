@@ -13,24 +13,24 @@ export function buildStructureCommand(host: Host): Command {
 
   cmd
     .command("reorder")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .description("Reorder children within a scope (§9.7.7 :reorder)")
     .requiredOption("-f, --file <path>", "JSON body { scope_id, ordering[] }")
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const body = (await readInput(opts.file)) as { scope_id: string; ordering: string[] };
-      const result = await host.reorder(project, body.scope_id, body.ordering);
+      const result = await host.reorder(workbook, body.scope_id, body.ordering);
       emit(ctx, { op_id: result.op.op_id, project_revision: result.project_revision });
     });
 
   cmd
     .command("reparent")
-    .argument("<project>", "project id")
-    .description("Move a primitive between scopes within the same project (§9.7.7 :reparent)")
+    .argument("<workbook>", "workbook id")
+    .description("Move a primitive between scopes within the same workbook (§9.7.7 :reparent)")
     .requiredOption("-f, --file <path>", "JSON body { primitive_id, from_scope_id, to_scope_id, position? }")
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const body = (await readInput(opts.file)) as {
         primitive_id: string;
@@ -38,7 +38,7 @@ export function buildStructureCommand(host: Host): Command {
         to_scope_id: string;
         position?: number;
       };
-      const result = await host.reparent(project, body);
+      const result = await host.reparent(workbook, body);
       emit(ctx, { op_id: result.op.op_id, project_revision: result.project_revision });
     });
 
@@ -49,11 +49,11 @@ export const commandMetadata: CommandMetadataMap = {
   "structure reorder": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "structure reparent": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

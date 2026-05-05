@@ -3,7 +3,7 @@ import { CORE_ID_PATTERN } from "../identity/id-rules.js";
 import { ValidationLevel } from "./meta.js";
 import { UID_LENGTH, ULID_PATTERN } from "../identity/uid.js";
 
-/** §5 Instance model — what a populated project looks like. */
+/** §5 Instance model — what a populated workbook looks like. */
 
 const NamespacedId = z.string().regex(CORE_ID_PATTERN);
 const InstanceId = z.string().min(1).max(256);
@@ -33,7 +33,7 @@ export const RelationInstance = z
   .strict();
 export type RelationInstance = z.infer<typeof RelationInstance>;
 
-export const Project = z
+export const Workbook = z
   .object({
     id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
     name: z.string().min(1),
@@ -43,7 +43,7 @@ export const Project = z
     description: z.string().optional(),
   })
   .strict();
-export type Project = z.infer<typeof Project>;
+export type Workbook = z.infer<typeof Workbook>;
 
 export const ProjectTemplate = z
   .object({
@@ -80,7 +80,7 @@ export type TestSuite = z.infer<typeof TestSuite>;
 export const SuiteRunReport = z
   .object({
     suite_id: z.string(),
-    project_id: z.string(),
+    workbook_id: z.string(),
     started_at: z.string().datetime(),
     completed_at: z.string().datetime(),
     findings: z.array(
@@ -99,7 +99,7 @@ export type SuiteRunReport = z.infer<typeof SuiteRunReport>;
 export const ProjectTransfer = z
   .object({
     spec_core: z.string(),
-    project: Project,
+    workbook: Workbook,
     primitives: z.array(PrimitiveInstance),
     relations: z.array(RelationInstance),
     templates: z.array(ProjectTemplate).default([]),

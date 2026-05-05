@@ -82,7 +82,7 @@ describe("backup — bundle format", () => {
   it("produces a valid .fdpmbak with backup-manifest.json as the FIRST entry", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-a",
+      workbook_id: "proj-a",
       name: "A",
       profile_id: "profile:formal-specification:3.0",
     });
@@ -94,7 +94,7 @@ describe("backup — bundle format", () => {
     const names = await readEntryNames(out);
     expect(names[0]).toBe("backup-manifest.json");
     expect(names).toContain("data/workspace.json");
-    expect(names).toContain("data/projects/proj-a/log.jsonl");
+    expect(names).toContain("data/workbooks/proj-a/log.jsonl");
   });
 
   it("manifest carries sha256 per file and identifies the workspace", async () => {
@@ -142,12 +142,12 @@ describe("restore — round-trip and atomicity", () => {
   it("backup → restore reproduces a bit-equivalent operation log", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-x",
+      workbook_id: "proj-x",
       name: "X",
       profile_id: "profile:formal-specification:3.0",
     });
     const originalLog = readFileSync(
-      join(dataDir, "projects", "proj-x", "log.jsonl"),
+      join(dataDir, "workbooks", "proj-x", "log.jsonl"),
       "utf8",
     );
     const out = join(bundleDir, "x.fdpmbak");
@@ -162,7 +162,7 @@ describe("restore — round-trip and atomicity", () => {
         rename: "restored-x",
       });
       const restoredLog = readFileSync(
-        join(target, "projects", "proj-x", "log.jsonl"),
+        join(target, "workbooks", "proj-x", "log.jsonl"),
         "utf8",
       );
       expect(restoredLog).toBe(originalLog);
@@ -188,7 +188,7 @@ describe("restore — round-trip and atomicity", () => {
     const archiver = (await import("archiver")).default;
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-t",
+      workbook_id: "proj-t",
       name: "T",
       profile_id: "profile:formal-specification:3.0",
     });
@@ -215,7 +215,7 @@ describe("restore — round-trip and atomicity", () => {
           content_type: "application/json",
         },
       ],
-      projects: [],
+      workbooks: [],
       profiles: [],
       warnings: [],
       exit_status: "ok",

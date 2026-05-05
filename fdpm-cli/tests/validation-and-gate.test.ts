@@ -6,7 +6,7 @@ import { verifyOperationPayload } from "../src/core/gate/verification-gate.js";
 describe("§7 validation pipeline", () => {
   it("core-validation-001: rejects missing required field", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await expect(
       host.createPrimitive("p1", {
         id: "section:a",
@@ -18,7 +18,7 @@ describe("§7 validation pipeline", () => {
 
   it("core-validation-001: rejects bad ID format", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     try {
       await host.createPrimitive("p1", {
         id: "Bad-ID",
@@ -36,7 +36,7 @@ describe("§7 validation pipeline", () => {
 
   it("rejects field-validation max_length violation", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await expect(
       host.createPrimitive("p1", {
         id: "section:a",
@@ -48,7 +48,7 @@ describe("§7 validation pipeline", () => {
 
   it("rejects unknown enum value", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await expect(
       host.createPrimitive("p1", {
         id: "section:a",
@@ -60,7 +60,7 @@ describe("§7 validation pipeline", () => {
 
   it("relation: rejects when source/target type mismatches RelationTypeDef", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",

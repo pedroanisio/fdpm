@@ -11,7 +11,7 @@ import { newHost } from "./fixtures.js";
  */
 
 async function seed(host: Awaited<ReturnType<typeof newHost>>) {
-  await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+  await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
   await host.createPrimitive("p", {
     id: "section:audit-log",
     type_id: "test:section",

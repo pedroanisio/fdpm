@@ -165,8 +165,8 @@ export const IDFormatRule = z
   .object({
     pattern: z.string().min(1),
     uniqueness: z
-      .enum(["global", "project", "per_scope", "per_parent"])
-      .default("project"),
+      .enum(["global", "workbook", "per_scope", "per_parent"])
+      .default("workbook"),
     /** "regex" (CLI native) or "template" (Python source style). */
     pattern_kind: z.enum(["regex", "template"]).default("regex"),
     /** Optional template form (e.g. "section:{number}") used by some tools. */

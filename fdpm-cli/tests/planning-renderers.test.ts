@@ -90,7 +90,7 @@ function input(
   relations: RelationInstance[] = [],
 ): RendererInput {
   return {
-    projectId: "demo",
+    workbookId: "demo",
     profile: PROFILE,
     primitives,
     relations,

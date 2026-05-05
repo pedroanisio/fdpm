@@ -36,7 +36,7 @@ see [`README.md`](README.md). For the SPEC, see
 2. [Mental model](#2-mental-model-in-30-seconds)
 3. [Storage and persistence](#3-storage-and-persistence)
 4. [Working with profiles](#4-working-with-profiles)
-5. [Creating and inspecting projects](#5-creating-and-inspecting-projects)
+5. [Creating and inspecting workbooks](#5-creating-and-inspecting-workbooks)
 6. [Editing primitives](#6-editing-primitives) — five surfaces
 7. [Editing relations](#7-editing-relations)
 8. [Structural edits — reorder & reparent](#8-structural-edits--reorder--reparent)
@@ -45,10 +45,10 @@ see [`README.md`](README.md). For the SPEC, see
 11. [Inspecting the operation log](#11-inspecting-the-operation-log)
 12. [Time-travel and undo](#12-time-travel-and-undo)
 13. [Templates and test-suites](#13-templates-and-test-suites)
-14. [Splitting and cloning projects](#14-splitting-and-cloning-projects)
+14. [Splitting and cloning workbooks](#14-splitting-and-cloning-workbooks)
 15. [Plugin administration](#15-plugin-administration)
-16. [Rendering project output](#16-rendering-project-output)
-17. [Project-wide validation](#17-project-wide-validation)
+16. [Rendering workbook output](#16-rendering-workbook-output)
+17. [Workbook-wide validation](#17-workbook-wide-validation)
 18. [Diffing and migration](#18-diffing-and-migration)
 19. [Output, errors, and exit codes](#19-output-errors-and-exit-codes)
 20. [Recipes — common workflows](#20-recipes--common-workflows)
@@ -86,8 +86,8 @@ fdpm profile list --json | jq '.profiles | map(.id)'
 #      "profile:planning:0.1", "profile:software-architecture:1.0",
 #      "profile:spec-authoring:0.1"]
 
-# 5. Create your first project against the formal-specification profile.
-fdpm project create --json \
+# 5. Create your first workbook against the formal-specification profile.
+fdpm workbook create --json \
   --id demo --name "Demo" \
   --profile profile:formal-specification:3.0
 ```
@@ -99,11 +99,11 @@ formal-specification plugin auto-activated.
 
 ## 2. Mental model in 30 seconds
 
-- A **project** is a typed graph: a bag of **primitives** (nodes) and
+- A **workbook** is a typed graph: a bag of **primitives** (nodes) and
   **relations** (edges), governed by a **profile** that declares allowed
   primitive types, relation types, validation rules, and scopes.
 - Every state-changing command becomes one **operation** appended to a per-
-  project log. The log *is* the source of truth; the in-memory state is
+  workbook log. The log *is* the source of truth; the in-memory state is
   derived (event-sourcing, SPEC-CORE §5).
 - Every operation passes a **verification gate** (§8) and a **validation
   pipeline** (§7) before it appends. If either rejects, nothing changes.
@@ -119,20 +119,20 @@ The CLI keeps everything under one directory:
 | Subdirectory | What it holds |
 |---|---|
 | `<data-dir>/profiles/` | Operator-registered profiles (one JSON per profile). Plugin-contributed profiles are NOT persisted here — plugins re-register on every startup. |
-| `<data-dir>/projects/<project-id>/log.jsonl` | Append-only operation log. Every state change in chronological order. |
+| `<data-dir>/workbooks/<workbook-id>/log.jsonl` | Append-only operation log. Every state change in chronological order. |
 
 Three ways to choose the data dir, in order of precedence:
 
 ```sh
-fdpm --data-dir /tmp/scratch project list   # 1. CLI flag
-FDPM_DATA_DIR=/tmp/scratch fdpm project list # 2. Env var
-fdpm project list                            # 3. Default: $HOME/.fdpm-cli
+fdpm --data-dir /tmp/scratch workbook list   # 1. CLI flag
+FDPM_DATA_DIR=/tmp/scratch fdpm workbook list # 2. Env var
+fdpm workbook list                            # 3. Default: $HOME/.fdpm-cli
 ```
 
 For ephemeral runs (tests, scratch experiments), use in-memory mode:
 
 ```sh
-fdpm --no-persist project create --json --id tmp --name Tmp \
+fdpm --no-persist workbook create --json --id tmp --name Tmp \
   --profile core:empty
 # every change in-memory only; nothing on disk
 ```
@@ -141,7 +141,7 @@ fdpm --no-persist project create --json --id tmp --name Tmp \
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and project logs. |
+| `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
 | `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths (colon-separated). |
 | `FDPM_LOG_LEVEL` | `info` | Plugin logger threshold: `debug`, `info`, `warn`, `error`, `silent`. |
 | `FDPM_DEBUG` | unset | Truthy -> also emit plugin debug logs. |
@@ -194,25 +194,25 @@ A registered profile survives restarts (it's persisted under
 
 ---
 
-## 5. Creating and inspecting projects
+## 5. Creating and inspecting workbooks
 
 ```sh
-# Create a project. The id must match ^[a-z0-9][a-z0-9-]*$.
-fdpm project create --json \
+# Create a workbook. The id must match ^[a-z0-9][a-z0-9-]*$.
+fdpm workbook create --json \
   --id roadmap-v04 --name "Roadmap Unified v0.4" \
   --profile profile:formal-specification:3.0
 
-# List all projects.
-fdpm project list --json | jq
+# List all workbooks.
+fdpm workbook list --json | jq
 
-# Get a project's metadata + embedded primitives + relations.
-fdpm project get roadmap-v04 --json | jq '{id, name, revision, primitives: (.primitives | length), relations: (.relations | length)}'
+# Get a workbook's metadata + embedded primitives + relations.
+fdpm workbook get roadmap-v04 --json | jq '{id, name, revision, primitives: (.primitives | length), relations: (.relations | length)}'
 
 # Delete a project (the log file stays — only the projection is dropped).
-fdpm project delete roadmap-v04
+fdpm workbook delete roadmap-v04
 ```
 
-The `revision` field on a project is monotonic: every accepted operation
+The `revision` field on a workbook is monotonic: every accepted operation
 bumps it by 1. Use it for optimistic concurrency (`If-Match` semantics
 on individual edits).
 
@@ -313,7 +313,7 @@ still time-travel to before its deletion).
 
 Same five write surfaces (`create / replace / patch / field-patch /
 delete`), plus three read commands: `list` (every relation in the
-project), `get <id>` (one), and `search` (filter by `--type`,
+workbook), `get <id>` (one), and `search` (filter by `--type`,
 `--id-like`, `--id-regex`, `--match`, `--match-regex`). Primitives
 have the same read triple. Relations have `source_id` and
 `target_id` instead of a scope, and the validation pipeline checks both
@@ -426,8 +426,8 @@ and runs it through the standard import pipeline.
 ```sh
 fdpm transfer import-as fs-v3 \
   -f roadmap-unified-v04.fs-v3.json \
-  --project-id roadmap-v04 \
-  --project-name "Roadmap Unified v0.4" \
+  --workbook-id roadmap-v04 \
+  --workbook-name "Roadmap Unified v0.4" \
   --json
 ```
 
@@ -505,19 +505,19 @@ fdpm log undo roadmap-v04 --target-op 01KQRMYVSV8HXKW0K0GND1JX1D --json
 ## 13. Templates and test-suites
 
 A **template** is a named bundle of primitives + relations that you can
-stamp into a project. A **test-suite** is a named bundle of declarative
+stamp into a workbook. A **test-suite** is a named bundle of declarative
 checks (expressions over primitives) that produces a `SuiteRunReport`.
 
 ```sh
-# Capture the current project as a template.
+# Capture the current workbook as a template.
 echo '{"id":"tmpl:phase-skeleton","label":"Phase Skeleton",
        "primitive_ids":["phase:1","phase:2"],
        "relation_ids":[]}' \
   | fdpm template create roadmap-v04 -f - --json
 
-# List templates and apply one to a fresh project.
+# List templates and apply one to a fresh workbook.
 fdpm template list roadmap-v04 --json
-fdpm template apply other-project tmpl:phase-skeleton --json
+fdpm template apply other-workbook tmpl:phase-skeleton --json
 
 # Define and run a test suite.
 echo '{"id":"suite:no-empty-titles","label":"No empty titles",
@@ -535,11 +535,11 @@ profile or a `cap:validator` plugin.
 
 ---
 
-## 14. Splitting and cloning projects
+## 14. Splitting and cloning workbooks
 
 ### Split
 
-Partition a project along its `is_partition_unit=true` type (in
+Partition a workbook along its `is_partition_unit=true` type (in
 formal-specification, that's `fs:Section`):
 
 ```sh
@@ -550,7 +550,7 @@ echo '{
   ],
   "cross_partition_relations": "drop",
   "include_unassigned": "first"
-}' | fdpm project split roadmap-v04 -f - --json
+}' | fdpm workbook split roadmap-v04 -f - --json
 ```
 
 `cross_partition_relations` must be `"drop"` in v1.1. The dropped
@@ -558,15 +558,15 @@ relations are returned in the response so you can audit what was lost.
 
 ### Clone
 
-Deep-copy a project into a new id:
+Deep-copy a workbook into a new id:
 
 ```sh
-fdpm project clone roadmap-v04 \
+fdpm workbook clone roadmap-v04 \
   --target-id roadmap-v04-staging \
   --target-name "Roadmap (staging)" --json
 ```
 
-Both `split` and `clone` are recorded in the log of every project
+Both `split` and `clone` are recorded in the log of every workbook
 involved (source + each target), via a shared `request_id`.
 
 ---
@@ -608,9 +608,9 @@ FDPM_PLUGIN_PATH=~/.fdpm/plugins fdpm plugin list
 
 ---
 
-## 16. Rendering project output
+## 16. Rendering workbook output
 
-`fdpm render` invokes a plugin-registered renderer against a project's
+`fdpm render` invokes a plugin-registered renderer against a workbook's
 current state. The target is a MIME type such as `text/markdown`,
 `text/html`, `application/pdf`, or `image/svg+xml`.
 
@@ -647,9 +647,9 @@ bytes for binary targets.
 
 ---
 
-## 17. Project-wide validation
+## 17. Workbook-wide validation
 
-`fdpm validate <project>` reruns the profile validators against the
+`fdpm validate <workbook>` reruns the profile validators against the
 current projection without writing anything. This is useful after
 imports, migrations, or bulk edits.
 
@@ -678,20 +678,20 @@ fdpm validate roadmap-v04 --strict
 
 ## 18. Diffing and migration
 
-`fdpm diff` compares two snapshots: either two revisions of one project
-or the current state of two projects.
+`fdpm diff` compares two snapshots: either two revisions of one workbook
+or the current state of two workbooks.
 
 ```sh
-# Same project, historical diff.
+# Same workbook, historical diff.
 fdpm diff roadmap-v04 --from-revision 120 --to-revision 140 --json
 
-# Same project, historical diff against current state.
+# Same workbook, historical diff against current state.
 fdpm diff roadmap-v04 --from-revision 120 --detail --json
 
-# Cross-project diff.
+# Cross-workbook diff.
 fdpm diff roadmap-v04 \
-  --from-project roadmap-v04 \
-  --to-project roadmap-v05 \
+  --from-workbook roadmap-v04 \
+  --to-workbook roadmap-v05 \
   --json
 ```
 
@@ -742,7 +742,7 @@ Exit codes — the authoritative source is `EXIT_CODE_FOR_CATEGORY` in
 |---------------------|------|------|
 | `validation`        | 2    | Pipeline rejected the proposed state. |
 | `verification`      | 3    | Schema gate rejected the operation payload. |
-| `not_found`         | 4    | Project / primitive / relation / profile id absent. |
+| `not_found`         | 4    | Workbook / primitive / relation / profile id absent. |
 | `conflict`          | 5    | Duplicate id, immutable field changed, If-Match mismatch. |
 | `permission`        | 6    | (Plugin runtime) operation not authorised by manifest. |
 | `unauthenticated`   | 7    | Caller identity required but not provided. |
@@ -758,14 +758,14 @@ the source wins.
 
 ## 20. Recipes — common workflows
 
-### 20.1 Bootstrap a project from a legacy dump
+### 20.1 Bootstrap a workbook from a legacy dump
 
 ```sh
 fdpm transfer import-as fs-v3 \
   -f roadmap-unified-v04.fs-v3.json \
-  --project-id roadmap-v04 --project-name "Roadmap Unified v0.4" --json
+  --workbook-id roadmap-v04 --workbook-name "Roadmap Unified v0.4" --json
 
-fdpm project list --json | jq
+fdpm workbook list --json | jq
 ```
 
 ### 20.2 Sweep all sections to status=reviewed atomically
@@ -787,7 +787,7 @@ fdpm transfer export roadmap-v04 > /tmp/snap.json
 
 # (edit /tmp/snap.json by hand or with jq)
 
-fdpm project delete roadmap-v04
+fdpm workbook delete roadmap-v04
 fdpm transfer import -f /tmp/snap.json --json
 ```
 
@@ -813,7 +813,7 @@ fdpm log at roadmap-v04 503 --json | jq '.primitives["section:why"]'
 ### 20.6 Tear it all down
 
 ```sh
-fdpm project delete roadmap-v04
+fdpm workbook delete roadmap-v04
 rm -rf $FDPM_DATA_DIR    # nukes the log too — irreversible
 ```
 
@@ -834,14 +834,14 @@ missing field or wrong type at the JSON level (not the profile level).
 Compare your body against the schema in
 [src/core/operations/payloads.ts](src/core/operations/payloads.ts).
 
-### `project ... not found` after restart
+### `workbook ... not found` after restart
 Your data dir didn't survive (e.g. you used `--no-persist`, or
-`$FDPM_DATA_DIR` points somewhere ephemeral). Persistent projects live
-under `<data-dir>/projects/<id>/log.jsonl`.
+`$FDPM_DATA_DIR` points somewhere ephemeral). Persistent workbooks live
+under `<data-dir>/workbooks/<id>/log.jsonl`.
 
 ### `reorder must be a permutation`
 The ordering you submitted isn't a permutation of the current scope
-membership. Run `fdpm primitive list <project> --json | jq` and filter
+membership. Run `fdpm primitive list <workbook> --json | jq` and filter
 on `scope_id` to see the exact set you must permute.
 
 ### Plugin shows `state: rejected` or `state: quarantined`

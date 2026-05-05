@@ -14,14 +14,14 @@ import { newHost } from "./fixtures.js";
 
 /**
  * Coverage for the helper-set v1.1.0 additions:
- *   - graph.exists(target_id)         — id-membership over project primitives
+ *   - graph.exists(target_id)         — id-membership over workbook primitives
  *   - graph.target_exists(rel_id)     — every outbound edge of rel_id resolves
  *
  * Tests cover three layers:
  *   (1) the pure helper functions in isolation,
  *   (2) the helper-set inventory (STANDARD_GRAPH_HELPER_IDS / version),
  *   (3) end-to-end via a CEL `expression` validation rule pushed onto a
- *       seeded project — confirms the helpers are reachable from CEL and
+ *       seeded workbook — confirms the helpers are reachable from CEL and
  *       that findings fire / don't-fire as expected.
  */
 
@@ -123,12 +123,12 @@ describe("expr/std: graph helper inventory", () => {
 });
 
 // ---------------------------------------------------------------------------
-// (3) End-to-end via CEL validation rule on a seeded project
+// (3) End-to-end via CEL validation rule on a seeded workbook
 // ---------------------------------------------------------------------------
 
 async function seedProject(
   host: Host,
-  projectId: string,
+  workbookId: string,
   primitives: Array<{ id: string; type_id: string; field_values: Record<string, unknown> }>,
   relations: Array<{
     id: string;
@@ -140,9 +140,9 @@ async function seedProject(
 ): Promise<void> {
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
-      id: projectId,
-      name: projectId,
+    workbook: {
+      id: workbookId,
+      name: workbookId,
       profile_id: "test:demo",
       created_at: new Date().toISOString(),
       revision: 0,

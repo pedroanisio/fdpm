@@ -43,7 +43,7 @@ const TEST_PROFILE = {
       fields: [
         { name: "title", kind: "string" as const, required: true, validations: [] },
       ],
-      id_format: { pattern: "^test:item:\\w+$", uniqueness: "project" as const, pattern_kind: "regex" as const },
+      id_format: { pattern: "^test:item:\\w+$", uniqueness: "workbook" as const, pattern_kind: "regex" as const },
       inline_structs: [],
       is_partition_unit: false,
       scoped: false,
@@ -69,7 +69,7 @@ async function setupHostWithItems(count: number): Promise<{ host: Host; ids: str
   await host.load();
   await host.registerProfile(TEST_PROFILE, false);
   await host.createProject({
-    project_id: "p",
+    workbook_id: "p",
     name: "p",
     profile_id: "profile:batch-del-test:0.1",
   });
@@ -77,7 +77,7 @@ async function setupHostWithItems(count: number): Promise<{ host: Host; ids: str
   await primitiveCreateBatch.handler(
     host,
     {
-      project_id: "p",
+      workbook_id: "p",
       primitives: ids.map((id) => ({
         id,
         type_id: "test:Item",
@@ -94,7 +94,7 @@ describe("fdpm.primitive.delete_batch — happy path & atomicity", () => {
     const { host, ids } = await setupHostWithItems(5);
     const result = await primitiveDeleteBatch.handler(
       host,
-      { project_id: "p", primitive_ids: ids },
+      { workbook_id: "p", primitive_ids: ids },
       {} as never,
     );
     expect(result.ok).toBe(true);
@@ -112,7 +112,7 @@ describe("fdpm.primitive.delete_batch — happy path & atomicity", () => {
       primitiveDeleteBatch.handler(
         host,
         {
-          project_id: "p",
+          workbook_id: "p",
           primitive_ids: [ids[0]!, "test:item:never_existed", ids[2]!],
         },
         {} as never,
@@ -130,7 +130,7 @@ describe("fdpm.primitive.delete_batch — happy path & atomicity", () => {
     try {
       await primitiveDeleteBatch.handler(
         host,
-        { project_id: "p", primitive_ids: [ids[0]!, "test:item:ghost"] },
+        { workbook_id: "p", primitive_ids: [ids[0]!, "test:item:ghost"] },
         {} as never,
       );
     } catch (err) {
@@ -142,17 +142,17 @@ describe("fdpm.primitive.delete_batch — happy path & atomicity", () => {
 
   it("input schema enforces 1..500 ids", () => {
     expect(
-      primitiveDeleteBatch.input.safeParse({ project_id: "p", primitive_ids: [] }).success,
+      primitiveDeleteBatch.input.safeParse({ workbook_id: "p", primitive_ids: [] }).success,
     ).toBe(false);
     expect(
       primitiveDeleteBatch.input.safeParse({
-        project_id: "p",
+        workbook_id: "p",
         primitive_ids: Array.from({ length: 501 }, (_, i) => `test:item:${i}`),
       }).success,
     ).toBe(false);
     expect(
       primitiveDeleteBatch.input.safeParse({
-        project_id: "p",
+        workbook_id: "p",
         primitive_ids: ["test:item:a"],
       }).success,
     ).toBe(true);
@@ -162,7 +162,7 @@ describe("fdpm.primitive.delete_batch — happy path & atomicity", () => {
     const { host, ids } = await setupHostWithItems(50);
     const result = await primitiveDeleteBatch.handler(
       host,
-      { project_id: "p", primitive_ids: ids },
+      { workbook_id: "p", primitive_ids: ids },
       {} as never,
     );
     expect(result.ok).toBe(true);
@@ -178,7 +178,7 @@ describe("fdpm.relation.delete_batch — happy path & atomicity", () => {
     await relationCreateBatch.handler(
       host,
       {
-        project_id: "p",
+        workbook_id: "p",
         relations: [
           {
             id: "rel:a-b",
@@ -209,7 +209,7 @@ describe("fdpm.relation.delete_batch — happy path & atomicity", () => {
     const { host, relIds } = await setupHostWithRelations();
     const result = await relationDeleteBatch.handler(
       host,
-      { project_id: "p", relation_ids: relIds },
+      { workbook_id: "p", relation_ids: relIds },
       {} as never,
     );
     expect(result.ok).toBe(true);
@@ -222,7 +222,7 @@ describe("fdpm.relation.delete_batch — happy path & atomicity", () => {
     await expect(
       relationDeleteBatch.handler(
         host,
-        { project_id: "p", relation_ids: [relIds[0]!, "rel:ghost"] },
+        { workbook_id: "p", relation_ids: [relIds[0]!, "rel:ghost"] },
         {} as never,
       ),
     ).rejects.toThrow(FDPMException);

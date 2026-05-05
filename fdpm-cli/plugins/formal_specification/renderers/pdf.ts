@@ -27,7 +27,7 @@ import type { DomainProfile } from "../../../src/core/models/meta.js";
  *
  * True visual parity (full CSS, web fonts, exact box model) would
  * require a headless-browser pipeline (Puppeteer + Chromium); per
- * project policy on dependencies that route is out of scope. The two
+ * workbook policy on dependencies that route is out of scope. The two
  * renderers therefore stay in *structural* lockstep, with the PDF
  * approximating the HTML's typographic intent.
  */
@@ -70,7 +70,7 @@ interface Cursor {
 export const renderPdf: RendererFn = async (input): Promise<RendererOutput> => {
   const tree = buildDocumentTreeAuto(input);
   const doc = await PDFDocument.create();
-  doc.setTitle(tree.project_id);
+  doc.setTitle(tree.workbook_id);
   doc.setSubject(`${tree.profile.id} v${tree.profile.version}`);
   doc.setProducer("fdpm formal_specification renderer");
 
@@ -87,7 +87,7 @@ export const renderPdf: RendererFn = async (input): Promise<RendererOutput> => {
     1,
   );
 
-  drawTitlePage(cur, tree.project_id, tree.profile, tree.findings);
+  drawTitlePage(cur, tree.workbook_id, tree.profile, tree.findings);
 
   for (const block of tree.sections) {
     pageBreak(cur);
@@ -130,7 +130,7 @@ export const renderPdf: RendererFn = async (input): Promise<RendererOutput> => {
   return {
     bytes,
     contentType: "application/pdf",
-    filename: `${tree.project_id}.pdf`,
+    filename: `${tree.workbook_id}.pdf`,
     ...(tree.findings.length > 0 ? { findings: tree.findings } : {}),
   };
 };
@@ -313,13 +313,13 @@ function drawHeading(cur: Cursor, text: string, size: number): void {
 
 function drawTitlePage(
   cur: Cursor,
-  projectId: string,
+  workbookId: string,
   profile: { id: string; version: string },
   findings: ReadonlyArray<{ message: string; expression: string }>,
 ): void {
   // Vertically centre title within the upper third of the page.
   cur.y = A4_HEIGHT * 0.62;
-  const title = stripUnsafe(projectId);
+  const title = stripUnsafe(workbookId);
   const titleWidth = cur.sansBold.widthOfTextAtSize(title, H1_SIZE);
   cur.page.drawText(title, {
     x: (A4_WIDTH - titleWidth) / 2,

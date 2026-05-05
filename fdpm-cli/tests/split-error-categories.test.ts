@@ -14,7 +14,7 @@ import {
  *   - body.partition.length < 2                 → was `validation`
  *   - body.cross_partition_relations !== "drop" →     `verification`
  *
- * Both checks fail BEFORE any project state is touched and BEFORE any
+ * Both checks fail BEFORE any workbook state is touched and BEFORE any
  * profile rule runs — they're pure request-shape contract checks (PALS
  * gate level). Splitting them between two categories meant the operator
  * got two different exit codes (2 vs 3) for "your split request is
@@ -30,14 +30,14 @@ import {
  *      reclassification.
  */
 
-async function projectWithSection(projectId = "p1") {
+async function projectWithSection(workbookId = "p1") {
   const host = await newHost();
   await host.createProject({
-    project_id: projectId,
+    workbook_id: workbookId,
     name: "P",
     profile_id: "test:demo",
   });
-  await host.createPrimitive(projectId, {
+  await host.createPrimitive(workbookId, {
     id: "section:a",
     type_id: "test:section",
     field_values: { title: "A", number: 1 },
@@ -51,7 +51,7 @@ describe("Issue-C — splitProject request-shape errors are `verification`", () 
     let caught: unknown;
     try {
       await splitProject(host, "p1", {
-        partition: [{ target_project_name: "Solo", sections: ["section:a"] }],
+        partition: [{ target_workbook_name: "Solo", sections: ["section:a"] }],
         cross_partition_relations: "drop",
       });
     } catch (err) {
@@ -84,7 +84,7 @@ describe("Issue-C — splitProject request-shape errors are `verification`", () 
     let caught: unknown;
     try {
       await splitProject(host, "p1", {
-        partition: [{ target_project_name: "Solo", sections: ["section:a"] }],
+        partition: [{ target_workbook_name: "Solo", sections: ["section:a"] }],
         cross_partition_relations: "drop",
       });
     } catch (err) {
@@ -102,8 +102,8 @@ describe("Issue-C — splitProject request-shape errors are `verification`", () 
     try {
       await splitProject(host, "p1", {
         partition: [
-          { target_project_name: "X", sections: ["section:a"] },
-          { target_project_name: "Y", sections: ["section:b"] },
+          { target_workbook_name: "X", sections: ["section:a"] },
+          { target_workbook_name: "Y", sections: ["section:b"] },
         ],
         // @ts-expect-error — exercising the runtime check on a malformed value
         cross_partition_relations: "keep",
@@ -130,13 +130,13 @@ describe("Issue-C — splitProject request-shape errors are `verification`", () 
     };
 
     const tooFew = await captureCategory({
-      partition: [{ target_project_name: "Solo", sections: ["section:a"] }],
+      partition: [{ target_workbook_name: "Solo", sections: ["section:a"] }],
       cross_partition_relations: "drop",
     });
     const wrongStrategy = await captureCategory({
       partition: [
-        { target_project_name: "X", sections: ["section:a"] },
-        { target_project_name: "Y", sections: ["section:b"] },
+        { target_workbook_name: "X", sections: ["section:a"] },
+        { target_workbook_name: "Y", sections: ["section:b"] },
       ],
       // @ts-expect-error — runtime check
       cross_partition_relations: "keep",
@@ -153,7 +153,7 @@ describe("Issue-C — fix scope is targeted: profile-rule throws keep `validatio
     // core:empty has no partition-unit type, so the partition_unit check
     // at host-extra.ts L86 fires AFTER the request-shape checks pass.
     await host.createProject({
-      project_id: "p1",
+      workbook_id: "p1",
       name: "P1",
       profile_id: "core:empty",
     });
@@ -161,8 +161,8 @@ describe("Issue-C — fix scope is targeted: profile-rule throws keep `validatio
     try {
       await splitProject(host, "p1", {
         partition: [
-          { target_project_name: "X", sections: ["section:a"] },
-          { target_project_name: "Y", sections: ["section:b"] },
+          { target_workbook_name: "X", sections: ["section:a"] },
+          { target_workbook_name: "Y", sections: ["section:b"] },
         ],
         cross_partition_relations: "drop",
       });

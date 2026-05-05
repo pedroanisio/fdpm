@@ -34,10 +34,10 @@ async function freshHost(): Promise<Host> {
   return host;
 }
 
-async function newDnisProject(host: Host, project_id: string): Promise<void> {
+async function newDnisProject(host: Host, workbook_id: string): Promise<void> {
   await host.createProject({
-    project_id,
-    name: project_id,
+    workbook_id,
+    name: workbook_id,
     profile_id: "profile:dnis:0.1",
   });
 }
@@ -46,24 +46,24 @@ async function setupAdapter(): Promise<{
   host: Host;
   adapter: DnisHostAdapter;
   document: { id: DocumentId };
-  projectId: string;
+  workbookId: string;
 }> {
   const host = await freshHost();
-  const projectId = "test-dnis";
-  await newDnisProject(host, projectId);
-  const adapter = new DnisHostAdapter(host, { projectId });
+  const workbookId = "test-dnis";
+  await newDnisProject(host, workbookId);
+  const adapter = new DnisHostAdapter(host, { workbookId });
   const document = await adapter.createDocument({
     createdBy: AGENT,
     schemaVersion: "0.1.7",
     hashAlgorithm: "sha256",
   });
-  return { host, adapter, document, projectId };
+  return { host, adapter, document, workbookId };
 }
 
 describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
   it("registers profile:dnis:0.1 and persists dnis:Document on createDocument", async () => {
-    const { host, document, projectId } = await setupAdapter();
-    const slice = host.getProject(projectId);
+    const { host, document, workbookId } = await setupAdapter();
+    const slice = host.getProject(workbookId);
     const docPrimitiveId = DNIS_HOST_ADAPTER_TYPES.documentPrimitiveId(document.id);
     const docPrim = slice.primitives[docPrimitiveId];
     expect(docPrim).toBeDefined();
@@ -73,7 +73,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
   });
 
   it("TV-1 (host-adapter) preserves identity under edit and emits a primitive.replace op-log entry", async () => {
-    const { host, adapter, document, projectId } = await setupAdapter();
+    const { host, adapter, document, workbookId } = await setupAdapter();
     const created = await adapter.apply({
       id: "OPCREATEHOSTTV10000000001A" as OperationId,
       type: "create",
@@ -108,7 +108,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
     expect(after.revision).toBe(1);
     expect(edited.affectedNodeIds).toEqual([nodeId]);
 
-    const log = host.store.getOperationLog(projectId);
+    const log = host.store.getOperationLog(workbookId);
     const replaceOps = log.filter((op) => op.kind === "primitive.replace");
     expect(replaceOps).toHaveLength(1);
     expect(replaceOps[0]!.payload).toMatchObject({
@@ -117,7 +117,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
   });
 
   it("TV-3 (host-adapter) materialises split as one replace + N create + N derived-from relations sharing causation_op_id", async () => {
-    const { host, adapter, document, projectId } = await setupAdapter();
+    const { host, adapter, document, workbookId } = await setupAdapter();
     const created = await adapter.apply({
       id: "OPCREATEHOSTTV30000000001A" as OperationId,
       type: "create",
@@ -132,7 +132,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
       },
     });
     const originalId = created.affectedNodeIds[0]!;
-    const logBeforeSplit = host.store.getOperationLog(projectId).length;
+    const logBeforeSplit = host.store.getOperationLog(workbookId).length;
 
     const split = await adapter.apply({
       id: "OPSPLITHOSTTV3000000000001" as OperationId,
@@ -158,7 +158,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
 
     // SPEC-CORE op-log shape: 1 replace (retire) + 2 creates + 2 relation.creates,
     // all under one shared causation_op_id (= the lead op_id).
-    const log = host.store.getOperationLog(projectId);
+    const log = host.store.getOperationLog(workbookId);
     const splitEntries = log.slice(logBeforeSplit);
     expect(splitEntries).toHaveLength(5);
     expect(splitEntries.filter((o) => o.kind === "primitive.replace")).toHaveLength(1);
@@ -185,7 +185,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
   });
 
   it("TV-5 (host-adapter) rejects stale edit and records no op-log entry", async () => {
-    const { host, adapter, document, projectId } = await setupAdapter();
+    const { host, adapter, document, workbookId } = await setupAdapter();
     const created = await adapter.apply({
       id: "OPCREATEHOSTTV50000000001A" as OperationId,
       type: "create",
@@ -211,7 +211,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
       expectedRevision: 0,
       payload: { content: { text: "v2-fresh" } },
     });
-    const logBeforeStale = host.store.getOperationLog(projectId).length;
+    const logBeforeStale = host.store.getOperationLog(workbookId).length;
 
     await expect(
       adapter.apply({
@@ -227,12 +227,12 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
     ).rejects.toBeInstanceOf(FDPMException);
 
     // No new op-log entries; no recorded result.
-    expect(host.store.getOperationLog(projectId).length).toBe(logBeforeStale);
+    expect(host.store.getOperationLog(workbookId).length).toBe(logBeforeStale);
     expect(adapter.getOperationResult("OPEDITHOSTTV5STALE00000001" as OperationId)).toBeNull();
   });
 
   it("TV-7 (host-adapter) surfaces ordered per-target evidence on stale merge", async () => {
-    const { host, adapter, document, projectId } = await setupAdapter();
+    const { host, adapter, document, workbookId } = await setupAdapter();
     const a = (
       await adapter.apply({
         id: "OPCREATEHOSTTV70000000001A" as OperationId,
@@ -300,7 +300,7 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
       expectedRevision: 0,
       payload: { content: { text: "c-fresh" } },
     });
-    const logBeforeStale = host.store.getOperationLog(projectId).length;
+    const logBeforeStale = host.store.getOperationLog(workbookId).length;
     const aRev = adapter.getNode(a).revision;
     const bRev = adapter.getNode(b).revision;
     const cRev = adapter.getNode(c).revision;
@@ -333,11 +333,11 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
     }
 
     // No host op-log entries written for the rejected merge.
-    expect(host.store.getOperationLog(projectId).length).toBe(logBeforeStale);
+    expect(host.store.getOperationLog(workbookId).length).toBe(logBeforeStale);
   });
 
   it("idempotency: re-applying the same OperationId does not append again", async () => {
-    const { host, adapter, document, projectId } = await setupAdapter();
+    const { host, adapter, document, workbookId } = await setupAdapter();
     const op = {
       id: "OPIDEMPOTENT0000000000001A" as OperationId,
       type: "create" as const,
@@ -352,9 +352,9 @@ describe("DnisHostAdapter — SPEC-CORE §5.6.6 conformance", () => {
       },
     };
     const first = await adapter.apply(op);
-    const logAfterFirst = host.store.getOperationLog(projectId).length;
+    const logAfterFirst = host.store.getOperationLog(workbookId).length;
     const second = await adapter.apply(op);
     expect(second).toEqual(first);
-    expect(host.store.getOperationLog(projectId).length).toBe(logAfterFirst);
+    expect(host.store.getOperationLog(workbookId).length).toBe(logAfterFirst);
   });
 });

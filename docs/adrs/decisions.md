@@ -104,7 +104,7 @@ Some field shapes look counterintuitive in TS (single-object struct fields). Doc
 
 ### Alternatives considered
 
-- **Idiomatic TypeScript redesign** — Breaks compatibility with existing project transfers; expands scope beyond the port.
+- **Idiomatic TypeScript redesign** — Breaks compatibility with existing workbook transfers; expands scope beyond the port.
 
 ---
 

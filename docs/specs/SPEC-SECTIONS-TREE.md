@@ -77,10 +77,10 @@ This SPEC defines an architectural change to the spec_authoring rendering pipeli
 
 ### 1.2 What this document does NOT define
 
-- **Removal of spec:Section / spec:HasSection.** They remain registered for legacy projects. Removal is tracked under FW-2.
+- **Removal of spec:Section / spec:HasSection.** They remain registered for legacy workbooks. Removal is tracked under FW-2.
 - **A new kind registry.** Section dispatch_kinds (`stakeholders`, `adr`, …) remain a closed enum tied to the renderer's KIND_RENDERERS table.
 - **Render-DSL integration.** Body content can become DSL-evaluated independently; this SPEC is strictly about heading structure.
-- **Cross-document section references.** Cross-project relations are tracked under SPEC-UID Q1.
+- **Cross-document section references.** Cross-workbook relations are tracked under SPEC-UID Q1.
 
 ### 1.3 Why now
 
@@ -108,14 +108,14 @@ If a concern has no listed stakeholder, no one will defend it. Flag any gap befo
 
 ## 3. Quality Attributes in Tension
 
-The recurring tension is **author ergonomics vs. back-compat**. Adopting SPEC-DNIS resolves both: existing projects keep working unchanged via the legacy path; new authoring patterns get O(1) inserts plus all the SPEC-DNIS guarantees for free.
+The recurring tension is **author ergonomics vs. back-compat**. Adopting SPEC-DNIS resolves both: existing workbooks keep working unchanged via the legacy path; new authoring patterns get O(1) inserts plus all the SPEC-DNIS guarantees for free.
 
 | Attribute | Pressure |
 | --- | --- |
 | **Single source of truth** | The document's section structure must be derivable from one artifact. Today the graph and the `number` strings are two artifacts that can disagree. Under v0.2 the DNIS Node graph is canonical; mixed-mode is a warning, not a feature. |
 | **Author ergonomics** | Inserting one section must require O(1) edits, not O(N). DNIS Position satisfies this for arbitrary insert points (the §6.2 Insertion Property is total — no sparse-convention discipline required). |
 | **Replay determinism** | Numbering must be a deterministic function of the operation log. DFS over DNIS Position qualifies because Position is a string and the op log records every Operation that creates/moves/retires a Node (SPEC-CORE §5.6.2). |
-| **Backward compatibility** | Existing build-spec-*.ts scripts must continue to render correctly without code changes. The renderer keeps the legacy spec:Section path intact; only projects that explicitly construct dnis:Document + dnis:Node primitives switch to the new path. |
+| **Backward compatibility** | Existing build-spec-*.ts scripts must continue to render correctly without code changes. The renderer keeps the legacy spec:Section path intact; only workbooks that explicitly construct dnis:Document + dnis:Node primitives switch to the new path. |
 
 ---
 
@@ -131,9 +131,9 @@ Terms used by this SPEC. Definitions are auto-included from `spec:Term` primitiv
 
 | Term | Definition |
 | --- | --- |
-| **Authored number (deprecated)** | The `number` field on `spec:Section` as it exists today — a hand-typed string like '7' or '12.3.1'. Becomes a fallback only for projects that have NOT yet adopted DNIS Nodes; under v0.2 it is silently honored on the legacy spec:Section path and silently ignored on the DNIS path. Removed in a future SPEC version once all in-tree build scripts are migrated. |
+| **Authored number (deprecated)** | The `number` field on `spec:Section` as it exists today — a hand-typed string like '7' or '12.3.1'. Becomes a fallback only for workbooks that have NOT yet adopted DNIS Nodes; under v0.2 it is silently honored on the legacy spec:Section path and silently ignored on the DNIS path. Removed in a future SPEC version once all in-tree build scripts are migrated. |
 | **DNIS Position** | The fractional-index string SPEC-DNIS §6 mints for each Node. Two Positions a < b admit a Position c with a < c < b without modifying a or b (the §6.2 Insertion Property). Comparable as opaque byte strings. v0.2 adopts this as the sibling-ordering key for spec sections; the integer `order` field of v0.1 is dropped. |
-| **Mixed-mode project** | A project that contains BOTH `spec:Section` primitives and `dnis:Node` primitives of kind `section`. The renderer treats this as a defect: it emits a `spec:render:mixed-mode-sections` warning, prefers the DNIS path, and ignores the `spec:Section` primitives. Authors are expected to migrate or remove the legacy primitives. |
+| **Mixed-mode workbook** | A workbook that contains BOTH `spec:Section` primitives and `dnis:Node` primitives of kind `section`. The renderer treats this as a defect: it emits a `spec:render:mixed-mode-sections` warning, prefers the DNIS path, and ignores the `spec:Section` primitives. Authors are expected to migrate or remove the legacy primitives. |
 | **Section dispatch_kind** | An optional string inside a `dnis:Node`'s `content` JSON that names the kind dispatcher (`adr`, `stakeholders`, `references`, …). The renderer reads it and routes to KIND_RENDERERS — identical mechanism to v0.1's `kind` field on `spec:Section`, just relocated. |
 | **Section tree** | The directed graph formed by `dnis:Node` primitives whose `kind` is `section`, rooted at a `dnis:Document`. Children point at parents via `parent_node_id`. The renderer walks this tree via DFS sorted by SPEC-DNIS Position; §N.M.K headings are derived from the path. _(also: document tree)_ _(also: document tree)_ |
 
@@ -166,7 +166,7 @@ v0.1 of this SPEC proposed adding `order: int` to spec:HasSection and DFS-walkin
 
 ###### Adopt SPEC-DNIS for section identity and order _(chosen)_
 
-Each spec section becomes a `dnis:Node` of kind `section`, anchored at a `dnis:Document` root. SPEC-DNIS Position drives sibling order (Insertion Property is total — O(1) inserts at any density). Renderer DFS-walks the dnis:Node graph and derives §N.M.K from the path. spec:Section + spec:HasSection stay registered for legacy projects but are non-canonical when DNIS Nodes are present.
+Each spec section becomes a `dnis:Node` of kind `section`, anchored at a `dnis:Document` root. SPEC-DNIS Position drives sibling order (Insertion Property is total — O(1) inserts at any density). Renderer DFS-walks the dnis:Node graph and derives §N.M.K from the path. spec:Section + spec:HasSection stay registered for legacy workbooks but are non-canonical when DNIS Nodes are present.
 
 - Pros:
   - Single source of truth — the DNIS Node graph is canonical.
@@ -176,7 +176,7 @@ Each spec section becomes a `dnis:Node` of kind `section`, anchored at a `dnis:D
   - Cycle prevention is enforced by SPEC-DNIS §7.3 move precondition; no new validator needed.
   - Reuses SPEC-DNIS infrastructure: typed Operations (create/move/retire), op-log audit trail, idempotency by OperationId, lineage via dnis:DerivedFrom — none of which the v0.1 order:int proposal got for free.
 - Cons:
-  - Requires a project to be on the composed `profile:spec-authoring-dnis:0.1` profile (not pure `profile:spec-authoring:0.1`). Existing scripts must opt in; this is a profile_id change at project create time.
+  - Requires a workbook to be on the composed `profile:spec-authoring-dnis:0.1` profile (not pure `profile:spec-authoring:0.1`). Existing scripts must opt in; this is a profile_id change at workbook create time.
   - Operators reading raw graph data see a `dnis:Node` with JSON `content` instead of a `spec:Section` with separate fields; less self-explanatory until rendered.
   - Migration codemod is M-sized (rewrite each build-spec-*.ts to use DnisHostAdapter for sections); the v0.1 proposal's `order:int` codemod was simpler.
 
@@ -227,7 +227,7 @@ Adopt SPEC-DNIS for section identity and order. Each spec section becomes a `dni
 ##### Compliance / verification
 
 - Adapter integration test in `fdpm-cli/tests/spec-md-dnis-sections.test.ts` exercises the renderer's DNIS path against a hand-built fixture.
-- The replay-determinism test from SPEC-CORE §5.6.6 covers any project on the composed profile.
+- The replay-determinism test from SPEC-CORE §5.6.6 covers any workbook on the composed profile.
 - A differential CI test asserts byte-equal renders before and after migrating a single build-spec-*.ts script.
 
 ##### Signals to revisit
@@ -247,7 +247,7 @@ Trade-off axes for ADR-SECTIONS-TREE-001 across the three considered options. Op
 | --- | --- | --- | --- |
 | Author ergonomics (insert cost) | O(1) at arbitrary density (DNIS §6.2 Insertion Property is total). | O(1) WHEN sparse-int convention holds; O(N) when neighbours are dense. | Depends on DSL maturity; at minimum O(N). |
 | Source of truth | Single — DNIS Node graph (relation graph as mirror per §5.6.4). | Dual during deprecation — graph + authored numbers. | Dual — graph + DSL fragments. |
-| Migration cost | M — codemod each build-spec-*.ts to DnisHostAdapter; profile bump per project. | XS — sed-style number→order rewrite in each build script. | High — depends on DSL stabilisation. |
+| Migration cost | M — codemod each build-spec-*.ts to DnisHostAdapter; profile bump per workbook. | XS — sed-style number→order rewrite in each build script. | High — depends on DSL stabilisation. |
 | Replay determinism | Inherited from SPEC-CORE §5.6.6 (no new fixture). | Deterministic by (order, uid); needs new fixture. | Depends on DSL evaluation order. |
 | Renderer complexity | +~100 LoC (renderSectionsFromDnis); compareSectionNumbers stays for legacy. | compareSectionNumbers replaced by integer compare + uid tiebreak; ~30 LoC. | Higher — DSL hook for numbering. |
 
@@ -263,7 +263,7 @@ Three SEI-format scenarios pin the most consequential behaviours: insert-at-arbi
 [Source]            Build-script author maintaining a SPEC-*.ts script.
 [Stimulus]          Insert a new section between §6 and §7 of an existing SPEC. The two existing sections may be at any DNIS Position — including immediately adjacent.
 [Environment]       build-spec-*.ts authoring against a v0.2 host (profile:spec-authoring-dnis:0.1).
-[Artifact]          dnis:Node primitives in the project graph.
+[Artifact]          dnis:Node primitives in the workbook graph.
 [Response]          Author calls DnisHostAdapter.apply({ type: 'create', payload: { ..., position: positionBetween(prevSibling.position, nextSibling.position) } }). The renderer outputs the new section as §7 and renumbers downstream automatically.
 [Response measure]  Edits to existing primitives = 0; edits to existing relations = 0; new primitives = 1; new SPEC-CORE op-log entries = 1. Holds REGARDLESS of how dense the neighbourhood is, because DNIS Position's Insertion Property is total (SPEC-DNIS §6.2).
 ```
@@ -272,7 +272,7 @@ Three SEI-format scenarios pin the most consequential behaviours: insert-at-arbi
 
 ```
 [Source]            Core replay subsystem on Host startup.
-[Stimulus]          Replay the operation log of a SPEC project containing N dnis:Node sections.
+[Stimulus]          Replay the operation log of a SPEC workbook containing N dnis:Node sections.
 [Environment]       FDPM Host startup with the persistent JSONL log on disk.
 [Artifact]          Materialised primitive/relation map plus rendered Markdown.
 [Response]          The renderer produces byte-equal Markdown output across replays of the same log. The DNIS adapter rebuilds its in-memory cache deterministically from the op log per SPEC-CORE §5.6.3.
@@ -286,8 +286,8 @@ Three SEI-format scenarios pin the most consequential behaviours: insert-at-arbi
 [Stimulus]          Run `npx tsx fdpm-cli/scripts/build-spec-uid.ts` (still using profile:spec-authoring:0.1 and spec:Section primitives) against a v0.2 host.
 [Environment]       v0.2 host with the dnis path active in the renderer.
 [Artifact]          The rendered Markdown plus the findings list emitted alongside it.
-[Response]          Renderer detects no dnis:Document in the project, falls back to the legacy spec:Section path. Output matches pre-v0.2 byte-for-byte.
-[Response measure]  diff(rendered_v0.2, rendered_v0.1) == empty for any project on profile:spec-authoring:0.1. Mixed-mode warning count = 0 because the project does not contain a dnis:Document.
+[Response]          Renderer detects no dnis:Document in the workbook, falls back to the legacy spec:Section path. Output matches pre-v0.2 byte-for-byte.
+[Response measure]  diff(rendered_v0.2, rendered_v0.1) == empty for any workbook on profile:spec-authoring:0.1. Mixed-mode warning count = 0 because the workbook does not contain a dnis:Document.
 ```
 
 ---
@@ -314,7 +314,7 @@ Five acceptance criteria, all `met` because the supporting code landed in commit
   - evidence: fdpm-cli/tests/spec-md-dnis-sections.test.ts
 - [x] **3.** Mixed-mode warning fires when both spec:Section and dnis:Node sections coexist; legacy primitives are NOT rendered. Verified by the `emits a mixed-mode warning` test case. _(met)_
   - evidence: fdpm-cli/tests/spec-md-dnis-sections.test.ts
-- [x] **4.** The composition profile resolves correctly: a project on profile:spec-authoring-dnis:0.1 sees both spec:* and dnis:* primitive types. Verified by the smoke test in `/tmp/spec-authoring-dnis-smoke.ts` (run-once during implementation; not a CI fixture). _(met)_
+- [x] **4.** The composition profile resolves correctly: a workbook on profile:spec-authoring-dnis:0.1 sees both spec:* and dnis:* primitive types. Verified by the smoke test in `/tmp/spec-authoring-dnis-smoke.ts` (run-once during implementation; not a CI fixture). _(met)_
   - evidence: fdpm-cli/plugins/spec_authoring_dnis/index.ts
 - [x] **5.** This SPEC document itself is built via DnisHostAdapter — the meta-circular proof. The fact that the rendered SPEC-SECTIONS-TREE.md exists with correct §N.M.K headings IS the AC. _(met)_
   - evidence: fdpm-cli/scripts/build-spec-sections-tree.ts
@@ -325,11 +325,11 @@ Five acceptance criteria, all `met` because the supporting code landed in commit
 
 Four conformance items. CONF-1 covers the DFS heading derivation; CONF-2 the legacy fallback; CONF-3 the mixed-mode warning; CONF-4 the Insertion Property at arbitrary density.
 
-- **1. DFS numbering matches the dnis:Node tree** — Construct a fixture project with three nested sections (1 → 1.1 → 1.1.1 plus a 1.2 sibling and a §2 root sibling) via DnisHostAdapter; render via spec:SpecMarkdownRenderer.
+- **1. DFS numbering matches the dnis:Node tree** — Construct a fixture workbook with three nested sections (1 → 1.1 → 1.1.1 plus a 1.2 sibling and a §2 root sibling) via DnisHostAdapter; render via spec:SpecMarkdownRenderer.
   - expected: Output headings read `## 1. …`, `### 1.1. …`, `#### 1.1.1. …`, `### 1.2. …`, `## 2. …` with no other sections present.
 - **2. Legacy fallback produces zero diff** — Run any pre-v0.2 build-spec-*.ts script (still using profile:spec-authoring:0.1) against a v0.2 host; diff the rendered Markdown against pre-v0.2 reference.
   - expected: diff exits 0 for every script.
-- **3. Mixed-mode warning is exactly one** — Construct a project with one spec:Section primitive and one dnis:Node section; render and inspect findings.
+- **3. Mixed-mode warning is exactly one** — Construct a workbook with one spec:Section primitive and one dnis:Node section; render and inspect findings.
   - expected: Findings array contains exactly one entry with expression `spec:render:mixed-mode-sections`. Rendered text contains the dnis:Node title and does NOT contain the spec:Section title.
 - **4. Insertion Property at arbitrary density** — Create three sibling sections, then insert a fourth between the first two without renumbering. Verify positionBetween returns a fresh position string strictly between the existing two.
   - expected: comparePositions(left, new) < 0 AND comparePositions(new, right) < 0; no other primitive's `position` field is mutated.
@@ -355,7 +355,7 @@ Six implementation changes. Five completed in commit c4dc8d8 plus the rewrite of
 
 Four sequenced steps. Steps 1 and 2 land in this commit; step 3 (codemod) is future work; step 4 (legacy removal) is conditional on step 3 completing and one minor release of fallback behaviour.
 
-1. **Land renderer DNIS path + composition profile (this commit)** — Ship CHG-1 through CHG-5. Renderer forks on dnis:Document presence; legacy projects unaffected. Composition profile available for opt-in.
+1. **Land renderer DNIS path + composition profile (this commit)** — Ship CHG-1 through CHG-5. Renderer forks on dnis:Document presence; legacy workbooks unaffected. Composition profile available for opt-in.
    - touches: `fdpm-cli/plugins/spec_authoring_dnis/`
    - touches: `fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts`
    - touches: `fdpm-cli/src/core/host.ts`
@@ -390,7 +390,7 @@ Three open questions, all with default resolutions and `is_blocking: no`. Q-1 of
 - **Q1.** When does spec:Section / spec:HasSection get removed entirely from the spec_authoring profile?
   - default: Out of scope for v0.2. Tracked under a separate SPEC-SECTIONS-TREE v0.3 once all in-tree build-spec-*.ts scripts are migrated AND one minor release of fallback behaviour has passed. The legacy path is non-canonical but supported indefinitely until then.
 - **Q2.** Cross-document section references — should the renderer hot-link the §-number into a uid-based anchor at render time? E.g. resolving '§7 of SPEC-CORE' to a stable dnis:Node uid?
-  - default: Out of scope for v0.2. Tracked under SPEC-UID Q1 (cross-project relations). Revisit when that lands. Note that under v0.2 the target IS already a stable uid (the dnis:Node's NID), so the work reduces to URL-construction once cross-project relations are normative.
+  - default: Out of scope for v0.2. Tracked under SPEC-UID Q1 (cross-workbook relations). Revisit when that lands. Note that under v0.2 the target IS already a stable uid (the dnis:Node's NID), so the work reduces to URL-construction once cross-workbook relations are normative.
 - **Q3.** Should the dnis:Node content's `depth_override` field be retained, or is path-derived depth always sufficient?
   - default: Retain in v0.2 as an escape hatch. The renderer derives depth from path length by default; depth_override lets authors break out of the default for unusual layouts (e.g. embedded section-like content inside a 'kind: prose' section). Remove if no callers materialise.
 
@@ -410,7 +410,7 @@ Three items deferred: codemod for in-tree migration, removal of spec:Section/spe
 
 Eight references, all PALS-verified. Two repo files (CLAUDE.md, PURPOSE.md), four peer SPECs (CORE, DNIS, UID, RENDER-DSL), one renderer source file, one adapter source file.
 
-- CLAUDE.md — Project Guidelines (this repository, root). (CLAUDE.md) _[verified]_ — Read the file at HEAD. Sections "Behavioral Constraints" and "PALS's LAW" govern the disclaimer/banner requirements honored by this SPEC.
+- CLAUDE.md — Workbook Guidelines (this repository, root). (CLAUDE.md) _[verified]_ — Read the file at HEAD. Sections "Behavioral Constraints" and "PALS's LAW" govern the disclaimer/banner requirements honored by this SPEC.
 - DnisHostAdapter — fdpm-cli/src/core/dnis/adapter.ts (fdpm-cli/src/core/dnis/adapter.ts) _[verified]_ — The adapter this SPEC's build script uses to construct its sections. Its createDocument and apply methods are the v0.2 authoring surface.
 - PURPOSE.md (this repository, root). (PURPOSE.md) _[verified]_ — Read the file at HEAD. CLAUDE.md mandates that no proposal conflict with PURPOSE.md; this SPEC's single-source-of-truth principle aligns with PURPOSE's typed-graph-first stance.
 - spec_md.ts — current spec:SpecMarkdownRenderer implementation. (fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts) _[verified]_ — Read renderSections, renderSectionsLegacy, renderSectionsFromDnis, KIND_RENDERERS dispatch table. These are the functions modified by CHG-2.
@@ -441,7 +441,7 @@ Affected sections: all
 
 ## References — verify independently
 
-- CLAUDE.md — Project Guidelines (this repository, root). (CLAUDE.md) _[verified]_ — Read the file at HEAD. Sections "Behavioral Constraints" and "PALS's LAW" govern the disclaimer/banner requirements honored by this SPEC.
+- CLAUDE.md — Workbook Guidelines (this repository, root). (CLAUDE.md) _[verified]_ — Read the file at HEAD. Sections "Behavioral Constraints" and "PALS's LAW" govern the disclaimer/banner requirements honored by this SPEC.
 - DnisHostAdapter — fdpm-cli/src/core/dnis/adapter.ts (fdpm-cli/src/core/dnis/adapter.ts) _[verified]_ — The adapter this SPEC's build script uses to construct its sections. Its createDocument and apply methods are the v0.2 authoring surface.
 - PURPOSE.md (this repository, root). (PURPOSE.md) _[verified]_ — Read the file at HEAD. CLAUDE.md mandates that no proposal conflict with PURPOSE.md; this SPEC's single-source-of-truth principle aligns with PURPOSE's typed-graph-first stance.
 - spec_md.ts — current spec:SpecMarkdownRenderer implementation. (fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts) _[verified]_ — Read renderSections, renderSectionsLegacy, renderSectionsFromDnis, KIND_RENDERERS dispatch table. These are the functions modified by CHG-2.

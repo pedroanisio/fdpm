@@ -32,7 +32,7 @@ const TEST_PROFILE = {
       fields: [
         { name: "title", kind: "string" as const, required: true, validations: [] },
       ],
-      id_format: { pattern: "^test:item:\\w+$", uniqueness: "project" as const, pattern_kind: "regex" as const },
+      id_format: { pattern: "^test:item:\\w+$", uniqueness: "workbook" as const, pattern_kind: "regex" as const },
       inline_structs: [],
       is_partition_unit: false,
       scoped: false,
@@ -58,7 +58,7 @@ async function setupHost(): Promise<Host> {
   await host.load();
   await host.registerProfile(TEST_PROFILE, false);
   await host.createProject({
-    project_id: "p",
+    workbook_id: "p",
     name: "p",
     profile_id: "profile:batch-test:0.1",
   });
@@ -76,7 +76,7 @@ describe("fdpm.primitive.create_batch", () => {
     const result = await primitiveCreateBatch.handler(
       host,
       {
-        project_id: "p",
+        workbook_id: "p",
         primitives: [
           { id: "test:item:a", type_id: "test:Item", field_values: { title: "A" } },
           { id: "test:item:b", type_id: "test:Item", field_values: { title: "B" } },
@@ -102,7 +102,7 @@ describe("fdpm.primitive.create_batch", () => {
       primitiveCreateBatch.handler(
         host,
         {
-          project_id: "p",
+          workbook_id: "p",
           primitives: [
             { id: "test:item:ok", type_id: "test:Item", field_values: { title: "OK" } },
             // Invalid: id doesn't match the pattern → core:id-format
@@ -125,7 +125,7 @@ describe("fdpm.primitive.create_batch", () => {
       await primitiveCreateBatch.handler(
         host,
         {
-          project_id: "p",
+          workbook_id: "p",
           primitives: [
             { id: "wrong:id:format", type_id: "test:Item", field_values: { title: "X" } },
           ],
@@ -143,11 +143,11 @@ describe("fdpm.primitive.create_batch", () => {
 
   it("input schema enforces 1..500 primitives", () => {
     expect(
-      primitiveCreateBatch.input.safeParse({ project_id: "p", primitives: [] }).success,
+      primitiveCreateBatch.input.safeParse({ workbook_id: "p", primitives: [] }).success,
     ).toBe(false);
     expect(
       primitiveCreateBatch.input.safeParse({
-        project_id: "p",
+        workbook_id: "p",
         primitives: Array.from({ length: 501 }, (_, i) => ({
           id: `test:item:${i}`,
           type_id: "test:Item",
@@ -170,7 +170,7 @@ describe("fdpm.primitive.create_batch", () => {
     await primitiveCreateBatch.handler(
       host,
       {
-        project_id: "p",
+        workbook_id: "p",
         primitives: [
           { id: "test:item:anchor", type_id: "test:Item", field_values: { title: "A" } },
         ],
@@ -184,7 +184,7 @@ describe("fdpm.primitive.create_batch", () => {
     const result = await primitiveCreateBatch.handler(
       host,
       {
-        project_id: "p",
+        workbook_id: "p",
         primitives: [
           { id: "test:item:b1", type_id: "test:Item", field_values: { title: "B1" } },
           { id: "test:item:b2", type_id: "test:Item", field_values: { title: "B2" } },
@@ -207,7 +207,7 @@ describe("fdpm.relation.create_batch", () => {
     await primitiveCreateBatch.handler(
       host,
       {
-        project_id: "p",
+        workbook_id: "p",
         primitives: [
           { id: "test:item:a", type_id: "test:Item", field_values: { title: "A" } },
           { id: "test:item:b", type_id: "test:Item", field_values: { title: "B" } },
@@ -221,7 +221,7 @@ describe("fdpm.relation.create_batch", () => {
     const result = await relationCreateBatch.handler(
       host,
       {
-        project_id: "p",
+        workbook_id: "p",
         relations: [
           {
             id: "rel:a-b-1",
@@ -250,7 +250,7 @@ describe("fdpm.relation.create_batch", () => {
       relationCreateBatch.handler(
         host,
         {
-          project_id: "p",
+          workbook_id: "p",
           relations: [
             {
               id: "rel:ok",
@@ -276,7 +276,7 @@ describe("fdpm.relation.create_batch", () => {
 
   it("input schema enforces 1..500 relations", () => {
     expect(
-      relationCreateBatch.input.safeParse({ project_id: "p", relations: [] }).success,
+      relationCreateBatch.input.safeParse({ workbook_id: "p", relations: [] }).success,
     ).toBe(false);
   });
 

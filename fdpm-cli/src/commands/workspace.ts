@@ -2,8 +2,8 @@
  * `fdpm workspace` — SPEC-WORKSPACE §16 lifecycle commands.
  *
  * Subcommands (all read/write the registry and workspace.json; none
- * mutate project operation logs, so freshness gating treats them as
- * project-less):
+ * mutate workbook operation logs, so freshness gating treats them as
+ * workbook-less):
  *
  *   init <path>         — mint a workspace at <path>
  *   list                — registry catalog
@@ -240,7 +240,7 @@ export function buildWorkspaceCommand(host: Host): Command {
           output: result.output,
           bytes: result.bytes,
           files: result.manifest.files.length,
-          projects: result.manifest.projects.length,
+          workbooks: result.manifest.workbooks.length,
           profiles: result.manifest.profiles.length,
           workspace_id: result.manifest.workspace.id,
         },
@@ -317,16 +317,16 @@ export function buildWorkspaceCommand(host: Host): Command {
         throw err;
       }
       const elapsed_ms = Date.now() - t0;
-      const projects = (await probe.workspace?.listProjects()) ?? [];
+      const workbooks = (await probe.workspace?.listProjects()) ?? [];
       emit(
         ctx,
         {
           ok: true,
           target: targetPath,
-          projects: projects.length,
+          workbooks: workbooks.length,
           elapsed_ms,
         },
-        () => `verified ${targetPath} (${projects.length} projects, ${elapsed_ms} ms)`,
+        () => `verified ${targetPath} (${workbooks.length} workbooks, ${elapsed_ms} ms)`,
       );
     });
 
@@ -360,7 +360,7 @@ function parseDeflateLevel(value: string): number {
 
 /**
  * SPEC-REPL §10.2 metadata. None of the workspace subcommands touch
- * project logs, so the freshness gate has nothing to stat.
+ * workbook logs, so the freshness gate has nothing to stat.
  */
 export const commandMetadata: CommandMetadataMap = {
   "workspace init": {

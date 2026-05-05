@@ -12,7 +12,7 @@
  *   - `cap:transformer` — `fs:Theorem`/`fs:FormalProperty` -> `fs:Invariant`
  *     emission scaffold, registered for future `runTransformer` calls.
  *   - `cap:importer` / `cap:exporter` — `fs-jsonl` round-trip for
- *     bundling the plugin's primitive subset of a project.
+ *     bundling the plugin's primitive subset of a workbook.
  */
 import type {
   PrimitiveInstance,
@@ -136,7 +136,7 @@ export function registerFormalSpecificationCapabilities(ctx: PluginContext): voi
   });
 
   // ── cap:transformer ──────────────────────────────────────────────
-  // Project an fs:FormalProperty into an emit-ops scaffold for an
+  // Workbook an fs:FormalProperty into an emit-ops scaffold for an
   // fs:Invariant. The runtime does not yet drive these emissions, so
   // we return the proposed payload deterministically; a future
   // host.runTransformer caller will consume it.
@@ -194,12 +194,12 @@ export function registerFormalSpecificationCapabilities(ctx: PluginContext): voi
         relations.push(record.data as RelationInstance);
       }
     }
-    const projectId = options?.projectId ?? "fs-imported";
+    const workbookId = options?.workbookId ?? "fs-imported";
     const transfer: ProjectTransfer = {
       spec_core: "1.1.0",
-      project: {
-        id: projectId,
-        name: options?.projectName ?? projectId,
+      workbook: {
+        id: workbookId,
+        name: options?.projectName ?? workbookId,
         profile_id: "profile:formal-specification:3.0",
         created_at: new Date().toISOString(),
         revision: 0,

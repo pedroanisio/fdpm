@@ -23,7 +23,7 @@ import { projectThroughViewInstance } from "./_view.js";
  *   ### Evidence
  *   - `<evidence_id>` (<kind>): <description> — `<source>`
  *
- * Anything that is not present in the project graph is omitted; nothing
+ * Anything that is not present in the workbook graph is omitted; nothing
  * is invented. If there are no `sw:Decision` primitives at all, the
  * renderer emits a documented stub so the file is never silently empty.
  */
@@ -52,7 +52,7 @@ function blockOrEmpty(label: string, body: string | undefined): string[] {
 }
 
 export const renderAdr: RendererFn = (input): RendererOutput => {
-  const { profile, primitives, relations, projectId } = input;
+  const { profile, primitives, relations, workbookId } = input;
 
   const decisions = primitives
     .filter((p) => p.type_id === "sw:Decision")
@@ -83,7 +83,7 @@ export const renderAdr: RendererFn = (input): RendererOutput => {
   );
 
   const lines: string[] = [];
-  lines.push(`# Architectural Decision Records — ${projectId}`);
+  lines.push(`# Architectural Decision Records — ${workbookId}`);
   lines.push("");
   lines.push(
     `> Profile: \`${profile.id}\` v${profile.version}. ` +
@@ -92,7 +92,7 @@ export const renderAdr: RendererFn = (input): RendererOutput => {
   lines.push("");
 
   if (decisions.length === 0) {
-    lines.push("_No `sw:Decision` primitives found in this project._");
+    lines.push("_No `sw:Decision` primitives found in this workbook._");
     lines.push("");
     return toOutput(lines);
   }

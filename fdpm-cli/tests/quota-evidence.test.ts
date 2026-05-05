@@ -70,7 +70,7 @@ describe("Issue-G — `quota` throws expose evidence", () => {
 
     it("evidence carries observed, cap, unit=ops, and env=FDPM_MAX_FIELD_PATCH_OPS", async () => {
       const host = await newHost();
-      await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+      await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
       await host.createPrimitive("p1", {
         id: "section:a",
         type_id: "test:section",
@@ -119,7 +119,7 @@ describe("Issue-G — `quota` throws expose evidence", () => {
       // batchEdit in host-extra.
       const { batchEdit } = await import("../src/core/host-extra.js");
       const host = await newHost();
-      await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+      await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
 
       // Two operations against a cap of 1.
       const ops = [

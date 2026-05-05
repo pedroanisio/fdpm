@@ -42,8 +42,8 @@ import { mintUid } from "../core/identity/uid.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { emit, type OutputContext } from "./util.js";
 
-function adapterFor(host: Host, projectId: string): DnisHostAdapter {
-  const adapter = new DnisHostAdapter(host, { projectId });
+function adapterFor(host: Host, workbookId: string): DnisHostAdapter {
+  const adapter = new DnisHostAdapter(host, { workbookId });
   // Each CLI invocation is a fresh process — the adapter's in-memory
   // cache must be rebuilt from the persisted dnis:Document/dnis:Node
   // primitives before any read-or-mutate command runs. `create-doc`
@@ -60,15 +60,15 @@ export function buildDnisCommand(host: Host): Command {
 
   cmd
     .command("create-doc")
-    .argument("<project>", "project id (must use profile:dnis:0.1)")
+    .argument("<workbook>", "workbook id (must use profile:dnis:0.1)")
     .requiredOption("--created-by <agent>", "AgentId of the document creator")
     .requiredOption("--schema-version <version>", "SPEC-DNIS revision the document is created under (e.g. 0.1.7)")
     .option("--hash <algo>", "content-hash algorithm (sha256 | blake3)", "sha256")
     .option("--id <document-id>", "explicit DocumentId (NID); minted if omitted")
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const adapter = adapterFor(host, project);
+      const adapter = adapterFor(host, workbook);
       const document = await adapter.createDocument({
         ...(opts.id ? { id: opts.id as DocumentId } : {}),
         createdBy: opts.createdBy as AgentId,
@@ -82,7 +82,7 @@ export function buildDnisCommand(host: Host): Command {
 
   cmd
     .command("create-node")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .requiredOption("--document <document-id>", "DocumentId the node belongs to")
     .requiredOption("--agent <agent>", "AgentId of the operation actor")
     .requiredOption("--kind <kind>", "node kind (e.g. paragraph, section)")
@@ -91,9 +91,9 @@ export function buildDnisCommand(host: Host): Command {
     .option("--operation-id <ulid>", "explicit OperationId; minted if omitted")
     .option("--issued-at <iso>", "operation issuedAt timestamp", new Date().toISOString())
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const adapter = adapterFor(host, project);
+      const adapter = adapterFor(host, workbook);
       let content: unknown;
       try {
         content = JSON.parse(opts.content);
@@ -129,13 +129,13 @@ export function buildDnisCommand(host: Host): Command {
 
   cmd
     .command("list")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .requiredOption("--document <document-id>", "DocumentId to list nodes from")
     .option("--parent <node-id>", "list children of this NodeId; root-level if omitted")
     .option("--json", "emit JSON")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const adapter = adapterFor(host, project);
+      const adapter = adapterFor(host, workbook);
       const documentId = opts.document as DocumentId;
       const parent = (opts.parent ?? null) as NodeId | null;
       const nodes = adapter.listActiveNodes(documentId, parent);
@@ -148,7 +148,7 @@ export function buildDnisCommand(host: Host): Command {
 
   cmd
     .command("edit")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .requiredOption("--document <document-id>", "DocumentId the node belongs to")
     .requiredOption("--node <node-id>", "NodeId to edit")
     .requiredOption("--agent <agent>", "AgentId of the operation actor")
@@ -157,9 +157,9 @@ export function buildDnisCommand(host: Host): Command {
     .option("--operation-id <ulid>", "explicit OperationId; minted if omitted")
     .option("--issued-at <iso>", "operation issuedAt timestamp", new Date().toISOString())
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const adapter = adapterFor(host, project);
+      const adapter = adapterFor(host, workbook);
       let content: unknown;
       try {
         content = JSON.parse(opts.content);
@@ -187,7 +187,7 @@ export function buildDnisCommand(host: Host): Command {
 
   cmd
     .command("move")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .requiredOption("--document <document-id>", "DocumentId the node belongs to")
     .requiredOption("--node <node-id>", "NodeId to move")
     .requiredOption("--agent <agent>", "AgentId of the operation actor")
@@ -198,9 +198,9 @@ export function buildDnisCommand(host: Host): Command {
     .option("--operation-id <ulid>", "explicit OperationId; minted if omitted")
     .option("--issued-at <iso>", "operation issuedAt timestamp", new Date().toISOString())
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const adapter = adapterFor(host, project);
+      const adapter = adapterFor(host, workbook);
       const documentId = opts.document as DocumentId;
 
       const after = (opts.after ?? null) as NodeId | null;
@@ -266,13 +266,13 @@ export function buildDnisCommand(host: Host): Command {
 
   cmd
     .command("resolve")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .requiredOption("--document <document-id>", "DocumentId scope of the reference")
     .requiredOption("--node <node-id>", "NodeId being resolved")
     .option("--json", "emit JSON")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const adapter = adapterFor(host, project);
+      const adapter = adapterFor(host, workbook);
       const resolution = adapter.resolveReference(
         opts.document as DocumentId,
         opts.node as NodeId,
@@ -287,31 +287,31 @@ export const commandMetadata: CommandMetadataMap = {
   "dnis create-doc": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "dnis create-node": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "dnis list": {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "dnis edit": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "dnis move": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "dnis resolve": {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

@@ -101,7 +101,7 @@ const documentSpec: PrimitiveSpec = {
 const terms: Array<[string, string, string?]> = [
   [
     "Workspace",
-    "A named, identified container for FDPM project state. The unit of backup, restore, and (in Phase 3+) addressing. Today implemented as `LocalWorkspace` over a filesystem path; future implementations may include `RemoteWorkspace` over an HTTP/gRPC protocol.",
+    "A named, identified container for FDPM workbook state. The unit of backup, restore, and (in Phase 3+) addressing. Today implemented as `LocalWorkspace` over a filesystem path; future implementations may include `RemoteWorkspace` over an HTTP/gRPC protocol.",
     "data dir, workspace",
   ],
   [
@@ -490,12 +490,12 @@ const optWS002A: PrimitiveSpec = {
   type: "spec:Option",
   fields: {
     label:
-      "Option A — workspace.json carries identity + provenance + tags; project list derived from filesystem",
+      "Option A — workspace.json carries identity + provenance + tags; workbook list derived from filesystem",
     description:
-      "workspace.json fields: spec_workspace, id (ULID), name, created_at, created_by_host_version, spec_core_version, description, tags. Project list is NOT in workspace.json; computed from `${path}/projects/*/log.jsonl` on demand.",
+      "workspace.json fields: spec_workspace, id (ULID), name, created_at, created_by_host_version, spec_core_version, description, tags. Workbook list is NOT in workspace.json; computed from `${path}/workbooks/*/log.jsonl` on demand.",
     pros: [
       "Identity is fully self-contained: a workspace's id, name, and provenance travel with the file.",
-      "Project list never goes stale (it's the filesystem itself).",
+      "Workbook list never goes stale (it's the filesystem itself).",
       "Operator-meaningful fields (description, tags) enable later querying without schema changes.",
     ],
     cons: [
@@ -528,20 +528,20 @@ const optWS002B: PrimitiveSpec = {
 };
 
 const optWS002C: PrimitiveSpec = {
-  id: "spec:opt:ws002-denormalized-projects",
+  id: "spec:opt:ws002-denormalized-workbooks",
   type: "spec:Option",
   fields: {
-    label: "Option C — workspace.json includes a denormalized project list",
+    label: "Option C — workspace.json includes a denormalized workbook list",
     description:
-      "In addition to identity/provenance, workspace.json carries a `projects` array with each project's id, name, profile_id, last_modified.",
+      "In addition to identity/provenance, workspace.json carries a `workbooks` array with each workbook's id, name, profile_id, last_modified.",
     pros: [
       "`fdpm workspace info` doesn't need a filesystem walk.",
-      "Backup/restore can trivially diff project sets between bundle and target.",
+      "Backup/restore can trivially diff workbook sets between bundle and target.",
     ],
     cons: [
-      "Denormalization invites drift: every project create/delete/rename would need to update workspace.json. Forget once and the workspace's project list lies.",
+      "Denormalization invites drift: every workbook create/delete/rename would need to update workspace.json. Forget once and the workspace's workbook list lies.",
       "Filesystem is already authoritative; duplicating the list adds a sync bug.",
-      "The `projects` list would also have to be migrated if/when the workbook rename lands.",
+      "The `workbooks` list would also have to be migrated if/when the workbook rename lands.",
     ],
     verdict: "rejected",
     rejection_reason:
@@ -554,13 +554,13 @@ const adrWS002: PrimitiveSpec = {
   type: "spec:ADR",
   fields: {
     adr_id: "ADR-WS-002",
-    title: "workspace.json shape — identity + provenance, no project list.",
+    title: "workspace.json shape — identity + provenance, no workbook list.",
     status: "proposed",
     date: "2026-05-05",
     context:
       "Every workspace needs a self-describing identity file. The file has to: (a) survive path moves, (b) document its own provenance for cross-version restore, (c) remain human-readable, (d) NOT introduce sync bugs with the filesystem authoritatively-held data.",
     decision:
-      "workspace.json is a JSON file at `${data_dir}/workspace.json` with fields: `spec_workspace` (this SPEC's version), `id` (ULID, immutable), `name` (operator-chosen, mutable via `fdpm workspace rename`), `created_at` (ISO-8601), `created_by_host_version` (semver), `spec_core_version`, optional `description` (free text), optional `tags` (string array). The list of projects in the workspace is NOT stored in workspace.json; it is computed from `${data_dir}/projects/*/` on demand.",
+      "workspace.json is a JSON file at `${data_dir}/workspace.json` with fields: `spec_workspace` (this SPEC's version), `id` (ULID, immutable), `name` (operator-chosen, mutable via `fdpm workspace rename`), `created_at` (ISO-8601), `created_by_host_version` (semver), `spec_core_version`, optional `description` (free text), optional `tags` (string array). The list of workbooks in the workspace is NOT stored in workspace.json; it is computed from `${data_dir}/workbooks/*/` on demand.",
     consequences: [
       {
         polarity: "positive",
@@ -590,7 +590,7 @@ const adrWS002: PrimitiveSpec = {
     ],
     revisit_signals: [
       "If operators routinely add metadata that doesn't fit `description` or `tags`, consider adding a typed `metadata: Record<string, unknown>` escape hatch.",
-      "If the workbook rename lands and changes how projects are named, workspace.json may grow a `vocab_version` field at that time.",
+      "If the workbook rename lands and changes how workbooks are named, workspace.json may grow a `vocab_version` field at that time.",
     ],
   },
 };
@@ -782,7 +782,7 @@ const adrWS004: PrimitiveSpec = {
     context:
       "The backup format determines how operators inspect, verify, and restore workspaces. The format must be: openable by standard tooling, inspectable without full extraction, integrity-verifiable, and not couple us to a format we'll regret.",
     decision:
-      "`.fdpmbak` is a zip archive. Root entry: `backup-manifest.json` (lives at offset 0 by exporter convention so `head -c 64K` can recover it). Data tree: `data/manifest.json`, `data/profiles/`, `data/projects/`. `backup-manifest.json` carries: spec_backup version, fdpm_host_version, spec_core_version, created_at, the workspace's identity (id, name, created_at, created_by_host_version), per-file sha256, exit_status. Compression: `deflate` for text/json, `store` for already-compressed.",
+      "`.fdpmbak` is a zip archive. Root entry: `backup-manifest.json` (lives at offset 0 by exporter convention so `head -c 64K` can recover it). Data tree: `data/manifest.json`, `data/profiles/`, `data/workbooks/`. `backup-manifest.json` carries: spec_backup version, fdpm_host_version, spec_core_version, created_at, the workspace's identity (id, name, created_at, created_by_host_version), per-file sha256, exit_status. Compression: `deflate` for text/json, `store` for already-compressed.",
     consequences: [
       {
         polarity: "positive",
@@ -1051,7 +1051,7 @@ const tradeoffs: PrimitiveSpec[] = [
       cells: [
         { option_id: "spec:opt:ws002-rich-json", value: "Yes (provenance present)" },
         { option_id: "spec:opt:ws002-minimal-json", value: "No (no provenance)" },
-        { option_id: "spec:opt:ws002-denormalized-projects", value: "Yes" },
+        { option_id: "spec:opt:ws002-denormalized-workbooks", value: "Yes" },
       ],
     },
   },
@@ -1063,7 +1063,7 @@ const tradeoffs: PrimitiveSpec[] = [
       cells: [
         { option_id: "spec:opt:ws002-rich-json", value: "None" },
         { option_id: "spec:opt:ws002-minimal-json", value: "None" },
-        { option_id: "spec:opt:ws002-denormalized-projects", value: "Real (project list drifts)" },
+        { option_id: "spec:opt:ws002-denormalized-workbooks", value: "Real (workbook list drifts)" },
       ],
     },
   },
@@ -1192,7 +1192,7 @@ const scenarios: PrimitiveSpec[] = [
         "Local filesystem with atomic-rename support; same fs for source and target.",
       artifact: "LocalWorkspace, BackupBundle, RestorePipeline.",
       response:
-        "After restore, the data dir is bit-equivalent to its pre-deletion state (modulo workspace.json's _restoredAt marker if the operator opts into recording it). `Host.load()` succeeds. `fdpm validate` on every project produces the same findings as before the backup.",
+        "After restore, the data dir is bit-equivalent to its pre-deletion state (modulo workspace.json's _restoredAt marker if the operator opts into recording it). `Host.load()` succeeds. `fdpm validate` on every workbook produces the same findings as before the backup.",
       response_measure:
         "100% file-by-file sha256 equality between pre-backup data dir and post-restore data dir; zero new validation findings post-restore that weren't present pre-backup.",
     },
@@ -1350,7 +1350,7 @@ const configEntries: PrimitiveSpec[] = [
       key: "fdpm workspace info [<name|id>] [--json]",
       default: "",
       purpose:
-        "Show a workspace's identity, path, project count, last backup timestamp, health status. Defaults to the current workspace.",
+        "Show a workspace's identity, path, workbook count, last backup timestamp, health status. Defaults to the current workspace.",
       scope: "core",
       kind: "string",
     },
@@ -1395,10 +1395,10 @@ const configEntries: PrimitiveSpec[] = [
     id: "spec:cfg:workspace-backup",
     type: "spec:ConfigEntry",
     fields: {
-      key: "fdpm workspace backup [-o <file.fdpmbak>] [--include-mcp-audit] [--exclude-project <id>...] [--compression-level N] [--force]",
+      key: "fdpm workspace backup [-o <file.fdpmbak>] [--include-mcp-audit] [--exclude-workbook <id>...] [--compression-level N] [--force]",
       default: "",
       purpose:
-        "Write the current workspace as a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. Inclusion defaults: every project, every profile, the manifest, the MCP audit log if it exists.",
+        "Write the current workspace as a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. Inclusion defaults: every workbook, every profile, the manifest, the MCP audit log if it exists.",
       scope: "core",
       kind: "string",
     },
@@ -1731,7 +1731,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 4,
       criterion:
-        "`fdpm workspace restore <bundle>` to an empty target dir succeeds. Post-restore, `fdpm validate` against every project produces the same findings as the pre-backup state.",
+        "`fdpm workspace restore <bundle>` to an empty target dir succeeds. Post-restore, `fdpm validate` against every workbook produces the same findings as the pre-backup state.",
       status: "open",
     },
   },
@@ -1819,7 +1819,7 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 2,
       name: "Auto-mint on first touch",
       procedure:
-        "Create a fresh data dir with a project log but no workspace.json. Run `fdpm health readiness` against it.",
+        "Create a fresh data dir with a workbook log but no workspace.json. Run `fdpm health readiness` against it.",
       expected:
         "workspace.json is created with a valid ULID, the registry gains an entry, a single warning is printed on stderr, and the readiness command succeeds.",
     },
@@ -1831,7 +1831,7 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 3,
       name: "Backup-restore round-trip on identical data",
       procedure:
-        "Pick a workspace with at least one project. Run `fdpm workspace backup -o /tmp/a.fdpmbak`. Run `fdpm workspace restore /tmp/a.fdpmbak --name restored --data-dir /tmp/restored`. Compare project-by-project: `fdpm validate` against the original and the restored.",
+        "Pick a workspace with at least one workbook. Run `fdpm workspace backup -o /tmp/a.fdpmbak`. Run `fdpm workspace restore /tmp/a.fdpmbak --name restored --data-dir /tmp/restored`. Compare workbook-by-workbook: `fdpm validate` against the original and the restored.",
       expected:
         "Identical findings, identical primitive counts, identical relation counts. The restored workspace has a different `name` and `id` (because of `--name`), same data.",
     },
@@ -2163,7 +2163,7 @@ const risks: PrimitiveSpec[] = [
     fields: {
       label: "Multi-GiB workspaces produce backups too large to handle",
       description:
-        "A workspace with years of operation logs or a project carrying large binary assets produces a >1 GiB backup. archiver buffers the central directory in memory; very large bundles may OOM.",
+        "A workspace with years of operation logs or a workbook carrying large binary assets produces a >1 GiB backup. archiver buffers the central directory in memory; very large bundles may OOM.",
       likelihood: "low",
       impact: "medium",
     },
@@ -2232,7 +2232,7 @@ const mitigations: PrimitiveSpec[] = [
     type: "spec:Mitigation",
     fields: {
       strategy:
-        "Backup surfaces a warning when source data dir exceeds 500 MiB. `--exclude-project` and `--compression-level 9` are documented escapes. Streaming backup format reserved for v0.2 if this becomes a real bottleneck.",
+        "Backup surfaces a warning when source data dir exceeds 500 MiB. `--exclude-workbook` and `--compression-level 9` are documented escapes. Streaming backup format reserved for v0.2 if this becomes a real bottleneck.",
       status: "planned",
     },
   },
@@ -2256,9 +2256,9 @@ const openQuestions: PrimitiveSpec[] = [
     fields: {
       ordinal: 1,
       question:
-        "When the workbook rename ships (project → workbook), should workspace.json grow a vocab_version field to discriminate between vocabulary generations?",
+        "When the workbook rename ships (workbook → workbook), should workspace.json grow a vocab_version field to discriminate between vocabulary generations?",
       default_choice:
-        "No — until the workbook rename is designed, adding the field guesses at the answer. workspace.json stays free of project/workbook vocabulary in v0.1; the workbook rename's SPEC will decide whether vocab_version is needed.",
+        "No — until the workbook rename is designed, adding the field guesses at the answer. workspace.json stays free of workbook/workbook vocabulary in v0.1; the workbook rename's SPEC will decide whether vocab_version is needed.",
       is_blocking: "no",
     },
   },
@@ -2282,7 +2282,7 @@ const openQuestions: PrimitiveSpec[] = [
       question:
         "Should backup support `--since <timestamp|revision>` to ship only operations after a baseline?",
       default_choice:
-        "Not in v0.1. The operation log is already append-only — incremental backup is just `tail -c +<offset>` on each project log. Add when the use case is concrete; speculatively designing incremental backup risks the wrong format.",
+        "Not in v0.1. The operation log is already append-only — incremental backup is just `tail -c +<offset>` on each workbook log. Add when the use case is concrete; speculatively designing incremental backup risks the wrong format.",
       is_blocking: "no",
     },
   },
@@ -2348,7 +2348,7 @@ const futureWork: PrimitiveSpec[] = [
     fields: {
       label: "Cross-workspace queries",
       description:
-        "`fdpm workspace exec --all <subcommand>` to run a command across every registered workspace. Useful for fleet-wide reads (`fdpm workspace exec --all project list`). Designed in v0.2 once workspace usage patterns are clearer.",
+        "`fdpm workspace exec --all <subcommand>` to run a command across every registered workspace. Useful for fleet-wide reads (`fdpm workspace exec --all workbook list`). Designed in v0.2 once workspace usage patterns are clearer.",
     },
   },
   {
@@ -2467,7 +2467,7 @@ const references: PrimitiveSpec[] = [
       locator: "CLAUDE.md",
       verification: "self_evident",
       verification_note:
-        "Project guidelines that govern this SPEC's PALS-banner extension. Workspace identity is a *claim* (operator-writable filesystem state), not a *proof* — exactly the kind of unverified-by-default surface PALS-LAW addresses.",
+        "Workbook guidelines that govern this SPEC's PALS-banner extension. Workspace identity is a *claim* (operator-writable filesystem state), not a *proof* — exactly the kind of unverified-by-default surface PALS-LAW addresses.",
     },
   },
   {
@@ -2546,7 +2546,7 @@ const sections: PrimitiveSpec[] = [
       body_md: [
         "### 1.1 What this document defines",
         "",
-        "This SPEC defines **Workspace** — a first-class primitive that represents the named, identified container for FDPM project state. The unit of backup, restore, and (in Phase 3+ of the R2 remote-server roadmap) addressing.",
+        "This SPEC defines **Workspace** — a first-class primitive that represents the named, identified container for FDPM workbook state. The unit of backup, restore, and (in Phase 3+ of the R2 remote-server roadmap) addressing.",
         "",
         "Today, FDPM binds the data directory to `Host` via `FDPM_DATA_DIR` (a path with no identity). This SPEC lifts the data directory to a typed primitive: it has a stable id (ULID), a friendly name, provenance metadata, and an interface boundary that future implementations (`RemoteWorkspace` against `fdpm-server`) will plug into without breaking existing consumers.",
         "",
@@ -2560,14 +2560,14 @@ const sections: PrimitiveSpec[] = [
         "- **A wire protocol or remote-server implementation.** The interface defined here MUST be implementable by a future `RemoteWorkspace`, but Phase 3+ of the R2 roadmap is where that implementation lands.",
         "- **An architectural inversion.** `Host` continues to own the in-memory `Store`, `ProfileRegistry`, `PluginRuntime`. A future SPEC-WORKSPACE-AS-PRIMARY may invert that ownership; this SPEC explicitly defers the question (ADR-WS-001 Option C).",
         "- **Cryptographic identity.** workspace.json is operator-writable; sha256 in the backup manifest catches accidents and bit-rot. Adversarial substitution requires Phase 4 of the R2 roadmap.",
-        "- **The workbook rename.** When `project → workbook` ships, workspace.json may grow a `vocab_version` field; this SPEC does NOT pre-decide that question.",
+        "- **The workbook rename.** When `workbook → workbook` ships, workspace.json may grow a `vocab_version` field; this SPEC does NOT pre-decide that question.",
         "- **Incremental backup, encryption, cross-workspace queries.** All explicitly deferred to v0.2 or later (see §27).",
         "",
         "### 1.3 Why now",
         "",
         "Three converging signals:",
         "",
-        "1. **No verifiable backup story.** Operators have `fdpm transfer export` (per-project, JSON-only) and `cp -r` (no manifest, no verification). Neither answers 'I have a verified backup of this workspace.'",
+        "1. **No verifiable backup story.** Operators have `fdpm transfer export` (per-workbook, JSON-only) and `cp -r` (no manifest, no verification). Neither answers 'I have a verified backup of this workspace.'",
         "2. **Remote workspaces are on the roadmap.** R2 (server protocol) is the chosen direction. The interface boundary defined here is what Phase 3 plugs into.",
         "3. **Identity for agents.** When an LLM agent is told 'work on workspace X,' there is currently no way for the agent to verify it's working on the right one. workspace.json + the registry give that answer.",
       ].join("\n"),
@@ -2660,7 +2660,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "**`list`** prints every workspace in the registry. Marks the current one. Shows id, name, path, last_used. Output respects `--json`.",
         "",
-        "**`info`** shows a workspace's identity, path, project count (filesystem walk), last backup timestamp (registry-tracked), health (`Host.load()` succeeded recently?). Defaults to current.",
+        "**`info`** shows a workspace's identity, path, workbook count (filesystem walk), last backup timestamp (registry-tracked), health (`Host.load()` succeeded recently?). Defaults to current.",
         "",
         "**`switch`** updates the registry's `current` to point at the named workspace. Persistent across processes. Subsequent `fdpm` invocations operate on the switched-to workspace.",
         "",
@@ -2672,7 +2672,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "```",
         "fdpm workspace backup [-o <file>] [--include-mcp-audit]",
-        "                      [--exclude-project <id>...] [--compression-level <0-9>]",
+        "                      [--exclude-workbook <id>...] [--compression-level <0-9>]",
         "                      [--force] [--json]",
         "",
         "fdpm workspace restore <file> [--data-dir <dir>] [--name <new>]",
@@ -2682,7 +2682,7 @@ const sections: PrimitiveSpec[] = [
         "fdpm workspace verify [<name|id>]",
         "```",
         "",
-        "**`backup`** writes a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. By default includes every project, every profile, the workspace manifest, and (if it exists) the MCP audit log. `--exclude-project <id>` skips listed projects. `--compression-level` controls deflate; `0` = store-only.",
+        "**`backup`** writes a `.fdpmbak` zip. Default output: `./fdpm-backup-<workspace-name>-<timestamp>.fdpmbak`. By default includes every workbook, every profile, the workspace manifest, and (if it exists) the MCP audit log. `--exclude-workbook <id>` skips listed workbooks. `--compression-level` controls deflate; `0` = store-only.",
         "",
         "**`restore`** is the inverse. `--data-dir <dir>` selects the target (default: current workspace's path). On identity collision: refuses unless `--force-overwrite` (replaces the existing workspace) or `--name <new>` (clones with a fresh id). `--dry-run` reports what would happen without writing. `--skip-verify` skips the post-restore Host.load() round-trip (use only when you've already verified externally).",
         "",
@@ -2718,11 +2718,11 @@ const sections: PrimitiveSpec[] = [
         "Workspace inherits SPEC-REPL §10's freshness model wholesale. The workspace surface adds no new concurrency primitives:",
         "",
         "- **Single Host per workspace per process.** A long-lived process (REPL, MCP server) is bound to one workspace. Switching requires a new process or `Host.reload()` against the same workspace.",
-        "- **Cross-process concurrency** on the same workspace is governed by SPEC-REPL §10's per-project freshness gate. Two processes writing to the same project's log race at the JSONL append level (covered by OS file locking) and detect each other on the next freshness check.",
+        "- **Cross-process concurrency** on the same workspace is governed by SPEC-REPL §10's per-workbook freshness gate. Two processes writing to the same workbook's log race at the JSONL append level (covered by OS file locking) and detect each other on the next freshness check.",
         "- **Registry concurrency**: two `fdpm workspace switch` calls racing on the same operator can clobber each other's writes. Acceptable for v0.1; the registry uses the same temp-write + atomic-rename pattern as restore so corruption is impossible, but one switch may be lost.",
         "",
         "What's explicitly not designed:",
-        "- No workspace-level lock. Two processes operating on the same workspace are subject only to per-project freshness, not to a workspace-wide mutex.",
+        "- No workspace-level lock. Two processes operating on the same workspace are subject only to per-workbook freshness, not to a workspace-wide mutex.",
         "- No cross-workspace transactions. Each `fdpm` invocation operates on exactly one workspace; multi-workspace operations (future work) would need their own design.",
       ].join("\n"),
     },
@@ -2760,16 +2760,16 @@ const sections: PrimitiveSpec[] = [
         "  /** PluginRuntime the Host operates on. */",
         "  getPluginRuntime(): PluginRuntime;",
         "",
-        "  /** Append an operation to a project's log. Persists. */",
-        "  appendOp(project_id: string, op: Operation): Promise<void>;",
+        "  /** Append an operation to a workbook's log. Persists. */",
+        "  appendOp(workbook_id: string, op: Operation): Promise<void>;",
         "",
-        "  /** Read a project's full operation log. */",
-        "  getOperationLog(project_id: string): Promise<Operation[]>;",
+        "  /** Read a workbook's full operation log. */",
+        "  getOperationLog(workbook_id: string): Promise<Operation[]>;",
         "",
         "  /** SPEC-REPL §10.2 freshness check. Cheap; per-call. */",
-        "  statProjectLog(project_id: string): { mtime_ns: bigint; size: bigint } | null;",
+        "  statProjectLog(workbook_id: string): { mtime_ns: bigint; size: bigint } | null;",
         "",
-        "  /** Project ids known to this workspace. */",
+        "  /** Workbook ids known to this workspace. */",
         "  listProjects(): string[];",
         "",
         "  /** Backup the workspace to a destination. Implementation-defined format. */",
@@ -2896,8 +2896,8 @@ const sections: PrimitiveSpec[] = [
         "    ├── manifest.json        (legacy spec_core data-dir manifest)",
         "    ├── profiles/",
         "    │   └── *.json",
-        "    └── projects/",
-        "        └── <project-id>/",
+        "    └── workbooks/",
+        "        └── <workbook-id>/",
         "            └── log.jsonl",
         "```",
         "",
@@ -2923,13 +2923,13 @@ const sections: PrimitiveSpec[] = [
         "      \"content_type\": \"application/json\"",
         "    },",
         "    {",
-        "      \"path\": \"data/projects/spec-core/log.jsonl\",",
+        "      \"path\": \"data/workbooks/spec-core/log.jsonl\",",
         "      \"sha256\": \"def456...\",",
         "      \"bytes\": 248910,",
         "      \"content_type\": \"application/jsonl\"",
         "    }",
         "  ],",
-        "  \"projects\": [",
+        "  \"workbooks\": [",
         "    { \"id\": \"spec-core\", \"log_size\": 248910, \"log_sha256\": \"def456...\" }",
         "  ],",
         "  \"profiles\": [",
@@ -3310,7 +3310,7 @@ async function main(): Promise<void> {
     name: "SPEC — FDPM Workspace",
     profile: PROFILE_ID,
     description:
-      "SPEC for the FDPM Workspace primitive — the named, identified container for FDPM project state. Locks the Workspace interface boundary that Phase 1 of the R2 remote-server roadmap depends on, plus identity, registry, backup, and restore mechanics. Authored as a typed graph using the fdpm.spec-authoring profile.",
+      "SPEC for the FDPM Workspace primitive — the named, identified container for FDPM workbook state. Locks the Workspace interface boundary that Phase 1 of the R2 remote-server roadmap depends on, plus identity, registry, backup, and restore mechanics. Authored as a typed graph using the fdpm.spec-authoring profile.",
   })
     .primitives([
       documentSpec,
@@ -3341,7 +3341,7 @@ async function main(): Promise<void> {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

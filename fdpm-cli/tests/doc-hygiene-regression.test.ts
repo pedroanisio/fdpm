@@ -36,7 +36,7 @@ describe("documentation drift regressions", () => {
 
   it("plugin READMEs keep current CLI verbs", () => {
     for (const text of [FORMAL_SPEC_README, PLANNING_README, SOFTWARE_ARCH_README]) {
-      expect(text).not.toContain("fdpm project init");
+      expect(text).not.toContain("fdpm workbook init");
       expect(text).not.toContain("fdpm primitive add");
       expect(text).not.toContain("fdpm relation add");
       expect(text).not.toContain("fdpm-fdpm-cli");

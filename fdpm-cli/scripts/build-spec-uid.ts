@@ -52,7 +52,7 @@ const documentSpec: PrimitiveSpec = {
   fields: {
     title: "SPEC — Universal Identifiers for Cross-Artifact References v0.2",
     subtitle:
-      "Mint a ULID alongside every primitive and relation, treat it as the canonical reference key, and let cross-project links target it.",
+      "Mint a ULID alongside every primitive and relation, treat it as the canonical reference key, and let cross-workbook links target it.",
     spec_id: "spec:fdpm:uid:0.2",
     version: "0.2.0",
     status: "Stable",
@@ -71,7 +71,7 @@ const documentSpec: PrimitiveSpec = {
     pals_extension:
       "Cross-artifact references that use only human-authored slugs are unverified by " +
       "construction: a renamed slug breaks every reference silently, and a copied " +
-      "primitive in another project carries the same slug with different identity. " +
+      "primitive in another workbook carries the same slug with different identity. " +
       "An identifier system that cannot answer 'is this the same artifact?' is the " +
       "absence-of-verification this banner forbids.",
     date: "2026-05-04",
@@ -109,11 +109,11 @@ const terms: Array<[string, string, string?]> = [
   ],
   [
     "Cross-artifact reference",
-    "A typed reference from a primitive in project A to a primitive in project B. Today: not supported (relations validate endpoints in the local project map only). Under this SPEC: a typed field carrying `{ uid, project_id?, slug? }` where `uid` is load-bearing.",
+    "A typed reference from a primitive in workbook A to a primitive in workbook B. Today: not supported (relations validate endpoints in the local workbook map only). Under this SPEC: a typed field carrying `{ uid, workbook_id?, slug? }` where `uid` is load-bearing.",
   ],
   [
     "Reference stability",
-    "The property that a reference resolves to the same artifact even after slug rename, project rename, or transfer. UIDs guarantee this; slugs do not.",
+    "The property that a reference resolves to the same artifact even after slug rename, workbook rename, or transfer. UIDs guarantee this; slugs do not.",
   ],
   [
     "Dual-ID model",
@@ -167,7 +167,7 @@ const stakeholders: Array<{
     id: "spec:stk:tooling-author",
     role: "Tooling / SDK author",
     primary_concern:
-      "Resolve a reference to its target by `uid` in O(1) within a project and O(N_projects) across; deduplicate during transfer/import without prompting the user.",
+      "Resolve a reference to its target by `uid` in O(1) within a workbook and O(N_projects) across; deduplicate during transfer/import without prompting the user.",
     category: "external_team",
   },
   {
@@ -219,7 +219,7 @@ const qas: Array<{ id: string; attribute: string; pressure: string; priority: st
     id: "spec:qa:performance",
     attribute: "Performance",
     pressure:
-      "ULID generation runs once per primitive/relation create. Cross-project resolution is O(N_projects) without an index; an index brings O(1).",
+      "ULID generation runs once per primitive/relation create. Cross-workbook resolution is O(N_projects) without an index; an index brings O(1).",
     priority: "secondary",
   },
 ];
@@ -283,7 +283,7 @@ const principles: Array<{
     ordinal: 6,
     title: "Cross-artifact references are a typed primitive field.",
     statement:
-      "A reference from one artifact to another is modelled as a struct field `{ uid: string(26), project_id?: string, slug?: string }`. The `uid` is load-bearing; `project_id` is a resolution hint; `slug` is operator-readable cache. Bare strings are not references.",
+      "A reference from one artifact to another is modelled as a struct field `{ uid: string(26), workbook_id?: string, slug?: string }`. The `uid` is load-bearing; `workbook_id` is a resolution hint; `slug` is operator-readable cache. Bare strings are not references.",
     strength: "SHOULD",
   },
 ];
@@ -318,7 +318,7 @@ const optA: PrimitiveSpec = {
     cons: [
       "Schema gains a field on every primitive and relation; persistence size grows by ~30 bytes per op.",
       "Two id-spaces to keep in sync; bug surface is the index between them.",
-      "Cross-project resolution is O(N_projects) without an index; needs a host-level uid_index for O(1).",
+      "Cross-workbook resolution is O(N_projects) without an index; needs a host-level uid_index for O(1).",
     ],
     verdict: "chosen",
   },
@@ -361,9 +361,9 @@ const optC: PrimitiveSpec = {
     ],
     cons: [
       "Slug rename still silently breaks references.",
-      "Two artifacts in different projects with the same slug remain ambiguous.",
+      "Two artifacts in different workbooks with the same slug remain ambiguous.",
       "PALS-LAW posture: 'is this the same artifact?' has no answer.",
-      "Cross-project relations remain impossible — the boundary stays hard.",
+      "Cross-workbook relations remain impossible — the boundary stays hard.",
     ],
     verdict: "rejected",
     rejection_reason:
@@ -380,14 +380,14 @@ const adr: PrimitiveSpec = {
     status: "accepted",
     date: "2026-05-04",
     context: [
-      "FDPM v1.1 has a hard project boundary: relations validate endpoints in the local primitive map only ([pipeline.ts:579-580](fdpm-cli/src/core/validation/pipeline.ts#L579)), and `primitive id collision` ([replay.ts:171-175](fdpm-cli/src/core/store/replay.ts#L171)) is enforced per-project, never globally.",
+      "FDPM v1.1 has a hard workbook boundary: relations validate endpoints in the local primitive map only ([pipeline.ts:579-580](fdpm-cli/src/core/validation/pipeline.ts#L579)), and `primitive id collision` ([replay.ts:171-175](fdpm-cli/src/core/store/replay.ts#L171)) is enforced per-workbook, never globally.",
       "84 plugin primitives declare `uniqueness: 'global'` as their default ([_common.ts](fdpm-cli/plugins/spec_authoring/_common.ts), [formal_specification/_common.ts](fdpm-cli/plugins/formal_specification/_common.ts)) — but that field is parsed by Zod and never read by any runtime code.",
       "The audit-trail layer is already ULID-native: `op_id`, `causation_op_id`, and `parent_op_id` are 26-char ULIDs ([operation.ts:10-20](fdpm-cli/src/core/operations/operation.ts#L10)), and `request_id` is a UUIDv7. The `ulid` package is already in dependencies.",
-      "Cross-artifact references — needed for inter-document citations, `transfer.import --merge`, and any future cross-project relation type — require an identifier with two properties slugs lack: global uniqueness *enforced* by the host, and stability across rename/transfer.",
+      "Cross-artifact references — needed for inter-document citations, `transfer.import --merge`, and any future cross-workbook relation type — require an identifier with two properties slugs lack: global uniqueness *enforced* by the host, and stability across rename/transfer.",
       "PURPOSE.md frames FDPM as a **knowledge graph**. A graph whose nodes lack a stable identity cannot represent inter-graph references coherently.",
     ].join("\n\n"),
     decision:
-      "Adopt the dual-ID model: every primitive and relation gets a `uid: string(26)` field. Core mints the ULID at create time; preserves it across replace/transfer/template; mints fresh on clone. The slug stays the operator's surface; the uid becomes the reference-canonical key. Cross-artifact references become a typed `{ uid, project_id?, slug? }` field shape.",
+      "Adopt the dual-ID model: every primitive and relation gets a `uid: string(26)` field. Core mints the ULID at create time; preserves it across replace/transfer/template; mints fresh on clone. The slug stays the operator's surface; the uid becomes the reference-canonical key. Cross-artifact references become a typed `{ uid, workbook_id?, slug? }` field shape.",
     consequences: [
       {
         polarity: "positive",
@@ -422,7 +422,7 @@ const adr: PrimitiveSpec = {
     ],
     compliance_checks: [
       "✓ `PrimitiveInstance` and `RelationInstance` schemas declare `uid: z.string().length(26).regex(ULID_PATTERN)` (fdpm-cli/src/core/models/instance.ts).",
-      "✓ Every `primitive.create`, `relation.create`, `transfer.import`, `template.apply`, `project.clone`, and `project.split` operation records a `uid` in its payload (fdpm-cli/src/core/host.ts, fdpm-cli/src/core/host-extra.ts).",
+      "✓ Every `primitive.create`, `relation.create`, `transfer.import`, `template.apply`, `workbook.clone`, and `workbook.split` operation records a `uid` in its payload (fdpm-cli/src/core/host.ts, fdpm-cli/src/core/host-extra.ts).",
       "✓ Replay against a v1.1 log with no uids produces a v1.2 state with all uids present and byte-equal across runs — verified by SPEC-UID AC-5 (fdpm-cli/tests/spec-uid.test.ts).",
       "✓ `fdpm primitive get <slug>` continues to work; `--by-uid` flag added to primitive {get, replace, patch, delete, field-patch} and relation {get, replace, patch, delete, field-patch}.",
       "✓ No file under `fdpm-cli/plugins/` (other than `fs_v3_importer/index.ts`, which mints fresh uids when ingesting legacy data) mentions `uid` in primitive type definitions — corpus invariant verified by AC-3.",
@@ -491,7 +491,7 @@ const tradeoffs: PrimitiveSpec[] = [
       axis: "Migration effort for existing logs",
       cells: [
         { option_id: "spec:opt:dual-id", value: "One upcaster, deterministic mint from op_id" },
-        { option_id: "spec:opt:replace-slug", value: "Schema break; manual rewrite of every project" },
+        { option_id: "spec:opt:replace-slug", value: "Schema break; manual rewrite of every workbook" },
         { option_id: "spec:opt:status-quo", value: "None" },
       ],
     },
@@ -527,7 +527,7 @@ const scenarios: PrimitiveSpec[] = [
       response:
         "Both host instances produce projections with the same `uid` for every primitive. The `uid` is a deterministic function of the upcaster input — typically a ULID seeded from the originating `op_id`'s entropy.",
       response_measure:
-        "`fdpm transfer export <project>` from the two instances produces byte-equal output. Differential test in the suite asserts this for at least 3 historical fixture logs.",
+        "`fdpm transfer export <workbook>` from the two instances produces byte-equal output. Differential test in the suite asserts this for at least 3 historical fixture logs.",
     },
   },
   {
@@ -536,13 +536,13 @@ const scenarios: PrimitiveSpec[] = [
     fields: {
       title: "Renaming a primitive's slug preserves cross-artifact references that target its uid",
       source: "Author runs `fdpm primitive replace --id <old-slug> --new-id <new-slug>`.",
-      stimulus: "An external project holds a reference field `{ uid: '01HV...', slug: '<old-slug>' }`.",
-      environment: "Single host with two projects loaded; the referencing project is read-only during the rename.",
+      stimulus: "An external workbook holds a reference field `{ uid: '01HV...', slug: '<old-slug>' }`.",
+      environment: "Single host with two workbooks loaded; the referencing workbook is read-only during the rename.",
       artifact: "The `primitive.replace` operation handler and the cross-artifact-reference resolver.",
       response:
         "After the rename, the external reference still resolves to the same primitive when looked up by `uid`. The cached `slug` field on the reference is stale; an optional `--refresh-slugs` tool updates it.",
       response_measure:
-        "Resolver returns the renamed primitive in O(1) (within a project) or O(N_projects) (across projects via uid_index). Acceptance criterion AC-3 verifies this.",
+        "Resolver returns the renamed primitive in O(1) (within a workbook) or O(N_projects) (across workbooks via uid_index). Acceptance criterion AC-3 verifies this.",
     },
   },
   {
@@ -551,9 +551,9 @@ const scenarios: PrimitiveSpec[] = [
     fields: {
       title: "transfer.import detects an already-present artifact via uid match",
       source:
-        "Operator runs `fdpm transfer import <bundle> --merge-by-uid` against a project that already contains the bundled primitives.",
+        "Operator runs `fdpm transfer import <bundle> --merge-by-uid` against a workbook that already contains the bundled primitives.",
       stimulus: "The bundle was originally exported from the same source; uids match.",
-      environment: "Single host; target project is non-empty; bundle contains at least one primitive whose uid is already present.",
+      environment: "Single host; target workbook is non-empty; bundle contains at least one primitive whose uid is already present.",
       artifact: "The `transfer.import` handler in `host-extra.ts`.",
       response:
         "For each bundled primitive, the host detects `uid` collision with an existing local primitive. With `--merge-by-uid`, the existing primitive is kept; with `--fail-on-uid-collision`, the import aborts with a `conflict` error.",
@@ -577,12 +577,12 @@ const invariants: PrimitiveSpec[] = [
     },
   },
   {
-    id: "spec:inv:uid-unique-per-project",
+    id: "spec:inv:uid-unique-per-workbook",
     type: "spec:Invariant",
     fields: {
-      label: "UIDs are unique within a project",
+      label: "UIDs are unique within a workbook",
       statement:
-        "Within any project, no two primitives share a uid; no two relations share a uid; no primitive shares a uid with any relation. Enforced at replay-time via the same path that detects slug collisions ([replay.ts:171-175](fdpm-cli/src/core/store/replay.ts#L171)).",
+        "Within any workbook, no two primitives share a uid; no two relations share a uid; no primitive shares a uid with any relation. Enforced at replay-time via the same path that detects slug collisions ([replay.ts:171-175](fdpm-cli/src/core/store/replay.ts#L171)).",
       enforcement: "runtime_check",
     },
   },
@@ -590,9 +590,9 @@ const invariants: PrimitiveSpec[] = [
     id: "spec:inv:uid-global-collision-bound",
     type: "spec:Invariant",
     fields: {
-      label: "Cross-project UID collisions are statistically negligible",
+      label: "Cross-workbook UID collisions are statistically negligible",
       statement:
-        "ULID's 80 bits of randomness combined with millisecond timestamping make a collision across the corpus of all FDPM artifacts (estimated ≤10^9 lifetime) negligibly improbable. Cross-project uid collisions, if detected, are surfaced as `internal` errors, not silently merged.",
+        "ULID's 80 bits of randomness combined with millisecond timestamping make a collision across the corpus of all FDPM artifacts (estimated ≤10^9 lifetime) negligibly improbable. Cross-workbook uid collisions, if detected, are surfaced as `internal` errors, not silently merged.",
       enforcement: "review",
     },
   },
@@ -677,7 +677,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "transfer.import preserves UIDs",
       statement:
-        "Primitives and relations carried via `transfer.import` MUST keep their original uids. This is what makes uids reference-canonical across projects.",
+        "Primitives and relations carried via `transfer.import` MUST keep their original uids. This is what makes uids reference-canonical across workbooks.",
       strength: "MUST",
       verifiability: "test",
       verifier_ref: "fdpm-cli/tests/uid-transfer.test.ts",
@@ -687,9 +687,9 @@ const requirements: PrimitiveSpec[] = [
     id: "spec:req:006",
     type: "spec:Requirement",
     fields: {
-      label: "project.clone mints fresh UIDs",
+      label: "workbook.clone mints fresh UIDs",
       statement:
-        "Primitives and relations created by `project.clone` MUST receive fresh uids. A clone is semantically a new artifact; identity is not preserved across clone.",
+        "Primitives and relations created by `workbook.clone` MUST receive fresh uids. A clone is semantically a new artifact; identity is not preserved across clone.",
       strength: "MUST",
       verifiability: "test",
       verifier_ref: "fdpm-cli/tests/uid-clone.test.ts",
@@ -737,7 +737,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Cross-artifact reference field type",
       statement:
-        "Profiles SHOULD model cross-artifact references as a typed inline-struct field with shape `{ uid: string(26), project_id?: string, slug?: string }`. Bare-string references are deprecated for cross-artifact use.",
+        "Profiles SHOULD model cross-artifact references as a typed inline-struct field with shape `{ uid: string(26), workbook_id?: string, slug?: string }`. Bare-string references are deprecated for cross-artifact use.",
       strength: "SHOULD",
       verifiability: "review",
       verifier_ref: "Author guidance — not enforced at runtime in v1.2.",
@@ -793,7 +793,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 4,
       criterion:
-        "A round-trip test exports a project via `transfer.export`, imports it into a new project (re-homed under a different project_id to dodge slug collision), and asserts every primitive's uid is preserved.",
+        "A round-trip test exports a workbook via `transfer.export`, imports it into a new workbook (re-homed under a different workbook_id to dodge slug collision), and asserts every primitive's uid is preserved.",
       status: "met",
       evidence_refs: ["fdpm-cli/tests/spec-uid.test.ts (AC-4 round-trip)"],
     },
@@ -818,7 +818,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 6,
       criterion:
-        "A clone test asserts that `cloneProject` produces a new project whose primitives have fresh uids (none equal to the source project's uids). Same posture for `splitProject` and `applyTemplate` — all three mint fresh on instantiate.",
+        "A clone test asserts that `cloneProject` produces a new workbook whose primitives have fresh uids (none equal to the source workbook's uids). Same posture for `splitProject` and `applyTemplate` — all three mint fresh on instantiate.",
       status: "met",
       evidence_refs: [
         "fdpm-cli/tests/spec-uid.test.ts (AC-6 clone case)",
@@ -846,7 +846,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 8,
       criterion:
-        "`fdpm primitive get <slug>` and `fdpm primitive get --by-uid <uid>` both resolve to the same primitive. The compat test pins both code paths via `host.lookupUid` and `host.resolvePrimitiveByUid`. Negative-path tests verify mismatched-kind, mismatched-project, and post-delete `lookupUid` returns null.",
+        "`fdpm primitive get <slug>` and `fdpm primitive get --by-uid <uid>` both resolve to the same primitive. The compat test pins both code paths via `host.lookupUid` and `host.resolvePrimitiveByUid`. Negative-path tests verify mismatched-kind, mismatched-workbook, and post-delete `lookupUid` returns null.",
       status: "met",
       evidence_refs: [
         "fdpm-cli/tests/spec-uid.test.ts (AC-7 cases incl. cascaded deletion)",
@@ -928,7 +928,7 @@ const changes: PrimitiveSpec[] = [
     fields: {
       area: "fdpm-cli/src/core/host.ts",
       change:
-        "`createPrimitive` and `createRelation` call `mintUid()` before append; both reject payloads that already carry a uid with category=verification (Core-only mint site invariant). Host gains `lookupUid(uid)`, `resolvePrimitiveByUid(uid)`, `resolveRelationByUid(uid)` for O(1) cross-project lookup.",
+        "`createPrimitive` and `createRelation` call `mintUid()` before append; both reject payloads that already carry a uid with category=verification (Core-only mint site invariant). Host gains `lookupUid(uid)`, `resolvePrimitiveByUid(uid)`, `resolveRelationByUid(uid)` for O(1) cross-workbook lookup.",
       complexity: "M",
       status: "complete",
     },
@@ -939,7 +939,7 @@ const changes: PrimitiveSpec[] = [
     fields: {
       area: "fdpm-cli/src/core/store/replay.ts",
       change:
-        "`applyPrimitiveReplace` rejects payloads whose `uid` disagrees with the pre-state (category=verification). `applyPrimitiveCreate` / `applyRelationCreate` reject `uid` collisions against `state.uid_index` (category=conflict). `applyPrimitiveDelete` removes the primitive's uid plus cascaded relation uids. `applyProjectDelete` purges every uid_index entry pointing at the project.",
+        "`applyPrimitiveReplace` rejects payloads whose `uid` disagrees with the pre-state (category=verification). `applyPrimitiveCreate` / `applyRelationCreate` reject `uid` collisions against `state.uid_index` (category=conflict). `applyPrimitiveDelete` removes the primitive's uid plus cascaded relation uids. `applyProjectDelete` purges every uid_index entry pointing at the workbook.",
       complexity: "M",
       status: "complete",
     },
@@ -961,7 +961,7 @@ const changes: PrimitiveSpec[] = [
     fields: {
       area: "fdpm-cli/src/core/store/state.ts",
       change:
-        "`StoreState.uid_index: Record<string, UidIndexEntry>` (UidIndexEntry = { project_id, kind: 'primitive' | 'relation', id }). Maintained inline by the same handlers that mutate the primitive/relation maps so the two views cannot drift (mitigates spec:risk:index-drift). `Store.lookupUid` exposes the index to the Host.",
+        "`StoreState.uid_index: Record<string, UidIndexEntry>` (UidIndexEntry = { workbook_id, kind: 'primitive' | 'relation', id }). Maintained inline by the same handlers that mutate the primitive/relation maps so the two views cannot drift (mitigates spec:risk:index-drift). `Store.lookupUid` exposes the index to the Host.",
       complexity: "M",
       status: "complete",
     },
@@ -972,7 +972,7 @@ const changes: PrimitiveSpec[] = [
     fields: {
       area: "fdpm-cli/src/commands/primitive.ts, fdpm-cli/src/commands/relation.ts",
       change:
-        "`--by-uid` flag added to `primitive {get, replace, patch, delete, field-patch}` and `relation {get, replace, patch, delete, field-patch}`. Shared `resolveSlug()` helper enforces strict project-scoped, kind-correct uid resolution; mismatches surface as `verification` (wrong kind) or `not_found` (wrong project / unknown uid).",
+        "`--by-uid` flag added to `primitive {get, replace, patch, delete, field-patch}` and `relation {get, replace, patch, delete, field-patch}`. Shared `resolveSlug()` helper enforces strict workbook-scoped, kind-correct uid resolution; mismatches surface as `verification` (wrong kind) or `not_found` (wrong workbook / unknown uid).",
       complexity: "S",
       status: "complete",
     },
@@ -1055,7 +1055,7 @@ const migration: PrimitiveSpec[] = [
       ordinal: 4,
       label: "[done] Add uid_index + --by-uid CLI surface",
       action:
-        "Added `StoreState.uid_index: Record<string, UidIndexEntry>` maintained inline in the create/delete replay handlers. Exposed `host.lookupUid`, `host.resolvePrimitiveByUid`, `host.resolveRelationByUid`. Added `--by-uid` to primitive {get, replace, patch, delete, field-patch} and relation {get, replace, patch, delete, field-patch} via a shared `resolveSlug` helper enforcing strict project + kind matching.",
+        "Added `StoreState.uid_index: Record<string, UidIndexEntry>` maintained inline in the create/delete replay handlers. Exposed `host.lookupUid`, `host.resolvePrimitiveByUid`, `host.resolveRelationByUid`. Added `--by-uid` to primitive {get, replace, patch, delete, field-patch} and relation {get, replace, patch, delete, field-patch} via a shared `resolveSlug` helper enforcing strict workbook + kind matching.",
       affected_paths: [
         "fdpm-cli/src/core/store/state.ts",
         "fdpm-cli/src/core/store/store.ts (Store.lookupUid)",
@@ -1126,7 +1126,7 @@ const risks: PrimitiveSpec[] = [
     fields: {
       label: "Persistence size grows by ~30 bytes per op",
       description:
-        "For projects with millions of primitives, the on-disk JSONL log grows by tens of megabytes. Not a correctness issue, but a deployment-cost issue.",
+        "For workbooks with millions of primitives, the on-disk JSONL log grows by tens of megabytes. Not a correctness issue, but a deployment-cost issue.",
       likelihood: "high",
       impact: "low",
     },
@@ -1166,7 +1166,7 @@ const mitigations: PrimitiveSpec[] = [
     type: "spec:Mitigation",
     fields: {
       strategy:
-        "+30-byte cost per op documented in the SPEC. A future opt-in `transfer compact` operation could re-encode the log without legacy `schema_version` fields; tracked in spec:fw:transfer-compact (target v1.3). Acceptable for v1.2 given typical project sizes.",
+        "+30-byte cost per op documented in the SPEC. A future opt-in `transfer compact` operation could re-encode the log without legacy `schema_version` fields; tracked in spec:fw:transfer-compact (target v1.3). Acceptable for v1.2 given typical workbook sizes.",
       status: "planned",
     },
   },
@@ -1176,27 +1176,27 @@ const mitigations: PrimitiveSpec[] = [
 
 const openQuestions: PrimitiveSpec[] = [
   {
-    id: "spec:q:cross-project-relations",
+    id: "spec:q:cross-workbook-relations",
     type: "spec:OpenQuestion",
     fields: {
       ordinal: 1,
       question:
-        "Should v1.2 also enable typed cross-project relations (e.g., a relation whose `target_id` resolves via uid to a primitive in another project), or is that strictly v2.0?",
+        "Should v1.2 also enable typed cross-workbook relations (e.g., a relation whose `target_id` resolves via uid to a primitive in another workbook), or is that strictly v2.0?",
       default_choice:
-        "Decided in v0.1: v1.2 ships the data model (uids on every artifact + host-level uid_index) but NOT runtime cross-project relations. The §7 pipeline still validates relation endpoints against the local primitive map only. Cross-project resolution moved to v2.0 (tracked in spec:fw:cross-project-relations). v0.2: this position holds — `host.lookupUid` exists but the relation-endpoint validator was deliberately not relaxed.",
+        "Decided in v0.1: v1.2 ships the data model (uids on every artifact + host-level uid_index) but NOT runtime cross-workbook relations. The §7 pipeline still validates relation endpoints against the local primitive map only. Cross-workbook resolution moved to v2.0 (tracked in spec:fw:cross-workbook-relations). v0.2: this position holds — `host.lookupUid` exists but the relation-endpoint validator was deliberately not relaxed.",
       is_blocking: "no",
-      owner: "Pedro Anisio Silva (project lead)",
+      owner: "Pedro Anisio Silva (workbook lead)",
     },
   },
   {
-    id: "spec:q:uid-on-project",
+    id: "spec:q:uid-on-workbook",
     type: "spec:OpenQuestion",
     fields: {
       ordinal: 2,
       question:
-        "Should the `Project` schema also gain a uid? Today projects are slug-keyed. A uid would enable `transfer.import` to detect 'this is the same project' across host instances.",
+        "Should the `Workbook` schema also gain a uid? Today workbooks are slug-keyed. A uid would enable `transfer.import` to detect 'this is the same workbook' across host instances.",
       default_choice:
-        "Deferred. v0.2 ships `--merge-by-uid` working at the primitive/relation grain, which serves the deduplication use case. Adding a project-level uid would require a parallel migration of `project.create` payloads and `Project` schema; the cost/benefit ratio did not justify bundling it into v1.2. Reopened for v1.3.",
+        "Deferred. v0.2 ships `--merge-by-uid` working at the primitive/relation grain, which serves the deduplication use case. Adding a workbook-level uid would require a parallel migration of `workbook.create` payloads and `Workbook` schema; the cost/benefit ratio did not justify bundling it into v1.2. Reopened for v1.3.",
       is_blocking: "no",
     },
   },
@@ -1220,7 +1220,7 @@ const openQuestions: PrimitiveSpec[] = [
       question:
         "Should cross-artifact reference fields cache the slug, or look it up every time?",
       default_choice:
-        "Deferred. v0.2 ships `host.lookupUid` (O(1) cross-project resolution) and `host.resolvePrimitiveByUid` / `resolveRelationByUid` (O(1) full-instance fetch). A typed cross-artifact reference struct (`{ uid, project_id?, slug? }`) was NOT added to any profile in v1.2 — Q1's deferral made it premature. When cross-project relations land in v2.0, this question becomes blocking again.",
+        "Deferred. v0.2 ships `host.lookupUid` (O(1) cross-workbook resolution) and `host.resolvePrimitiveByUid` / `resolveRelationByUid` (O(1) full-instance fetch). A typed cross-artifact reference struct (`{ uid, workbook_id?, slug? }`) was NOT added to any profile in v1.2 — Q1's deferral made it premature. When cross-workbook relations land in v2.0, this question becomes blocking again.",
       is_blocking: "no",
     },
   },
@@ -1230,12 +1230,12 @@ const openQuestions: PrimitiveSpec[] = [
 
 const futureWork: PrimitiveSpec[] = [
   {
-    id: "spec:fw:cross-project-relations",
+    id: "spec:fw:cross-workbook-relations",
     type: "spec:FutureWork",
     fields: {
-      label: "Cross-project relations (typed edges with uid endpoints)",
+      label: "Cross-workbook relations (typed edges with uid endpoints)",
       description:
-        "v1.2 makes the data model ready by surfacing uids on every artifact. v2.0 SHOULD relax the §7 pipeline's relation-endpoint validator so a relation can target a uid in another project. Requires a cross-project lookup in the validator and a story for cycle detection across project boundaries.",
+        "v1.2 makes the data model ready by surfacing uids on every artifact. v2.0 SHOULD relax the §7 pipeline's relation-endpoint validator so a relation can target a uid in another workbook. Requires a cross-workbook lookup in the validator and a story for cycle detection across workbook boundaries.",
       target_version: "2.0",
       deferred_reason: ["Requires §7 pipeline changes; v1.2 stays additive."],
     },
@@ -1246,7 +1246,7 @@ const futureWork: PrimitiveSpec[] = [
     fields: {
       label: "Tools that operate on uids (e.g., `fdpm refs --by-uid`)",
       description:
-        "Once uids are universal, a CLI command can answer 'show me every artifact across every project that references uid X'. Useful for refactoring, deprecation tracking, and `fdpm migrate` workflows.",
+        "Once uids are universal, a CLI command can answer 'show me every artifact across every workbook that references uid X'. Useful for refactoring, deprecation tracking, and `fdpm migrate` workflows.",
       target_version: "1.3",
       deferred_reason: ["Polish; ships after the dual-ID core lands."],
     },
@@ -1257,7 +1257,7 @@ const futureWork: PrimitiveSpec[] = [
     fields: {
       label: "Log compaction to reclaim storage",
       description:
-        "For very large projects, the +30-byte uid cost is real. A future `fdpm transfer compact` operation could rewrite the log without legacy `schema_version` fields, recovering most of the cost.",
+        "For very large workbooks, the +30-byte uid cost is real. A future `fdpm transfer compact` operation could rewrite the log without legacy `schema_version` fields, recovering most of the cost.",
       target_version: "1.3",
       deferred_reason: ["Scope: storage optimization, not correctness. Defer until storage cost is observed in practice."],
     },
@@ -1311,7 +1311,7 @@ const references: PrimitiveSpec[] = [
     fields: {
       kind: "repo_file",
       citation:
-        "CLAUDE.md — Project Guidelines, this repository.",
+        "CLAUDE.md — Workbook Guidelines, this repository.",
       locator: "CLAUDE.md",
       verification: "verified",
       verification_note:
@@ -1372,7 +1372,7 @@ const revisions: PrimitiveSpec[] = [
         "Stakeholders: operator, plugin author, core maintainer, tooling author, security reviewer.",
         "Decision: dual-ID model (Option A) chosen over slug-replacement (Option B) and status-quo (Option C). See ADR-UID-001.",
         "Migration: 5 ordered steps under SPEC v1.2 (additive). Existing v1.1 logs replay forward via an upcaster.",
-        "Open question Q1 (cross-project relations) is blocking-decided: data model ready in v1.2; runtime resolution in v2.0.",
+        "Open question Q1 (cross-workbook relations) is blocking-decided: data model ready in v1.2; runtime resolution in v2.0.",
       ].join("\n\n"),
       kind: "minor",
     },
@@ -1392,7 +1392,7 @@ const revisions: PrimitiveSpec[] = [
         "Migration step 3 (`uid optional → required`) was absorbed into step 1: v1.2 ships uid-required from day one; the upcaster handles v1.1 fixtures, so no transitional optional window.",
         "Implementation step 9 added: fdpm-cli/src/core/store/store.ts op_id minting routed through mintUid() to satisfy AC-3's corpus invariant.",
         "Mitigations: `mit:deterministic-mint` and `mit:single-source-of-truth-index` moved planned → verified; `mit:doc-uids-in-help` remains planned (low-impact, deferred).",
-        "Open questions: Q3 (ULID vs UUIDv7) settled via implementation; Q1 / Q2 / Q4 deferred (Q1 still v2.0; Q2 reopened for v1.3; Q4 awaits v2.0 cross-project relations).",
+        "Open questions: Q3 (ULID vs UUIDv7) settled via implementation; Q1 / Q2 / Q4 deferred (Q1 still v2.0; Q2 reopened for v1.3; Q4 awaits v2.0 cross-workbook relations).",
         "Test count: 487 → 506 (19 new SPEC-UID cases). Typecheck clean.",
         "Plugin code: zero plugin files modified beyond fs_v3_importer/index.ts (legacy-data conversion shim, by design).",
       ].join("\n\n"),
@@ -1418,7 +1418,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "### 1.2 What this document does NOT define",
         "",
-        "- **Cross-project relations.** The data model lands in v1.2; live runtime resolution is v2.0. See Open Question Q1.",
+        "- **Cross-workbook relations.** The data model lands in v1.2; live runtime resolution is v2.0. See Open Question Q1.",
         "- **A new operation kind.** `primitive.create` continues to be the kind; only its payload schema gains a `uid` field.",
         "- **A new error category.** UID immutability violations surface as `verification` (predicate-broken input from the operator) or `internal` (host bug); the existing taxonomy handles both.",
         "- **A natural-language reference syntax.** Cross-artifact references are typed primitive fields, not free-form text. Authoring shortcuts are a tool concern, not a SPEC concern.",
@@ -1604,7 +1604,7 @@ const sections: PrimitiveSpec[] = [
       title: "Open Questions",
       kind: "open_questions",
       body_md:
-        "Four open questions. Q1 (cross-project relations) is the single blocking ambiguity — it determines whether v1.2 ships data-model only or also runtime cross-project resolution. Default choice: data-model only; runtime is v2.0.",
+        "Four open questions. Q1 (cross-workbook relations) is the single blocking ambiguity — it determines whether v1.2 ships data-model only or also runtime cross-workbook resolution. Default choice: data-model only; runtime is v2.0.",
     },
   },
   {
@@ -1615,7 +1615,7 @@ const sections: PrimitiveSpec[] = [
       title: "Future Work",
       kind: "future_work",
       body_md:
-        "Three items deferred: cross-project relations (v2.0), uid-stable tooling (v1.3), and log compaction (v1.3 if storage cost becomes a real complaint).",
+        "Three items deferred: cross-workbook relations (v2.0), uid-stable tooling (v1.3), and log compaction (v1.3 if storage cost becomes a real complaint).",
     },
   },
   {
@@ -1732,10 +1732,10 @@ const relations: RelationSpec[] = [
 
   // ADR resolves the blocking open question
   {
-    id: "rel:adr-resolves-cross-project",
+    id: "rel:adr-resolves-cross-workbook",
     type: "spec:Resolves",
     from: adr.id,
-    to: "spec:q:cross-project-relations",
+    to: "spec:q:cross-workbook-relations",
   },
 
   // Migration step dependencies
@@ -1830,7 +1830,7 @@ async function main(): Promise<void> {
     name: "SPEC — Universal Identifiers for Cross-Artifact References",
     profile: PROFILE_ID,
     description:
-      "SPEC for adopting a dual-ID model (slug + ULID) across FDPM primitives and relations to enable reference-stable cross-artifact links, transfer deduplication, and a forward path to cross-project relations. Authored as a typed graph using the fdpm.spec-authoring profile.",
+      "SPEC for adopting a dual-ID model (slug + ULID) across FDPM primitives and relations to enable reference-stable cross-artifact links, transfer deduplication, and a forward path to cross-workbook relations. Authored as a typed graph using the fdpm.spec-authoring profile.",
   })
     .primitives([
       documentSpec,
@@ -1861,7 +1861,7 @@ async function main(): Promise<void> {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

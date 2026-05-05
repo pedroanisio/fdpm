@@ -15,14 +15,14 @@ import {
  * Mirrors §A of src/fdpm/plugins/formal_specification.py:
  *   fs:Section, fs:ChangeRecord, fs:Requirement, fs:Audience, fs:Figure.
  *
- * fs:Section is the partition unit (Core SPEC §5.4.3): projects on this
+ * fs:Section is the partition unit (Core SPEC §5.4.3): workbooks on this
  * profile may be split along Section boundaries.
  *
  * @deprecated fs:Section is deprecated in favour of dnis:Node sections
  * via profile:formal-specification-dnis:0.1. The DNIS path derives
  * §N.M.K numbering from the dnis:Node graph (DFS sorted by SPEC-DNIS
  * Position) and removes the "author hand-types `number`" failure mode
- * that fs:Section requires. Existing projects on
+ * that fs:Section requires. Existing workbooks on
  * profile:formal-specification:3.0 continue to work; new build scripts
  * SHOULD target profile:formal-specification-dnis:0.1 and create
  * dnis:Node primitives instead.

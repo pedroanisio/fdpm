@@ -12,12 +12,12 @@
     "expr_helper_set": ">=1.1.0,<2"
   },
   "permissions": [
-    "read:projects",
+    "read:workbooks",
     "read:primitives",
     "read:relations",
     "render:server",
-    "import:project",
-    "export:project"
+    "import:workbook",
+    "export:workbook"
   ],
   "capabilities": [
     {

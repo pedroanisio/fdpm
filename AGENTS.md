@@ -124,7 +124,7 @@ first failing command with that command's exit code.
 ### Freshness gate (out-of-band write detection)
 
 The REPL holds one in-memory projection per project. When a second
-process appends to a project's JSONL log on disk (via a concurrent
+process appends to a workbook's JSONL log on disk (via a concurrent
 one-shot `fdpm` invocation, MCP server, or hand-edit), the REPL
 detects the change before dispatching the next command:
 
@@ -168,7 +168,7 @@ A typical agent script:
 
 ```text
 # agent-batch.txt
-project list
+workbook list
 profile list
 primitive create my-proj -f /tmp/payload.json
 :quit
@@ -183,7 +183,7 @@ fdpm repl --script agent-batch.txt --no-banner --json --exit-on-error
 The agent reads `stdout` line-by-line:
 
 ```text
-{"projects":[...]}
+{"workbooks":[...]}
 {"profiles":[...]}
 {"id":"...","op_id":"...","project_revision":2,"report":{...}}
 {"summary":{"ok":3,"error":0,"duration_ms":287}}
@@ -222,17 +222,17 @@ in-progress manifest, classification gate, and dispatch shape.
 ### Resources surface
 
 Beyond the tool list, `fdpm-mcp` advertises **resources** —
-read-only addressable views of project state that an agent can pin
+read-only addressable views of workbook state that an agent can pin
 to context without burning a tool call. Slice 1 ships the **render**
 provider:
 
 ```
-fdpm://project/{project_id}/render/{target}[#{renderer_id}]
+fdpm://workbook/{workbook_id}/render/{target}[#{renderer_id}]
 ```
 
 | Segment | Meaning |
 |---|---|
-| `project_id` | A project visible via `host.listProjects()` |
+| `workbook_id` | A workbook visible via `host.listProjects()` |
 | `target` | A renderer target (MIME type or symbolic id, e.g. `text/markdown`, `text/html`, `application/pdf`) |
 | `#{renderer_id}` | **Optional** disambiguator — only required when more than one registered renderer advertises the same `target` (e.g. both `fs:SpecRenderer` and `spec:SpecMarkdownRenderer` register `text/markdown`). `resources/list` emits the fragment automatically when needed. |
 
@@ -242,7 +242,7 @@ as one opaque target, splitting at `#` for the optional fragment.
 
 #### `resources/list`
 
-Returns one entry per `(project, registered renderer target)` pair.
+Returns one entry per `(workbook, registered renderer target)` pair.
 For collisions (multiple plugins advertising the same target), each
 entry carries the disambiguating fragment. The response shape per
 the MCP spec:
@@ -251,9 +251,9 @@ the MCP spec:
 {
   "resources": [
     {
-      "uri": "fdpm://project/spec-core/render/text/markdown",
+      "uri": "fdpm://workbook/spec-core/render/text/markdown",
       "name": "spec-core → text/markdown",
-      "description": "spec:SpecMarkdownRenderer (plugin fdpm.spec-authoring) rendering of project spec-core",
+      "description": "spec:SpecMarkdownRenderer (plugin fdpm.spec-authoring) rendering of workbook spec-core",
       "mimeType": "text/markdown"
     }
   ]
@@ -262,9 +262,9 @@ the MCP spec:
 
 #### `resources/read`
 
-Invokes the renderer against the project's current state. Before
+Invokes the renderer against the workbook's current state. Before
 running the renderer, the server runs a **lenient tail-replay**
-(SPEC-REPL §10.2): if another process has appended to the project's
+(SPEC-REPL §10.2): if another process has appended to the workbook's
 log on disk since this server last read it, the new ops are
 incrementally applied first. Read is read-only, so no
 `staleStateException` is thrown — the freshest available state is
@@ -277,7 +277,7 @@ Response shape:
 {
   "contents": [
     {
-      "uri": "fdpm://project/spec-core/render/text/markdown",
+      "uri": "fdpm://workbook/spec-core/render/text/markdown",
       "mimeType": "text/markdown",
       "text": "# spec-core\n\n> Profile: ..."
     }
@@ -293,16 +293,16 @@ SDK serialises both correctly.
 
 | Category | Cause |
 |---|---|
-| `not_found` | Unknown URI shape, unknown project, unknown renderer target |
-| `host_compat` | The project's log was truncated or rewritten (SPEC-REPL §10.2 divergent-log path) |
+| `not_found` | Unknown URI shape, unknown workbook, unknown renderer target |
+| `host_compat` | The workbook's log was truncated or rewritten (SPEC-REPL §10.2 divergent-log path) |
 | Other categories | Propagated verbatim from the renderer (e.g. `verification` from a renderer that rejects malformed primitives) |
 
 #### What's deferred
 
 - **Subscriptions.** `notifications/resources/updated` would let the
-  server push fresh renders when a project changes. The freshness
+  server push fresh renders when a workbook changes. The freshness
   primitives are already in place; a watcher loop is slice 2 work.
-- **Other resource families.** Project transfer, validate report,
+- **Other resource families.** Workbook transfer, validate report,
   per-primitive views are obvious next providers. Each is ~50 lines
   added under `src/mcp/resources/<name>.ts` plus one entry in the
   registry.
@@ -313,7 +313,7 @@ SDK serialises both correctly.
 
 ---
 
-## Project guidelines
+## Workbook guidelines
 
 This file is the entry point for agent-specific reference. The
 binding behavioral rules live in:
@@ -321,7 +321,7 @@ binding behavioral rules live in:
 - `CLAUDE.md` — process and standards (PALS's LAW, formalization
   means research, English over Portuguese, Markdown over DOCX,
   TypeScript over JavaScript, mandatory disclaimer headers, etc.)
-- `PURPOSE.md` — why the project exists
+- `PURPOSE.md` — why the workbook exists
 - `DISCLAIMER.md` — methodological caveats
 
 When in doubt, defer to the explicit binding constraints in

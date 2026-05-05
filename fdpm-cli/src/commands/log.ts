@@ -21,7 +21,7 @@ export function buildLogCommand(host: Host): Command {
 
   cmd
     .command("show")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .option("--from <revision>", "from_revision")
     .option("--to <revision>", "to_revision")
     .option("--kind <csv>", "kind filter (comma-separated)")
@@ -30,9 +30,9 @@ export function buildLogCommand(host: Host): Command {
     .option("--request-id <id>", "request_id filter")
     .option("--limit <n>", "max records (default 1000)")
     .option("--json", "emit JSON")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const ops = host.getLog(project, {
+      const ops = host.getLog(workbook, {
         ...(opts.from != null && { from_revision: parseInt(String(opts.from), 10) }),
         ...(opts.to != null && { to_revision: parseInt(String(opts.to), 10) }),
         ...(opts.kind != null && { kind: parseKindCsv(opts.kind)! }),
@@ -53,13 +53,13 @@ export function buildLogCommand(host: Host): Command {
 
   cmd
     .command("audit")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .description("Audit records — Operation projected as AuditRecord with diff (§13.3)")
     .option("--limit <n>", "max records (default 100)")
     .option("--json", "emit JSON")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const ops = host.getLog(project, {
+      const ops = host.getLog(workbook, {
         ...(opts.limit != null && { limit: parseInt(String(opts.limit), 10) }),
       });
       const records = ops.map((op) => buildAuditRecord(op, ops));
@@ -68,25 +68,25 @@ export function buildLogCommand(host: Host): Command {
 
   cmd
     .command("at")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<revision>", "revision N")
-    .description("Time-travel: project state as of revision N (§9.8.2)")
+    .description("Time-travel: workbook state as of revision N (§9.8.2)")
     .option("--json", "emit JSON")
-    .action((project, revision, opts) => {
+    .action((workbook, revision, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slice = host.store.getProjectAt(project, parseInt(String(revision), 10));
+      const slice = host.store.getProjectAt(workbook, parseInt(String(revision), 10));
       emit(ctx, slice);
     });
 
   cmd
     .command("undo")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .description("Append the inverse of the most recent op (or a specific op) (§9.8.3 :undo)")
     .option("--target-op <id>", "target op_id (default: most recent)")
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const result = await undo(host, project, opts.targetOp);
+      const result = await undo(host, workbook, opts.targetOp);
       emit(ctx, {
         op_id: result.op.op_id,
         kind: result.op.kind,
@@ -102,21 +102,21 @@ export const commandMetadata: CommandMetadataMap = {
   "log show": {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "log audit": {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "log at": {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "log undo": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

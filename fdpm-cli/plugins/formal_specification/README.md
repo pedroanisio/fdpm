@@ -84,7 +84,7 @@ formal-specification activated: 32 primitive types, 30 relation types,
 
 Declared in [`fdpm-plugin.json`](./fdpm-plugin.json). The host must grant:
 
-- `read:projects`
+- `read:workbooks`
 - `read:primitives`
 - `read:relations`
 - `render:server`
@@ -445,8 +445,8 @@ relations, and renderers as first-class citizens. Example invocations
 for authoritative flag reference):
 
 ```bash
-# Create a project bound to this profile
-fdpm project create --id my-spec --name "My Spec" \
+# Create a workbook bound to this profile
+fdpm workbook create --id my-spec --name "My Spec" \
   --profile profile:formal-specification:3.0 --json
 
 # Add primitives
@@ -601,7 +601,7 @@ All LLM output must be treated as untrusted and validated explicitly.
 This plugin is a verification surface: every primitive type, relation type,
 and rule it contributes exists so that downstream content — whether
 human-authored or LLM-assisted — can be checked against an explicit,
-declarative contract. Skipping `fdpm validate` on a project that uses this
+declarative contract. Skipping `fdpm validate` on a workbook that uses this
 profile is an architectural omission, not a workflow shortcut.
 
 ---
@@ -612,4 +612,4 @@ profile is an architectural omission, not a workflow shortcut.
 - Sibling plugins:
   - [`../fs_v3_importer/`](../fs_v3_importer/) — importer for legacy v3 documents
   - [`../software_architecture/`](../software_architecture/) — software architecture profile
-- Project root: [`../../../README.md`](../../../README.md), [`../../../PURPOSE.md`](../../../PURPOSE.md), [`../../../DISCLAIMER.md`](../../../DISCLAIMER.md)
+- Workbook root: [`../../../README.md`](../../../README.md), [`../../../PURPOSE.md`](../../../PURPOSE.md), [`../../../DISCLAIMER.md`](../../../DISCLAIMER.md)

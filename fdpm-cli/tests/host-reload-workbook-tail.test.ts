@@ -56,7 +56,7 @@ describe("Host.reloadProjectTail — no change", () => {
   it("returns {appliedOps: 0} when on-disk log matches in-memory log", async () => {
     const host = await freshHost();
     const created = await host.createProject({
-      project_id: "proj-stable",
+      workbook_id: "proj-stable",
       name: "Stable",
       profile_id: FS_PROFILE,
     });
@@ -70,16 +70,16 @@ describe("Host.reloadProjectTail — pure append (lenient replay)", () => {
   it("applies a single out-of-band op and reports {appliedOps: 1}", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-append",
+      workbook_id: "proj-append",
       name: "Append",
       profile_id: FS_PROFILE,
     });
-    const beforeRev = host.getProject("proj-append").project.revision;
+    const beforeRev = host.getProject("proj-append").workbook.revision;
 
     appendRawOp(dataDir, "proj-append", {
       op_id: "01JZZZAPPEND00000000000001",
       kind: "primitive.create",
-      project_id: "proj-append",
+      workbook_id: "proj-append",
       payload: {
         id: "section:tail-1",
         type_id: "fs:Section",
@@ -111,17 +111,17 @@ describe("Host.reloadProjectTail — pure append (lenient replay)", () => {
   it("applies multiple contiguous appends in order", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-multi",
+      workbook_id: "proj-multi",
       name: "Multi",
       profile_id: FS_PROFILE,
     });
-    const beforeRev = host.getProject("proj-multi").project.revision;
+    const beforeRev = host.getProject("proj-multi").workbook.revision;
 
     for (let i = 1; i <= 3; i += 1) {
       appendRawOp(dataDir, "proj-multi", {
         op_id: `01JZZZMULTI00000000000000${i}`,
         kind: "primitive.create",
-        project_id: "proj-multi",
+        workbook_id: "proj-multi",
         payload: {
           id: `section:multi-${i}`,
           type_id: "fs:Section",
@@ -159,7 +159,7 @@ describe("Host.reloadProjectTail — divergent log (host_compat)", () => {
   it("throws host_compat when the on-disk log shrank (truncate)", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-shrink",
+      workbook_id: "proj-shrink",
       name: "Shrink",
       profile_id: FS_PROFILE,
     });
@@ -172,16 +172,16 @@ describe("Host.reloadProjectTail — divergent log (host_compat)", () => {
   it("throws host_compat when the on-disk log prefix was rewritten", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-rewrite",
+      workbook_id: "proj-rewrite",
       name: "Rewrite",
       profile_id: FS_PROFILE,
     });
     rewriteFirstOp(dataDir, "proj-rewrite", {
       op_id: "01JZZZWRONG0000000000000R0",
-      kind: "project.create",
-      project_id: "proj-rewrite",
+      kind: "workbook.create",
+      workbook_id: "proj-rewrite",
       payload: {
-        project_id: "proj-rewrite",
+        workbook_id: "proj-rewrite",
         name: "DIFFERENT",
         profile_id: FS_PROFILE,
       },
@@ -204,7 +204,7 @@ describe("Store.appendReplayedOps — revision contiguity guard", () => {
   it("throws host_compat when an op's revision skips ahead", async () => {
     const host = await freshHost();
     const created = await host.createProject({
-      project_id: "proj-skip",
+      workbook_id: "proj-skip",
       name: "Skip",
       profile_id: FS_PROFILE,
     });
@@ -213,7 +213,7 @@ describe("Store.appendReplayedOps — revision contiguity guard", () => {
     const badOp = {
       op_id: "01JZZZSKIP0000000000000SK1",
       kind: "primitive.create" as const,
-      project_id: "proj-skip",
+      workbook_id: "proj-skip",
       payload: {
         id: "section:skip",
         type_id: "fs:Section",
@@ -246,13 +246,13 @@ describe("staleStateException helper", () => {
   it("constructs a permission envelope with reason=stale_state and parameterized advice", async () => {
     const { staleStateException } = await import("../src/core/errors/stale-state.js");
     const ex = staleStateException({
-      project_id: "proj-x",
+      workbook_id: "proj-x",
       advice: "run :reload or restart the REPL",
     });
     expect(ex.category).toBe("permission");
     const env = ex.toEnvelope();
     expect((env.evidence as Record<string, unknown>)["reason"]).toBe("stale_state");
-    expect((env.evidence as Record<string, unknown>)["project_id"]).toBe("proj-x");
+    expect((env.evidence as Record<string, unknown>)["workbook_id"]).toBe("proj-x");
     expect((env.evidence as Record<string, unknown>)["advice"]).toBe(
       "run :reload or restart the REPL",
     );
@@ -261,7 +261,7 @@ describe("staleStateException helper", () => {
   it("accepts a different advice string for the MCP surface (proves the parameterization)", async () => {
     const { staleStateException } = await import("../src/core/errors/stale-state.js");
     const mcpAdvice = "operator must SIGHUP fdpm-mcp";
-    const ex = staleStateException({ project_id: "proj-y", advice: mcpAdvice });
+    const ex = staleStateException({ workbook_id: "proj-y", advice: mcpAdvice });
     expect(
       (ex.toEnvelope().evidence as Record<string, unknown>)["advice"],
     ).toBe(mcpAdvice);
@@ -270,7 +270,7 @@ describe("staleStateException helper", () => {
   it("includes optional detail (cached/observed mtime+size) when provided", async () => {
     const { staleStateException } = await import("../src/core/errors/stale-state.js");
     const ex = staleStateException({
-      project_id: "proj-z",
+      workbook_id: "proj-z",
       advice: "run :reload",
       detail: {
         cached_mtime_ns: "1000000",

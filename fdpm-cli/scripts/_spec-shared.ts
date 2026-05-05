@@ -2,8 +2,8 @@
  * Shared constants for the SPEC-EXPRESSION-RUNTIME / SPEC-RENDER-DSL
  * build scripts. Keeping the canonical activation surface and helper
  * inventory in one place prevents the drift category that pass-2 and
- * pass-3 each caught (e.g., RENDER-DSL listing `{ doc, project, env,
- * query, fn }` while EXPR-RT correctly listed `{ doc, project, env,
+ * pass-3 each caught (e.g., RENDER-DSL listing `{ doc, workbook, env,
+ * query, fn }` while EXPR-RT correctly listed `{ doc, workbook, env,
  * host, fn }`; or RENDER-DSL claiming `fn.hash` works on any value
  * while EXPR-RT correctly limited it to primitives + lists).
  *
@@ -20,13 +20,13 @@
 /** The closed Tier-A activation surface (§M7 of SPEC-EXPRESSION-RUNTIME). */
 export const ACTIVATION_TIER_A_NAMES = [
   "doc",
-  "project",
+  "workbook",
   "env",
   "host",
   "fn",
 ] as const;
 
-/** Pretty-printed for prose: `{ doc, project, env, host, fn }`. */
+/** Pretty-printed for prose: `{ doc, workbook, env, host, fn }`. */
 export const ACTIVATION_TIER_A_LIST = `{ ${ACTIVATION_TIER_A_NAMES.join(", ")} }`;
 
 /** Standard helper-set version (independent semver, §M14). v1.1.0 adds the
@@ -66,7 +66,7 @@ export const STANDARD_HELPERS: readonly HelperEntry[] = [
   { family: "collection", name: "fn.len",     signature: "fn.len(x)",
     summary: "list.length / string codepoints / map size." },
   { family: "collection", name: "fn.count",   signature: "fn.count(type_id)",
-    summary: "number of project primitives of that type_id." },
+    summary: "number of workbook primitives of that type_id." },
   { family: "collection", name: "fn.sortBy",  signature: "fn.sortBy(list, var, key)",
     summary: "stable sort. Macro form: `var` binds each element; `key` is a CEL expression over `var`. Mirrors CEL filter/map signature." },
   { family: "collection", name: "fn.plural",  signature: "fn.plural(n, sing, pl?)",
@@ -131,18 +131,18 @@ export interface TierABinding {
 }
 
 export const TIER_A_BINDINGS: readonly TierABinding[] = [
-  { path: "doc",                     type: "map",         note: "The current target instance (validate-time: the primitive under check; render-time: the spec:Document for the project)." },
+  { path: "doc",                     type: "map",         note: "The current target instance (validate-time: the primitive under check; render-time: the spec:Document for the workbook)." },
   { path: "doc.id",                  type: "string",      note: "↳ instance id." },
   { path: "doc.type_id",             type: "string",      note: "↳ instance type." },
   { path: "doc.fields",              type: "map",         note: "↳ raw field_values map." },
   { path: "doc.section_index",       type: "map<string, string>", note: "↳ render-time only (helper-set v1.2.0). Maps every active dnis:Node id (both NID and slug-form like 'dnis:node:01k…') to its rendered §N.M.K heading. Empty at validate-time. Populated by spec:SpecMarkdownRenderer's DFS over the dnis:Node graph per SPEC-SECTIONS-TREE v0.2; consumed by `fn.section_of`." },
-  { path: "project",                 type: "map",         note: "Project-level data." },
-  { path: "project.id",              type: "string",      note: "↳" },
-  { path: "project.profile_id",      type: "string",      note: "↳" },
-  { path: "project.revision",        type: "int",         note: "Current operation-log revision." },
-  { path: "project.fingerprint",     type: "string",      note: "SHA-256 of operation log up to project.revision." },
-  { path: "project.primitives",      type: "list<map>",   note: "All primitives in the project." },
-  { path: "project.relations",       type: "list<map>",   note: "All relations." },
+  { path: "workbook",                 type: "map",         note: "Workbook-level data." },
+  { path: "workbook.id",              type: "string",      note: "↳" },
+  { path: "workbook.profile_id",      type: "string",      note: "↳" },
+  { path: "workbook.revision",        type: "int",         note: "Current operation-log revision." },
+  { path: "workbook.fingerprint",     type: "string",      note: "SHA-256 of operation log up to workbook.revision." },
+  { path: "workbook.primitives",      type: "list<map>",   note: "All primitives in the workbook." },
+  { path: "workbook.relations",       type: "list<map>",   note: "All relations." },
   { path: "host",                    type: "map",         note: "Host-level facts." },
   { path: "host.fdpm_version",       type: "string",      note: "e.g. \"1.1.1\"." },
   { path: "host.helper_set_version", type: "string",      note: "e.g. \"1.0.0\" (see §M14)." },
@@ -174,7 +174,7 @@ export const TIER_B_BINDINGS: readonly TierBBinding[] = [
 ];
 
 /**
- * Render the activation list for prose, e.g. "{ doc, project, env, host, fn }".
+ * Render the activation list for prose, e.g. "{ doc, workbook, env, host, fn }".
  * Single source of truth — never paraphrase elsewhere.
  */
 export function activationListProse(): string {
@@ -190,7 +190,7 @@ export function isKnownActivationPath(path: string): boolean {
   const root = path.split(".")[0]!;
   if ((ACTIVATION_TIER_A_NAMES as readonly string[]).includes(root)) {
     // Root is a known tier-A binding. Sub-paths under doc.fields,
-    // project.primitives, etc. are dynamic and not enumerable here;
+    // workbook.primitives, etc. are dynamic and not enumerable here;
     // root match is sufficient for the lint check.
     return true;
   }
@@ -208,10 +208,10 @@ export const EXAMPLE_BINDINGS_USED: readonly string[] = [
   "doc.status",
   "doc.fields.status",
   "doc.fields.title",
-  "project.id",
-  "project.revision",
-  "project.fingerprint",
-  "project.primitives",
+  "workbook.id",
+  "workbook.revision",
+  "workbook.fingerprint",
+  "workbook.primitives",
   "host.fdpm_version",
   "host.helper_set_version",
   "env.NOW",

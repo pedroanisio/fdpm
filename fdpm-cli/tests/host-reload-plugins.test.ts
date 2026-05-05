@@ -50,17 +50,17 @@ describe("Host.reloadPlugins", () => {
   it("preserves the Store projection across the reload", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "proj-keep",
+      workbook_id: "proj-keep",
       name: "Keep Me",
       profile_id: FS_PROFILE,
     });
-    const beforeRev = host.getProject("proj-keep").project.revision;
+    const beforeRev = host.getProject("proj-keep").workbook.revision;
 
     await host.reloadPlugins();
 
     const after = host.getProject("proj-keep");
-    expect(after.project.id).toBe("proj-keep");
-    expect(after.project.revision).toBe(beforeRev);
+    expect(after.workbook.id).toBe("proj-keep");
+    expect(after.workbook.revision).toBe(beforeRev);
   });
 
   it("re-registers plugin-contributed profiles", async () => {

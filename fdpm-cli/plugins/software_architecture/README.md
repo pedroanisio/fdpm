@@ -91,7 +91,7 @@ software-architecture activated: 23 primitive types, 23 relation types, 12 valid
 
 Declared in [`fdpm-plugin.json`](./fdpm-plugin.json). The host must grant:
 
-- `read:projects`
+- `read:workbooks`
 - `read:primitives`
 - `read:relations`
 - `render:server` — required for the two `cap:renderer` capabilities below.
@@ -176,7 +176,7 @@ All primitive ids use the `sw:` namespace. Definitions live under
 > **No partition unit.** Unlike
 > [`fdpm.formal-specification`](../formal_specification/) (where
 > `fs:Section` is `is_partition_unit: true`), no primitive in this profile
-> sets that flag. Projects on this profile cannot be split along primitive
+> sets that flag. Workbooks on this profile cannot be split along primitive
 > boundaries by the host's partition mechanism.
 
 ### `cat:identity` — [`identity.ts`](./primitives/identity.ts)
@@ -361,7 +361,7 @@ registered by [`activate`](./index.ts) (see [`renderers/`](./renderers/)).
 
 ### What the renderers cover
 
-- **`sw:OpenAPIRenderer`** emits an OpenAPI 3.1 document from the project's
+- **`sw:OpenAPIRenderer`** emits an OpenAPI 3.1 document from the workbook's
   interface primitives:
   - `sw:Endpoint` (with `protocol = "HTTP"`, `method`, `path`) → `paths.{path}.{method}`
   - `sw:Schema` → `components.schemas.{name}` (field types best-effort
@@ -386,11 +386,11 @@ registered by [`activate`](./index.ts) (see [`renderers/`](./renderers/)).
 
 ```bash
 # OpenAPI (binary-treated MIME — must use -o)
-fdpm render <project> application/x-yaml \
+fdpm render <workbook> application/x-yaml \
   --renderer-id sw:OpenAPIRenderer -o openapi.yaml
 
 # ADRs — disambiguate against other text/markdown renderers
-fdpm render <project> text/markdown \
+fdpm render <workbook> text/markdown \
   --renderer-id sw:ADRRenderer -o decisions.md
 ```
 
@@ -460,8 +460,8 @@ as first-class citizens. Example invocations (consult the top-level CLI
 authoritative flag reference):
 
 ```bash
-# Create a project bound to this profile
-fdpm project create --id my-system --name "My System" \
+# Create a workbook bound to this profile
+fdpm workbook create --id my-system --name "My System" \
   --profile profile:software-architecture:1.0 --json
 
 # Add primitives
@@ -601,7 +601,7 @@ This plugin contributes a *vocabulary* and a *minimal enforcement surface*:
   the declared level; field-shape constraints (`max_length`, `min_items`,
   `references`) apply to every primitive shape.
 - The 2 renderers (`sw:OpenAPIRenderer`, `sw:ADRRenderer`) are pure
-  functions of the project graph; they do not introduce hidden
+  functions of the workbook graph; they do not introduce hidden
   validation but they do filter (e.g. dropping non-HTTP endpoints from
   OpenAPI output and recording the omission under
   `info.x-fdpm-excluded-endpoints`).
@@ -615,7 +615,7 @@ Two gaps remain worth documenting explicitly:
   enforced by the v1.1 Core. Downstream tooling (or a sister plugin) is
   responsible for cross-primitive id resolution.
 
-Skipping verification on a project that uses this profile — bypassing
+Skipping verification on a workbook that uses this profile — bypassing
 `fdpm validate` or ignoring its findings — is still an architectural
 omission, not a workflow shortcut.
 
@@ -627,7 +627,7 @@ omission, not a workflow shortcut.
 - Sibling plugins:
   - [`../formal_specification/`](../formal_specification/) — formal-specification profile (full executable validators + Markdown / HTML / PDF renderers)
   - [`../fs_v3_importer/`](../fs_v3_importer/) — importer for legacy v3 documents
-- Project root: [`../../../README.md`](../../../README.md), [`../../../PURPOSE.md`](../../../PURPOSE.md), [`../../../DISCLAIMER.md`](../../../DISCLAIMER.md)
+- Workbook root: [`../../../README.md`](../../../README.md), [`../../../PURPOSE.md`](../../../PURPOSE.md), [`../../../DISCLAIMER.md`](../../../DISCLAIMER.md)
 
 ---
 

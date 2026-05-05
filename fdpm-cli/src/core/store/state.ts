@@ -1,7 +1,7 @@
 import type {
   PrimitiveInstance,
   RelationInstance,
-  Project,
+  Workbook,
   ProjectTemplate,
   TestSuite,
   SuiteRunReport,
@@ -14,13 +14,13 @@ import type { Operation } from "../operations/operation.js";
  * The log is canonical; everything else here is derived. Discardable.
  */
 export interface ProjectSnapshot {
-  project_id: string;
+  workbook_id: string;
   revision: number;
   state: ProjectStateSlice;
 }
 
 export interface ProjectStateSlice {
-  project: Project;
+  workbook: Workbook;
   primitives: Record<string, PrimitiveInstance>;
   relations: Record<string, RelationInstance>;
   templates: Record<string, ProjectTemplate>;
@@ -31,20 +31,20 @@ export interface ProjectStateSlice {
 
 /**
  * SPEC-UID §14: host-level uid → location index. Every primitive and
- * relation is reachable in O(1) by uid across all loaded projects.
+ * relation is reachable in O(1) by uid across all loaded workbooks.
  * Maintained by the same replay handlers that mutate the
  * primitive/relation maps so the two views cannot drift (SPEC-UID §16
  * mitigation 2).
  */
 export interface UidIndexEntry {
-  project_id: string;
+  workbook_id: string;
   kind: "primitive" | "relation";
   id: string;
 }
 
 export interface StoreState {
   operation_log: Record<string, Operation[]>;
-  projects: Record<string, Project>;
+  workbooks: Record<string, Workbook>;
   primitives: Record<string, Record<string, PrimitiveInstance>>;
   relations: Record<string, Record<string, RelationInstance>>;
   templates: Record<string, Record<string, ProjectTemplate>>;
@@ -58,7 +58,7 @@ export interface StoreState {
 export function emptyState(): StoreState {
   return {
     operation_log: {},
-    projects: {},
+    workbooks: {},
     primitives: {},
     relations: {},
     templates: {},

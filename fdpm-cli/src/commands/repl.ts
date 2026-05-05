@@ -13,7 +13,7 @@
  *   3. If `:`-prefixed → meta-command (in-process, no Commander).
  *   4. Tokenize via shell-quote (POSIX shell-word rules; no expansion).
  *   5. Look up commandMetadata by full subcommand path.
- *   6. Freshness check: stat each project log, refuse (strict) or
+ *   6. Freshness check: stat each workbook log, refuse (strict) or
  *      tail-replay (lenient) on detected out-of-band writes.
  *   7. Build a fresh Commander program with exitOverride() and parse
  *      the tokens via parseAsync(tokens, { from: "user" }).
@@ -70,7 +70,7 @@ interface ReplSessionOptions {
 }
 
 interface FreshnessSnapshot {
-  /** Per-project (mtime_ns, size) at last sync; absent = never seen. */
+  /** Per-workbook (mtime_ns, size) at last sync; absent = never seen. */
   readonly perProject: Map<string, { mtime_ns: bigint; size: bigint }>;
 }
 
@@ -311,7 +311,7 @@ async function handleMeta(
           writeStderr(`plugins reloaded (active=${r.plugins})\n`);
         } else {
           const r = await host.reload();
-          writeStderr(`reloaded (projects=${r.projects.length})\n`);
+          writeStderr(`reloaded (workbooks=${r.workbooks.length})\n`);
           // Reset the freshness snapshot so the next command re-stats.
           freshness.perProject.clear();
         }
@@ -456,16 +456,16 @@ async function dispatchOne(
 
   try {
     await program.parseAsync(finalTokens, { from: "user" });
-    // Snapshot the project's freshness AFTER our own writes so the
+    // Snapshot the workbook's freshness AFTER our own writes so the
     // next command's freshness gate doesn't false-trigger on writes
     // we just made.
     if (meta) {
-      const projects = meta.projectIdsFromArgv(tokens);
-      for (const projectId of projects) {
-        if (projectId === "*") continue;
-        const stat = host.statProjectLog(projectId);
-        if (stat !== null) freshness.perProject.set(projectId, stat);
-        else freshness.perProject.delete(projectId);
+      const workbooks = meta.projectIdsFromArgv(tokens);
+      for (const workbookId of workbooks) {
+        if (workbookId === "*") continue;
+        const stat = host.statProjectLog(workbookId);
+        if (stat !== null) freshness.perProject.set(workbookId, stat);
+        else freshness.perProject.delete(workbookId);
       }
     }
     return { kind: "ok" };
@@ -517,7 +517,7 @@ function lookupMetadata(
 }
 
 /**
- * SPEC-REPL §10.2 freshness gate. For each project the command will
+ * SPEC-REPL §10.2 freshness gate. For each workbook the command will
  * touch:
  *   - if no cached snapshot → take one (first sight).
  *   - if cached snapshot matches current (mtime_ns, size) → no change,
@@ -527,8 +527,8 @@ function lookupMetadata(
  *   - if changed and command is write-capable → refuse with
  *     staleStateException.
  *
- * `["*"]` (wildcard) means stat every known project; treated like a
- * loop over the live project set.
+ * `["*"]` (wildcard) means stat every known workbook; treated like a
+ * loop over the live workbook set.
  */
 async function runFreshnessGate(
   host: Host,
@@ -536,23 +536,23 @@ async function runFreshnessGate(
   meta: SubcommandMetadata,
   freshness: FreshnessSnapshot,
 ): Promise<void> {
-  let projects = meta.projectIdsFromArgv(tokens);
-  if (projects.length === 1 && projects[0] === "*") {
-    projects = host.listProjects().map((p) => p.id);
+  let workbooks = meta.projectIdsFromArgv(tokens);
+  if (workbooks.length === 1 && workbooks[0] === "*") {
+    workbooks = host.listProjects().map((p) => p.id);
   }
-  for (const projectId of projects) {
-    if (projectId === "*") continue;
-    const cached = freshness.perProject.get(projectId);
-    const observed = host.statProjectLog(projectId);
+  for (const workbookId of workbooks) {
+    if (workbookId === "*") continue;
+    const cached = freshness.perProject.get(workbookId);
+    const observed = host.statProjectLog(workbookId);
     if (observed === null) {
-      // Project log doesn't exist yet (e.g. just-created project
+      // Workbook log doesn't exist yet (e.g. just-created workbook
       // before its first persisted op). Nothing to compare.
-      freshness.perProject.delete(projectId);
+      freshness.perProject.delete(workbookId);
       continue;
     }
     if (cached === undefined) {
       // First sight — record and proceed.
-      freshness.perProject.set(projectId, observed);
+      freshness.perProject.set(workbookId, observed);
       continue;
     }
     const unchanged =
@@ -561,12 +561,12 @@ async function runFreshnessGate(
 
     if (meta.readOnly) {
       // Lenient mode — incremental tail-replay then proceed.
-      await host.reloadProjectTail(projectId);
-      freshness.perProject.set(projectId, observed);
+      await host.reloadProjectTail(workbookId);
+      freshness.perProject.set(workbookId, observed);
     } else {
       // Strict mode — refuse with structured envelope.
       throw staleStateException({
-        project_id: projectId,
+        workbook_id: workbookId,
         advice: REPL_ADVICE,
         detail: {
           cached_mtime_ns: cached.mtime_ns.toString(),

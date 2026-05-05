@@ -28,9 +28,9 @@ described in [@DISCLAIMER.md](../../../DISCLAIMER.md).
 ## Why this is a different tool than `rename_project_to_workbook.py`
 
 `rename_project_to_workbook.py` is a **global concept rename** —
-every standalone `project` token across the codebase becomes
+every standalone `workbook` token across the codebase becomes
 `workbook`, with `\b` word boundaries and a `projection`-skip rule.
-That works because `project` is a Core noun referenced everywhere.
+That works because `workbook` is a Core noun referenced everywhere.
 
 A **plugin rename** is structurally different. We want to rewrite
 *only* the specific identifier surfaces a plugin produces, never
@@ -192,7 +192,7 @@ override with `--source-prefix`.
   even though `planning` is a gerund and §3.3 forbids it. The PR
   review (§8.3) is where this gets caught.
 - **Does not touch external consumer config.** Any MCP client,
-  saved project, or third-party tool that references the old profile
+  saved workbook, or third-party tool that references the old profile
   id by name needs its own update.
 
 ---
@@ -201,11 +201,11 @@ override with `--source-prefix`.
 
 | Property | `rename_project_to_workbook.py` | `rename_plugin.py` |
 |---|---|---|
-| Target | One specific concept (`project` → `workbook`) | Any plugin (parameterized) |
+| Target | One specific concept (`workbook` → `workbook`) | Any plugin (parameterized) |
 | Substitution form | `\b`-anchored regex | Exact-string match |
 | Casing variants | 9 hand-written variants | Auto-derived from manifest |
 | Skip rule | `projection` substring | None (precision via exactness) |
-| Branch default | `rename/project-to-workbook` | `rename/plugin-<src>-to-<tgt>` |
+| Branch default | `rename/workbook-to-workbook` | `rename/plugin-<src>-to-<tgt>` |
 | Report file | `RENAME_REPORT.md` | `PLUGIN_RENAME_REPORT.md` |
 | Workflow | Same: dry-run default, branch-creating, two-pass, no commit |
 | Skip list | Same set of files/dirs |

@@ -207,7 +207,7 @@ describe("Host integration — workspace surface preserves plugin call sites", (
   it("workspace.appendOp / getOperationLog round-trip through persistence", async () => {
     const host = await freshHost();
     const result = await host.createProject({
-      project_id: "proj-x",
+      workbook_id: "proj-x",
       name: "X",
       profile_id: "profile:formal-specification:3.0",
     });

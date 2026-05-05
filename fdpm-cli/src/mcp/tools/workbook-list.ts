@@ -1,5 +1,5 @@
 /**
- * `fdpm.project.list` — Tier 1 (read-only).
+ * `fdpm.workbook.list` — Tier 1 (read-only).
  *
  * Enumerates every project loaded into the Host's projection. The
  * underlying `Host.listProjects()` returns an array of summaries
@@ -23,12 +23,12 @@ const ProjectSummary = z
 
 const Output = z
   .object({
-    projects: z.array(ProjectSummary),
+    workbooks: z.array(ProjectSummary),
   })
   .strict();
 
 export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> = {
-  name: "fdpm.project.list",
+  name: "fdpm.workbook.list",
   tier: "read_only",
   description:
     "List loaded projects. Returns id, name, profile_id, and current revision for every project in the projection.",
@@ -36,6 +36,6 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   output: Output,
   annotations: { readOnlyHint: true },
   handler: async (host) => {
-    return { projects: host.listProjects() };
+    return { workbooks: host.listProjects() };
   },
 };

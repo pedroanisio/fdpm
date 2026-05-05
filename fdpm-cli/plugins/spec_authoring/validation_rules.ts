@@ -82,8 +82,8 @@ export const VALIDATION_RULES: ValidationRuleDef[] = [
   // ── ADR / decision graph ────────────────────────────────────────
   // Graph-predicate rules below are WARNINGS not ERRORS by design:
   // an ADR cannot satisfy a "≥ 2 outgoing Considers" check at the moment
-  // it is created (the relations don't exist yet). These are project-
-  // coherence checks that fire in `fdpm validate <project>` after the
+  // it is created (the relations don't exist yet). These are workbook-
+  // coherence checks that fire in `fdpm validate <workbook>` after the
   // graph is fully assembled. Promoting them to errors would prevent
   // ADRs from ever being created. SPEC-MCP §15 / Nygard 2011 still
   // require ≥ 2 options; this plugin surfaces the violation rather than

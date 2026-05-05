@@ -187,7 +187,7 @@ describe("Issue-H — renderHumanError composes headline + sections", () => {
   it("appends findings then evidence in that order", () => {
     const err = new FDPMException("validation", "validation failed for section:a", {
       findings: [makeFinding()],
-      evidence: { project_id: "p1" },
+      evidence: { workbook_id: "p1" },
     });
     const out = renderHumanError(err, { verbose: false });
     const lines = out.split("\n");

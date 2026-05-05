@@ -34,8 +34,8 @@ async function makeHost(): Promise<Host> {
   await host.load();
   await host.registerProfile(TEST_PROFILE);
   await host.createProject({
-    project_id: "p1",
-    name: "Project One",
+    workbook_id: "p1",
+    name: "Workbook One",
     profile_id: "test:demo",
   });
   return host;
@@ -57,7 +57,7 @@ describe("Tier 3 — manifest advertisement (SPEC §22.3, §8.3 v0.1.2)", () => 
     const advertised = advertisedTools({ enableDestructive: false });
     const names = advertised.map((t) => t.name);
     // Per v0.1.2: Tier 3 tools are present in BOTH states.
-    expect(names).toContain("fdpm.project.delete");
+    expect(names).toContain("fdpm.workbook.delete");
     expect(names).toContain("fdpm.primitive.delete");
     expect(names).toContain("fdpm.relation.delete");
     // Every Tier-3 tool MUST be present and MUST carry the banner.
@@ -79,7 +79,7 @@ describe("Tier 3 — manifest advertisement (SPEC §22.3, §8.3 v0.1.2)", () => 
   it("advertises all Tier-3 tools without banner when enableDestructive is true", () => {
     const advertised = advertisedTools({ enableDestructive: true });
     const names = advertised.map((t) => t.name);
-    expect(names).toContain("fdpm.project.delete");
+    expect(names).toContain("fdpm.workbook.delete");
     expect(names).toContain("fdpm.primitive.delete");
     expect(names).toContain("fdpm.relation.delete");
     // No banner when enabled.
@@ -130,7 +130,7 @@ describe("Tier 3 — manifest advertisement (SPEC §22.3, §8.3 v0.1.2)", () => 
     }
     // Sanity: the canonical singleton deletes are present in MANIFEST.
     const all = MANIFEST.map((t) => t.name);
-    expect(all).toContain("fdpm.project.delete");
+    expect(all).toContain("fdpm.workbook.delete");
     expect(all).toContain("fdpm.primitive.delete");
     expect(all).toContain("fdpm.relation.delete");
   });
@@ -142,13 +142,13 @@ describe("Tier 3 — dispatch refusal when destructive is off (SPEC §23.1)", ()
     host = await makeHost();
   });
 
-  it("fdpm.project.delete with valid args refuses; operation log unchanged", async () => {
+  it("fdpm.workbook.delete with valid args refuses; operation log unchanged", async () => {
     const ctx = makeCtx({ enableDestructive: false });
     const dispatcher = createDispatcher(host, ctx, null);
     const before = host.getLog("p1").length;
 
-    const result = await dispatcher.call("fdpm.project.delete", {
-      project_id: "p1",
+    const result = await dispatcher.call("fdpm.workbook.delete", {
+      workbook_id: "p1",
     });
 
     expect(result.isError).toBe(true);
@@ -168,7 +168,7 @@ describe("Tier 3 — dispatch refusal when destructive is off (SPEC §23.1)", ()
     const ctx = makeCtx({ enableDestructive: false });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.primitive.delete", {
-      project_id: "p1",
+      workbook_id: "p1",
       id: "section:does-not-matter",
     });
     expect(result.isError).toBe(true);
@@ -185,7 +185,7 @@ describe("Tier 3 — dispatch refusal when destructive is off (SPEC §23.1)", ()
     const ctx = makeCtx({ enableDestructive: false });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.relation.delete", {
-      project_id: "p1",
+      workbook_id: "p1",
       id: "rel:nope",
     });
     expect(result.isError).toBe(true);
@@ -200,28 +200,28 @@ describe("Tier 3 — dispatch refusal when destructive is off (SPEC §23.1)", ()
 });
 
 describe("Tier 3 — dispatch success when destructive is enabled", () => {
-  it("fdpm.project.delete runs; operation log grows by exactly one entry", async () => {
+  it("fdpm.workbook.delete runs; operation log grows by exactly one entry", async () => {
     const host = await makeHost();
     const ctx = makeCtx({ enableDestructive: true });
     const dispatcher = createDispatcher(host, ctx, null);
     const before = host.getLog("p1").length;
 
-    const result = await dispatcher.call("fdpm.project.delete", {
-      project_id: "p1",
+    const result = await dispatcher.call("fdpm.workbook.delete", {
+      workbook_id: "p1",
     });
 
     expect(result.isError).toBe(false);
     const sc = result.structuredContent as {
       ok: boolean;
-      operation: { kind: string; project_id: string };
-      post_state_summary: { project_id: string };
+      operation: { kind: string; workbook_id: string };
+      post_state_summary: { workbook_id: string };
     };
     expect(sc.ok).toBe(true);
-    expect(sc.operation.kind).toBe("project.delete");
-    expect(sc.operation.project_id).toBe("p1");
-    expect(sc.post_state_summary.project_id).toBe("p1");
+    expect(sc.operation.kind).toBe("workbook.delete");
+    expect(sc.operation.workbook_id).toBe("p1");
+    expect(sc.post_state_summary.workbook_id).toBe("p1");
 
-    // The log grew by exactly one (the project.delete operation).
+    // The log grew by exactly one (the workbook.delete operation).
     const after = host.getLog("p1").length;
     expect(after).toBe(before + 1);
   });
@@ -231,7 +231,7 @@ describe("Tier 3 — dispatch success when destructive is enabled", () => {
     const ctx = makeCtx({ enableDestructive: true });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.primitive.delete", {
-      project_id: "p1",
+      workbook_id: "p1",
       id: "section:missing",
     });
     expect(result.isError).toBe(true);
@@ -255,8 +255,8 @@ describe("Tier 3 — confirmation-token mode (SPEC §9.3)", () => {
       confirmationToken: "secret-1",
     });
     const dispatcher = createDispatcher(host, ctx, null);
-    const result = await dispatcher.call("fdpm.project.delete", {
-      project_id: "p1",
+    const result = await dispatcher.call("fdpm.workbook.delete", {
+      workbook_id: "p1",
     });
     expect(result.isError).toBe(true);
     const env = (
@@ -276,8 +276,8 @@ describe("Tier 3 — confirmation-token mode (SPEC §9.3)", () => {
       confirmationToken: "secret-1",
     });
     const dispatcher = createDispatcher(host, ctx, null);
-    const result = await dispatcher.call("fdpm.project.delete", {
-      project_id: "p1",
+    const result = await dispatcher.call("fdpm.workbook.delete", {
+      workbook_id: "p1",
       _confirmation_token: "wrong",
     });
     expect(result.isError).toBe(true);
@@ -297,8 +297,8 @@ describe("Tier 3 — confirmation-token mode (SPEC §9.3)", () => {
       confirmationToken: "secret-1",
     });
     const dispatcher = createDispatcher(host, ctx, null);
-    const result = await dispatcher.call("fdpm.project.delete", {
-      project_id: "p1",
+    const result = await dispatcher.call("fdpm.workbook.delete", {
+      workbook_id: "p1",
       _confirmation_token: "secret-1",
     });
     expect(result.isError).toBe(false);
@@ -307,7 +307,7 @@ describe("Tier 3 — confirmation-token mode (SPEC §9.3)", () => {
       operation: { kind: string };
     };
     expect(sc.ok).toBe(true);
-    expect(sc.operation.kind).toBe("project.delete");
+    expect(sc.operation.kind).toBe("workbook.delete");
   });
 
   it("does NOT gate Tier-1 calls regardless of requireConfirmationToken", async () => {

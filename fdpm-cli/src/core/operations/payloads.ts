@@ -13,7 +13,7 @@ import { OPERATION_KINDS } from "./kinds.js";
 
 const NamespacedId = z.string().regex(CORE_ID_PATTERN);
 const InstanceId = z.string().min(1).max(256);
-const ProjectId = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
+const WorkbookId = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 const Uid = z.string().length(UID_LENGTH).regex(ULID_PATTERN);
 
 const FieldValuesPayload = z.record(z.unknown());
@@ -29,17 +29,17 @@ const JsonPatchOp = z
 
 export const ProjectCreatePayload = z
   .object({
-    project_id: ProjectId,
+    workbook_id: WorkbookId,
     name: z.string().min(1),
     profile_id: NamespacedId,
     description: z.string().optional(),
-    cloned_from: ProjectId.optional(),
+    cloned_from: WorkbookId.optional(),
   })
   .strict();
 
 export const ProjectDeletePayload = z
   .object({
-    project_id: ProjectId,
+    workbook_id: WorkbookId,
   })
   .strict();
 
@@ -48,8 +48,8 @@ export const ProjectSplitPayload = z
     partition: z
       .array(
         z.object({
-          target_project_id: ProjectId,
-          target_project_name: z.string().min(1),
+          target_workbook_id: WorkbookId,
+          target_workbook_name: z.string().min(1),
           sections: z.array(InstanceId).min(1),
         }),
       )
@@ -61,8 +61,8 @@ export const ProjectSplitPayload = z
 
 export const ProjectClonePayload = z
   .object({
-    target_project_id: ProjectId,
-    target_project_name: z.string().min(1),
+    target_workbook_id: WorkbookId,
+    target_workbook_name: z.string().min(1),
   })
   .strict();
 
@@ -208,10 +208,10 @@ export const TransferImportPayload = z
   .strict();
 
 export const PAYLOAD_SCHEMAS: Record<(typeof OPERATION_KINDS)[number], z.ZodTypeAny> = {
-  "project.create": ProjectCreatePayload,
-  "project.delete": ProjectDeletePayload,
-  "project.split": ProjectSplitPayload,
-  "project.clone": ProjectClonePayload,
+  "workbook.create": ProjectCreatePayload,
+  "workbook.delete": ProjectDeletePayload,
+  "workbook.split": ProjectSplitPayload,
+  "workbook.clone": ProjectClonePayload,
   "primitive.create": PrimitiveCreatePayload,
   "primitive.replace": PrimitiveReplacePayload,
   "primitive.patch": PrimitivePatchPayload,

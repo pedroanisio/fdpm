@@ -29,7 +29,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
   it("resolves a dnis:Node id from sectionIndex (NID and slug both hit)", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "test-section-of",
+      workbook_id: "test-section-of",
       name: "test-section-of",
       profile_id: "profile:spec-authoring-dnis:0.1",
     });
@@ -52,7 +52,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
       },
     });
     const slice = host.getProject("test-section-of");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({ slice, profile });
     const sectionIndex = new Map<string, string>([
       ["01KQT00000000000000000ABCD", "5.6.1"],
@@ -84,7 +84,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
   it("emits a render-error finding (not a silent empty string) on unknown id", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "test-section-of-miss",
+      workbook_id: "test-section-of-miss",
       name: "test-section-of-miss",
       profile_id: "profile:spec-authoring-dnis:0.1",
     });
@@ -104,7 +104,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
       },
     });
     const slice = host.getProject("test-section-of-miss");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({ slice, profile });
     const sectionIndex = new Map<string, string>([
       ["01KQT00000000000000000ABCD", "5.6.1"],
@@ -151,13 +151,13 @@ describe("fn.section_of — helper-set v1.2.0", () => {
       builtinDirs: [resolve(process.cwd(), "plugins")],
     });
     await host.load();
-    const projectId = "test-section-of-integration";
+    const workbookId = "test-section-of-integration";
     await host.createProject({
-      project_id: projectId,
-      name: projectId,
+      workbook_id: workbookId,
+      name: workbookId,
       profile_id: "profile:spec-authoring-dnis:0.1",
     });
-    await host.createPrimitive(projectId, {
+    await host.createPrimitive(workbookId, {
       id: "spec:doc:integration",
       type_id: "spec:Document",
       field_values: {
@@ -172,7 +172,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
         generated_by: "vitest fixture",
       },
     });
-    const adapter = new DnisHostAdapter(host, { projectId });
+    const adapter = new DnisHostAdapter(host, { workbookId });
     const document = await adapter.createDocument({
       createdBy: "agent:test" as AgentId,
       schemaVersion: "0.1.7",
@@ -232,13 +232,13 @@ describe("fn.section_of — helper-set v1.2.0", () => {
     // internally) and capturing the rendered output. The §1.1 heading
     // must appear; if it does, populateSectionIndex saw the node at
     // path [1, 1] and indexed it.
-    const slice = host.getProject(projectId);
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const slice = host.getProject(workbookId);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer(
       "text/markdown",
       {
-        projectId,
-        project: slice.project,
+        workbookId,
+        workbook: slice.workbook,
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         templates: Object.values(slice.templates),
@@ -251,7 +251,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
     expect(text).toContain("### 1.1. Why now");
     expect(text).toContain("## 2. Plan");
 
-    // Now exercise the helper against the same project via the
+    // Now exercise the helper against the same workbook via the
     // RenderDslFacade. The renderer's populateSectionIndex emits to
     // `ctx.sectionIndex` which is then passed into renderTemplate
     // calls — but for THIS test, we reproduce the index ourselves and
@@ -273,7 +273,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
   it("treats sectionIndex as empty when not provided (validate-time semantics)", async () => {
     const host = await freshHost();
     await host.createProject({
-      project_id: "test-section-of-empty",
+      workbook_id: "test-section-of-empty",
       name: "test-section-of-empty",
       profile_id: "profile:spec-authoring-dnis:0.1",
     });
@@ -293,7 +293,7 @@ describe("fn.section_of — helper-set v1.2.0", () => {
       },
     });
     const slice = host.getProject("test-section-of-empty");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const facade = host.renderDsl.createFacade({ slice, profile });
 
     const result = facade.renderTemplate(

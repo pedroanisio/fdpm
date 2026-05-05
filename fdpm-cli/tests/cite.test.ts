@@ -24,14 +24,14 @@ const CITATION_PROFILE: DomainProfile = {
     {
       id: "test:claim",
       fields: [{ name: "text", kind: "string", required: true, validations: [] }],
-      id_format: { pattern: "^claim:[a-z0-9-]+$", uniqueness: "project" },
+      id_format: { pattern: "^claim:[a-z0-9-]+$", uniqueness: "workbook" },
       inline_structs: [],
       is_partition_unit: false,
     },
     {
       id: "test:source",
       fields: [{ name: "url", kind: "string", required: true, validations: [] }],
-      id_format: { pattern: "^source:[a-z0-9-]+$", uniqueness: "project" },
+      id_format: { pattern: "^source:[a-z0-9-]+$", uniqueness: "workbook" },
       inline_structs: [],
       is_partition_unit: false,
     },
@@ -63,7 +63,7 @@ async function newCitationHost() {
   const host = new Host({ dataDir: null, noPlugins: true });
   await host.load();
   await host.registerProfile(CITATION_PROFILE);
-  await host.createProject({ project_id: "p", name: "P", profile_id: "test:cite" });
+  await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:cite" });
   await host.createPrimitive("p", {
     id: "claim:single-writer",
     type_id: "test:claim",

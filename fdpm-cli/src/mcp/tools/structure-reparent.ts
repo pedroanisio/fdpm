@@ -8,7 +8,7 @@ import { Tier2EnvelopeBase, type Tier2Envelope } from "../tier2-envelope.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     primitive_id: z.string().min(1),
     from_scope_id: z.string().min(1),
     to_scope_id: z.string().min(1),
@@ -18,7 +18,7 @@ const Input = z
 
 const PostStateSummary = z
   .object({
-    project_id: z.string(),
+    workbook_id: z.string(),
   })
   .strict();
 
@@ -36,7 +36,7 @@ export const tool: McpToolEntry<
   name: "fdpm.structure.reparent",
   tier: "validating_write",
   description:
-    "Move a primitive between scopes within the same project. `from_scope_id` MUST currently contain `primitive_id`; `to_scope_id` MUST be a registered scope of a type that accepts the primitive's type (consult fdpm.profile.type_info on the parent scope's type to confirm). Optional `position` inserts at that index in the destination's ordering (default: append). Cross-project moves are NOT supported — re-create at the target instead. Rejection (membership / scope-type mismatch) surfaces as `isError: false`, `ok: false` with findings.",
+    "Move a primitive between scopes within the same workbook. `from_scope_id` MUST currently contain `primitive_id`; `to_scope_id` MUST be a registered scope of a type that accepts the primitive's type (consult fdpm.profile.type_info on the parent scope's type to confirm). Optional `position` inserts at that index in the destination's ordering (default: append). Cross-workbook moves are NOT supported — re-create at the target instead. Rejection (membership / scope-type mismatch) surfaces as `isError: false`, `ok: false` with findings.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },
@@ -52,7 +52,7 @@ export const tool: McpToolEntry<
       to_scope_id: args.to_scope_id,
     };
     if (args.position !== undefined) payload.position = args.position;
-    const append = await host.reparent(args.project_id, payload);
+    const append = await host.reparent(args.workbook_id, payload);
     const report = {
       target_id: args.primitive_id,
       findings: [],
@@ -63,7 +63,7 @@ export const tool: McpToolEntry<
       operation: append.op,
       validation_report: report,
       post_state_summary: {
-        project_id: args.project_id,
+        workbook_id: args.workbook_id,
       },
     };
   },

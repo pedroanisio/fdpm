@@ -45,7 +45,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.profile.get",
   tier: "read_only",
   description:
-    "Fetch a DomainProfile by id. Returns the raw (un-resolved) profile as registered. Pass `fields` to project a subset of top-level keys; omit for the full profile. Throws not_found if the id is unknown.",
+    "Fetch a DomainProfile by id. Returns the raw (un-resolved) profile as registered. Pass `fields` to workbook a subset of top-level keys; omit for the full profile. Throws not_found if the id is unknown.",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },

@@ -6,7 +6,7 @@ import { batchEdit } from "../src/core/host-extra.js";
 describe("§9.7 editing API", () => {
   it("core-edit-002: field-patch on immutable field is rejected", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",
@@ -22,8 +22,8 @@ describe("§9.7 editing API", () => {
 
   it("core-edit-003: batch with one failing op rolls back all earlier ops", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
-    const beforeRev = host.getProject("p1").project.revision;
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
+    const beforeRev = host.getProject("p1").workbook.revision;
     await expect(
       batchEdit(host, "p1", [
         {
@@ -42,14 +42,14 @@ describe("§9.7 editing API", () => {
       ]),
     ).rejects.toThrow(FDPMException);
     // No change observable.
-    const afterRev = host.getProject("p1").project.revision;
+    const afterRev = host.getProject("p1").workbook.revision;
     expect(afterRev).toBe(beforeRev);
     expect(host.getProject("p1").primitives["section:a"]).toBeUndefined();
   });
 
   it("core-edit-004: If-Match revision mismatch yields conflict", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",
@@ -66,7 +66,7 @@ describe("§9.7 editing API", () => {
 
   it("core-edit-006: reorder with non-permutation is rejected", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",
@@ -89,9 +89,9 @@ describe("§9.7 editing API", () => {
     // 18-member scope, an early test reordered only 13 of the 18 ids
     // and saw "must be a permutation". Confirm that the gate's
     // condition is exactly equality-of-sets — a full permutation
-    // succeeds and the new ordering is reflected in the project slice.
+    // succeeds and the new ordering is reflected in the workbook slice.
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     for (const [id, n] of [
       ["section:a", 1],
       ["section:b", 2],
@@ -117,7 +117,7 @@ describe("§9.7 editing API", () => {
 
   it("structure.reparent moves primitive and updates membership", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",
@@ -152,7 +152,7 @@ describe("§9.7 editing API", () => {
 describe("§9.7.4 field-patch — path-scoped revalidation (P3)", () => {
   it("accepts a field-patch on field B when field A has a pre-existing violation", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
 
     // The test:demo profile declares test:section.title with
     // max_length=200. createPrimitive would reject a 300-char title.
@@ -165,7 +165,7 @@ describe("§9.7.4 field-patch — path-scoped revalidation (P3)", () => {
     const { importTransfer } = await import("../src/core/host-extra.js");
     await importTransfer(host, {
       spec_core: "1.1",
-      project: {
+      workbook: {
         id: "p2",
         name: "P2",
         profile_id: "test:demo",
@@ -208,7 +208,7 @@ describe("§9.7.4 field-patch — path-scoped revalidation (P3)", () => {
     // is bounded to touched paths, not "skip all per-field checks" — so
     // a patch that introduces a too-long title MUST fail.
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",
@@ -242,7 +242,7 @@ describe("§9.7.4 field-patch — path-scoped revalidation (P3)", () => {
     // Step 3 (required) always runs in field-patch — a `remove` op
     // that drops a required field surfaces as a validation error.
     const host = await newHost();
-    await host.createProject({ project_id: "p1", name: "P1", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p1", name: "P1", profile_id: "test:demo" });
     await host.createPrimitive("p1", {
       id: "section:a",
       type_id: "test:section",

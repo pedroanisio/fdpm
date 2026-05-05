@@ -28,7 +28,7 @@ async function freshHost(): Promise<Host> {
 
 async function projectWithDecisions(host: Host): Promise<void> {
   await host.createProject({
-    project_id: "demo-adr",
+    workbook_id: "demo-adr",
     name: "ADR demo",
     profile_id: PROFILE_ID,
   });
@@ -102,7 +102,7 @@ async function projectWithDecisions(host: Host): Promise<void> {
 
 async function projectWithHttpApi(host: Host): Promise<void> {
   await host.createProject({
-    project_id: "demo-api",
+    workbook_id: "demo-api",
     name: "HTTP API demo",
     profile_id: PROFILE_ID,
   });
@@ -197,11 +197,11 @@ describe("sw:ADRRenderer — text/markdown", () => {
 
   it("emits one section per Decision, an index, and supersedes/superseded-by lines", async () => {
     const slice = host.getProject("demo-adr");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer(
       "text/markdown",
       {
-        projectId: "demo-adr",
+        workbookId: "demo-adr",
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         profile,
@@ -242,16 +242,16 @@ describe("sw:ADRRenderer — text/markdown", () => {
   it("emits a documented stub when there are no decisions", async () => {
     const empty = await freshHost();
     await empty.createProject({
-      project_id: "no-adr",
+      workbook_id: "no-adr",
       name: "Empty",
       profile_id: PROFILE_ID,
     });
     const slice = empty.getProject("no-adr");
-    const profile = empty.profiles.getResolved(slice.project.profile_id);
+    const profile = empty.profiles.getResolved(slice.workbook.profile_id);
     const out = await empty.plugins.runRenderer(
       "text/markdown",
       {
-        projectId: "no-adr",
+        workbookId: "no-adr",
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         profile,
@@ -260,7 +260,7 @@ describe("sw:ADRRenderer — text/markdown", () => {
     );
     const md = new TextDecoder().decode(out.bytes);
     expect(md).toContain("from 0 `sw:Decision` primitive");
-    expect(md).toContain("_No `sw:Decision` primitives found in this project._");
+    expect(md).toContain("_No `sw:Decision` primitives found in this workbook._");
   });
 });
 
@@ -279,11 +279,11 @@ describe("sw:OpenAPIRenderer — application/x-yaml", () => {
 
   it("emits an OpenAPI 3.1 doc with paths, components, tags, and an exclusion log", async () => {
     const slice = host.getProject("demo-api");
-    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
     const out = await host.plugins.runRenderer(
       "application/x-yaml",
       {
-        projectId: "demo-api",
+        workbookId: "demo-api",
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         profile,
@@ -301,7 +301,7 @@ describe("sw:OpenAPIRenderer — application/x-yaml", () => {
 
     // Info block.
     expect(yaml).toContain("title: Software Architecture");
-    expect(yaml).toContain("x-fdpm-project-id: demo-api");
+    expect(yaml).toContain("x-fdpm-workbook-id: demo-api");
     expect(yaml).toContain('x-fdpm-profile-id: "profile:software-architecture:1.0"');
 
     // Tag for the Service.
@@ -339,16 +339,16 @@ describe("sw:OpenAPIRenderer — application/x-yaml", () => {
   it("produces an empty paths map (paths: {}) when no HTTP endpoints exist", async () => {
     const empty = await freshHost();
     await empty.createProject({
-      project_id: "no-http",
+      workbook_id: "no-http",
       name: "Empty",
       profile_id: PROFILE_ID,
     });
     const slice = empty.getProject("no-http");
-    const profile = empty.profiles.getResolved(slice.project.profile_id);
+    const profile = empty.profiles.getResolved(slice.workbook.profile_id);
     const out = await empty.plugins.runRenderer(
       "application/x-yaml",
       {
-        projectId: "no-http",
+        workbookId: "no-http",
         primitives: Object.values(slice.primitives),
         relations: Object.values(slice.relations),
         profile,

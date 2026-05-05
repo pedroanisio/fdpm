@@ -1,6 +1,6 @@
 /**
  * Tiny demo: builds a fake "Cats Must Nap" SPEC as DNIS-Node primitives,
- * then dumps the resulting project slice as JSON.
+ * then dumps the resulting workbook slice as JSON.
  *
  * Run:
  *   FDPM_DATA_DIR=/tmp/fdpm-fake-cats npx tsx fdpm-cli/scripts/build-spec-fake-cats.ts
@@ -56,7 +56,7 @@ async function main(): Promise<void> {
   await host.load();
 
   await host.createProject({
-    project_id: PROJECT_ID,
+    workbook_id: PROJECT_ID,
     name: "Cats Must Nap (fake demo)",
     profile_id: PROFILE_ID,
   });
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
     },
   });
 
-  const adapter = new DnisHostAdapter(host, { projectId: PROJECT_ID });
+  const adapter = new DnisHostAdapter(host, { workbookId: PROJECT_ID });
   const document = await adapter.createDocument({
     createdBy: AGENT,
     schemaVersion: "0.1.7",
@@ -104,7 +104,7 @@ async function main(): Promise<void> {
 
   const slice = host.getProject(PROJECT_ID);
   const dump = {
-    project: slice.project,
+    workbook: slice.workbook,
     primitives: slice.primitives,
     relations: slice.relations,
   };
@@ -116,12 +116,12 @@ async function main(): Promise<void> {
   console.log(`  primitives: ${Object.keys(slice.primitives).length}`);
   console.log(`  relations:  ${Object.keys(slice.relations).length}`);
 
-  const profile = host.profiles.getResolved(slice.project.profile_id);
+  const profile = host.profiles.getResolved(slice.workbook.profile_id);
   const out = await host.plugins.runRenderer(
     "text/markdown",
     {
-      projectId: PROJECT_ID,
-      project: slice.project,
+      workbookId: PROJECT_ID,
+      workbook: slice.workbook,
       primitives: Object.values(slice.primitives),
       relations: Object.values(slice.relations),
       templates: Object.values(slice.templates),

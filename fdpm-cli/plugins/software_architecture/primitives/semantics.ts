@@ -50,7 +50,7 @@ export const SEMANTICS_PRIMITIVES: PrimitiveTypeDef[] = [
         maxLength: 280,
       }),
       // Legacy free-form metric expression. Retained for backwards compat with
-      // pre-1.1 projects. New documents should prefer `slo` (struct, below).
+      // pre-1.1 workbooks. New documents should prefer `slo` (struct, below).
       str("metric", "Machine-readable metric expression (legacy).", {
         required: false,
       }),

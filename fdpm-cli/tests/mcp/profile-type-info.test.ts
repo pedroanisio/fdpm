@@ -34,7 +34,7 @@ describe("fdpm.profile.type_info", () => {
               { name: "title", kind: "string", required: true, validations: [] },
               { name: "tag", kind: "string", required: false, validations: [] },
             ],
-            id_format: { pattern: "^test:doc:\\w+$", uniqueness: "project", pattern_kind: "regex" },
+            id_format: { pattern: "^test:doc:\\w+$", uniqueness: "workbook", pattern_kind: "regex" },
             inline_structs: [],
             is_partition_unit: false,
             scoped: false,
@@ -70,7 +70,7 @@ describe("fdpm.profile.type_info", () => {
     expect(result.kind).toBe("primitive");
     expect((result as { type_id: string }).type_id).toBe("test:Doc");
     expect((result as { id_pattern: string }).id_pattern).toBe("^test:doc:\\w+$");
-    expect((result as { id_uniqueness: string }).id_uniqueness).toBe("project");
+    expect((result as { id_uniqueness: string }).id_uniqueness).toBe("workbook");
     expect((result as { required_field_names: string[] }).required_field_names).toEqual(["title"]);
     expect((result as { fields: unknown[] }).fields).toHaveLength(2);
   });

@@ -10,7 +10,7 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     name: "FDPM_DATA_DIR",
     defaultValue: "~/.fdpm-cli",
     exampleValue: "~/.fdpm-cli",
-    summary: "persistence directory for profiles and project logs",
+    summary: "persistence directory for profiles and workbook logs",
   },
   {
     name: "FDPM_PLUGIN_PATH",

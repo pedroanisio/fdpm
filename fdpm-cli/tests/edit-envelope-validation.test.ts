@@ -21,25 +21,25 @@ async function writeJson(value: unknown): Promise<string> {
   return path;
 }
 
-async function runEdit(host: Awaited<ReturnType<typeof newHost>>, project: string, body: unknown) {
+async function runEdit(host: Awaited<ReturnType<typeof newHost>>, workbook: string, body: unknown) {
   const path = await writeJson(body);
   const program = new Command().exitOverride();
   program.addCommand(buildEditCommand(host));
   // Suppress commander's stderr noise during the test.
   program.configureOutput({ writeOut: () => {}, writeErr: () => {} });
-  await program.parseAsync(["node", "fdpm", "edit", project, "-f", path]);
+  await program.parseAsync(["node", "fdpm", "edit", workbook, "-f", path]);
 }
 
 describe("fdpm edit envelope validation (pass-2)", () => {
   it("rejects body that is not an object", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await expect(runEdit(host, "p", [{}])).rejects.toThrow(FDPMException);
   });
 
   it("rejects body missing operations[]", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await expect(runEdit(host, "p", { expected_project_revision: 0 })).rejects.toThrow(
       /missing.*operations/i,
     );
@@ -47,7 +47,7 @@ describe("fdpm edit envelope validation (pass-2)", () => {
 
   it("rejects op missing kind", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await expect(
       runEdit(host, "p", { operations: [{ payload: { id: "x" } }] }),
     ).rejects.toThrow(/kind.*non-empty string/i);
@@ -55,11 +55,11 @@ describe("fdpm edit envelope validation (pass-2)", () => {
 
   it("rejects op with non-batch-editable kind", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await expect(
       runEdit(host, "p", {
         operations: [
-          { kind: "project.create", payload: { id: "x", name: "X", profile_id: "p" } },
+          { kind: "workbook.create", payload: { id: "x", name: "X", profile_id: "p" } },
         ],
       }),
     ).rejects.toThrow(/not batch-editable/i);
@@ -67,7 +67,7 @@ describe("fdpm edit envelope validation (pass-2)", () => {
 
   it("rejects op with missing payload", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await expect(
       runEdit(host, "p", { operations: [{ kind: "primitive.delete" }] }),
     ).rejects.toThrow(/payload.*must be an object/i);
@@ -75,7 +75,7 @@ describe("fdpm edit envelope validation (pass-2)", () => {
 
   it("rejects non-integer expected_project_revision", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await expect(
       runEdit(host, "p", {
         expected_project_revision: "not a number",
@@ -86,7 +86,7 @@ describe("fdpm edit envelope validation (pass-2)", () => {
 
   it("accepts a well-formed envelope", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await runEdit(host, "p", {
       operations: [
         {

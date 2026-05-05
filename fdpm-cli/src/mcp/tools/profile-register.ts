@@ -1,7 +1,7 @@
 /**
  * `fdpm.profile.register` — Tier 2 (validating-write).
  *
- * Registers a DomainProfile so subsequent `fdpm.project.create` calls
+ * Registers a DomainProfile so subsequent `fdpm.workbook.create` calls
  * can reference it. Persists by default. No §7 instance pipeline runs
  * here (a profile is metadata, not an instance), so the envelope's
  * `validation_report` is synthesized as accepted; the operation field

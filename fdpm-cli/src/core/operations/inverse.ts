@@ -8,13 +8,13 @@ import { FDPMException } from "../errors/fdpm-exception.js";
 /**
  * §9.8.4 Per-kind inverse computation.
  *
- * Returns an `AppendInput`-shaped descriptor (kind + payload + project_id)
+ * Returns an `AppendInput`-shaped descriptor (kind + payload + workbook_id)
  * that, when appended, undoes the effect of `target` against the current
  * state. If the target cannot be cleanly inverted, throws conflict.
  */
 export interface InverseDescriptor {
   kind: OperationKind;
-  project_id: string;
+  workbook_id: string;
   payload: Record<string, unknown>;
   causation_op_id: string;
 }
@@ -24,12 +24,12 @@ export function computeInverse(
   state: StoreState,
   fullLog: Operation[],
 ): InverseDescriptor {
-  const project_id = target.project_id;
-  const cur = sliceProject(state, project_id);
+  const workbook_id = target.workbook_id;
+  const cur = sliceProject(state, workbook_id);
   // Reconstruct pre-target state for kinds that need before-values.
   const preLog = fullLog.filter((o) => o.revision < target.revision);
   const preState = replay(preLog);
-  const pre = sliceProject(preState, project_id);
+  const pre = sliceProject(preState, workbook_id);
 
   switch (target.kind) {
     case "primitive.create": {
@@ -38,7 +38,7 @@ export function computeInverse(
         throw new FDPMException("conflict", `cannot undo primitive.create: ${id} no longer present`);
       return {
         kind: "primitive.delete",
-        project_id,
+        workbook_id,
         payload: { id },
         causation_op_id: target.op_id,
       };
@@ -50,7 +50,7 @@ export function computeInverse(
         throw new FDPMException("conflict", "cannot undo primitive.delete: pre-state missing");
       return {
         kind: "primitive.create",
-        project_id,
+        workbook_id,
         payload: {
           id: prior.id,
           type_id: prior.type_id,
@@ -68,7 +68,7 @@ export function computeInverse(
         throw new FDPMException("conflict", "cannot undo: pre-state missing");
       return {
         kind: "primitive.replace",
-        project_id,
+        workbook_id,
         payload: {
           id: prior.id,
           type_id: prior.type_id,
@@ -88,7 +88,7 @@ export function computeInverse(
       const { inverse } = applyPatch(prior.field_values, p.operations, ["id", "type_id"]);
       return {
         kind: "primitive.field-patch",
-        project_id,
+        workbook_id,
         payload: { id, operations: inverse },
         causation_op_id: target.op_id,
       };
@@ -97,7 +97,7 @@ export function computeInverse(
       const id = (target.payload as { id: string }).id;
       return {
         kind: "relation.delete",
-        project_id,
+        workbook_id,
         payload: { id },
         causation_op_id: target.op_id,
       };
@@ -109,7 +109,7 @@ export function computeInverse(
         throw new FDPMException("conflict", "cannot undo relation.delete: pre-state missing");
       return {
         kind: "relation.create",
-        project_id,
+        workbook_id,
         payload: {
           id: prior.id,
           type_id: prior.type_id,
@@ -127,7 +127,7 @@ export function computeInverse(
       if (!prior) throw new FDPMException("conflict", "cannot undo: pre-state missing");
       return {
         kind: "relation.replace",
-        project_id,
+        workbook_id,
         payload: {
           id: prior.id,
           type_id: prior.type_id,
@@ -149,7 +149,7 @@ export function computeInverse(
       ]);
       return {
         kind: "relation.field-patch",
-        project_id,
+        workbook_id,
         payload: { id: p.id, operations: inverse },
         causation_op_id: target.op_id,
       };
@@ -159,7 +159,7 @@ export function computeInverse(
       const priorOrdering = pre?.scope_membership[p.scope_id] ?? [];
       return {
         kind: "structure.reorder",
-        project_id,
+        workbook_id,
         payload: { scope_id: p.scope_id, ordering: priorOrdering },
         causation_op_id: target.op_id,
       };
@@ -175,7 +175,7 @@ export function computeInverse(
       const priorPos = priorList.indexOf(p.primitive_id);
       return {
         kind: "structure.reparent",
-        project_id,
+        workbook_id,
         payload: {
           primitive_id: p.primitive_id,
           from_scope_id: p.to_scope_id,
@@ -185,20 +185,20 @@ export function computeInverse(
         causation_op_id: target.op_id,
       };
     }
-    case "project.create": {
+    case "workbook.create": {
       return {
-        kind: "project.delete",
-        project_id,
-        payload: { project_id },
+        kind: "workbook.delete",
+        workbook_id,
+        payload: { workbook_id },
         causation_op_id: target.op_id,
       };
     }
-    case "project.clone": {
-      const p = target.payload as { target_project_id: string };
+    case "workbook.clone": {
+      const p = target.payload as { target_workbook_id: string };
       return {
-        kind: "project.delete",
-        project_id: p.target_project_id,
-        payload: { project_id: p.target_project_id },
+        kind: "workbook.delete",
+        workbook_id: p.target_workbook_id,
+        payload: { workbook_id: p.target_workbook_id },
         causation_op_id: target.op_id,
       };
     }

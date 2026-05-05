@@ -10,7 +10,7 @@
  * the extends chain at resolve time and the resulting profile registers
  * every primitive/relation/scope from both parents.
  *
- * What this enables: a single SPEC-CORE project can hold both
+ * What this enables: a single SPEC-CORE workbook can hold both
  *   - formal_specification's typed primitives (fs:Phase, fs:Equation,
  *     fs:Citation, fs:FormalProperty, ...) — the typed records the
  *     fs:SpecRenderer family dispatches on, and
@@ -20,7 +20,7 @@
  *
  * Why this lives as a separate plugin: blast-radius. Adding `extends`
  * to plugins/formal_specification/index.ts directly would couple every
- * existing formal-specification project to the dnis plugin. A
+ * existing formal-specification workbook to the dnis plugin. A
  * composition profile is opt-in — only build scripts that explicitly
  * target this profile's id pull in the DNIS surface. Existing scripts
  * continue to use profile:formal-specification:3.0 verbatim.
@@ -28,7 +28,7 @@
  * Renderer behaviour: the existing markdown / html / pdf renderers
  * already detect a dnis:Document + active dnis:Node sections at render
  * time (via buildDocumentTreeAuto in renderers/_common.ts) and DFS the
- * graph; this profile is what gives a project access to the dnis:*
+ * graph; this profile is what gives a workbook access to the dnis:*
  * primitives in the first place.
  */
 import { readFileSync } from "node:fs";
@@ -50,7 +50,7 @@ export const PROFILE: DomainProfile = {
   name: "Formal-Specification DNIS Composition",
   label: "Formal-Specification + DNIS",
   description:
-    "Composition profile extending profile:formal-specification:3.0 and profile:dnis:0.1. A project on this profile can hold both formal_specification's typed primitives and a DNIS Node tree for graph-derived section numbering. Contributes no types of its own.",
+    "Composition profile extending profile:formal-specification:3.0 and profile:dnis:0.1. A workbook on this profile can hold both formal_specification's typed primitives and a DNIS Node tree for graph-derived section numbering. Contributes no types of its own.",
   // Resolution order matters only for collision diagnostics; the two
   // parent profiles use disjoint id namespaces (fs:* vs. dnis:*) so no
   // collisions are possible.

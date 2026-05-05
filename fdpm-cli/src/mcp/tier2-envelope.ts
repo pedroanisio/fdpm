@@ -22,7 +22,7 @@ import { ValidationReport } from "../core/models/instance.js";
 /**
  * Shared output schema fragment for every Tier-2 tool. Each tool's
  * `output` Zod schema extends this with its own `post_state_summary`
- * shape (e.g. `{ primitive_id, type_id, project_id }`).
+ * shape (e.g. `{ primitive_id, type_id, workbook_id }`).
  */
 export const Tier2EnvelopeBase = {
   ok: z.boolean(),

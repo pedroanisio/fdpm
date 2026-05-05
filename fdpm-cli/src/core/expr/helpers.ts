@@ -59,7 +59,7 @@ export interface HasId {
 /**
  * Existence check used by `graph.exists(target_id)` (SPEC-EXPRESSION-RUNTIME
  * §M14, helper-set v1.1.0). True iff some primitive in `primitives` has the
- * given id. Pure; the caller is responsible for passing the project's
+ * given id. Pure; the caller is responsible for passing the workbook's
  * primitive set.
  */
 export function primitiveExists(

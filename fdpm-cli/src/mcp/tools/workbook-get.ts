@@ -1,12 +1,12 @@
 /**
- * `fdpm.project.get` — Tier 1 (read-only).
+ * `fdpm.workbook.get` — Tier 1 (read-only).
  *
- * Returns the project's `Project` row plus a primitive/relation
+ * Returns the workbook's `Workbook` row plus a primitive/relation
  * count summary. The full slice (every primitive and relation) is
  * intentionally NOT included — that surface is reserved for paged
  * search/list tools (deferred). This response is small enough that
  * an LLM can use it for navigation without consuming the full
- * project state.
+ * workbook state.
  *
  * Field projection (v0.1.1): pass `fields` to keep only top-level
  * keys from the response (`["primitive_count","relation_count"]`
@@ -19,7 +19,7 @@ import { applyFieldsProjection } from "../projection.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     fields: z
       .array(z.string().min(1))
       .optional()
@@ -37,18 +37,18 @@ const Output = z
   );
 
 export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> = {
-  name: "fdpm.project.get",
+  name: "fdpm.workbook.get",
   tier: "read_only",
   description:
-    "Fetch a project's row and instance counts. Pass `fields` to project a subset. Throws not_found if the project_id is unknown.",
+    "Fetch a workbook's row and instance counts. Pass `fields` to workbook a subset. Throws not_found if the workbook_id is unknown.",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
   handler: async (host, args) => {
     // Host.getProject throws FDPMException("not_found") on miss.
-    const slice = host.getProject(args.project_id);
+    const slice = host.getProject(args.workbook_id);
     const full: Record<string, unknown> = {
-      project: slice.project,
+      workbook: slice.workbook,
       primitive_count: Object.keys(slice.primitives).length,
       relation_count: Object.keys(slice.relations).length,
     };

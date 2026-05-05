@@ -92,10 +92,10 @@ describe("planning — profile shape", () => {
     expect(PROFILE.scopes.map((s) => s.id).sort()).toEqual([
       "scope:plan:execution",
       "scope:plan:iteration",
-      "scope:plan:project",
+      "scope:plan:workbook",
     ]);
     expect(SCOPE_IDS).toEqual({
-      project: "scope:plan:project",
+      workbook: "scope:plan:workbook",
       iteration: "scope:plan:iteration",
       execution: "scope:plan:execution",
     });

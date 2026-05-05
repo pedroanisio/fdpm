@@ -37,7 +37,7 @@ describe("S2 — invalid regex compilation", () => {
 
   it("searchPrimitives raises typed error when fieldMatch regex is invalid", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
@@ -56,25 +56,25 @@ describe("S2 — invalid regex compilation", () => {
 describe("S4 — diff rejects revisions past current", () => {
   it("throws not_found for a from revision past current", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     await host.createPrimitive("p", {
       id: "section:a",
       type_id: "test:section",
       field_values: { title: "A", number: 1 },
     });
-    const current = host.getProject("p").project.revision;
+    const current = host.getProject("p").workbook.revision;
     expect(() =>
-      host.diffProject({ project_id: "p", from: { revision: current + 100 } }),
+      host.diffProject({ workbook_id: "p", from: { revision: current + 100 } }),
     ).toThrow(/past current/i);
   });
 
   it("throws not_found for a to revision past current", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
-    const cur = host.getProject("p").project.revision;
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
+    const cur = host.getProject("p").workbook.revision;
     expect(() =>
       host.diffProject({
-        project_id: "p",
+        workbook_id: "p",
         from: { revision: cur },
         to: { revision: cur + 50 },
       }),
@@ -83,9 +83,9 @@ describe("S4 — diff rejects revisions past current", () => {
 
   it("accepts revision equal to current (boundary)", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
-    const cur = host.getProject("p").project.revision;
-    const d = host.diffProject({ project_id: "p", from: { revision: cur } });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
+    const cur = host.getProject("p").workbook.revision;
+    const d = host.diffProject({ workbook_id: "p", from: { revision: cur } });
     expect(d.from.revision).toBe(cur);
     expect(d.to.revision).toBe(cur);
   });
@@ -96,7 +96,7 @@ describe("S4 — diff rejects revisions past current", () => {
 describe("S6 — batchEdit dry-run result shape", () => {
   it("returns dry_run:true on the success path", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     const r = await batchEdit(
       host,
       "p",
@@ -118,8 +118,8 @@ describe("S6 — batchEdit dry-run result shape", () => {
 
   it("dry-run schema-failure throws without leaving any record", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
-    const before = host.getProject("p").project.revision;
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
+    const before = host.getProject("p").workbook.revision;
     await expect(
       batchEdit(
         host,
@@ -132,7 +132,7 @@ describe("S6 — batchEdit dry-run result shape", () => {
         { dryRun: true },
       ),
     ).rejects.toThrow(FDPMException);
-    expect(host.getProject("p").project.revision).toBe(before);
+    expect(host.getProject("p").workbook.revision).toBe(before);
   });
 });
 
@@ -149,7 +149,7 @@ describe("S8 — edit --print-schema rejects unknown kind", () => {
   it("throws verification error for a non-batch-editable kind", async () => {
     const host = await newHost();
     await expect(
-      runEditCmd(host, ["--print-schema", "project.create"]),
+      runEditCmd(host, ["--print-schema", "workbook.create"]),
     ).rejects.toThrow(/unknown kind/i);
   });
 
@@ -173,7 +173,7 @@ async function seedDriftedProject() {
   const host = await newHost();
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
+    workbook: {
       id: "p",
       name: "P",
       profile_id: "test:demo",
@@ -229,7 +229,7 @@ describe("S12 — fdpm validate emits report before throwing on errors", () => {
     const host = await newHost();
     await importTransfer(host, {
       spec_core: "1.1",
-      project: {
+      workbook: {
         id: "p",
         name: "P",
         profile_id: "test:demo",
@@ -261,12 +261,12 @@ describe("S12 — fdpm validate emits report before throwing on errors", () => {
 describe("S13 — diffProject defensive runtime check", () => {
   it("throws verification when called from JS with no `from`", async () => {
     const host = await newHost();
-    await host.createProject({ project_id: "p", name: "P", profile_id: "test:demo" });
+    await host.createProject({ workbook_id: "p", name: "P", profile_id: "test:demo" });
     expect(() =>
       // Cast through unknown to bypass the TS type and exercise the
       // runtime guard. Mirrors what a JS caller could do.
       host.diffProject({
-        project_id: "p",
+        workbook_id: "p",
         from: undefined as unknown as { revision: number },
       }),
     ).toThrow(/requires a `from` side/);

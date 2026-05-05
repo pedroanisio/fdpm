@@ -1,9 +1,9 @@
 /**
  * SPEC-MCP-SERVER §10 / §21 — Tier 1 lenient-mode freshness check.
  *
- * Tier 1 calls MUST silently tail-replay a project's log when an
+ * Tier 1 calls MUST silently tail-replay a workbook's log when an
  * out-of-band write has changed `(mtime_ns, size)` since the session
- * last touched that project. After replay, the call MUST observe the
+ * last touched that workbook. After replay, the call MUST observe the
  * post-replay state and the freshness map MUST be re-seeded.
  *
  * `host_compat` from `Host.reloadProjectTail` (truncated/rewritten
@@ -11,7 +11,7 @@
  * `host_compat` — NOT silently retried.
  *
  * The wildcard `["*"]` extractor MUST trigger a stderr warning and
- * stat every known project's log.
+ * stat every known workbook's log.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -42,8 +42,8 @@ async function makeHost(dataDir: string): Promise<Host> {
   await host.load();
   await host.registerProfile(TEST_PROFILE, { persist: false });
   await host.createProject({
-    project_id: "p1",
-    name: "Project One",
+    workbook_id: "p1",
+    name: "Workbook One",
     profile_id: "test:demo",
   });
   await host.createPrimitive("p1", {
@@ -71,7 +71,7 @@ describe("Tier 1 freshness — silent tail-replay on out-of-band append", () => 
 
     // First call: seeds the freshness entry.
     const r1 = await dispatcher.call("fdpm.primitive.search", {
-      project_id: "p1",
+      workbook_id: "p1",
     });
     expect(r1.isError).toBe(false);
     const initial = (r1.structuredContent as { matches: unknown[] }).matches;
@@ -81,7 +81,7 @@ describe("Tier 1 freshness — silent tail-replay on out-of-band append", () => 
     const op = {
       op_id: mintUid(),
       kind: "primitive.create",
-      project_id: "p1",
+      workbook_id: "p1",
       payload: {
         id: "section:two",
         uid: mintUid(),
@@ -99,7 +99,7 @@ describe("Tier 1 freshness — silent tail-replay on out-of-band append", () => 
     // Second call: dispatcher detects (mtime,size) drift, silently
     // calls reloadProjectTail, then dispatches.
     const r2 = await dispatcher.call("fdpm.primitive.search", {
-      project_id: "p1",
+      workbook_id: "p1",
     });
     expect(r2.isError).toBe(false);
     const after = (r2.structuredContent as { matches: unknown[] }).matches;
@@ -121,7 +121,7 @@ describe("Tier 1 freshness — silent tail-replay on out-of-band append", () => 
     const dispatcher = createDispatcher(host, ctx, null);
 
     // Seed.
-    await dispatcher.call("fdpm.primitive.search", { project_id: "p1" });
+    await dispatcher.call("fdpm.primitive.search", { workbook_id: "p1" });
 
     // Simulate a backup-restore: drop the log to zero ops while the
     // in-memory Host still has them. reloadProjectTail will throw
@@ -129,7 +129,7 @@ describe("Tier 1 freshness — silent tail-replay on out-of-band append", () => 
     truncateLogToOps(dataDir, "p1", 0);
 
     const result = await dispatcher.call("fdpm.primitive.search", {
-      project_id: "p1",
+      workbook_id: "p1",
     });
     expect(result.isError).toBe(true);
     const env = (
@@ -142,11 +142,11 @@ describe("Tier 1 freshness — silent tail-replay on out-of-band append", () => 
 });
 
 describe("Tier 1 freshness — wildcard scan", () => {
-  it("a synthetic tool whose extractor returns ['*'] scans every known project and warns to stderr", async () => {
+  it("a synthetic tool whose extractor returns ['*'] scans every known workbook and warns to stderr", async () => {
     const host = await makeHost(dataDir);
     await host.createProject({
-      project_id: "p2",
-      name: "Project Two",
+      workbook_id: "p2",
+      name: "Workbook Two",
       profile_id: "test:demo",
     });
     const session = createSession({ maxPerMinute: 600 });
@@ -193,7 +193,7 @@ describe("Tier 1 freshness — wildcard scan", () => {
       const stderrText = captured.join("");
       expect(stderrText).toContain("wildcard freshness scan");
 
-      // Both projects should now be in the freshness map.
+      // Both workbooks should now be in the freshness map.
       const snap = session.freshnessSnapshot();
       expect(snap.has("p1")).toBe(true);
       expect(snap.has("p2")).toBe(true);
@@ -205,9 +205,9 @@ describe("Tier 1 freshness — wildcard scan", () => {
   });
 });
 
-describe("Tier 1 freshness — projects directory bootstrap", () => {
-  it("creating a project directory before makeHost succeeds (sanity)", () => {
-    mkdirSync(join(dataDir, "projects", "ignored-fixture"), { recursive: true });
+describe("Tier 1 freshness — workbooks directory bootstrap", () => {
+  it("creating a workbook directory before makeHost succeeds (sanity)", () => {
+    mkdirSync(join(dataDir, "workbooks", "ignored-fixture"), { recursive: true });
     expect(true).toBe(true);
   });
 });

@@ -3,7 +3,7 @@
  *
  * Lists all DomainProfiles registered with the Host (built-ins,
  * plugin-contributed, and operator-installed). Read-only; no
- * project state involved.
+ * workbook state involved.
  */
 
 import { z } from "zod";

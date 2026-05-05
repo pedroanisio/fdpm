@@ -9,13 +9,13 @@ import { projectThroughViewInstance } from "./_view.js";
  * primitives plus their connecting relations.
  *
  * Mapping rules (deliberately conservative — anything we cannot ground in
- * the project graph is omitted, never invented):
+ * the workbook graph is omitted, never invented):
  *
  *   ┌─────────────────────────────────────────────────────────────────┐
  *   │ Source primitive / relation                  → OpenAPI element  │
  *   ├─────────────────────────────────────────────────────────────────┤
- *   │ Project name + description                   → info.title/desc  │
- *   │ Project profile_id version                   → info.version     │
+ *   │ Workbook name + description                   → info.title/desc  │
+ *   │ Workbook profile_id version                   → info.version     │
  *   │ sw:Entity (kind=Service)                     → tag (one tag per │
  *   │                                                 service)        │
  *   │ sw:Endpoint (protocol = HTTP, with method &  → paths.{path}.    │
@@ -266,7 +266,7 @@ function inferStatusFromErrorName(name: string): string {
 }
 
 export const renderOpenApi: RendererFn = (input): RendererOutput => {
-  const { profile, primitives, relations, projectId } = input;
+  const { profile, primitives, relations, workbookId } = input;
 
   // Bucket primitives by type.
   const endpoints: PrimitiveInstance[] = [];
@@ -388,9 +388,9 @@ export const renderOpenApi: RendererFn = (input): RendererOutput => {
   }
 
   const info: Record<string, YamlValue> = {
-    title: profile.label || profile.name || projectId,
+    title: profile.label || profile.name || workbookId,
     version: profile.version,
-    "x-fdpm-project-id": projectId,
+    "x-fdpm-workbook-id": workbookId,
     "x-fdpm-profile-id": profile.id,
   };
   if (profile.description) info.description = profile.description;

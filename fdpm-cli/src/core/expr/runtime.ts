@@ -47,7 +47,7 @@ export interface ExprHelperRegistration {
 }
 
 export interface ValidationEvaluationOptions {
-  project?: ProjectStateSlice;
+  workbook?: ProjectStateSlice;
   projectFingerprint?: string;
   permissions?: ReadonlySet<string>;
   locale?: string;
@@ -332,11 +332,11 @@ export class ExpressionRuntime {
     bindings: ReturnType<typeof createValidationActivationContext>;
     helperContext: ExprRuntimeHelperContext;
   } {
-    const project = options?.project
-      ? makeProjectValue(options.project, options.projectFingerprint ?? "")
+    const workbook = options?.workbook
+      ? makeProjectValue(options.workbook, options.projectFingerprint ?? "")
       : this.defaultProject(profile, relations);
     const bindings = createValidationActivationContext(instance, type, profile, relations, {
-      project,
+      workbook,
       host: {
         fdpmVersion: SPEC_CORE_VERSION,
         helperSetVersion: this.helperSetVersion,
@@ -356,7 +356,7 @@ export class ExpressionRuntime {
       },
     });
     const helperContext: ExprRuntimeHelperContext = {
-      projectPrimitiveCountByType: primitiveCountByType(project),
+      projectPrimitiveCountByType: primitiveCountByType(workbook),
       locale: options?.locale ?? this.defaultLocale,
       listIterationCap: EXPR_LIST_ITERATION_CAP,
       outputStringCap: EXPR_OUTPUT_STRING_CAP,
@@ -593,9 +593,9 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function primitiveCountByType(project: ExprProjectValue): Map<string, number> {
+function primitiveCountByType(workbook: ExprProjectValue): Map<string, number> {
   const out = new Map<string, number>();
-  for (const primitive of project.primitives) {
+  for (const primitive of workbook.primitives) {
     out.set(primitive.type_id, (out.get(primitive.type_id) ?? 0) + 1);
   }
   return out;

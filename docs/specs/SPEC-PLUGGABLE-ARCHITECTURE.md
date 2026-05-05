@@ -61,7 +61,7 @@ The codebase ships with a *plugin folder* but not a *plugin system*:
 - `src/fdpm/plugins/{formal_specification, narrative, software_architecture}.py` are statically imported in `src/fdpm/main.py:45-50` inside the FastAPI lifespan.
 - Each module exports a single `register(store)` function that mutates the global `store` (`src/fdpm/store.py:42`).
 - API routers in `src/fdpm/api/*.py` are equally hardcoded into `main.py:23-33` and `main.py:142-152`. No router contributed by a plugin can join the app at runtime.
-- `pyproject.toml` declares no `[project.entry-points]` group. Third-party packages cannot register a profile, validator, renderer, or route without editing core source.
+- `pyproject.toml` declares no `[workbook.entry-points]` group. Third-party packages cannot register a profile, validator, renderer, or route without editing core source.
 - Plugin internals are monolithic data literals (e.g. `formal_specification.py` is one 3,251-line `DomainProfile(...)` expression).
 - The frontend (`frontend/src/`) has no plugin awareness: API surface, primitive forms, renderers, and explorer panels are compiled into the React bundle. A new profile cannot contribute UI without editing `frontend/src/components/**`.
 
@@ -119,11 +119,11 @@ A capability is an interface a plugin MAY implement. The host MUST support exact
 
 | Capability ID                | Contributes                                                              | Cardinality per plugin |
 | ---------------------------- | ------------------------------------------------------------------------ | ---------------------- |
-| `cap:profile`                | A `DomainProfile` (primitives, relations, scopes, categories, rules). Profiles MAY mark primitive types as Section partition units via `PrimitiveTypeDef.is_partition_unit` (Core SPEC §5.4.3) so projects on this profile can be split (`POST /projects/{id}:split`). | 0..N                   |
+| `cap:profile`                | A `DomainProfile` (primitives, relations, scopes, categories, rules). Profiles MAY mark primitive types as Section partition units via `PrimitiveTypeDef.is_partition_unit` (Core SPEC §5.4.3) so workbooks on this profile can be split (`POST /workbooks/{id}:split`). | 0..N                   |
 | `cap:validator`              | A custom `ValidationRuleDef` implementation.                             | 0..N                   |
 | `cap:renderer`               | A server-side renderer (e.g. PDF, Markdown, HTML, DOCX) for a target.   | 0..N                   |
 | `cap:route`                  | A namespaced `APIRouter` mounted under `/plugins/{plugin.id}/...`.       | 0..1                   |
-| `cap:transformer`            | A primitive→primitive transform whose output is an **edit-operation list** consumed by Core SPEC §9.7.5 (batch edits). Each emitted operation becomes an immutable record in the per-project operation log (Core SPEC §5.5) — the transformer's invocation, its emitted operation list, and the resulting log entries are causally chained via `request_id` and `plugin_id` so the operator can audit "what did plugin X do to this project, when, in response to what call." The transformer never mutates the store directly; Core re-runs §7 on every emitted operation before append. | 0..N                   |
+| `cap:transformer`            | A primitive→primitive transform whose output is an **edit-operation list** consumed by Core SPEC §9.7.5 (batch edits). Each emitted operation becomes an immutable record in the per-workbook operation log (Core SPEC §5.5) — the transformer's invocation, its emitted operation list, and the resulting log entries are causally chained via `request_id` and `plugin_id` so the operator can audit "what did plugin X do to this workbook, when, in response to what call." The transformer never mutates the store directly; Core re-runs §7 on every emitted operation before append. | 0..N                   |
 | `cap:importer`               | A `ProjectTransfer` ingest format (e.g. JSON, YAML, Markdown variants). | 0..N                   |
 | `cap:exporter`               | A `ProjectTransfer` egress format.                                       | 0..N                   |
 | `cap:lifecycle-hook`         | One or more lifecycle callbacks: `on_install`, `on_enable`, `on_disable`, `on_uninstall`. See §4.4. | 0..4 (one per event)   |
@@ -136,7 +136,7 @@ A capability is an interface a plugin MAY implement. The host MUST support exact
 | `cap:ui:primitive-card`      | Custom card/listing component for a `primitive_type_id`.                 | 0..N                   |
 | `cap:ui:explorer-panel`      | A panel mounted in the Explorer side rail or document outline.           | 0..N                   |
 | `cap:ui:renderer-preview`    | A preview component for a server renderer's output.                      | 0..N                   |
-| `cap:ui:menu-action`         | A command added to project, primitive, or global menus.                  | 0..N                   |
+| `cap:ui:menu-action`         | A command added to workbook, primitive, or global menus.                  | 0..N                   |
 | `cap:ui:route`               | A top-level page mounted at `/p/{plugin.id}/...`.                        | 0..N                   |
 | `cap:ui:theme`               | A CSS layer (light/dark/print) the user can opt into.                    | 0..1                   |
 | `cap:ui:i18n`                | A locale bundle scoped to the plugin's UI.                               | 0..N per locale        |
@@ -219,12 +219,12 @@ Every plugin (server or frontend) ships a single `fdpm-plugin.json` at the packa
     "permissions": {
       "type": "array",
       "items": { "enum": [
-        "read:projects", "write:projects",
+        "read:workbooks", "write:workbooks",
         "read:primitives", "write:primitives",
         "read:relations", "write:relations",
         "read:audit",
         "render:server", "render:client",
-        "import:project", "export:project",
+        "import:workbook", "export:workbook",
         "menu:contribute",
         "network:outbound", "filesystem:read", "filesystem:write"
       ]}
@@ -284,17 +284,17 @@ Every permission gates exactly one class of operation. A plugin requesting a per
 
 | Permission           | Gates                                                                                                   |
 | -------------------- | ------------------------------------------------------------------------------------------------------- |
-| `read:projects`      | `PluginContext.list_projects`, `get_project`; reading project metadata via the Core API.                |
-| `write:projects`     | Project creation/update/delete via plugin code path; required by `cap:importer`.                        |
+| `read:workbooks`      | `PluginContext.list_projects`, `get_project`; reading workbook metadata via the Core API.                |
+| `write:workbooks`     | Workbook creation/update/delete via plugin code path; required by `cap:importer`.                        |
 | `read:primitives`    | `PluginContext.list_primitives`, `get_primitive`; reading primitives in plugin code.                    |
 | `write:primitives`   | Mutating primitives via plugin code path; required by `cap:transformer` whose target type creates/changes primitives. |
 | `read:relations`     | Symmetric to `read:primitives` for relations.                                                           |
 | `write:relations`    | Symmetric to `write:primitives` for relations.                                                          |
-| `read:audit`         | Read access to the operation log (Core SPEC §5.5 / §9.8.1, unified with §13.3 audit records). With this permission the plugin can call `GET /projects/{id}/log` for any project, with full filter support; without it, log access is denied even for the plugin's own emitted operations. (v1.0 framed this as "own actions only"; v1.1's unified log makes per-actor filtering a query parameter, so the permission is now binary: holders see all, non-holders see none.) |
+| `read:audit`         | Read access to the operation log (Core SPEC §5.5 / §9.8.1, unified with §13.3 audit records). With this permission the plugin can call `GET /workbooks/{id}/log` for any workbook, with full filter support; without it, log access is denied even for the plugin's own emitted operations. (v1.0 framed this as "own actions only"; v1.1's unified log makes per-actor filtering a query parameter, so the permission is now binary: holders see all, non-holders see none.) |
 | `render:server`      | Required by `cap:renderer`. Validators (`cap:validator`) and exporters (`cap:exporter`) do **not** require this — see §5.3. |
 | `render:client`      | Required by `cap:ui:renderer-preview`.                                                                  |
-| `import:project`     | Required by `cap:importer`; implies `write:projects` + `write:primitives` + `write:relations` for the duration of the import. |
-| `export:project`     | Required by `cap:exporter`; implies `read:projects` + `read:primitives` + `read:relations`.             |
+| `import:workbook`     | Required by `cap:importer`; implies `write:workbooks` + `write:primitives` + `write:relations` for the duration of the import. |
+| `export:workbook`     | Required by `cap:exporter`; implies `read:workbooks` + `read:primitives` + `read:relations`.             |
 | `menu:contribute`    | Required by `cap:ui:menu-action` to contribute commands to Core menus.                                  |
 | `network:outbound`   | Plugin code makes HTTP calls to external hosts. Logged per request; no sandbox enforcement in v1.0.    |
 | `filesystem:read`    | Plugin reads files outside its package root.                                                            |
@@ -305,7 +305,7 @@ Every permission gates exactly one class of operation. A plugin requesting a per
 Some capabilities are unprivileged because they cannot mutate state or escape the plugin's own namespace:
 
 - **`cap:validator`** — additive only. A validator emits findings; it cannot mutate state. A validator that raises is contained by the Core SPEC §7.1 step-6 exception barrier.
-- **`cap:profile`** — registers a `DomainProfile`. The act of contributing a profile is structural; it does not by itself read or mutate project content.
+- **`cap:profile`** — registers a `DomainProfile`. The act of contributing a profile is structural; it does not by itself read or mutate workbook content.
 - **`cap:lifecycle-hook`** — runs in the host's plugin lifecycle context; what the hook *does* may require permissions, which the hook claims through normal `PluginContext` calls.
 - **`cap:ui:*`** (form, card, panel, route, theme, i18n) — all run in the SPA's own context with its own permissions; the scoped API client (§7.5) is the runtime gate.
 
@@ -322,7 +322,7 @@ Some capabilities are unprivileged because they cannot mutate state or escape th
   "authors": ["Acme Legal Engineering <eng@acme.example>"],
   "license": "Apache-2.0",
   "host_compatibility": { "fdpm": ">=3.1,<4", "frontend": ">=2.0,<3" },
-  "permissions": ["read:projects", "write:primitives", "render:server", "menu:contribute"],
+  "permissions": ["read:workbooks", "write:primitives", "render:server", "menu:contribute"],
   "capabilities": [
     { "capability_id": "cap:profile",          "local_name": "contract-law", "entry": "acme_legal.profile:PROFILE" },
     { "capability_id": "cap:validator",        "local_name": "citation",     "entry": "acme_legal.validators:citation_validator" },
@@ -414,10 +414,10 @@ class PluginContext(Protocol):
     # Read-only views — plugins observe but do not mutate global state
     def list_profiles(self) -> Sequence[DomainProfile]: ...
     def get_profile(self, profile_id: str) -> DomainProfile | None: ...
-    def list_projects(self) -> Sequence[Project]: ...     # requires read:projects
-    def get_project(self, project_id: str) -> Project | None: ...
-    def list_primitives(self, project_id: str) -> Sequence[PrimitiveInstance]: ...
-    def get_primitive(self, project_id: str, primitive_id: str) -> PrimitiveInstance | None: ...
+    def list_projects(self) -> Sequence[Workbook]: ...     # requires read:workbooks
+    def get_project(self, workbook_id: str) -> Workbook | None: ...
+    def list_primitives(self, workbook_id: str) -> Sequence[PrimitiveInstance]: ...
+    def get_primitive(self, workbook_id: str, primitive_id: str) -> PrimitiveInstance | None: ...
 
     # No PluginContext.audit(...) write path in v1.1.
     # Audit emission is automatic: every plugin-originated write produces
@@ -425,7 +425,7 @@ class PluginContext(Protocol):
     # Read access to the log is permission-gated by `read:audit`.
 ```
 
-The host MUST inject `PluginContext` at lifecycle events. Each call is recorded on `PluginRecord.contributions` so a plugin's contributions can be torn down on disable/uninstall without leaks. Read methods that touch project content require the corresponding `read:*` permission and raise `PermissionError` otherwise.
+The host MUST inject `PluginContext` at lifecycle events. Each call is recorded on `PluginRecord.contributions` so a plugin's contributions can be torn down on disable/uninstall without leaks. Read methods that touch workbook content require the corresponding `read:*` permission and raise `PermissionError` otherwise.
 
 > **Migration note (1.0 → 1.1).** The `PluginContext.audit(...)` write
 > method introduced in pluggable 1.0.1 is **removed in 1.1.0**.
@@ -441,16 +441,16 @@ The host MUST inject `PluginContext` at lifecycle events. Each call is recorded 
 
 For Python plugins that need to call Core platform endpoints (Core SPEC §9.1) rather than reading the store directly, `PluginContext.api` is a typed in-process client wrapping the same handlers. Calls go through the same auth / verification / audit chain as external requests. The client exposes:
 
-- **Read endpoints** matching the plugin's `read:*` permissions (Core SPEC §9.1 GET routes for projects, primitives, relations, profiles, views).
+- **Read endpoints** matching the plugin's `read:*` permissions (Core SPEC §9.1 GET routes for workbooks, primitives, relations, profiles, views).
 - **Edit endpoints** (Core SPEC §9.7) matching the plugin's `write:*` permissions:
-  - `write:primitives` → `POST /projects/{pid}/primitives`, `PUT`/`PATCH /projects/{pid}/primitives/{id}`, `PATCH .../primitives/{id}:field-patch`, `DELETE /projects/{pid}/primitives/{id}`.
+  - `write:primitives` → `POST /workbooks/{pid}/primitives`, `PUT`/`PATCH /workbooks/{pid}/primitives/{id}`, `PATCH .../primitives/{id}:field-patch`, `DELETE /workbooks/{pid}/primitives/{id}`.
   - `write:relations` → analogous endpoints under `/relations/...`.
-  - `write:projects` → `POST /projects/{pid}/structure:reorder`, `POST /projects/{pid}/structure:reparent`, `POST /projects/{id}:split`, `POST /projects/{id}:clone`.
-  - `POST /projects/{pid}/edits` (batch transactions) — the endpoint itself requires authentication only; **each operation in the batch is checked under its per-resource permission** per Core SPEC §9.7.5. A plugin holding only `write:projects` cannot use the batch endpoint to mutate primitives; it must additionally hold `write:primitives` (and/or `write:relations`) for the operation kinds it submits.
+  - `write:workbooks` → `POST /workbooks/{pid}/structure:reorder`, `POST /workbooks/{pid}/structure:reparent`, `POST /workbooks/{id}:split`, `POST /workbooks/{id}:clone`.
+  - `POST /workbooks/{pid}/edits` (batch transactions) — the endpoint itself requires authentication only; **each operation in the batch is checked under its per-resource permission** per Core SPEC §9.7.5. A plugin holding only `write:workbooks` cannot use the batch endpoint to mutate primitives; it must additionally hold `write:primitives` (and/or `write:relations`) for the operation kinds it submits.
 
-Calling an endpoint without the matching permission raises `PermissionError`. The client refuses paths outside `/projects/...`, `/profiles/...`, `/plugins/{self.id}/...` — i.e. it cannot reach another plugin's namespace, the `/plugins/{other}/...` admin surface, or `/_*` reserved sub-namespaces.
+Calling an endpoint without the matching permission raises `PermissionError`. The client refuses paths outside `/workbooks/...`, `/profiles/...`, `/plugins/{self.id}/...` — i.e. it cannot reach another plugin's namespace, the `/plugins/{other}/...` admin surface, or `/_*` reserved sub-namespaces.
 
-This is the **only** path by which a plugin may write to project state. Direct `store` mutation remains forbidden (§6.2). A `cap:transformer` whose output is a list of §9.7.5 batch operations submits them through this client; the host re-runs the §7 validation pipeline against each operation just as it does for external requests.
+This is the **only** path by which a plugin may write to workbook state. Direct `store` mutation remains forbidden (§6.2). A `cap:transformer` whose output is a list of §9.7.5 batch operations submits them through this client; the host re-runs the §7 validation pipeline against each operation just as it does for external requests.
 
 ### 6.3 Discovery
 
@@ -462,7 +462,7 @@ Two discovery sources, evaluated in this order:
 `pyproject.toml` MUST add:
 
 ```toml
-[project.entry-points."fdpm.plugins"]
+[workbook.entry-points."fdpm.plugins"]
 formal-specification  = "fdpm.plugins.formal_specification:plugin"
 narrative             = "fdpm.plugins.narrative:plugin"
 software-architecture = "fdpm.plugins.software_architecture:plugin"
@@ -514,7 +514,7 @@ Every artefact a plugin contributes MUST pass through the host's verification ga
 | Renderer output       | MIME type matches declared target; size below `FDPM_MAX_RENDER_BYTES` (default 50 MiB); UTF-8 if textual.                         |
 | Router                | Prefix is empty (host imposes its own); no overlap with reserved sub-namespaces (Core SPEC §9.3) or Core platform paths (Core SPEC §9.1, §9.4). |
 | Transformer output    | Result satisfies destination primitive type's schema (re-runs the Core validation pipeline).                                      |
-| Importer/exporter     | Round-trip property test on a synthetic project (host-generated fixture) MUST pass at install time.                               |
+| Importer/exporter     | Round-trip property test on a synthetic workbook (host-generated fixture) MUST pass at install time.                               |
 
 A failure in the gate yields a `PluginError` with category `verification` and moves the plugin to `rejected` (install time) or `quarantined` (runtime).
 
@@ -643,10 +643,10 @@ The default form is the existing generic form; plugin-contributed forms override
 - `lib/api/core.ts` — host-owned endpoints used directly by the shell.
 - `lib/api/plugin-client.ts` — `createPluginApiClient(pluginId, permissions)` returns a `ScopedApiClient` with five allow-lists:
   - **Plugin namespace.** All paths under `/plugins/{pluginId}/...` are allowed.
-  - **Core read-side endpoints.** The Core SPEC §9.1 read endpoints whose required permission is in the plugin's manifest `permissions` (e.g. `GET /projects`, `GET /projects/{id}/primitives` if `read:projects` and `read:primitives` are held) are allowed.
-  - **Core edit endpoints (Core SPEC §9.7).** The four edit surfaces — whole-record (`PUT`/`PATCH .../primitives/{id}`, `.../relations/{id}`), field-level (`:field-patch`), batch (`POST /projects/{pid}/edits`), and structural (`/projects/{pid}/structure:reorder`, `:reparent`) — are allowed when the matching `write:*` permission is held. The client automatically forwards `If-Match` / `expected_revision` headers when the caller supplies them, and surfaces `412 precondition_failed` to the calling component as a typed `RevisionMismatch` error so plugin forms can prompt the user to refresh. Each successful call corresponds to one `Operation` appended to the log (Core SPEC §5.5).
-  - **Core graph operations (Core SPEC §5.4).** `POST /projects/{id}:split` and `POST /projects/{id}:clone` are allowed when `write:projects` is held. Both are destructive at the project level — split deletes the source, clone creates a new project — so they are gated by the same permission as `DELETE /projects/{id}` and `POST /projects`. Plugin UI that exposes these as user actions SHOULD show a confirmation dialog given the irreversibility (Core does not block on user confirmation; that is a UX concern).
-  - **Core event-sourced endpoints (Core SPEC §9.8).** `GET /projects/{id}/log` and `GET /projects/{id}/at` are allowed when `read:audit` and `read:projects` are held respectively. `POST /projects/{id}:undo` is allowed when the matching `write:*` permission for the target operation's kind is held — practically, plugin UI that exposes "undo" SHOULD use the same permission check as the original action's submitter form. The operator-only `:rebuild-from-log` endpoint is **never** allowed for plugin clients regardless of permission set.
+  - **Core read-side endpoints.** The Core SPEC §9.1 read endpoints whose required permission is in the plugin's manifest `permissions` (e.g. `GET /workbooks`, `GET /workbooks/{id}/primitives` if `read:workbooks` and `read:primitives` are held) are allowed.
+  - **Core edit endpoints (Core SPEC §9.7).** The four edit surfaces — whole-record (`PUT`/`PATCH .../primitives/{id}`, `.../relations/{id}`), field-level (`:field-patch`), batch (`POST /workbooks/{pid}/edits`), and structural (`/workbooks/{pid}/structure:reorder`, `:reparent`) — are allowed when the matching `write:*` permission is held. The client automatically forwards `If-Match` / `expected_revision` headers when the caller supplies them, and surfaces `412 precondition_failed` to the calling component as a typed `RevisionMismatch` error so plugin forms can prompt the user to refresh. Each successful call corresponds to one `Operation` appended to the log (Core SPEC §5.5).
+  - **Core graph operations (Core SPEC §5.4).** `POST /workbooks/{id}:split` and `POST /workbooks/{id}:clone` are allowed when `write:workbooks` is held. Both are destructive at the workbook level — split deletes the source, clone creates a new workbook — so they are gated by the same permission as `DELETE /workbooks/{id}` and `POST /workbooks`. Plugin UI that exposes these as user actions SHOULD show a confirmation dialog given the irreversibility (Core does not block on user confirmation; that is a UX concern).
+  - **Core event-sourced endpoints (Core SPEC §9.8).** `GET /workbooks/{id}/log` and `GET /workbooks/{id}/at` are allowed when `read:audit` and `read:workbooks` are held respectively. `POST /workbooks/{id}:undo` is allowed when the matching `write:*` permission for the target operation's kind is held — practically, plugin UI that exposes "undo" SHOULD use the same permission check as the original action's submitter form. The operator-only `:rebuild-from-log` endpoint is **never** allowed for plugin clients regardless of permission set.
 
   Calls outside all five lists fail client-side with a typed error and are also rejected server-side (defence in depth).
 
@@ -854,7 +854,7 @@ The SPEC is **implemented** when all the following hold against `main`:
 13. **Manifest cross-version compatibility.** A v1.0.0 manifest loads on a v1.1.0 host (forward-compat test); a v1.2.0 manifest is rejected on a v1.0.0 host (the host's supported-set is the gate, not the JSON Schema).
 14. **Lifecycle hooks.** Each of the four `cap:lifecycle-hook` events fires at the transition declared in §4.4; tests assert correct dispatch and quarantine behaviour on hook failure.
 15. **Slot conflicts.** Two plugins registering the same `(capability_id, slot_key)` pair → second is rejected; admin API surfaces the conflict.
-16. **Frontend scoped client.** A plugin with `read:projects` can call `GET /api/projects` from its UI; a plugin without it gets a typed client-side rejection AND a server-side 403; tests cover both legs.
+16. **Frontend scoped client.** A plugin with `read:workbooks` can call `GET /api/workbooks` from its UI; a plugin without it gets a typed client-side rejection AND a server-side 403; tests cover both legs.
 17. **First-paint budget.** A synthetic frontend plugin that delays `activate()` past `FDPM_FE_PLUGIN_BUDGET_MS` does not block shell paint; the slot falls back; the admin API marks the plugin `slow-activate`.
 
 Each criterion MUST be backed by a test in the corresponding test suite. A criterion without a test is not acceptable evidence.
@@ -874,7 +874,7 @@ The following are intentionally **not** in v1.1. They are listed so reviewers ca
 - Pattern/wildcard slot keys (§7.4 — exact-match only in v1.0).
 - Subresource integrity (`integrity` field) on frontend bundles — added in v1.1 per §7.3.
 - A `cap:shared-constants` capability addressing the Python↔TypeScript drift surface flagged in `drift-risk-map.md` findings #1, #5–#8. The plugin migration alone does not eliminate that surface; a future SPEC will.
-- A `cap:project-event` capability letting plugins subscribe to operation-log events (any `Operation.kind` from Core SPEC §5.5.1) without polling. Core SPEC §5.4.4 / §5.5.8 documents the deferral. Plugins that need to react to operations in v1.1 must poll `GET /projects/{id}/log` under the `read:audit` permission. Polling is intentionally awkward; the awkwardness is the signal that `cap:project-event` belongs in a future SPEC.
+- A `cap:workbook-event` capability letting plugins subscribe to operation-log events (any `Operation.kind` from Core SPEC §5.5.1) without polling. Core SPEC §5.4.4 / §5.5.8 documents the deferral. Plugins that need to react to operations in v1.1 must poll `GET /workbooks/{id}/log` under the `read:audit` permission. Polling is intentionally awkward; the awkwardness is the signal that `cap:workbook-event` belongs in a future SPEC.
 - A `cap:projection` capability letting plugins build their own derived views over the operation log (e.g. a domain-specific search index, materialised relation aggregate, or alternative diff view). The natural "free feature" event sourcing unlocks; deferred to the same future SPEC as `cap:project-event`.
 - Plugin contributions to the graph operations themselves (Core SPEC §5.4 split/clone). These are Core-implemented; plugins observe via the operation log, never implement alternate semantics.
 - Plugin-defined operation kinds. The kind set (Core SPEC §5.5.1) is closed and Core-owned. Plugins emit operations of existing kinds via `cap:transformer`; they cannot register new ones. Adding a kind is a Core SPEC minor bump.
@@ -930,7 +930,7 @@ Step 14 was rebucketed from S to S — confirmed: with no shim to coordinate, th
 These require operator input before implementation begins. They are the only items in this SPEC that are **not** pre-resolved.
 
 1. **Auth model for the admin API.** This SPEC assumes "admin scope" exists; the current codebase uses a simple API-key auth (`frontend/src/lib/auth.ts`). Operator: extend existing scheme, or introduce role separation now?
-2. **Persistence boundary.** The store is in-memory (`store.py:19-38`). Should plugin contributions survive a restart by re-running `activate()` (current SPEC assumption), or do plugin-side projects/state need a per-plugin persistence layer? If yes, that becomes a capability (`cap:storage`) and lands in v1.1.
+2. **Persistence boundary.** The store is in-memory (`store.py:19-38`). Should plugin contributions survive a restart by re-running `activate()` (current SPEC assumption), or do plugin-side workbooks/state need a per-plugin persistence layer? If yes, that becomes a capability (`cap:storage`) and lands in v1.1.
 3. **Signature scheme.** Manifest `trust.signature` is unspecified beyond "byte string". Operator preference: minisign, sigstore, GPG?
 
 Each open question has exactly one operator-decision point. The SPEC does not pre-empt them.
@@ -966,7 +966,7 @@ The reference echo plugin is the positive baseline; intentionally broken sibling
 - `src/fdpm/main.py` — current static plugin loading (lines 23–33, 45–50, 142–152).
 - `src/fdpm/store.py` — current registration target (line 42).
 - `src/fdpm/models/core.py` — `DomainProfile`, `PrimitiveTypeDef`, `RelationTypeDef`, `RendererBinding`, `ValidationRuleDef` definitions.
-- `pyproject.toml` — currently lacks `[project.entry-points]`; this SPEC adds the `fdpm.plugins` group.
+- `pyproject.toml` — currently lacks `[workbook.entry-points]`; this SPEC adds the `fdpm.plugins` group.
 - PEP 660 / `importlib.metadata.entry_points` — Python entry-point mechanism this SPEC relies on.
 - JSON Schema 2020-12 — manifest schema dialect.
 
@@ -990,7 +990,7 @@ No invariant changed; no plugin author or operator action required.
 
 **A real SPEC minor bump.** SPEC-CORE 1.1.0 adopted event sourcing
 as the canonical persistence model: every state change is now an
-immutable `Operation` appended to a per-project log, and the store
+immutable `Operation` appended to a per-workbook log, and the store
 is a derived projection. Plugin authors gain very little new
 capability — they emit operations through their existing write
 paths — but the *meaning* of those paths shifts enough to warrant
@@ -1000,9 +1000,9 @@ a SPEC bump on this side too.
 | - | ------ | ------ |
 | 0 | Bumped to 1.1.0; spec id to `spec:fdpm:pluggable-architecture:1.1`. Lede rewritten to mark the bump and explain why plugin manifests can stay at `"1.0.0"`. | Honest versioning. |
 | 4.1 | `cap:transformer` description now explains the operation log: each emitted operation is an immutable record traceable back to the transformer call via `request_id` and `plugin_id`. | The transformer's wire-protocol output is unchanged but its persistence consequence is new. |
-| 5.2 | `read:audit` permission entry rewritten: it now covers `GET /projects/{id}/log` (the unified operation log endpoint per Core SPEC §9.8.1), and per-actor filtering became a query parameter — so the permission is now binary (holders see all, non-holders see none) rather than the v1.0 "own actions only" framing. | Mirrors the audit-log unification in Core SPEC §13.3. |
+| 5.2 | `read:audit` permission entry rewritten: it now covers `GET /workbooks/{id}/log` (the unified operation log endpoint per Core SPEC §9.8.1), and per-actor filtering became a query parameter — so the permission is now binary (holders see all, non-holders see none) rather than the v1.0 "own actions only" framing. | Mirrors the audit-log unification in Core SPEC §13.3. |
 | 6.2 | `PluginContext.audit(...)` removed. Plugin-emitted operations *are* their audit records. Migration note added for any plugin that called `audit(...)` for non-state-change bookkeeping (no known users in v1.0). | Audit-log unification eliminates the parallel write path. |
-| 7.5 | `ScopedApiClient` allow-list grew a fifth bucket: Core event-sourced endpoints (Core SPEC §9.8). `GET /log` (gated by `read:audit`), `GET /at` (gated by `read:projects`), `:undo` (gated by the same permission as the original op). `:rebuild-from-log` is operator-only and never plugin-accessible. | Plugin UI needs documented access to the new endpoints. |
+| 7.5 | `ScopedApiClient` allow-list grew a fifth bucket: Core event-sourced endpoints (Core SPEC §9.8). `GET /log` (gated by `read:audit`), `GET /at` (gated by `read:workbooks`), `:undo` (gated by the same permission as the original op). `:rebuild-from-log` is operator-only and never plugin-accessible. | Plugin UI needs documented access to the new endpoints. |
 | 14 | Out-of-scope expanded: `cap:project-event` description widened (any operation kind, not just split/clone); `cap:projection` added; plugin-defined operation kinds explicitly forbidden; plugin-supplied upcasters explicitly forbidden. | Make the new boundary auditable — what plugins cannot do, despite event sourcing tempting authors to ask. |
 | 19 | Cross-reference list adds Core §5.5 (event sourcing) and §9.8 (time-travel/undo). | Traceability. |
 
@@ -1026,7 +1026,7 @@ final-pass clarification of batch-edit permissions in `CoreClient`.
 | § | Change | Reason |
 | - | ------ | ------ |
 | 0 | Bumped revision; intro updated to note 1.0.5 mirrors SPEC-CORE 1.0.4. | Pair traceability. |
-| 6.2.1 | The `CoreClient` permission map split: `write:projects` now lists only project-level operations (`structure:reorder`, `structure:reparent`, `:split`, `:clone`); `POST /projects/{pid}/edits` is its own row with the per-operation permission rule (each op checked under its per-resource permission per Core SPEC §9.7.5). | Final-pass finding: the previous map made `write:projects` a backdoor to per-resource mutation via the batch endpoint. |
+| 6.2.1 | The `CoreClient` permission map split: `write:workbooks` now lists only workbook-level operations (`structure:reorder`, `structure:reparent`, `:split`, `:clone`); `POST /workbooks/{pid}/edits` is its own row with the per-operation permission rule (each op checked under its per-resource permission per Core SPEC §9.7.5). | Final-pass finding: the previous map made `write:workbooks` a backdoor to per-resource mutation via the batch endpoint. |
 
 No invariant changed; existing manifests targeting any prior 1.0.x are
 unaffected. The clarification narrows what the batch endpoint allows
@@ -1035,24 +1035,24 @@ on the wire.
 
 ### 1.0.4 — 2026-05-04 — alignment with SPEC-CORE §5.4 (graph operations)
 
-SPEC-CORE 1.0.3 added two project-level graph operations
-(`POST /projects/{id}:split`, `POST /projects/{id}:clone`) and one
+SPEC-CORE 1.0.3 added two workbook-level graph operations
+(`POST /workbooks/{id}:split`, `POST /workbooks/{id}:clone`) and one
 optional meta-model field (`PrimitiveTypeDef.is_partition_unit`).
 This revision wires those into the pluggable surface: profile
 authors now have a clear way to declare partition units, and
 plugin UI can call `:split` / `:clone` through the scoped client
-under `write:projects`.
+under `write:workbooks`.
 
 | § | Change | Reason |
 | - | ------ | ------ |
 | 0 | Bumped revision; lede notes that this is a pluggable-side alignment for SPEC-CORE 1.0.3, not a normative change to this SPEC. | Honest versioning. |
 | 4.1 | `cap:profile` description notes that profiles MAY mark primitive types as partition units via `is_partition_unit` (Core SPEC §5.4.3). | New meta-model field is profile-authored content; plugin authors need to know it exists. |
-| 7.5 | `ScopedApiClient` allow-list grew a fourth bucket: Core graph operations (`:split`, `:clone`) under `write:projects`. SHOULD-confirmation note for irreversible actions. | Plugin UI needs a documented way to trigger these without inventing parallel paths. |
-| 14 | Added two out-of-scope entries: `cap:project-event` (deferred per Core §5.4.4) and "plugin contributions to graph operations" (Core-implemented; plugins observe via audit). | Make absences auditable. |
+| 7.5 | `ScopedApiClient` allow-list grew a fourth bucket: Core graph operations (`:split`, `:clone`) under `write:workbooks`. SHOULD-confirmation note for irreversible actions. | Plugin UI needs a documented way to trigger these without inventing parallel paths. |
+| 14 | Added two out-of-scope entries: `cap:workbook-event` (deferred per Core §5.4.4) and "plugin contributions to graph operations" (Core-implemented; plugins observe via audit). | Make absences auditable. |
 | 19 | Cross-reference list adds Core SPEC §5.4. | Traceability. |
 
 No new permission was introduced. `:split` and `:clone` ride on
-existing `write:projects`; observation rides on existing
+existing `write:workbooks`; observation rides on existing
 `read:audit`. No invariant in §17.2 (Core) or in this SPEC's
 acceptance criteria changed. Existing plugin manifests targeting
 `spec_version: "1.0.0"` remain valid.
@@ -1106,7 +1106,7 @@ the SPEC pair-review of 1.0.0.
 | 4.1 | `cap:lifecycle-hook` cardinality changed from `0..1` to `0..4 (one per event)`. | Pair-review finding: original `0..1` contradicted §6.4's four lifecycle events. |
 | 4.4 (new) | Concrete dispatch rules for each of the four lifecycle hooks, with `local_name` enforced as the kebab-case event name. | Pair-review finding: hooks were under-specified. |
 | 5.1 | `spec_version` changed from `const "1.0.0"` to `pattern: ^1\.\d+\.\d+$`; `(capability_id, local_name)` uniqueness moved to in-code check with explanatory note. | Pair-review finding: `const` made every minor bump break all prior plugins. |
-| 5.2 (new) | Permissions table now exhaustive. Added `read:audit`, `import:project`, `export:project`, `menu:contribute`. | Pair-review finding: capabilities (`cap:exporter`, `cap:ui:menu-action`) had no matching permission. |
+| 5.2 (new) | Permissions table now exhaustive. Added `read:audit`, `import:workbook`, `export:workbook`, `menu:contribute`. | Pair-review finding: capabilities (`cap:exporter`, `cap:ui:menu-action`) had no matching permission. |
 | 5.3 (new) | Explicit list of capabilities that require no permission (`cap:validator`, `cap:profile`, `cap:lifecycle-hook`, `cap:ui:*`). | Pair-review finding: previously implicit; reviewers asked which caps were unprivileged. |
 | 6.2 | Added Core-read methods to `PluginContext` (`list_projects`, `get_primitive`, etc.) and `audit()`. | Pair-review finding: plugins routinely need read access; the v1.0.0 context was too narrow. |
 | 6.2.1 (new) | `CoreReadClient` available via `PluginContext.api` (renamed `CoreClient` in 1.0.3 when write endpoints were added). | Same. |

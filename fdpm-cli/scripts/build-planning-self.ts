@@ -1,6 +1,6 @@
 /**
- * Build a small planning project that tracks the fdpm.planning plugin's
- * own rollout. Doubles as a worked example: a 12-task project showing
+ * Build a small planning workbook that tracks the fdpm.planning plugin's
+ * own rollout. Doubles as a worked example: a 12-task workbook showing
  * AI / Human task mix, dependencies, blockers, an iteration window, and
  * cross-profile plan:Implements links.
  *
@@ -34,9 +34,9 @@ const PROJECT_ID = "planning-self";
 // Note on assignment: the seed uses the `assignee_id` field on each task
 // (which is a free-form stableId, not enforced cross-profile by the v1.1
 // host). It does NOT emit plan:AssignedTo relations because that requires
-// a sw:Actor primitive in this project's graph, and the project is bound
+// a sw:Actor primitive in this workbook's graph, and the workbook is bound
 // to profile:planning:0.1 (which does not declare sw:Actor). A cross-
-// profile project would mix the two profiles via `extends`; out of scope
+// profile workbook would mix the two profiles via `extends`; out of scope
 // for the seed.
 
 // ── Iteration ──────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ const wbsSpecs: PrimitiveSpec[] = [
   {
     id: "wbs:planning-rollout",
     type: "plan:WorkBreakdown",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       name: "planning-rollout",
       summary: "Rollout of the fdpm.planning plugin: schema, rules, renderers, tests, self-test.",
@@ -73,7 +73,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:schema-loads",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion: "Plugin discovery loads the planning profile alongside sw and fs.",
       expression: 'graph.exists("plan:Task")',
@@ -84,7 +84,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:cel-fires",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion: "All 10 CEL rules evaluate end-to-end.",
       expression: 'graph.exists("plan:Task")',
@@ -95,7 +95,7 @@ const acSpecs: PrimitiveSpec[] = [
   {
     id: "ac:renderers-output",
     type: "plan:AcceptanceCriterion",
-    scope: SCOPE_IDS.project,
+    scope: SCOPE_IDS.workbook,
     fields: {
       criterion: "Roadmap, Gantt SVG, AgentBoard renderers produce well-formed output.",
       expression: 'graph.exists("plan:Task")',
@@ -270,7 +270,7 @@ const tasks: Task[] = [
   {
     id: "task:slice8-self",
     name: "slice8-self",
-    summary: "This very script — the self-test seed project.",
+    summary: "This very script — the self-test seed workbook.",
     kind: "Test",
     executor: "Either",
     ai_minutes: 30,
@@ -285,7 +285,7 @@ const tasks: Task[] = [
 const taskSpecs: PrimitiveSpec[] = tasks.map((t) => ({
   id: t.id,
   type: "plan:Task",
-  scope: SCOPE_IDS.project,
+  scope: SCOPE_IDS.workbook,
   fields: {
     name: t.name,
     summary: t.summary,
@@ -346,7 +346,7 @@ const relations: RelationSpec[] = [
     to: "ac:schema-loads",
   })),
   // plan:AssignedTo relations would require sw:Actor primitives in the
-  // project graph; the seed is bound to profile:planning:0.1 only and
+  // workbook graph; the seed is bound to profile:planning:0.1 only and
   // uses the canonical `assignee_id` field on each Task instead.
 ];
 
@@ -357,7 +357,7 @@ async function main() {
     name: "Planning plugin self-test",
     profile: PROFILE_ID,
     description:
-      "Twelve-task project tracking the rollout of the fdpm.planning plugin itself. AI tasks bounded to <=60 minutes; full dependency chain; iteration window 2026-05-04..14.",
+      "Twelve-task workbook tracking the rollout of the fdpm.planning plugin itself. AI tasks bounded to <=60 minutes; full dependency chain; iteration window 2026-05-04..14.",
   })
     .primitives([
       ...iterationSpecs,
@@ -368,7 +368,7 @@ async function main() {
     .relations(relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
   console.log("  revision:  ", result.revision);

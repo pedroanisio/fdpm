@@ -24,7 +24,7 @@ import type { PrimitiveTypeDef, DomainProfile } from "../src/core/models/meta.js
 const TYPE: PrimitiveTypeDef = {
   id: "test:section",
   fields: [{ name: "title", kind: "string", required: false, validations: [] }],
-  id_format: { pattern: "^.*$", uniqueness: "project" },
+  id_format: { pattern: "^.*$", uniqueness: "workbook" },
   inline_structs: [],
   is_partition_unit: false,
 };
@@ -205,15 +205,15 @@ describe("evaluateCEL — error paths reach FDPMException", () => {
     let caught: unknown;
     try {
       evaluateCEL(
-        'fn.sortBy(project.primitives, item, item.fields.title).size() > 0',
+        'fn.sortBy(workbook.primitives, item, item.fields.title).size() > 0',
         INSTANCE,
         TYPE,
         PROFILE,
         [],
         "rule:bound",
         {
-          project: {
-            project: {
+          workbook: {
+            workbook: {
               id: "p",
               name: "P",
               profile_id: "test:cel",

@@ -16,7 +16,7 @@ async function seedWithLegacyShape() {
   const host = await newHost();
   await importTransfer(host, {
     spec_core: "1.1",
-    project: {
+    workbook: {
       id: "p",
       name: "P",
       profile_id: "test:demo",
@@ -85,11 +85,11 @@ describe("host.migrateNormalizeMetadata", () => {
 
   it("dry-run reports the same outcome without mutating", async () => {
     const host = await seedWithLegacyShape();
-    const before = host.getProject("p").project.revision;
+    const before = host.getProject("p").workbook.revision;
     const result = await host.migrateNormalizeMetadata("p", { dryRun: true });
     expect(result.dry_run).toBe(true);
     expect(result.normalised).toEqual(["rel:legacy"]);
-    const after = host.getProject("p").project.revision;
+    const after = host.getProject("p").workbook.revision;
     expect(after).toBe(before);
     // Underlying relation unchanged.
     const rel = host.getProject("p").relations["rel:legacy"];
@@ -100,7 +100,7 @@ describe("host.migrateNormalizeMetadata", () => {
     const host = await newHost();
     await importTransfer(host, {
       spec_core: "1.1",
-      project: {
+      workbook: {
         id: "p",
         name: "P",
         profile_id: "test:demo",
@@ -165,7 +165,7 @@ describe("host.migrateNormalizeMetadata", () => {
     // Add a second migrate-able relation to make the batch non-trivial.
     await importTransfer(host, {
       spec_core: "1.1",
-      project: {
+      workbook: {
         id: "p2",
         name: "P2",
         profile_id: "test:demo",

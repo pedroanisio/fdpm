@@ -26,7 +26,7 @@
  *
  * Envelope shape on validation failure (entry N rejected):
  *   { ok: false,
- *     validation_report: { target_id: project_id, findings, accepted: false },
+ *     validation_report: { target_id: workbook_id, findings, accepted: false },
  *     post_state_summary: {} }
  *
  * The single-validation_report shape on rejection is the
@@ -42,7 +42,7 @@ import { ValidationReport } from "../../core/models/instance.js";
 
 const Input = z
   .object({
-    project_id: z.string().min(1),
+    workbook_id: z.string().min(1),
     primitives: z
       .array(
         z
@@ -93,7 +93,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
       primitive: p,
     }));
     const { outputs, reports } = await host.appendBatchWithCausation(
-      args.project_id,
+      args.workbook_id,
       intents,
     );
     return {

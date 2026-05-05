@@ -9,10 +9,10 @@
  *      with capacity `maxPerMinute`.
  *
  *   2. The freshness map (§10 / §21 freshness gate). Tracks the last
- *      observed `(mtime_ns, size)` tuple for every project log this
+ *      observed `(mtime_ns, size)` tuple for every workbook log this
  *      session has touched. The dispatcher consults this map per call
  *      to detect out-of-band writes since the last invocation. A `null`
- *      stat (project log file does not exist) is recorded as the
+ *      stat (workbook log file does not exist) is recorded as the
  *      `MISSING_LOG` sentinel so a later "the log appeared" transition
  *      is still detected as drift.
  *
@@ -35,7 +35,7 @@ export interface TokenBucketLike {
 }
 
 /**
- * Sentinel for a project log that did not exist when last seen. Stored
+ * Sentinel for a workbook log that did not exist when last seen. Stored
  * in the freshness map so that a subsequent `null` → real-stat
  * transition (the log was created out of band) is detected as drift.
  */
@@ -52,15 +52,15 @@ export interface McpSession {
   readonly firstSeen: number;
   readonly rateLimiter: TokenBucketLike;
   /**
-   * Record (or refresh) the (mtime_ns, size) tuple for each project_id.
+   * Record (or refresh) the (mtime_ns, size) tuple for each workbook_id.
    * Called on first encounter and after a successful tail-replay /
    * SIGHUP reload.
    */
   recordSeen(host: Host, project_ids: readonly string[]): void;
   /**
-   * Compare each project's current on-disk stat to the recorded value.
+   * Compare each workbook's current on-disk stat to the recorded value.
    * `stale` is the subset whose tuple differs; `fresh` is the subset
-   * either equal or never seen before. Projects not previously seen are
+   * either equal or never seen before. Workbooks not previously seen are
    * recorded fresh and reported under `fresh`.
    */
   checkFreshness(

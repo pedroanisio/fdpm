@@ -63,7 +63,7 @@ export const CAPABILITY_PRIMITIVES: PrimitiveTypeDef[] = [
     id_format: idTemplate("spec:ep:{slug}", "global"),
     fields: [
       enumOf("method", "HTTP verb.", ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]),
-      str("path", "URL path with placeholders, e.g., '/projects/{id}'."),
+      str("path", "URL path with placeholders, e.g., '/workbooks/{id}'."),
       enumOf("namespace", "Reservation namespace.", [
         "core",
         "plugin",
@@ -125,7 +125,7 @@ export const CAPABILITY_PRIMITIVES: PrimitiveTypeDef[] = [
     name: "Schema Definition",
     category: "cat:spec:capability",
     description:
-      "A schema block embedded in a SPEC (SPEC-PLUGGABLE §5.1 manifest schema). Renders as a fenced code block. The renderer can also project a field table.",
+      "A schema block embedded in a SPEC (SPEC-PLUGGABLE §5.1 manifest schema). Renders as a fenced code block. The renderer can also workbook a field table.",
     id_format: idTemplate("spec:schema:{slug}", "global"),
     fields: [
       str("name", "Schema name."),

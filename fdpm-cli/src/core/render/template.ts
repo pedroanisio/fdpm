@@ -1,7 +1,7 @@
 import type { DomainProfile, PrimitiveTypeDef } from "../models/meta.js";
 import type {
   PrimitiveInstance,
-  Project,
+  Workbook,
   ProjectTemplate,
   RelationInstance,
 } from "../models/instance.js";
@@ -235,8 +235,8 @@ function renderInclude(
 function evaluateRenderExpression(expression: string, ctx: InternalRenderContext): unknown {
   const docType = requirePrimitiveType(ctx.profile, ctx.doc.type_id);
   const options: ValidationEvaluationOptions = {
-    project: ctx.slice,
-    projectFingerprint: `${ctx.slice.project.id}@${ctx.slice.project.revision}`,
+    workbook: ctx.slice,
+    projectFingerprint: `${ctx.slice.workbook.id}@${ctx.slice.workbook.revision}`,
     permissions: ctx.permissions,
     ...(ctx.sectionIndex && { sectionIndex: ctx.sectionIndex }),
   };
@@ -428,4 +428,4 @@ function assertNever(_value: never): never {
   throw new Error("unreachable");
 }
 
-export type { Project, ProjectTemplate };
+export type { Workbook, ProjectTemplate };

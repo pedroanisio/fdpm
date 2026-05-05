@@ -176,7 +176,7 @@ export const IDENTITY_PRIMITIVES: PrimitiveTypeDef[] = [
   // View (a concrete projection of the system through that viewpoint).
   //
   // A Viewpoint declares concerns it addresses and stakeholders it serves.
-  // A View binds a Viewpoint to a filter over the project graph (which
+  // A View binds a Viewpoint to a filter over the workbook graph (which
   // categories / scopes / type ids / stakeholders are included).
   primitive({
     id: "sw:Viewpoint",

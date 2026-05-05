@@ -219,7 +219,7 @@ async function main(): Promise<void> {
         // freshness-watcher polling loop is in place.
         resources: {},
       },
-      instructions: `FDPM MCP server v0.1 (manifest ${MCP_TOOL_MANIFEST_VERSION}). Tier 1 + Tier 2 advertised; Tier 3 destructive deletes opt-in via --enable-destructive. Resources: fdpm://project/{id}/render/{target}.`,
+      instructions: `FDPM MCP server v0.1 (manifest ${MCP_TOOL_MANIFEST_VERSION}). Tier 1 + Tier 2 advertised; Tier 3 destructive deletes opt-in via --enable-destructive. Resources: fdpm://workbook/{id}/render/{target}.`,
     },
   );
 
@@ -256,8 +256,8 @@ async function main(): Promise<void> {
   });
 
   // -- Resources surface (slice 1: render only) -----------------------
-  // Read-only addressable views of project state. `resources/list`
-  // walks every (project, registered renderer target) pair so clients
+  // Read-only addressable views of workbook state. `resources/list`
+  // walks every (workbook, registered renderer target) pair so clients
   // can pin specific outputs without calling tools. `resources/read`
   // dispatches through the provider registry; the render provider
   // runs SPEC-REPL §10.2 lenient tail-replay before invoking the
@@ -352,14 +352,14 @@ async function handleSighup(
   try {
     const result = await host.reload();
     process.stderr.write(
-      `fdpm-mcp: reloaded at ${result.reloadedAt}, ${result.projects.length} projects\n`,
+      `fdpm-mcp: reloaded at ${result.reloadedAt}, ${result.workbooks.length} workbooks\n`,
     );
     session.clearFreshnessMap();
     audit.write({
       ts: new Date().toISOString(),
       phase: "reload",
       reloaded_at: result.reloadedAt,
-      project_count: result.projects.length,
+      project_count: result.workbooks.length,
       outcome: "ok",
     });
   } catch (err) {

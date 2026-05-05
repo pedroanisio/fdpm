@@ -166,12 +166,12 @@ const terms: Array<[string, string, string?]> = [
     "An optional string inside a `dnis:Node`'s `content` JSON that names the kind dispatcher (`adr`, `stakeholders`, `references`, …). The renderer reads it and routes to KIND_RENDERERS — identical mechanism to v0.1's `kind` field on `spec:Section`, just relocated.",
   ],
   [
-    "Mixed-mode project",
-    "A project that contains BOTH `spec:Section` primitives and `dnis:Node` primitives of kind `section`. The renderer treats this as a defect: it emits a `spec:render:mixed-mode-sections` warning, prefers the DNIS path, and ignores the `spec:Section` primitives. Authors are expected to migrate or remove the legacy primitives.",
+    "Mixed-mode workbook",
+    "A workbook that contains BOTH `spec:Section` primitives and `dnis:Node` primitives of kind `section`. The renderer treats this as a defect: it emits a `spec:render:mixed-mode-sections` warning, prefers the DNIS path, and ignores the `spec:Section` primitives. Authors are expected to migrate or remove the legacy primitives.",
   ],
   [
     "Authored number (deprecated)",
-    "The `number` field on `spec:Section` as it exists today — a hand-typed string like '7' or '12.3.1'. Becomes a fallback only for projects that have NOT yet adopted DNIS Nodes; under v0.2 it is silently honored on the legacy spec:Section path and silently ignored on the DNIS path. Removed in a future SPEC version once all in-tree build scripts are migrated.",
+    "The `number` field on `spec:Section` as it exists today — a hand-typed string like '7' or '12.3.1'. Becomes a fallback only for workbooks that have NOT yet adopted DNIS Nodes; under v0.2 it is silently honored on the legacy spec:Section path and silently ignored on the DNIS path. Removed in a future SPEC version once all in-tree build scripts are migrated.",
   ],
 ];
 
@@ -262,7 +262,7 @@ const qas: Array<{ id: string; attribute: string; pressure: string; priority: st
     id: "spec:qa:back-compat",
     attribute: "Backward compatibility",
     pressure:
-      "Existing build-spec-*.ts scripts must continue to render correctly without code changes. The renderer keeps the legacy spec:Section path intact; only projects that explicitly construct dnis:Document + dnis:Node primitives switch to the new path.",
+      "Existing build-spec-*.ts scripts must continue to render correctly without code changes. The renderer keeps the legacy spec:Section path intact; only workbooks that explicitly construct dnis:Document + dnis:Node primitives switch to the new path.",
     priority: "primary",
   },
 ];
@@ -285,7 +285,7 @@ const principles: Array<{
     id: "spec:inv:graph-is-truth",
     label: "Graph-is-truth",
     statement:
-      "When the project contains a `dnis:Document`, the section structure is fully determined by `dnis:Node` primitives whose `kind` is `section`, rooted at that document via `parent_node_id`. No other artifact (no authored `number`, no DSL fragment, no plugin override) may contribute to that structure. If two artifacts can describe the same fact, they will eventually disagree; eliminate one. In a mixed-mode project the DNIS path wins and the renderer emits a warning so the operator sees the conflict.",
+      "When the workbook contains a `dnis:Document`, the section structure is fully determined by `dnis:Node` primitives whose `kind` is `section`, rooted at that document via `parent_node_id`. No other artifact (no authored `number`, no DSL fragment, no plugin override) may contribute to that structure. If two artifacts can describe the same fact, they will eventually disagree; eliminate one. In a mixed-mode workbook the DNIS path wins and the renderer emits a warning so the operator sees the conflict.",
     enforcement: "ci_check",
   },
   {
@@ -306,7 +306,7 @@ const principles: Array<{
     id: "spec:inv:legacy-fallback-non-canonical",
     label: "Legacy-fallback-non-canonical",
     statement:
-      "When a project contains `dnis:Document` AND `spec:Section` primitives simultaneously, the DNIS path is canonical and the spec:Section primitives are ignored by the renderer. The renderer emits a `spec:render:mixed-mode-sections` warning. Pure spec:Section projects (no dnis:Document) continue to render via the legacy path indefinitely. We do not break existing build-spec-*.ts scripts.",
+      "When a workbook contains `dnis:Document` AND `spec:Section` primitives simultaneously, the DNIS path is canonical and the spec:Section primitives are ignored by the renderer. The renderer emits a `spec:render:mixed-mode-sections` warning. Pure spec:Section workbooks (no dnis:Document) continue to render via the legacy path indefinitely. We do not break existing build-spec-*.ts scripts.",
     enforcement: "runtime_check",
   },
 ];
@@ -325,7 +325,7 @@ const optA: PrimitiveSpec = {
   fields: {
     label: "Adopt SPEC-DNIS for section identity and order",
     description:
-      "Each spec section becomes a `dnis:Node` of kind `section`, anchored at a `dnis:Document` root. SPEC-DNIS Position drives sibling order (Insertion Property is total — O(1) inserts at any density). Renderer DFS-walks the dnis:Node graph and derives §N.M.K from the path. spec:Section + spec:HasSection stay registered for legacy projects but are non-canonical when DNIS Nodes are present.",
+      "Each spec section becomes a `dnis:Node` of kind `section`, anchored at a `dnis:Document` root. SPEC-DNIS Position drives sibling order (Insertion Property is total — O(1) inserts at any density). Renderer DFS-walks the dnis:Node graph and derives §N.M.K from the path. spec:Section + spec:HasSection stay registered for legacy workbooks but are non-canonical when DNIS Nodes are present.",
     pros: [
       "Single source of truth — the DNIS Node graph is canonical.",
       "Inserts are O(1) at arbitrary density (DNIS §6.2 Insertion Property is total).",
@@ -335,7 +335,7 @@ const optA: PrimitiveSpec = {
       "Reuses SPEC-DNIS infrastructure: typed Operations (create/move/retire), op-log audit trail, idempotency by OperationId, lineage via dnis:DerivedFrom — none of which the v0.1 order:int proposal got for free.",
     ],
     cons: [
-      "Requires a project to be on the composed `profile:spec-authoring-dnis:0.1` profile (not pure `profile:spec-authoring:0.1`). Existing scripts must opt in; this is a profile_id change at project create time.",
+      "Requires a workbook to be on the composed `profile:spec-authoring-dnis:0.1` profile (not pure `profile:spec-authoring:0.1`). Existing scripts must opt in; this is a profile_id change at workbook create time.",
       "Operators reading raw graph data see a `dnis:Node` with JSON `content` instead of a `spec:Section` with separate fields; less self-explanatory until rendered.",
       "Migration codemod is M-sized (rewrite each build-spec-*.ts to use DnisHostAdapter for sections); the v0.1 proposal's `order:int` codemod was simpler.",
     ],
@@ -414,7 +414,7 @@ const adr: PrimitiveSpec = {
     ],
     compliance_checks: [
       "Adapter integration test in `fdpm-cli/tests/spec-md-dnis-sections.test.ts` exercises the renderer's DNIS path against a hand-built fixture.",
-      "The replay-determinism test from SPEC-CORE §5.6.6 covers any project on the composed profile.",
+      "The replay-determinism test from SPEC-CORE §5.6.6 covers any workbook on the composed profile.",
       "A differential CI test asserts byte-equal renders before and after migrating a single build-spec-*.ts script.",
     ],
     revisit_signals: [
@@ -457,7 +457,7 @@ const tradeoffs: PrimitiveSpec[] = [
     fields: {
       axis: "Migration cost",
       cells: [
-        { option_id: "spec:opt:adopt-dnis", value: "M — codemod each build-spec-*.ts to DnisHostAdapter; profile bump per project." },
+        { option_id: "spec:opt:adopt-dnis", value: "M — codemod each build-spec-*.ts to DnisHostAdapter; profile bump per workbook." },
         { option_id: "spec:opt:add-order-field", value: "XS — sed-style number→order rewrite in each build script." },
         { option_id: "spec:opt:render-dsl-deferral", value: "High — depends on DSL stabilisation." },
       ],
@@ -502,7 +502,7 @@ const scenarios: PrimitiveSpec[] = [
         "Insert a new section between §6 and §7 of an existing SPEC. The two existing sections may be at any DNIS Position — including immediately adjacent.",
       environment:
         "build-spec-*.ts authoring against a v0.2 host (profile:spec-authoring-dnis:0.1).",
-      artifact: "dnis:Node primitives in the project graph.",
+      artifact: "dnis:Node primitives in the workbook graph.",
       response:
         "Author calls DnisHostAdapter.apply({ type: 'create', payload: { ..., position: positionBetween(prevSibling.position, nextSibling.position) } }). The renderer outputs the new section as §7 and renumbers downstream automatically.",
       response_measure:
@@ -515,7 +515,7 @@ const scenarios: PrimitiveSpec[] = [
     fields: {
       title: "Replay determinism — byte-equal SHA-256 across replays",
       source: "Core replay subsystem on Host startup.",
-      stimulus: "Replay the operation log of a SPEC project containing N dnis:Node sections.",
+      stimulus: "Replay the operation log of a SPEC workbook containing N dnis:Node sections.",
       environment: "FDPM Host startup with the persistent JSONL log on disk.",
       artifact: "Materialised primitive/relation map plus rendered Markdown.",
       response:
@@ -535,9 +535,9 @@ const scenarios: PrimitiveSpec[] = [
       environment: "v0.2 host with the dnis path active in the renderer.",
       artifact: "The rendered Markdown plus the findings list emitted alongside it.",
       response:
-        "Renderer detects no dnis:Document in the project, falls back to the legacy spec:Section path. Output matches pre-v0.2 byte-for-byte.",
+        "Renderer detects no dnis:Document in the workbook, falls back to the legacy spec:Section path. Output matches pre-v0.2 byte-for-byte.",
       response_measure:
-        "diff(rendered_v0.2, rendered_v0.1) == empty for any project on profile:spec-authoring:0.1. Mixed-mode warning count = 0 because the project does not contain a dnis:Document.",
+        "diff(rendered_v0.2, rendered_v0.1) == empty for any workbook on profile:spec-authoring:0.1. Mixed-mode warning count = 0 because the workbook does not contain a dnis:Document.",
     },
   },
 ];
@@ -551,7 +551,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Renderer DNIS-Node path",
       statement:
-        "spec:SpecMarkdownRenderer MUST DFS-walk dnis:Node primitives whose kind is `section` when a project contains a dnis:Document. Sibling order MUST be determined by the lexicographic comparison of `position` field values per SPEC-DNIS §6.1.",
+        "spec:SpecMarkdownRenderer MUST DFS-walk dnis:Node primitives whose kind is `section` when a workbook contains a dnis:Document. Sibling order MUST be determined by the lexicographic comparison of `position` field values per SPEC-DNIS §6.1.",
       strength: "MUST",
       verifiability: "test",
     },
@@ -573,7 +573,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Mixed-mode warning",
       statement:
-        "When a project contains BOTH spec:Section primitives AND dnis:Node primitives of kind `section`, the renderer MUST emit exactly one `spec:render:mixed-mode-sections` warning finding and MUST render only the dnis:Node sections (the legacy primitives are ignored).",
+        "When a workbook contains BOTH spec:Section primitives AND dnis:Node primitives of kind `section`, the renderer MUST emit exactly one `spec:render:mixed-mode-sections` warning finding and MUST render only the dnis:Node sections (the legacy primitives are ignored).",
       strength: "MUST",
       verifiability: "test",
     },
@@ -584,7 +584,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Legacy fallback preserved",
       statement:
-        "When a project contains spec:Section primitives but NO dnis:Document, the renderer MUST render via the legacy compareSectionNumbers path with byte-equal output to v0.1. This is the back-compat guarantee for unmigrated build-spec-*.ts scripts.",
+        "When a workbook contains spec:Section primitives but NO dnis:Document, the renderer MUST render via the legacy compareSectionNumbers path with byte-equal output to v0.1. This is the back-compat guarantee for unmigrated build-spec-*.ts scripts.",
       strength: "MUST",
       verifiability: "ci_check",
     },
@@ -617,7 +617,7 @@ const requirements: PrimitiveSpec[] = [
     fields: {
       label: "Cycle prevention",
       statement:
-        "The renderer SHOULD reject (or warn) on cyclic parent_node_id references within a project's dnis:Node graph. SPEC-DNIS §7.3 already prevents cycles at write time; this requirement is defense-in-depth at render time for projects whose op log was mutated externally.",
+        "The renderer SHOULD reject (or warn) on cyclic parent_node_id references within a workbook's dnis:Node graph. SPEC-DNIS §7.3 already prevents cycles at write time; this requirement is defense-in-depth at render time for workbooks whose op log was mutated externally.",
       strength: "SHOULD",
       verifiability: "review",
     },
@@ -666,7 +666,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 4,
       criterion:
-        "The composition profile resolves correctly: a project on profile:spec-authoring-dnis:0.1 sees both spec:* and dnis:* primitive types. Verified by the smoke test in `/tmp/spec-authoring-dnis-smoke.ts` (run-once during implementation; not a CI fixture).",
+        "The composition profile resolves correctly: a workbook on profile:spec-authoring-dnis:0.1 sees both spec:* and dnis:* primitive types. Verified by the smoke test in `/tmp/spec-authoring-dnis-smoke.ts` (run-once during implementation; not a CI fixture).",
       status: "met",
       evidence_refs: ["fdpm-cli/plugins/spec_authoring_dnis/index.ts"],
     },
@@ -694,7 +694,7 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 1,
       name: "DFS numbering matches the dnis:Node tree",
       procedure:
-        "Construct a fixture project with three nested sections (1 → 1.1 → 1.1.1 plus a 1.2 sibling and a §2 root sibling) via DnisHostAdapter; render via spec:SpecMarkdownRenderer.",
+        "Construct a fixture workbook with three nested sections (1 → 1.1 → 1.1.1 plus a 1.2 sibling and a §2 root sibling) via DnisHostAdapter; render via spec:SpecMarkdownRenderer.",
       expected:
         "Output headings read `## 1. …`, `### 1.1. …`, `#### 1.1.1. …`, `### 1.2. …`, `## 2. …` with no other sections present.",
     },
@@ -717,7 +717,7 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 3,
       name: "Mixed-mode warning is exactly one",
       procedure:
-        "Construct a project with one spec:Section primitive and one dnis:Node section; render and inspect findings.",
+        "Construct a workbook with one spec:Section primitive and one dnis:Node section; render and inspect findings.",
       expected:
         "Findings array contains exactly one entry with expression `spec:render:mixed-mode-sections`. Rendered text contains the dnis:Node title and does NOT contain the spec:Section title.",
     },
@@ -817,7 +817,7 @@ const migration: PrimitiveSpec[] = [
       ordinal: 1,
       label: "Land renderer DNIS path + composition profile (this commit)",
       action:
-        "Ship CHG-1 through CHG-5. Renderer forks on dnis:Document presence; legacy projects unaffected. Composition profile available for opt-in.",
+        "Ship CHG-1 through CHG-5. Renderer forks on dnis:Document presence; legacy workbooks unaffected. Composition profile available for opt-in.",
       affected_paths: [
         "fdpm-cli/plugins/spec_authoring_dnis/",
         "fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts",
@@ -975,7 +975,7 @@ const openQuestions: PrimitiveSpec[] = [
       question:
         "Cross-document section references — should the renderer hot-link the §-number into a uid-based anchor at render time? E.g. resolving '§7 of SPEC-CORE' to a stable dnis:Node uid?",
       default_choice:
-        "Out of scope for v0.2. Tracked under SPEC-UID Q1 (cross-project relations). Revisit when that lands. Note that under v0.2 the target IS already a stable uid (the dnis:Node's NID), so the work reduces to URL-construction once cross-project relations are normative.",
+        "Out of scope for v0.2. Tracked under SPEC-UID Q1 (cross-workbook relations). Revisit when that lands. Note that under v0.2 the target IS already a stable uid (the dnis:Node's NID), so the work reduces to URL-construction once cross-workbook relations are normative.",
       is_blocking: "no",
     },
   },
@@ -1036,7 +1036,7 @@ const references: PrimitiveSpec[] = [
     type: SPEC_REFERENCE,
     fields: {
       kind: "repo_file",
-      citation: "CLAUDE.md — Project Guidelines (this repository, root).",
+      citation: "CLAUDE.md — Workbook Guidelines (this repository, root).",
       locator: "CLAUDE.md",
       verification: "verified",
       verification_note:
@@ -1196,10 +1196,10 @@ const SECTION_TREE: SectionDef[] = [
       "",
       "### 1.2 What this document does NOT define",
       "",
-      "- **Removal of spec:Section / spec:HasSection.** They remain registered for legacy projects. Removal is tracked under FW-2.",
+      "- **Removal of spec:Section / spec:HasSection.** They remain registered for legacy workbooks. Removal is tracked under FW-2.",
       "- **A new kind registry.** Section dispatch_kinds (`stakeholders`, `adr`, …) remain a closed enum tied to the renderer's KIND_RENDERERS table.",
       "- **Render-DSL integration.** Body content can become DSL-evaluated independently; this SPEC is strictly about heading structure.",
-      "- **Cross-document section references.** Cross-project relations are tracked under SPEC-UID Q1.",
+      "- **Cross-document section references.** Cross-workbook relations are tracked under SPEC-UID Q1.",
       "",
       "### 1.3 Why now",
       "",
@@ -1219,7 +1219,7 @@ const SECTION_TREE: SectionDef[] = [
   {
     title: "Quality Attributes in Tension",
     body_md:
-      "The recurring tension is **author ergonomics vs. back-compat**. Adopting SPEC-DNIS resolves both: existing projects keep working unchanged via the legacy path; new authoring patterns get O(1) inserts plus all the SPEC-DNIS guarantees for free.",
+      "The recurring tension is **author ergonomics vs. back-compat**. Adopting SPEC-DNIS resolves both: existing workbooks keep working unchanged via the legacy path; new authoring patterns get O(1) inserts plus all the SPEC-DNIS guarantees for free.",
     dispatch_kind: "quality_attributes",
   },
   {
@@ -1465,7 +1465,7 @@ async function main() {
   // Phase 2: build the section tree as dnis:Node primitives via the
   // host adapter. The SPEC-CORE op log records every Operation; the
   // renderer (commit c4dc8d8) walks the resulting graph at render time.
-  const adapter = new DnisHostAdapter(host, { projectId: PROJECT_ID });
+  const adapter = new DnisHostAdapter(host, { workbookId: PROJECT_ID });
   const dnisDoc = await adapter.createDocument({
     createdBy: AGENT,
     schemaVersion: "0.1.7",

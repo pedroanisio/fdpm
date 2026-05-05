@@ -9,13 +9,13 @@ import {
 } from "./metadata.js";
 
 /**
- * `fdpm diff <project>` — structural diff across two snapshots.
+ * `fdpm diff <workbook>` — structural diff across two snapshots.
  *
  * Two modes:
  *   1. Time-travel: --from-revision <N> [--to-revision <M>] compares
- *      revisions of the same project.
- *   2. Cross-project: --from-project <id> [--to-project <id>] compares
- *      two distinct projects (whichever shares the same profile).
+ *      revisions of the same workbook.
+ *   2. Cross-workbook: --from-workbook <id> [--to-workbook <id>] compares
+ *      two distinct workbooks (whichever shares the same profile).
  *
  * Output: per-collection (primitives, relations) lists of added,
  * removed, and modified IDs. Modified entries also list the top-level
@@ -25,12 +25,12 @@ import {
 export function buildDiffCommand(host: Host): Command {
   const cmd = new Command("diff");
   cmd
-    .description("Structural diff between two snapshots of a project (time-travel or cross-project)")
-    .argument("<project>", "project id (target of the diff; also the default for both sides)")
-    .option("--from-revision <n>", "left side: this project at revision N")
-    .option("--from-project <id>", "left side: another project's current state")
-    .option("--to-revision <n>", "right side: this project at revision N (defaults to current)")
-    .option("--to-project <id>", "right side: another project's current state")
+    .description("Structural diff between two snapshots of a workbook (time-travel or cross-workbook)")
+    .argument("<workbook>", "workbook id (target of the diff; also the default for both sides)")
+    .option("--from-revision <n>", "left side: this workbook at revision N")
+    .option("--from-workbook <id>", "left side: another workbook's current state")
+    .option("--to-revision <n>", "right side: this workbook at revision N (defaults to current)")
+    .option("--to-workbook <id>", "right side: another workbook's current state")
     .option(
       "--detail",
       "include before/after values for each modified field (verbose)",
@@ -38,7 +38,7 @@ export function buildDiffCommand(host: Host): Command {
     .option("--json", "emit JSON")
     .action(
       (
-        projectId: string,
+        workbookId: string,
         opts: {
           fromRevision?: string;
           fromProject?: string;
@@ -55,25 +55,25 @@ export function buildDiffCommand(host: Host): Command {
         if (fromCount === 0)
           throw new FDPMException(
             "verification",
-            "diff requires --from-revision or --from-project",
+            "diff requires --from-revision or --from-workbook",
           );
         if (fromCount > 1 || toCount > 1)
           throw new FDPMException(
             "verification",
-            "specify only one of --from-revision / --from-project (and likewise for --to)",
+            "specify only one of --from-revision / --from-workbook (and likewise for --to)",
           );
 
         const from = opts.fromRevision != null
           ? { revision: parseInt(opts.fromRevision, 10) }
-          : { project_id: opts.fromProject! };
+          : { workbook_id: opts.fromProject! };
         const to = opts.toRevision != null
           ? { revision: parseInt(opts.toRevision, 10) }
           : opts.toProject != null
-            ? { project_id: opts.toProject }
+            ? { workbook_id: opts.toProject }
             : undefined;
 
         const result = host.diffProject({
-          project_id: projectId,
+          workbook_id: workbookId,
           from,
           ...(to !== undefined && { to }),
           ...(opts.detail === true && { detail: true }),
@@ -82,7 +82,7 @@ export function buildDiffCommand(host: Host): Command {
         emit(ctx, result, () => {
           const lines: string[] = [];
           lines.push(
-            `${result.from.project_id}@${result.from.revision} → ${result.to.project_id}@${result.to.revision}`,
+            `${result.from.workbook_id}@${result.from.revision} → ${result.to.workbook_id}@${result.to.revision}`,
           );
           const renderModified = (
             m: {
@@ -121,6 +121,6 @@ export const commandMetadata: CommandMetadataMap = {
   diff: {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(1),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

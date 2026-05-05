@@ -4,14 +4,14 @@
   "spec_version": "1.2.0",
   "kind": "server",
   "name": "Formal-Specification DNIS Composition",
-  "description": "Composition profile extending profile:formal-specification:3.0 + profile:dnis:0.1. Lets a project hold formal_specification's typed primitives AND a DNIS Node tree for graph-derived section numbering; the markdown/html/pdf renderers DFS-walk the DNIS graph instead of the legacy fs:Section primitives.",
+  "description": "Composition profile extending profile:formal-specification:3.0 + profile:dnis:0.1. Lets a workbook hold formal_specification's typed primitives AND a DNIS Node tree for graph-derived section numbering; the markdown/html/pdf renderers DFS-walk the DNIS graph instead of the legacy fs:Section primitives.",
   "authors": ["FDPM Maintainers"],
   "license": "MIT",
   "host_compatibility": {
     "fdpm": ">=1.2,<2"
   },
   "permissions": [
-    "read:projects",
+    "read:workbooks",
     "read:primitives",
     "read:relations"
   ],

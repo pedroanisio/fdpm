@@ -16,7 +16,7 @@ import type { DomainProfile } from "../../../src/core/models/meta.js";
  * `text/markdown` renderer for the formal_specification profile.
  *
  * Layout:
- *   # <project_id>                        (front matter)
+ *   # <workbook_id>                        (front matter)
  *   ---
  *   ## 1. <Section title>
  *   <description>
@@ -31,7 +31,7 @@ export const renderMarkdown: RendererFn = (input): RendererOutput => {
   const tree = buildDocumentTreeAuto(input);
   const lines: string[] = [];
 
-  lines.push(`# ${tree.project_id}`);
+  lines.push(`# ${tree.workbook_id}`);
   lines.push("");
   lines.push(`> Profile: \`${tree.profile.id}\` v${tree.profile.version}`);
   lines.push("");
@@ -71,7 +71,7 @@ export const renderMarkdown: RendererFn = (input): RendererOutput => {
   return {
     bytes: new TextEncoder().encode(text),
     contentType: "text/markdown",
-    filename: `${tree.project_id}.md`,
+    filename: `${tree.workbook_id}.md`,
     ...(tree.findings.length > 0 ? { findings: tree.findings } : {}),
   };
 };

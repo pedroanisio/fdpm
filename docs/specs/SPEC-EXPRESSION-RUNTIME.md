@@ -80,18 +80,18 @@ This SPEC describes a target architecture; the implementation is partially shipp
 | Core expression runtime module exists | §15 ADR-EXPR-001 Decision; §13 spec:chg:expr-module | shipped | `fdpm-cli/src/core/expr/{runtime,std,activation,evaluator,helpers,errors,types}.ts` exists. The module now includes the §M1 mapper (`types.ts`) plus the host-owned runtime/activation path. |
 | `ExpressionRuntime` with helper registry + program cache | §M14 helper-set semver | shipped | `fdpm-cli/src/core/expr/runtime.ts` ships `ExpressionRuntime`, `registerHelper`, `unregisterPluginHelpers`, expression-string-keyed `programCache`, standard-helper registration, and activation-context assembly. Cache is in-memory per Host instance (matches §17 Future Work). |
 | Plugin helpers namespaced under `fn.<plugin-id>.*` | §M7 Tier C | shipped | `runtime.ts` enforces `^fn\.[a-z0-9-]+(?:\.[a-z0-9-]+)+$` and `helperId.startsWith('fn.<pluginId>.')` at registration time. |
-| Tier-A activation surface `{ doc, project, env, host, fn }` | §M7 | partial | `activation.ts` now binds `doc`, `project`, `env`, and `host` while preserving the legacy validation aliases `{ instance, instance_type, profile, graph }` for compatibility. Helper calls under `fn.*` execute through the runtime rewrite/registration path rather than a first-class `fn` object. |
+| Tier-A activation surface `{ doc, workbook, env, host, fn }` | §M7 | partial | `activation.ts` now binds `doc`, `workbook`, `env`, and `host` while preserving the legacy validation aliases `{ instance, instance_type, profile, graph }` for compatibility. Helper calls under `fn.*` execute through the runtime rewrite/registration path rather than a first-class `fn` object. |
 | Tier-B bindings (env.GIT_*, host.os, host.cpu_count) with permission gates | §M7 truth table | shipped | `activation.ts` defines Tier-B fields with permission-gated accessors. `host.os` / `host.cpu_count` resolve from Node host facts, and `env.GIT_*` now probes git automatically when permissions are present and no caller override is supplied. |
 | 14 standard helpers (string / collection / date / identity families) | §M14, §6 | shipped | `runtime.ts` registers helper bodies from `helpers.ts`, rewrites `fn.*` calls into evaluator-safe internal names, and evaluates `fn.sortBy` key expressions against the bound iterator variable rather than only supporting path lookups. |
 | `cap:expr-helper` capability | §M7 Tier C, §13 spec:chg:plugin-cap | shipped | Present in `fdpm-cli/src/plugin/manifest.ts` capability enum and enforced by `fdpm-cli/src/plugin/context.ts` / `fdpm-cli/src/plugin/runtime.ts`. |
 | `read:vcs` / `read:os-info` permissions | §M7 Tier B, §13 spec:chg:plugin-cap | shipped | Present in the manifest permission enum; Tier-B activation access consults them at runtime. |
 | `expr_helper_set` manifest pin + `requires_helpers` field | §M14, §M7 Tier C | shipped | Present in the manifest schema and enforced in `fdpm-cli/src/plugin/runtime.ts` enable/load paths. |
-| FDPM → CEL type mapping (§M1) module | §M1, Principle 1 | shipped | `fdpm-cli/src/core/expr/types.ts` normalises primitive/relation/project values into CEL-friendly JS data, and `activation.ts` now registers the top-level activation bindings (`instance`, `doc`, `project`, `env`, `host`, etc.) with object schemas instead of leaving the surface wholly `dyn`. |
+| FDPM → CEL type mapping (§M1) module | §M1, Principle 1 | shipped | `fdpm-cli/src/core/expr/types.ts` normalises primitive/relation/workbook values into CEL-friendly JS data, and `activation.ts` now registers the top-level activation bindings (`instance`, `doc`, `workbook`, `env`, `host`, etc.) with object schemas instead of leaving the surface wholly `dyn`. |
 | Closed §M2 error category set (8 categories) | §M2 | shipped | `fdpm-cli/src/core/expr/errors.ts` now exports the closed runtime-code set on `CELValidationError` / `CELRuntimeError`, and `runtime.ts` classifies parse/check/evaluation failures into `unknown-name`, `unknown-helper`, `type-error`, `bound-exceeded`, `arity-error`, `parse-error`, `runtime-error`, and `permission-denied`. |
 | Bound caps (list-iter 1000, nesting 32, arity 8, output 65 536 codepoints) | Principle 4, §17 | shipped | `activation.ts` configures CEL parse limits for nesting and arity, while `runtime.ts` enforces list-iteration and output-string caps and surfaces each breach as `bound-exceeded`. |
 | `env.NOW` captured-at-start determinism | §17 Invariant `spec:inv:env-now-frozen` | shipped | `runtime.ts` captures `envNow` once per runtime instance and binds it through `activation.ts`; focused tests assert the value is stable within one host/runtime. |
 | CEL spec / cel-js version pin | §M14, §16 Open Question 1 | not_shipped | `EXPR_CEL_REVISION = "TBD"` in `fdpm-cli/src/core/expr/std.ts`. The package.json pins a cel-js version (`@marcbachmann/cel-js`) but the SPEC-amendment record cites neither the cel-spec git revision nor the cel-js version. |
-| Validate-time consumer wired through `fdpm-cli/src/core/expr/` | §13 spec:chg:cel-validator-amend | partial | `fdpm-cli/src/core/validation/cel/{activation,evaluator,errors}.ts` re-exports from `fdpm-cli/src/core/expr/`, and `fdpm-cli/src/core/validation/pipeline.ts` now passes project/fingerprint context into the host-owned runtime. SPEC-CEL-VALIDATOR prose still needs amendment from the legacy inline activation table to §M7. |
+| Validate-time consumer wired through `fdpm-cli/src/core/expr/` | §13 spec:chg:cel-validator-amend | partial | `fdpm-cli/src/core/validation/cel/{activation,evaluator,errors}.ts` re-exports from `fdpm-cli/src/core/expr/`, and `fdpm-cli/src/core/validation/pipeline.ts` now passes workbook/fingerprint context into the host-owned runtime. SPEC-CEL-VALIDATOR prose still needs amendment from the legacy inline activation table to §M7. |
 | Render-time consumer wired through `fdpm-cli/src/core/expr/` | §13 spec:chg:render-dsl-amend | not_shipped | spec_authoring renderer does not consume the runtime. |
 
 **Migration ordering.** The shipped `ExpressionRuntime` plus the legacy activation surface together support today's predicate use case (sw plugin's 12 CEL rules evaluate via this path; see SPEC-CEL-VALIDATOR §10 acceptance criteria 1-3 marked `met`). Transitioning to the Tier-A surface requires updating both the activation factory and SPEC-CEL-VALIDATOR §6 in the same release; doing so before the helper bodies are bound risks producing rule predicates that reference helpers the runtime cannot resolve.
@@ -138,7 +138,7 @@ Both consumer SPECs implicitly depend on the same engine, types, errors, helpers
 | Core maintainer | One evaluator path. The §7 pipeline, the renderer, and any future expression-bearing surface all delegate to the same engine. No private parsers, no per-plugin helper sets bypassing the Core registry. |
 | Plugin author | Predictable activation. A plugin author writes a predicate or template once and knows what's in scope, what types come back, what errors look like, what version pins are. No surprises across releases. |
 | Security reviewer | The activation surface is the trust boundary. Tier A is reviewed once. Tier B requires a permission per binding. Tier C is opt-in cross-plugin reach. No fall-through to undefined / null / empty string. |
-| Operator | Determinism. A render or validate run is byte-identical given the same project state and the same activation captured-at-start. Helpers' semantic version is queryable so reproducing yesterday's output doesn't silently use today's helpers. |
+| Operator | Determinism. A render or validate run is byte-identical given the same workbook state and the same activation captured-at-start. Helpers' semantic version is queryable so reproducing yesterday's output doesn't silently use today's helpers. |
 
 ---
 
@@ -149,7 +149,7 @@ Both consumer SPECs implicitly depend on the same engine, types, errors, helpers
 | **Single-engine guarantee** | Two evaluators in the host produce drift. This SPEC's whole reason for existing is to prevent it. Validate-time and render-time MUST share the parser, type mapping, error model, helper registry, and version pins. |
 | **Closed surface** | An open activation surface invites silent name drift across plugins. The activation MUST be enumerable and amendment-bound at every tier. |
 | **Errors loud** | An undefined name MUST produce a categorised, located error — never a coerced empty value. CLAUDE.md PALS-LAW: silent failure is an architectural defect. |
-| **Reproducibility** | Two evaluations of the same expression against the same project state at the same env-time MUST produce byte-identical output. Helper-set version drift MUST be detectable. |
+| **Reproducibility** | Two evaluations of the same expression against the same workbook state at the same env-time MUST produce byte-identical output. Helper-set version drift MUST be detectable. |
 | **Performance** | The runtime is on the hot path of every validate and every render. Compilation overhead must be paid once per expression-string identity, not per call. |
 
 ---
@@ -203,7 +203,7 @@ The four load-bearing decisions, each presented as a normative table or rule set
 
 **M14 — Versioning** (SPEC version, CEL revision, helper-set semver)
 
-_Note: the spec_authoring renderer's `kind: "schema"` block currently emits **all** spec:SchemaDefinition primitives in the project under one section (see Future Work `spec:fw:per-section-schemas` in SPEC-RENDER-DSL §17). Until per-section scoping lands, the four normative blocks below are stacked under this single §6._
+_Note: the spec_authoring renderer's `kind: "schema"` block currently emits **all** spec:SchemaDefinition primitives in the workbook under one section (see Future Work `spec:fw:per-section-schemas` in SPEC-RENDER-DSL §17). Until per-section scoping lands, the four normative blocks below are stacked under this single §6._
 
 #### M1 — FDPM → CEL type mapping (normative)
 
@@ -330,7 +330,7 @@ Path                          Type            Source / Determinism
 ────────────────────────────────────────────────────────────────────────────
 doc                           map             The current target instance (validate-time: the primitive
                                               under check; render-time: the spec:Document for the
-                                              project).
+                                              workbook).
 doc.id                        string          ↳ instance id.
 doc.type_id                   string          ↳ instance type.
 doc.fields                    map             ↳ raw field_values map.
@@ -340,13 +340,13 @@ doc.section_index             map<string, string>↳ render-time only (helper-se
                                               Populated by spec:SpecMarkdownRenderer's DFS over the
                                               dnis:Node graph per SPEC-SECTIONS-TREE v0.2; consumed by
                                               `fn.section_of`.
-project                       map             Project-level data.
-project.id                    string          ↳
-project.profile_id            string          ↳
-project.revision              int             Current operation-log revision.
-project.fingerprint           string          SHA-256 of operation log up to project.revision.
-project.primitives            list<map>       All primitives in the project.
-project.relations             list<map>       All relations.
+workbook                       map             Workbook-level data.
+workbook.id                    string          ↳
+workbook.profile_id            string          ↳
+workbook.revision              int             Current operation-log revision.
+workbook.fingerprint           string          SHA-256 of operation log up to workbook.revision.
+workbook.primitives            list<map>       All primitives in the workbook.
+workbook.relations             list<map>       All relations.
 host                          map             Host-level facts.
 host.fdpm_version             string          e.g. "1.1.1".
 host.helper_set_version       string          e.g. "1.0.0" (see §M14).
@@ -470,7 +470,7 @@ in its manifest. Without that, the invocation triggers
 //     fn.replace(s, find, rep)     — first-match replace (no regex; literal find).
 //   collection family:
 //     fn.len(x)                    — list.length / string codepoints / map size.
-//     fn.count(type_id)            — number of project primitives of that type_id.
+//     fn.count(type_id)            — number of workbook primitives of that type_id.
 //     fn.sortBy(list, var, key)    — stable sort. Macro form: `var` binds each element; `key` is a CEL expression over `var`. Mirrors CEL filter/map signature.
 //     fn.plural(n, sing, pl?)      — 'thing' if n==1 else (pl ?? sing+'s').
 //   date family:
@@ -492,7 +492,7 @@ in its manifest. Without that, the invocation triggers
 //   graph.incoming(rel_id):list           — ids of source primitives whose rel of type rel_id targets self.
 //   graph.outgoing(rel_id):list           — ids of target primitives that self's rel of type rel_id reaches.
 //   graph.acyclic(rel_id):bool            — true iff the rel_id-induced subgraph reachable from self is a DAG.
-//   graph.exists(target_id):bool          — true iff target_id is the id of some primitive in the project.   (v1.1.0)
+//   graph.exists(target_id):bool          — true iff target_id is the id of some primitive in the workbook.   (v1.1.0)
 //   graph.target_exists(rel_id):bool      — true iff every outbound rel of type rel_id from self resolves.   (v1.1.0)
 //
 // Total: 5 graph helpers (3 in v1.0.0 + 2 in v1.1.0).
@@ -595,7 +595,7 @@ Establish a Core service `fdpm-cli/src/core/expr/` that owns the CEL evaluator, 
 - CI: the standard helper-set inventory exported from fdpm-cli/src/core/expr/std.ts matches §M14's listing exactly (one-line-per-helper test).
 - Test: an undefined name produces `unknown-name` error with file:line:col, never silent null.
 - Test: a Tier-B binding without permission produces `permission-denied`, never silent null.
-- Test: re-evaluating the same expression against the same project produces byte-identical output. env.NOW is captured-at-start; second call within the same evaluator-instance returns the same string.
+- Test: re-evaluating the same expression against the same workbook produces byte-identical output. env.NOW is captured-at-start; second call within the same evaluator-instance returns the same string.
 
 ##### Signals to revisit
 
@@ -638,7 +638,7 @@ Three options scored across the axes that drove the decision.
 
 ```
 [Source]            Renderer author with a typo: `${doc.titel}`.
-[Stimulus]          Render the project containing this template.
+[Stimulus]          Render the workbook containing this template.
 [Environment]       Local CLI; render-time.
 [Artifact]          Activation resolver in fdpm-cli/src/core/expr/.
 [Response]          Resolution returns `unknown-name` error. Render-time policy emits inline marker `[render-error: unknown-name @<line>:<col>]`. Operator sees the marker AND the error in the renderer's `render_errors` list.
@@ -686,7 +686,7 @@ Three options scored across the axes that drove the decision.
   - evidence: fdpm-cli/src/core/expr/runtime.ts (ExpressionRuntime + helper registry + program cache + standard helper binding — shipped)
   - evidence: fdpm-cli/src/core/expr/activation.ts (Tier-A/Tier-B activation plus legacy aliases — shipped)
   - evidence: fdpm-cli/src/core/expr/types.ts (the §M1 mapper — shipped)
-  - evidence: fdpm-cli/src/core/validation/pipeline.ts (project/fingerprint context threaded into evaluate-time activation)
+  - evidence: fdpm-cli/src/core/validation/pipeline.ts (workbook/fingerprint context threaded into evaluate-time activation)
   - evidence: fdpm-cli/src/core/expr/errors.ts (closed 8-code runtime enum shipped on CELValidationError / CELRuntimeError)
   - evidence: fdpm-cli/src/core/expr/runtime.ts (list/nesting/arity/output caps + fn.sortBy key-expression evaluation shipped)
 - [ ] **2.** SPEC-CEL-VALIDATOR amends §7 to consume fdpm-cli/src/core/expr/ instead of an ad-hoc evaluator path. _(in_progress)_
@@ -779,7 +779,7 @@ Other open questions (defaulted):
 - **Q4.** Should fn.hash use SHA-256 (current pick) or BLAKE3?
   - default: SHA-256. Reasoning: ubiquitous, hardware-accelerated everywhere, no controversy, satisfies content-addressing needs. BLAKE3 is faster but less universal; revisit if profiling shows fn.hash dominates.
 - **Q5.** List-iteration default cap — 1000 (current pick) vs. unlimited with explicit-only opt-in?
-  - default: 1000 default, hard cap 100k. Reasoning: a renderer that accidentally iterates the entire project graph should fail loudly at 1000 and motivate explicit `LIMIT`-like opt-in. Plugins that genuinely need more raise the cap via Core option (project-wide), never per-template.
+  - default: 1000 default, hard cap 100k. Reasoning: a renderer that accidentally iterates the entire workbook graph should fail loudly at 1000 and motivate explicit `LIMIT`-like opt-in. Plugins that genuinely need more raise the cap via Core option (workbook-wide), never per-template.
 
 ---
 
@@ -798,7 +798,7 @@ Other open questions (defaulted):
 
 - cel-js — TypeScript implementation of CEL. (https://www.npmjs.com/package/cel-js) _[unverified]_ — Existence and license to be verified before adoption; PR must pin a specific version that satisfies the §M14 CEL revision.
 - Common Expression Language Specification, Google. (https://github.com/google/cel-spec) _[unverified]_ — Reader must verify the spec revision pinned at implementation time. Bumping CEL is a SPEC-amendment concern (§M14). Initial pin TBD; expected v0.5.0.
-- FDPM project guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
+- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
 
 >    1 | doc.fields.verification_note
                     ^]]
@@ -816,7 +816,7 @@ Pure additive amendment. §M14 helper-set 1.1.0 → 1.2.0:
 
 1. New helper `fn.section_of(node_id)` (reference family). Resolves a dnis:Node id (NID or slug-form 'dnis:node:<lower nid>') to its rendered §N.M.K heading via the render-time section index. Throws `unknown-name` on miss — no silent coercion to '' (Principle: undefined names error loudly).
 
-2. New §M7 Tier-A binding `doc.section_index: map<string, string>` — render-time only; populated by the host's spec_md renderer when the project contains a `dnis:Document` and one or more active `dnis:Node` primitives of kind `section`. Empty for validate-time and DNIS-less renders.
+2. New §M7 Tier-A binding `doc.section_index: map<string, string>` — render-time only; populated by the host's spec_md renderer when the workbook contains a `dnis:Document` and one or more active `dnis:Node` primitives of kind `section`. Empty for validate-time and DNIS-less renders.
 
 3. Plumbing: `ValidationEvaluationOptions.sectionIndex` (optional) flows through `createActivationContext` into `ExprRuntimeHelperContext.sectionIndex`, which `resolveSectionOf` reads. Render-time facade gains a per-call `sectionIndex` option.
 
@@ -846,7 +846,7 @@ Affected sections: §0, §0.5, §11, §14, §16, §19
 
 Additive amendment. Two new graph helpers extend the closed §M14 inventory:
 
-  graph.exists(target_id):bool          — id-membership over the project's primitives.
+  graph.exists(target_id):bool          — id-membership over the workbook's primitives.
   graph.target_exists(rel_id):bool      — every outbound edge of rel_id from self resolves.
 
 Both are pure (no I/O, no clock, no RNG) and registered on the existing `graph` receiver — same trust posture as the v1.0.0 helpers. The §M14 body now lists 5 graph helpers (3 v1.0.0 + 2 v1.1.0) alongside the unchanged 14 fn.* standard helpers. Helper-set semver bumped 1.0.0 → 1.1.0 per the §M14 bump rules (additive → minor). The example manifest pin in §M14 is updated from `>=1.0.0,<2` to `>=1.1.0,<2` so consumers requiring the new helpers refuse to load against the older runtime. SPEC-CEL-VALIDATOR §6 amended in tandem (its 0.3.0 revision). The motivating consumer is fdpm.planning's `plan:Implements` cross-profile work-tracking link, where dangling references are silent today and become a CEL-checkable error after this amendment.

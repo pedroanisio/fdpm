@@ -1,16 +1,16 @@
 /**
  * SPEC-MCP-SERVER resources surface — type definitions.
  *
- * Resources are read-only addressable views of project state, served
+ * Resources are read-only addressable views of workbook state, served
  * via the MCP `resources/list` and `resources/read` requests. Each
  * provider declares:
  *
  *   - `templates`  — ResourceTemplate entries advertised on every
  *                    `resources/list` so clients understand the URI
- *                    shape (e.g. `fdpm://project/{project_id}/render/{target}`).
+ *                    shape (e.g. `fdpm://workbook/{workbook_id}/render/{target}`).
  *
  *   - `enumerate`  — Generates the *concrete* resource entries that
- *                    currently exist (one per project × renderer
+ *                    currently exist (one per workbook × renderer
  *                    target, etc.). Returns the per-resource metadata
  *                    `resources/list` advertises.
  *

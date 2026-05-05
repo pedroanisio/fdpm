@@ -12,25 +12,25 @@ import { FDPMException } from "../core/errors/fdpm-exception.js";
 
 export function buildTemplateCommand(host: Host): Command {
   const cmd = new Command("template");
-  cmd.description("Project templates (§9.1 /projects/{id}/templates)");
+  cmd.description("Workbook templates (§9.1 /workbooks/{id}/templates)");
 
   cmd
     .command("list")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .option("--json", "emit JSON")
-    .action((project, opts) => {
+    .action((workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const slice = host.getProject(project);
+      const slice = host.getProject(workbook);
       const templates = Object.values(slice.templates);
       emit(ctx, { templates });
     });
 
   cmd
     .command("create")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .requiredOption("-f, --file <path>", "JSON template file")
     .option("--json", "emit JSON")
-    .action(async (project, opts) => {
+    .action(async (workbook, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const raw = await readInput(opts.file);
       const result = ProjectTemplate.safeParse(raw);
@@ -38,19 +38,19 @@ export function buildTemplateCommand(host: Host): Command {
         throw new FDPMException("verification", "invalid ProjectTemplate", {
           evidence: { issues: result.error.issues },
         });
-      const out = await createTemplate(host, project, result.data);
+      const out = await createTemplate(host, workbook, result.data);
       emit(ctx, { template_id: result.data.id, op_id: out.op.op_id });
     });
 
   cmd
     .command("apply")
-    .argument("<project>", "project id")
+    .argument("<workbook>", "workbook id")
     .argument("<template_id>", "template id")
     .option("--id-prefix <prefix>", "prefix for instance ids when applying")
     .option("--json", "emit JSON")
-    .action(async (project, template_id, opts) => {
+    .action(async (workbook, template_id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
-      const out = await applyTemplate(host, project, template_id, opts.idPrefix);
+      const out = await applyTemplate(host, workbook, template_id, opts.idPrefix);
       emit(ctx, { applied: out.length, op_ids: out.map((o) => o.op.op_id) });
     });
 
@@ -61,16 +61,16 @@ export const commandMetadata: CommandMetadataMap = {
   "template list": {
     readOnly: true,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "template create": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
   "template apply": {
     readOnly: false,
     projectIdsFromArgv: firstPositionalAfter(2),
-    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+    projectIdsFromJson: projectFromJsonField("workbook", "workbook_id"),
   },
 };

@@ -2,7 +2,7 @@
  * SPEC-REPL §11 + SPEC-MCP-SERVER §12 — staleness conflict envelope.
  *
  * The REPL's pre-dispatch freshness gate refuses write-capable
- * commands when a project's JSONL log mtime/size has changed since
+ * commands when a workbook's JSONL log mtime/size has changed since
  * the Host last loaded it (default strict mode). Same shape is used
  * by SPEC-MCP-SERVER when serving multiple concurrent sessions
  * against one data dir.
@@ -16,8 +16,8 @@
 import { FDPMException } from "./fdpm-exception.js";
 
 export interface StaleStateOptions {
-  /** Project whose log has been mutated by another writer. */
-  project_id: string;
+  /** Workbook whose log has been mutated by another writer. */
+  workbook_id: string;
   /**
    * Surface-specific recovery hint surfaced to the operator (and to
    * any LLM agent driving the REPL). Examples:
@@ -40,11 +40,11 @@ export interface StaleStateOptions {
 export function staleStateException(opts: StaleStateOptions): FDPMException {
   return new FDPMException(
     "permission",
-    `stale state for project ${opts.project_id}`,
+    `stale state for workbook ${opts.workbook_id}`,
     {
       evidence: {
         reason: "stale_state",
-        project_id: opts.project_id,
+        workbook_id: opts.workbook_id,
         advice: opts.advice,
         ...(opts.detail !== undefined ? { detail: opts.detail } : {}),
       },
