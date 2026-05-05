@@ -34,6 +34,7 @@ import { commandMetadata as templateMetadata } from "./template.js";
 import { commandMetadata as testSuiteMetadata } from "./test-suite.js";
 import { commandMetadata as transferMetadata } from "./transfer.js";
 import { commandMetadata as validateMetadata } from "./validate.js";
+import { commandMetadata as workspaceMetadata } from "./workspace.js";
 
 export const ALL_COMMAND_METADATA: CommandMetadataMap = {
   ...completionsMetadata,
@@ -55,6 +56,7 @@ export const ALL_COMMAND_METADATA: CommandMetadataMap = {
   ...testSuiteMetadata,
   ...transferMetadata,
   ...validateMetadata,
+  ...workspaceMetadata,
 };
 
 export {

@@ -31,6 +31,7 @@ import {
 
 import { Host } from "../core/host.js";
 import { defaultDataDir } from "../persistence/jsonl-log.js";
+import { resolveWorkspaceDataDir } from "../core/workspace/resolve.js";
 import { advertisedTools, MANIFEST } from "../mcp/manifest.js";
 import { MCP_TOOL_MANIFEST_VERSION, toJsonSchema } from "../mcp/schemas.js";
 import { createSession } from "../mcp/session.js";
@@ -46,7 +47,9 @@ import {
 } from "../mcp/resources/registry.js";
 
 interface ParsedFlags {
+  /** Resolved synchronously from --data-dir; empty string when absent. */
   dataDir: string;
+  cliDataDir?: string;
   enableDestructive: boolean;
   enabledPlugins: string[];
   maxCallsPerMinute: number;
@@ -88,10 +91,10 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
   };
   const flag = (name: string): boolean => argv.includes(name);
 
-  const dataDir =
-    get("--data-dir") ??
-    process.env["FDPM_DATA_DIR"] ??
-    defaultDataDir();
+  // SPEC-WORKSPACE §8.3 precedence resolved in main(); parseArgs only
+  // captures the explicit --data-dir flag, leaving env / registry to
+  // the async resolver.
+  const cliDataDir = get("--data-dir");
 
   const enableDestructive =
     flag("--enable-destructive") ||
@@ -118,7 +121,8 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
     flag("--audit-full-args") || process.env["FDPM_MCP_AUDIT_FULL_ARGS"] === "1";
 
   return {
-    dataDir,
+    dataDir: cliDataDir ?? "",
+    cliDataDir,
     enableDestructive,
     enabledPlugins,
     maxCallsPerMinute,
@@ -129,10 +133,15 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
 async function main(): Promise<void> {
   const flags = parseArgs(process.argv.slice(2));
 
+  // SPEC-WORKSPACE §8.3 precedence: --data-dir > FDPM_DATA_DIR
+  // > FDPM_WORKSPACE > registry.current > defaultDataDir().
+  const resolved = await resolveWorkspaceDataDir({ cliDataDir: flags.cliDataDir });
+  flags.dataDir = resolved.dataDir ?? defaultDataDir();
+
   process.stderr.write(
     [
       `fdpm-mcp: starting`,
-      `  data_dir=${flags.dataDir}`,
+      `  data_dir=${flags.dataDir} (source=${resolved.source})`,
       `  manifest_version=${MCP_TOOL_MANIFEST_VERSION}`,
       `  destructive_enabled=${flags.enableDestructive}`,
       `  enabled_plugins=${flags.enabledPlugins.length === 0 ? "(none)" : flags.enabledPlugins.join(",")}`,

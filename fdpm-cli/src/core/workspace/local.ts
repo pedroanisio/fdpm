@@ -33,6 +33,16 @@ import {
   WorkspaceIdentity,
   type Workspace,
 } from "./types.js";
+import {
+  backupWorkspace,
+  type BackupOptions,
+  type BackupResult,
+} from "./backup.js";
+import {
+  restoreWorkspace,
+  type RestoreOptions,
+  type RestoreResult,
+} from "./restore.js";
 
 function workspaceJsonPath(dataDir: string): string {
   return join(dataDir, "workspace.json");
@@ -243,6 +253,80 @@ export class LocalWorkspace implements Workspace {
 
   async listProjects(): Promise<string[]> {
     return this.persistence.listProjectIds();
+  }
+
+  /**
+   * SPEC-WORKSPACE §13. Streams the data directory into a `.fdpmbak`
+   * zip whose first entry is `backup-manifest.json`.
+   */
+  async backup(opts: BackupOptions): Promise<BackupResult> {
+    const result = await backupWorkspace(this.path, this.identity, opts);
+    // Best-effort registry update: record last_backup. Same Principle 4
+    // tolerance as upsertSelfInRegistry — IO/permission issues degrade
+    // to a warning, never a thrown.
+    try {
+      const registry = await readRegistry(defaultRegistryPath());
+      const existing = registry.workspaces.find((w) => w.id === this.id);
+      if (existing) {
+        const next = upsertEntry(registry, {
+          ...existing,
+          last_backup: new Date().toISOString(),
+        });
+        await writeRegistry(next, defaultRegistryPath());
+      }
+    } catch (err) {
+      emitHostWarning({
+        code: "workspace.registry_unavailable",
+        message: `last_backup registry update skipped: ${(err as Error).message}`,
+        evidence: { path: this.path, error: (err as Error).message },
+      });
+    }
+    return result;
+  }
+
+  /**
+   * SPEC-WORKSPACE §14 static-equivalent. Independent of any
+   * pre-existing LocalWorkspace instance because the target dir starts
+   * empty (or non-existent).
+   */
+  static async restore(opts: RestoreOptions): Promise<RestoreResult> {
+    return restoreWorkspace(opts);
+  }
+
+  /**
+   * SPEC-WORKSPACE §16.3 — `fdpm workspace rename`. Mutates
+   * workspace.json's `name` field, clears `_minted` if present, and
+   * upserts the registry entry. Workspace_id is invariant.
+   */
+  async rename(newName: string, opts?: { registryPath?: string }): Promise<void> {
+    const trimmed = newName.trim();
+    if (trimmed.length === 0) {
+      throw new FDPMException("verification", "workspace name cannot be empty");
+    }
+    const next: WorkspaceIdentity = {
+      ...this.identity,
+      name: trimmed,
+    };
+    if (next._minted) delete (next as { _minted?: boolean })._minted;
+    await writeIdentity(this.path, next);
+    this.identity = next;
+    this.name = trimmed;
+    const registryPath = opts?.registryPath ?? defaultRegistryPath();
+    try {
+      const registry = await readRegistry(registryPath);
+      const updated = upsertEntry(registry, {
+        id: next.id,
+        name: trimmed,
+        path: this.path,
+      });
+      await writeRegistry(updated, registryPath);
+    } catch (err) {
+      emitHostWarning({
+        code: "workspace.registry_unavailable",
+        message: `rename registry update skipped: ${(err as Error).message}`,
+        evidence: { path: registryPath, error: (err as Error).message },
+      });
+    }
   }
 }
 
