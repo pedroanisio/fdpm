@@ -174,9 +174,14 @@ export function buildDocumentTree(input: RenderInput): DocumentTree {
  * `SectionBlock` interface — only `block.number` widens to `string`.
  *
  * Membership: a primitive is anchored to a DNIS section when an
- * `fs:ContainedIn` relation targets the dnis:Node's bare NID (= its
- * `uid` per the SPEC-CORE §5.6.1 NID==uid pin) OR when its `scope_id`
- * equals the dnis:Node's `id`. The fallback rules mirror legacy mode.
+ * `fs:ContainedIn` relation targets the dnis:Node's slug-shaped
+ * primitive id (e.g. "dnis:node:01jq..."). The bare NID/uid is also
+ * accepted as a defensive secondary key — relation validation only
+ * accepts the slug today (relations look up primitives by `id`, not
+ * `uid`), but a JSONL importer or test fixture that bypasses the
+ * relation validator could write a uid-shaped target_id and the
+ * renderer should still resolve it. Scope-based fallback (`scope_id`
+ * matching the dnis:Node's `id`) mirrors legacy mode.
  */
 export function buildDocumentTreeFromDnis(
   input: RenderInput,
@@ -215,8 +220,10 @@ export function buildDocumentTreeFromDnis(
   }
   dfs("", []);
 
-  // Membership: fs:ContainedIn targets either the dnis:Node uid (NID)
-  // or its slug-shaped primitive id; accept both for ergonomics.
+  // Membership lookup: relation validation enforces target_id to be a
+  // slug-shaped primitive id (e.g. "dnis:node:01jq..."), so sectionById
+  // is the practical path. sectionByUid is a defensive secondary lookup
+  // for callers that bypass the validator (JSONL importers, fixtures).
   const sectionByUid = new Map<string, PrimitiveInstance>();
   const sectionById = new Map<string, PrimitiveInstance>();
   for (const o of ordered) {

@@ -87,7 +87,7 @@ export const renderPdf: RendererFn = async (input): Promise<RendererOutput> => {
     1,
   );
 
-  drawTitlePage(cur, tree.project_id, tree.profile);
+  drawTitlePage(cur, tree.project_id, tree.profile, tree.findings);
 
   for (const block of tree.sections) {
     pageBreak(cur);
@@ -315,6 +315,7 @@ function drawTitlePage(
   cur: Cursor,
   projectId: string,
   profile: { id: string; version: string },
+  findings: ReadonlyArray<{ message: string; expression: string }>,
 ): void {
   // Vertically centre title within the upper third of the page.
   cur.y = A4_HEIGHT * 0.62;
@@ -347,6 +348,59 @@ function drawTitlePage(
     thickness: 0.75,
     color: ACCENT,
   });
+
+  // Findings band: centred italic warning text below the rule. Each
+  // finding gets one wrapped line; long messages are clipped to the
+  // page width to keep the title page from overflowing into a second
+  // physical page (which would mis-page-number every section).
+  if (findings.length === 0) return;
+  cur.y -= LINE_HEIGHT * 1.5;
+  const bandWidth = A4_WIDTH - 2 * MARGIN;
+  for (const f of findings) {
+    const text = stripUnsafe(`! ${f.message}`);
+    const lines = wrapToWidth(text, cur.serifItalic, SMALL_SIZE, bandWidth);
+    for (const line of lines) {
+      const w = cur.serifItalic.widthOfTextAtSize(line, SMALL_SIZE);
+      cur.page.drawText(line, {
+        x: (A4_WIDTH - w) / 2,
+        y: cur.y,
+        size: SMALL_SIZE,
+        font: cur.serifItalic,
+        color: MUTED,
+      });
+      cur.y -= LINE_HEIGHT;
+    }
+    cur.y -= LINE_HEIGHT * 0.25;
+  }
+}
+
+/**
+ * Greedy word-wrap to fit a line of text within `maxWidth` at the given
+ * font/size. Used by drawTitlePage's findings band; pdf-lib has no
+ * built-in wrap. Returns at least one line (the original input) when
+ * the text fits; otherwise breaks on whitespace.
+ */
+function wrapToWidth(
+  text: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+): string[] {
+  if (font.widthOfTextAtSize(text, size) <= maxWidth) return [text];
+  const words = text.split(/\s+/);
+  const out: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current === "" ? word : `${current} ${word}`;
+    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+      current = candidate;
+    } else {
+      if (current !== "") out.push(current);
+      current = word;
+    }
+  }
+  if (current !== "") out.push(current);
+  return out;
 }
 
 function drawSection(

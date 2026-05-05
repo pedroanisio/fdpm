@@ -29,6 +29,9 @@ import {
   type NodeId,
   type OperationId,
 } from "../src/core/dnis/index.js";
+import { buildDocumentTreeFromDnis } from "../plugins/formal_specification/renderers/_common.js";
+import type { PrimitiveInstance, RelationInstance } from "../src/core/models/instance.js";
+import type { DomainProfile } from "../src/core/models/meta.js";
 
 const AGENT = "agent:test" as AgentId;
 const FS_DNIS_PROFILE = "profile:formal-specification-dnis:0.1";
@@ -294,6 +297,25 @@ describe("formal_specification renderers — DNIS Node section path", () => {
     expect(out.text).toContain("## 1. DNIS section");
     expect(out.text).not.toContain("Legacy section to ignore");
     expect(out.text).not.toContain("## 99.");
+
+    // All three renderers surface the same finding via
+    // RendererOutput.findings (so downstream tooling can group across
+    // formats). HTML emits an <aside> band; PDF draws an italic line
+    // on the title page.
+    const htmlOut = await renderWith(host, projectId, "fs:SpecHtmlRenderer", "text/html");
+    expect(
+      htmlOut.findings.filter((f) => f.expression === "fs:render:mixed-mode-sections"),
+    ).toHaveLength(1);
+    expect(htmlOut.text).toContain('class="fdpm-finding"');
+    expect(htmlOut.text).toContain("DNIS path is canonical");
+
+    const pdfOut = await renderWith(host, projectId, "fs:SpecPdfRenderer", "application/pdf");
+    expect(
+      pdfOut.findings.filter((f) => f.expression === "fs:render:mixed-mode-sections"),
+    ).toHaveLength(1);
+    // PDF magic header survives; nothing more we can portably assert
+    // without parsing the byte stream.
+    expect(new TextDecoder().decode(pdfOut.bytes.slice(0, 4))).toBe("%PDF");
   });
 
   it("anchors primitives via fs:ContainedIn when the relation targets a dnis:Node primitive id", async () => {
@@ -346,5 +368,72 @@ describe("formal_specification renderers — DNIS Node section path", () => {
     expect(out.text).not.toContain("Appendix — Unsectioned");
     expect(out.text).toContain("audience:methodologists");
     expect(out.text).toContain("Researchers reviewing the experimental method.");
+  });
+
+  it("(defensive) renderer accepts a fs:ContainedIn target_id that is the bare dnis:Node uid (NID), not the slug-shaped id", async () => {
+    // The relation validator only accepts the slug-shaped id today
+    // (relations look up primitives by `id`, not `uid`), so this code
+    // path is unreachable through createRelation. But fixtures and
+    // JSONL importers can produce uid-targeted relations, and the
+    // renderer treats both as valid for ergonomics. This test calls
+    // buildDocumentTreeFromDnis directly with hand-crafted primitives
+    // and relations to exercise that defensive branch.
+    const host = await freshHost();
+    const projectId = "fs-dnis-uid-target";
+    await newComposedProject(host, projectId);
+    const adapter = new DnisHostAdapter(host, { projectId });
+    const document = await adapter.createDocument({
+      createdBy: AGENT,
+      schemaVersion: "0.1.7",
+      hashAlgorithm: "sha256",
+    });
+    const secNid = await createSection(adapter, document.id, null, 1, { title: "Solo" });
+    await host.createPrimitive(projectId, {
+      id: "audience:m",
+      type_id: "fs:Audience",
+      field_values: {
+        name: "M",
+        visibility: "public",
+        description: "Anchored via uid.",
+      },
+    });
+
+    // Hand-craft a relation whose target_id is the bare uid (NID),
+    // bypassing host.createRelation's validator.
+    const slice = host.getProject(projectId);
+    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const handRelation: RelationInstance = {
+      id: "rel:hand-crafted-uid-target",
+      uid: "01ZZZHANDCRAFTEDUIDREL000",
+      type_id: "fs:ContainedIn",
+      source_id: "audience:m",
+      target_id: secNid, // BARE uid, not the slug-shaped id
+      field_values: { is_primary: true, order: 1 },
+      revision: 0,
+    };
+
+    const tree = buildDocumentTreeFromDnis(
+      {
+        projectId,
+        primitives: Object.values(slice.primitives) as PrimitiveInstance[],
+        relations: [
+          ...(Object.values(slice.relations) as RelationInstance[]),
+          handRelation,
+        ],
+        profile: profile as DomainProfile,
+      },
+      Object.values(slice.primitives).filter(
+        (p) => p.type_id === "dnis:Node" && p.field_values["kind"] === "section",
+      ) as PrimitiveInstance[],
+    );
+
+    expect(tree.sections).toHaveLength(1);
+    const block = tree.sections[0]!;
+    expect(block.number).toBe("1");
+    expect(block.title).toBe("Solo");
+    // The Audience primitive landed in the section bucket (via the
+    // uid-targeted relation), NOT in the unsectioned appendix.
+    expect(block.primitives.map((p) => p.id)).toContain("audience:m");
+    expect(tree.unsectioned.map((p) => p.id)).not.toContain("audience:m");
   });
 });
