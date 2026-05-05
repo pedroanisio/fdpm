@@ -23,6 +23,7 @@ import { TOOL_TO_COMMAND_METADATA } from "./tool-metadata-map.js";
 import { tool as healthTool } from "./tools/health.js";
 import { tool as profileListTool } from "./tools/profile-list.js";
 import { tool as profileGetTool } from "./tools/profile-get.js";
+import { tool as profileTypeInfoTool } from "./tools/profile-type-info.js";
 import { tool as projectListTool } from "./tools/project-list.js";
 import { tool as projectGetTool } from "./tools/project-get.js";
 import { tool as primitiveSearchTool } from "./tools/primitive-search.js";
@@ -56,6 +57,7 @@ export const TIER_1_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
   healthTool,
   profileListTool,
   profileGetTool,
+  profileTypeInfoTool,
   projectListTool,
   projectGetTool,
   primitiveSearchTool,

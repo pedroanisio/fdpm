@@ -50,6 +50,7 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
   "fdpm.health": null,
   "fdpm.profile.list": "profile list",
   "fdpm.profile.get": "profile get",
+  "fdpm.profile.type_info": null,
   "fdpm.project.list": "project list",
   "fdpm.project.get": "project get",
   "fdpm.primitive.search": "primitive search",
