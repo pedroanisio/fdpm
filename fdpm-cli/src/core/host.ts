@@ -341,6 +341,87 @@ export class Host {
     return this.persistence.statProjectLog(project_id);
   }
 
+  /**
+   * SPEC-REPL §10.2 lenient-mode incremental tail-replay.
+   *
+   * Reads the project's full JSONL log from disk and compares its
+   * prefix to the in-memory operation log. Three outcomes:
+   *
+   *   - No change (cheap path): the in-memory log already covers the
+   *     full on-disk log → returns {appliedOps: 0, newRevision} and
+   *     skips replay entirely.
+   *   - Pure append: the on-disk log extends the in-memory prefix
+   *     identically → only the new tail ops are applied via
+   *     `Store.appendReplayedOps`. Returns {appliedOps: N, newRevision}.
+   *   - Divergent / truncated / rewritten: the on-disk log is shorter
+   *     than the in-memory log, OR the prefix bytes differ → throws
+   *     `host_compat`. Silent full-reload would mask a serious operator
+   *     error (log restored from backup, file replaced, etc.); the
+   *     caller can choose to recover with a full Host.reload().
+   *
+   * Returns `{appliedOps, newRevision}` for the REPL audit log and
+   * the SPEC-MCP-SERVER per-call validation_status field.
+   *
+   * No-op (no persistence configured, or no log file on disk for this
+   * project): returns {appliedOps: 0, newRevision: <current in-memory
+   * revision, or 0 if the project is unknown>}.
+   */
+  async reloadProjectTail(
+    project_id: string,
+  ): Promise<{ appliedOps: number; newRevision: number }> {
+    const currentLog = this.store.getOperationLog(project_id);
+    const currentRev =
+      currentLog.length > 0 ? currentLog[currentLog.length - 1]!.revision : 0;
+
+    if (!this.persistence) {
+      return { appliedOps: 0, newRevision: currentRev };
+    }
+    const stat = this.persistence.statProjectLog(project_id);
+    if (stat === null) {
+      return { appliedOps: 0, newRevision: currentRev };
+    }
+
+    const onDisk = await this.persistence.readLog(project_id);
+    if (onDisk.length < currentLog.length) {
+      throw new FDPMException(
+        "host_compat",
+        `project log shrank: in-memory has ${currentLog.length} ops, on-disk has ${onDisk.length}`,
+        {
+          evidence: {
+            reason: "log_truncated",
+            project_id,
+            in_memory_count: currentLog.length,
+            on_disk_count: onDisk.length,
+          },
+        },
+      );
+    }
+    for (let i = 0; i < currentLog.length; i += 1) {
+      if (onDisk[i]!.op_id !== currentLog[i]!.op_id) {
+        throw new FDPMException(
+          "host_compat",
+          `project log prefix diverged at op[${i}]: in-memory ${currentLog[i]!.op_id}, on-disk ${onDisk[i]!.op_id}`,
+          {
+            evidence: {
+              reason: "log_rewritten",
+              project_id,
+              divergence_index: i,
+              in_memory_op_id: currentLog[i]!.op_id,
+              on_disk_op_id: onDisk[i]!.op_id,
+            },
+          },
+        );
+      }
+    }
+    if (onDisk.length === currentLog.length) {
+      return { appliedOps: 0, newRevision: currentRev };
+    }
+    const tail = onDisk.slice(currentLog.length);
+    this.store.appendReplayedOps(project_id, tail);
+    const newRev = tail[tail.length - 1]!.revision;
+    return { appliedOps: tail.length, newRevision: newRev };
+  }
+
   /** §1.5: core:empty is registered by the registry constructor. */
   async registerProfile(
     profile: DomainProfile,

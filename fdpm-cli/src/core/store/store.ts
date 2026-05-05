@@ -316,4 +316,53 @@ export class Store {
       this.state.operation_log[id]!.sort((a, b) => a.revision - b.revision);
     }
   }
+
+  /**
+   * SPEC-REPL §10.2 incremental tail-replay primitive.
+   *
+   * Apply a contiguous sequence of operations to the existing state
+   * for one project, asserting that each op's `revision` strictly
+   * succeeds the in-memory log's last revision (no gaps, no reorder).
+   * Used by `Host.reloadProjectTail` after detecting an out-of-band
+   * append and reading the log fresh from disk; the caller passes
+   * only the suffix that's missing from the in-memory projection.
+   *
+   * Validation:
+   *   - Every op's `project_id` MUST equal the supplied project_id.
+   *   - The first new op's `revision` MUST equal `current + 1` where
+   *     `current` is the last in-memory op's revision (or 0 if none).
+   *   - Subsequent ops MUST be revision-contiguous.
+   *
+   * Throws `host_compat` on any mismatch — this surfaces a torn or
+   * rewritten log to the operator instead of silently writing past
+   * a divergent prefix.
+   */
+  appendReplayedOps(project_id: string, newOps: readonly Operation[]): void {
+    if (newOps.length === 0) return;
+    const log = this.state.operation_log[project_id] ?? [];
+    const currentRev = log.length > 0 ? log[log.length - 1]!.revision : 0;
+
+    for (let i = 0; i < newOps.length; i += 1) {
+      const op = newOps[i]!;
+      if (op.project_id !== project_id) {
+        throw new FDPMException(
+          "host_compat",
+          `appendReplayedOps: op[${i}] project_id mismatch (got ${op.project_id}, expected ${project_id})`,
+          { evidence: { index: i, expected: project_id, got: op.project_id } },
+        );
+      }
+      const expectedRev = currentRev + i + 1;
+      if (op.revision !== expectedRev) {
+        throw new FDPMException(
+          "host_compat",
+          `appendReplayedOps: revision gap for ${project_id} at index ${i} (got rev=${op.revision}, expected ${expectedRev})`,
+          { evidence: { index: i, expected: expectedRev, got: op.revision, current: currentRev } },
+        );
+      }
+      applyOperation(this.state, op);
+      const list = this.state.operation_log[project_id] ?? [];
+      list.push(op);
+      this.state.operation_log[project_id] = list;
+    }
+  }
 }
