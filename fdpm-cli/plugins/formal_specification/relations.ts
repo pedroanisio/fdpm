@@ -18,7 +18,15 @@ export const RELATIONS: RelationTypeDef[] = [
     name: "ContainedIn",
     description: "Content belongs to a section.",
     source_types: CONTAINABLE_IDS,
-    target_types: ["fs:Section"],
+    // dnis:Node is included for projects on the
+    // formal-specification-dnis composition profile, where sections are
+    // modelled as dnis:Node primitives. The renderer's DNIS path
+    // (renderers/_common.ts:buildDocumentTreeFromDnis) accepts either
+    // the dnis:Node uid (= NID) or the slug-shaped primitive id as the
+    // target of an fs:ContainedIn relation. Pure formal-specification
+    // projects never construct dnis:Node primitives, so this widening
+    // is invisible to them.
+    target_types: ["fs:Section", "dnis:Node"],
     cardinality_bounds: { source_min: 1, source_max: null, target_min: 1, target_max: null },
     metadata_schema: [
       bool("is_primary", "Primary containment location."),

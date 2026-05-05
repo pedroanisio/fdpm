@@ -3,7 +3,7 @@ import type {
   RendererOutput,
 } from "../../../src/plugin/types.js";
 import {
-  buildDocumentTree,
+  buildDocumentTreeAuto,
   fieldRows,
   formatCitation,
   typeLabel,
@@ -21,7 +21,7 @@ import type { DomainProfile } from "../../../src/core/models/meta.js";
  * can lift the same shape.
  */
 export const renderHtml: RendererFn = (input): RendererOutput => {
-  const tree = buildDocumentTree(input);
+  const tree = buildDocumentTreeAuto(input);
   const out: string[] = [];
 
   out.push("<!doctype html>");
@@ -39,6 +39,9 @@ export const renderHtml: RendererFn = (input): RendererOutput => {
       tree.profile.version,
     )}</p>`,
   );
+  for (const f of tree.findings) {
+    out.push(`<aside class="fdpm-finding" data-rule="${esc(f.expression)}">${esc(f.message)}</aside>`);
+  }
   out.push("</header>");
 
   for (const block of tree.sections) appendSection(out, block, tree.profile);
@@ -73,6 +76,7 @@ export const renderHtml: RendererFn = (input): RendererOutput => {
     bytes: new TextEncoder().encode(out.join("\n")),
     contentType: "text/html",
     filename: `${tree.project_id}.html`,
+    ...(tree.findings.length > 0 ? { findings: tree.findings } : {}),
   };
 };
 

@@ -17,13 +17,23 @@ import {
  *
  * fs:Section is the partition unit (Core SPEC §5.4.3): projects on this
  * profile may be split along Section boundaries.
+ *
+ * @deprecated fs:Section is deprecated in favour of dnis:Node sections
+ * via profile:formal-specification-dnis:0.1. The DNIS path derives
+ * §N.M.K numbering from the dnis:Node graph (DFS sorted by SPEC-DNIS
+ * Position) and removes the "author hand-types `number`" failure mode
+ * that fs:Section requires. Existing projects on
+ * profile:formal-specification:3.0 continue to work; new build scripts
+ * SHOULD target profile:formal-specification-dnis:0.1 and create
+ * dnis:Node primitives instead.
  */
 export const STRUCTURE_PRIMITIVES: PrimitiveTypeDef[] = [
   primitive({
     id: "fs:Section",
     name: "Section",
     category: "cat:structure",
-    description: "A numbered top-level section of the specification.",
+    description:
+      "DEPRECATED in favour of dnis:Node sections via profile:formal-specification-dnis:0.1. A numbered top-level section of the specification; sibling order is determined by the author-supplied `number` field, which the DNIS path replaces with graph-derived dotted numbering.",
     scoped: true,
     is_partition_unit: true,
     id_format: idTemplate("section:{number}"),

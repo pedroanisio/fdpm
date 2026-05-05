@@ -3,7 +3,7 @@ import type {
   RendererOutput,
 } from "../../../src/plugin/types.js";
 import {
-  buildDocumentTree,
+  buildDocumentTreeAuto,
   fieldRows,
   formatCitation,
   typeLabel,
@@ -28,13 +28,19 @@ import type { DomainProfile } from "../../../src/core/models/meta.js";
  *   - <citation>
  */
 export const renderMarkdown: RendererFn = (input): RendererOutput => {
-  const tree = buildDocumentTree(input);
+  const tree = buildDocumentTreeAuto(input);
   const lines: string[] = [];
 
   lines.push(`# ${tree.project_id}`);
   lines.push("");
   lines.push(`> Profile: \`${tree.profile.id}\` v${tree.profile.version}`);
   lines.push("");
+
+  for (const f of tree.findings) {
+    lines.push(`> [!WARNING]`);
+    lines.push(`> ${f.message}`);
+    lines.push("");
+  }
 
   for (const block of tree.sections) {
     appendSectionMd(lines, block, tree.profile);
@@ -66,6 +72,7 @@ export const renderMarkdown: RendererFn = (input): RendererOutput => {
     bytes: new TextEncoder().encode(text),
     contentType: "text/markdown",
     filename: `${tree.project_id}.md`,
+    ...(tree.findings.length > 0 ? { findings: tree.findings } : {}),
   };
 };
 

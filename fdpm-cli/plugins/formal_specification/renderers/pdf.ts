@@ -4,7 +4,7 @@ import type {
   RendererOutput,
 } from "../../../src/plugin/types.js";
 import {
-  buildDocumentTree,
+  buildDocumentTreeAuto,
   fieldRows,
   formatCitation,
   typeLabel,
@@ -68,7 +68,7 @@ interface Cursor {
 }
 
 export const renderPdf: RendererFn = async (input): Promise<RendererOutput> => {
-  const tree = buildDocumentTree(input);
+  const tree = buildDocumentTreeAuto(input);
   const doc = await PDFDocument.create();
   doc.setTitle(tree.project_id);
   doc.setSubject(`${tree.profile.id} v${tree.profile.version}`);
@@ -131,6 +131,7 @@ export const renderPdf: RendererFn = async (input): Promise<RendererOutput> => {
     bytes,
     contentType: "application/pdf",
     filename: `${tree.project_id}.pdf`,
+    ...(tree.findings.length > 0 ? { findings: tree.findings } : {}),
   };
 };
 
