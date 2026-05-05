@@ -342,6 +342,98 @@ export class Host {
   }
 
   /**
+   * SPEC-REPL §10.3 — plugins-only reload. Re-runs plugin discovery
+   * and activation while preserving the Store projection and
+   * persistence layer (the operation log doesn't need replaying).
+   *
+   * What gets recreated:
+   *   - PluginRuntime (re-runs discoverAndRegister + activateAuto)
+   *   - ProfileRegistry (plugins re-register their profiles; persisted
+   *     operator-registered profiles are also re-loaded from disk)
+   *   - ExpressionRuntime + RenderDslEngine + ValidationPipeline
+   *     (plugins re-register their expression helpers and validators
+   *     into the fresh runtime; reusing the old runtime would conflict
+   *     and quarantine every plugin)
+   *
+   * What stays intact:
+   *   - Store and its projection (the operation log is the source of
+   *     truth and hasn't changed)
+   *   - JsonlLogStore (the persistence layer is unaffected)
+   *
+   * Use case: operator added or updated a plugin while a long-lived
+   * Host (REPL or MCP server) was running. SPEC-REPL §10.5 documents
+   * that plugin staleness is NOT auto-detected; this is the explicit
+   * recovery path.
+   *
+   * Returns `{reloadedAt, plugins}` where `plugins` is the count of
+   * active plugins after the reload.
+   */
+  async reloadPlugins(): Promise<{ reloadedAt: number; plugins: number }> {
+    const newProfiles = new ProfileRegistry();
+    const newExpr = new ExpressionRuntime();
+    const newRenderDsl = new RenderDslEngine(newExpr);
+    const newPipeline = new ValidationPipeline(newExpr);
+    const newPlugins = new PluginRuntime(this);
+
+    const snapshot = {
+      profiles: this.profiles,
+      expr: this.expr,
+      renderDsl: this.renderDsl,
+      pipeline: this.pipeline,
+      plugins: this.plugins,
+    };
+    this.profiles = newProfiles;
+    this.expr = newExpr;
+    this.renderDsl = newRenderDsl;
+    this.pipeline = newPipeline;
+    this.plugins = newPlugins;
+
+    try {
+      // Persisted operator-registered profiles must be re-loaded into
+      // the fresh registry before plugin activation runs (plugin
+      // activate() callbacks may reference them).
+      if (this.persistence) {
+        const profileFiles = await this.persistence.listProfileFiles();
+        for (const path of profileFiles) {
+          const raw = await this.persistence.readProfileFile(path);
+          const result = DomainProfile.safeParse(raw);
+          if (!result.success) {
+            emitHostWarning({
+              code: "profile.invalid",
+              message: `skipping invalid profile at ${path} during plugin reload`,
+              evidence: { path, issues: result.error.issues },
+            });
+            continue;
+          }
+          if (this.profiles.has(result.data.id)) continue;
+          this.profiles.register(result.data);
+        }
+      }
+
+      if (!this.hostOptions.noPlugins) {
+        await this.plugins.discoverAndRegister({
+          ...(this.hostOptions.builtinDirs && { builtinDirs: this.hostOptions.builtinDirs }),
+          ...(this.hostOptions.pluginPaths && { pluginPaths: this.hostOptions.pluginPaths }),
+          ...(this.hostOptions.cwd && { cwd: this.hostOptions.cwd }),
+        });
+        await this.plugins.activateAuto();
+      }
+    } catch (err) {
+      this.profiles = snapshot.profiles;
+      this.expr = snapshot.expr;
+      this.renderDsl = snapshot.renderDsl;
+      this.pipeline = snapshot.pipeline;
+      this.plugins = snapshot.plugins;
+      throw err;
+    }
+
+    return {
+      reloadedAt: Date.now(),
+      plugins: this.plugins.list().filter((p) => p.state === "active").length,
+    };
+  }
+
+  /**
    * SPEC-REPL §10.2 lenient-mode incremental tail-replay.
    *
    * Reads the project's full JSONL log from disk and compares its
