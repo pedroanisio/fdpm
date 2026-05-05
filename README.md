@@ -62,7 +62,15 @@ implemented.
   SPEC-CORE and SPEC-DNIS are migrated to DNIS-backed sections via
   `DnisHostAdapter` (codemod gated by byte-equality against the
   pre-migration rendered output — both pass).
-- **718 tests passing across 77 test files**. Coverage spans:
+- **SPEC-WORKSPACE 0.1.0** — Workspace as first-class primitive: ULID
+  identity persisted in `workspace.json`, XDG-located registry,
+  `.fdpmbak` backup format with sha256 per file, atomic restore with
+  five-step verification pipeline, and the `fdpm workspace`
+  subcommand suite (init / list / info / switch / rename / forget /
+  backup / restore / verify). Phase 1 of the R2 remote-server
+  roadmap — the interface boundary a future `RemoteWorkspace` slots
+  into without breaking local consumers.
+- **986 tests passing across 109 test files**. Coverage spans:
   - Core: meta-model, profile resolution (incl. `extends` chains for
     composition profiles), validation pipeline, verification gate,
     event-sourced replay, time-travel, undo (per kind), atomic batch
@@ -197,6 +205,15 @@ fdpm log audit demo         # AuditRecord projection (§13.3)
 | `fdpm plugin reload <id>`        | `POST /plugins/{id}:reload`                    |
 | `fdpm plugin quarantine-clear`   | `POST /plugins/{id}:quarantine-clear`          |
 | `fdpm render <project> <target>` | invokes the matching `cap:renderer`; output gated by §6.5 |
+| `fdpm workspace init`            | SPEC-WORKSPACE §16.1 (mint workspace.json + register)        |
+| `fdpm workspace list`            | SPEC-WORKSPACE §12 (registry catalog)                        |
+| `fdpm workspace info [lookup]`   | SPEC-WORKSPACE §11 (workspace.json identity)                 |
+| `fdpm workspace switch <lookup>` | SPEC-WORKSPACE §16.5 (set `registry.current`)                |
+| `fdpm workspace rename <lookup> <new>` | SPEC-WORKSPACE §16.3 (mutate name, clear `_minted`)    |
+| `fdpm workspace forget <lookup>` | SPEC-WORKSPACE §16.7 (drop registry entry; data dir untouched) |
+| `fdpm workspace backup -o <out>` | SPEC-WORKSPACE §13 (`.fdpmbak` zip + manifest at offset 0)   |
+| `fdpm workspace restore <bundle> --data-dir <p>` | SPEC-WORKSPACE §14 (verify-first → atomic rename → Host.load) |
+| `fdpm workspace verify [lookup]` | SPEC-WORKSPACE §16 verify (out-of-band Host.load round-trip) |
 
 ## Plugin runtime (SPEC-PLUGGABLE-ARCHITECTURE 1.1)
 
@@ -528,6 +545,7 @@ without changing semantics.
 
 ```
 $FDPM_DATA_DIR/                     (default: ~/.fdpm-cli)
+├── workspace.json                  (SPEC-WORKSPACE §11 identity: ULID + name)
 ├── manifest.json
 ├── profiles/
 │   └── test_demo.json              (registered DomainProfiles)
@@ -535,6 +553,71 @@ $FDPM_DATA_DIR/                     (default: ~/.fdpm-cli)
 ```
 
 `--no-persist` runs in-memory only; `--data-dir <path>` overrides.
+
+## Workspace lifecycle (SPEC-WORKSPACE 0.1)
+
+The data directory above is now identified by a `workspace.json`
+that the host auto-mints on first touch. Every workspace has a stable
+ULID `id` (immutable across path moves and machine migrations) and an
+operator-chosen `name` you can rename later. A per-operator-per-machine
+**registry** at `${FDPM_REGISTRY_PATH:-${XDG_STATE_HOME:-~/.local/state}/fdpm/workspaces.json}`
+catalogs the known workspaces; setting `FDPM_WORKSPACE=<name|id>`
+resolves the data dir through it.
+
+Data-dir resolution precedence (first match wins):
+
+1. `--data-dir <path>` (CLI flag)
+2. `$FDPM_DATA_DIR`
+3. `$FDPM_WORKSPACE` resolved by name or id via the registry
+4. registry's `current` entry
+5. `~/.fdpm-cli` (legacy default)
+
+Worked example — backup, restore, verify:
+
+```bash
+# Inspect the active workspace (auto-minted on first invocation).
+fdpm workspace info --json
+
+# List all known workspaces; * marks the current one.
+fdpm workspace list
+
+# Give the auto-minted workspace a friendly name (clears _minted).
+fdpm workspace rename <id-or-name> production
+
+# Write a backup. The bundle is a zip whose first entry is
+# backup-manifest.json — operators can introspect without `fdpm`
+# installed on the target machine:
+#   unzip -p prod-2026-05-05.fdpmbak backup-manifest.json | jq .
+fdpm workspace backup -o ./prod-2026-05-05.fdpmbak
+
+# Restore to a fresh data dir under a new identity. --name mints a
+# fresh ULID so the original workspace and the restored one can
+# coexist in the registry.
+fdpm workspace restore ./prod-2026-05-05.fdpmbak \
+  --data-dir /tmp/prod-restore --name prod-clone
+
+# Out-of-band Host.load() round-trip — proves the workspace's
+# operation log replays cleanly. Useful in CI and as a smoke test
+# after operator-led data dir surgery.
+fdpm workspace verify prod-clone
+```
+
+Restore failure modes (each carries a structured `evidence.reason`):
+
+| Scenario | Category | `evidence.reason` |
+| --- | --- | --- |
+| Bundle missing or unparseable manifest | `verification` | `manifest_invalid` |
+| Bundle's `workspace_id` already in the registry, no flags | `conflict` | `workspace_id_collision` |
+| Any data entry's sha256 disagrees with the manifest | `verification` | `sha256_mismatch` |
+| Target dir on a different filesystem than the temp dir | `verification` | `cross_fs_rename` |
+| Step 5 `Host.load()` throws (typically version skew) | `host_compat` | `version_skew` |
+
+In every failure mode, the target dir is left untouched (or, for the
+`host_compat` case, left in place so the operator can downgrade
+`fdpm` and retry without re-extracting). `--force-overwrite` replaces
+an existing `workspace_id`; `--name <new>` mints a fresh one;
+`--skip-verify` opts out of step 5 when external verification is in
+place.
 
 ## Conformance — §18 acceptance criteria
 

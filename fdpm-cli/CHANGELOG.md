@@ -23,6 +23,127 @@ upgrade.
 
 ### Added
 
+#### SPEC-WORKSPACE v0.1 — Workspace as first-class primitive
+
+> ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some
+> form of error. Absence of output verification is a design defect, not
+> a runtime bug. All LLM output must be treated as untrusted and
+> validated explicitly.
+
+The FDPM data directory is now a typed, identified, registered
+container. Phase 1 of the R2 remote-server roadmap: the interface
+boundary that a future `RemoteWorkspace` will plug into without
+breaking local consumers. Backup/restore, the operator subcommand
+suite, and MCP-bin precedence are all in this slice.
+
+  - **`Workspace` interface** (`src/core/workspace/types.ts`): `id`,
+    `name`, `path | null`, `getStore()`, `getProfileRegistry()`,
+    `getPluginRuntime()`, `appendOp()`, `getOperationLog()`,
+    `statProjectLog()`, `listProjects()`, `backup()`. Strict zod
+    schemas for `WorkspaceIdentity` and `WorkspaceRegistry` (unknown
+    fields rejected at parse time — typos surface as `verification`
+    errors with a clear `evidence.field_path`).
+
+  - **`LocalWorkspace`** (`src/core/workspace/local.ts`):
+    `LocalWorkspace.open()` reads or auto-mints `workspace.json` on
+    first touch, upserts the registry entry, exposes the Workspace
+    interface backed by the existing `JsonlLogStore`. Auto-mint emits a
+    one-process-one-warning host warning per dataDir (Principle 4 —
+    plugin failures never crash the host). `LocalWorkspace#rename()`
+    mutates `workspace.json`'s `name`, clears `_minted`, and updates
+    the registry.
+
+  - **Operator-local registry** (`src/core/workspace/registry.ts`):
+    XDG-located catalog at
+    `${FDPM_REGISTRY_PATH:-${XDG_STATE_HOME:-~/.local/state}/fdpm/workspaces.json}`.
+    Atomic temp+rename writes; tolerant reads (missing file → empty
+    registry); upsert-by-id, lookup-by-id/name, unique-name suffixing
+    on collision.
+
+  - **§8.3 precedence resolution** (`src/core/workspace/resolve.ts`):
+    `--data-dir > FDPM_DATA_DIR > FDPM_WORKSPACE > registry.current >
+    defaultDataDir()`. `FDPM_WORKSPACE` and `registry.current`
+    misses surface as `not_found`; an absent default returns
+    `{dataDir: null, source: "default"}` so callers can fall through
+    to the legacy path.
+
+  - **Backup** (`src/core/workspace/backup.ts`): streaming `.fdpmbak`
+    writer (zip via `archiver`). Manifest at offset 0 — operators can
+    `unzip -p bundle backup-manifest.json | jq .` without scanning the
+    archive. Per-file sha256, manifest carries workspace identity,
+    host version, spec_core version. §13 compression policy:
+    text/json/jsonl/yaml/svg deflated; pre-compressed types
+    (pdf/png/jpeg/etc.) stored. `LocalWorkspace#backup()` updates the
+    registry's `last_backup` on success.
+
+  - **Restore** (`src/core/workspace/restore.ts`): five-step pipeline:
+    (1) read manifest via random-access central directory;
+    (2) identity-collision check against the registry;
+    (3) verify all sha256s — STREAMING; no bytes touch the target
+        until every entry passes;
+    (4) write to `${target}.tmp/` then atomic rename to `${target}`
+        (cross-fs detected via EXDEV and refused with `verification` +
+        `evidence.reason: "cross_fs_rename"`);
+    (5) `Host.load()` round-trip — proves the bundle is replayable
+        against this host; opt-out via `--skip-verify`.
+    `--force-overwrite` replaces an existing `workspace_id`;
+    `--name <new>` mints a fresh ULID for side-by-side restores.
+    Uses `yauzl` for random-access reads.
+
+  - **`fdpm workspace` subcommand suite** (`src/commands/workspace.ts`):
+    `init / list / info / switch / rename / forget / backup / restore /
+    verify`. Wired through `buildProgram` and `ALL_COMMAND_METADATA`.
+    All subcommands carry SPEC-REPL §10.2 metadata as
+    `NO_PROJECT_ARGV` / `NO_PROJECT_JSON` because workspace ops never
+    touch project logs (the freshness gate has nothing to stat).
+    `verify` does an out-of-band `Host.load()` round-trip and reports
+    project count + elapsed_ms.
+
+  - **Host integration** (`src/core/host.ts`): `host.workspace:
+    Workspace | null` populated after `load()` / `reload()` /
+    `reloadPlugins()`. `host.persistence` continues to point at the
+    underlying `JsonlLogStore` so existing tier-bypass callers
+    (`host-extra.ts`, `mcp-audit-log.ts`) work unchanged
+    (Principle 7: plugin call sites unchanged).
+
+  - **bin precedence** — `src/bin/fdpm.ts` and `src/bin/fdpm-mcp.ts`
+    both resolve through `resolveWorkspaceDataDir`, so MCP servers
+    honour `FDPM_WORKSPACE` and `registry.current` the same way the
+    one-shot CLI does.
+
+  - **New env vars**: `FDPM_WORKSPACE` (workspace id or name to
+    resolve via the registry; ignored when `FDPM_DATA_DIR` is set),
+    `FDPM_REGISTRY_PATH` (override for the registry file path).
+    Documented in README, MANUAL, `.env.example`, and the env-contract
+    test gate.
+
+  - **New deps**: `archiver ^7.0.1` (MIT, ~3 MB transitive, no native
+    build), `yauzl ^3.3.0` (MIT, random-access zip reader).
+
+  - **Tests** (48 new across 3 suites):
+    - `tests/workspace.test.ts` (24): identity round-trip, registry
+      CRUD, atomic write, malformed-JSON refusal, unique-name
+      suffixing, lookup by id/name, auto-mint stable id across loads,
+      registry upsert, basename-derived name with `-2` suffix on
+      collision, schema strictness, plugin-call invariance
+      (`host.workspace.getStore() === host.store` etc.), reload
+      preserves workspace identity, all five §8.3 precedence rules
+      plus not_found failure modes.
+    - `tests/workspace-backup-restore.test.ts` (15): bundle layout
+      with manifest at offset 0, sha256 per file, identity collision
+      policy under no flags / `--name` / `--force-overwrite`,
+      `sha256_mismatch` refusal with target untouched, `--skip-verify`,
+      missing-manifest refusal, registry `last_backup` update, rename
+      clears `_minted` + rejects empty names.
+    - `tests/workspace-subcommands.test.ts` (9): full subcommand
+      smoke through `npx tsx src/bin/fdpm.ts` so emit()'s fd-1 sync
+      write path is exercised end-to-end.
+
+  - **SPEC** — `docs/specs/SPEC-WORKSPACE.md` (96 KB; 212 primitives,
+    120 relations; `validate` clean: 0 errors / 0 warnings). Source
+    in `fdpm-cli/scripts/build-spec-workspace.ts`; path constants in
+    `fdpm-cli/scripts/_spec-paths.ts`.
+
 #### SPEC-MCP-SERVER v0.1 — slice B-final + Phase C (freshness gate, Tier-2 surface, audit completion)
 
 > ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some
