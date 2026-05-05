@@ -1,0 +1,100 @@
+{
+  "id": "fdpm.starter",
+  "version": "0.1.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Starter (Recipe Book)",
+  "description": "Educational template for FDPM plugin authors. Models a small recipe-book domain (Recipe, Ingredient, Tag) and exercises every common capability kind: cap:profile, cap:renderer, cap:validator, cap:lifecycle-hook, cap:transformer, cap:importer, cap:exporter, cap:expr-helper. Read alongside spec-plugin-authoring-howto §6. Fork by copying this directory and renaming `fdpm.starter` → `fdpm.<your-plugin-name>` and `recipe:` / `profile:recipe:` to your own namespace.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2",
+    "expr_helper_set": ">=1.1.0,<2"
+  },
+  "permissions": [
+    "read:workbooks",
+    "read:primitives",
+    "read:relations",
+    "render:server",
+    "import:workbook",
+    "export:workbook"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "starter",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-install",
+      "entry": "onInstall"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-enable",
+      "entry": "onEnable"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-disable",
+      "entry": "onDisable"
+    },
+    {
+      "capability_id": "cap:lifecycle-hook",
+      "local_name": "on-uninstall",
+      "entry": "onUninstall"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "shopping-list",
+      "entry": "renderShoppingList",
+      "metadata": {
+        "renderer_id": "recipe:ShoppingListRenderer",
+        "target": "text/markdown",
+        "output_path": "shopping-list.md"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "recipe-has-ingredient",
+      "metadata": {
+        "rule_id": "recipe:val:has-at-least-one-ingredient",
+        "type_id": "recipe:Recipe"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "local_name": "minutes-to-hours",
+      "metadata": {
+        "helper_id": "fn.fdpm.starter.minutes-to-hours",
+        "arity": 1
+      }
+    },
+    {
+      "capability_id": "cap:transformer",
+      "local_name": "recipe-to-shopping-list",
+      "metadata": {
+        "from_type_id": "recipe:Recipe",
+        "to_type_id": "recipe:Ingredient",
+        "name": "recipe:to-shopping-list"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "local_name": "recipe-jsonl",
+      "metadata": {
+        "format": "recipe-jsonl",
+        "description": "JSON Lines bundle of recipe:* primitives + relations."
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "local_name": "recipe-jsonl",
+      "metadata": {
+        "format": "recipe-jsonl",
+        "description": "JSON Lines export filtered to recipe:* primitives + relations."
+      }
+    }
+  ]
+}
