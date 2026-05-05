@@ -23,6 +23,251 @@ upgrade.
 
 ### Added
 
+#### SPEC-MCP-SERVER v0.1 — slice B-final + Phase C (freshness gate, Tier-2 surface, audit completion)
+
+> ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some
+> form of error. Absence of output verification is a design defect, not
+> a runtime bug. All LLM output must be treated as untrusted and
+> validated explicitly.
+
+Slice B-final wires the per-call freshness gate (SPEC-MCP-SERVER §10
+/ §21) and adds the remaining Tier-1 read-only tools. Phase C adds the
+Tier-2 validating-write surface with a `validation_report` envelope on
+every response. The two ship together because the freshness map
+(B-final) is required to make Tier-2 stale-state refusal work, and
+the validation-report envelope (Phase C) is required to keep §7
+rejections from leaking out as MCP-protocol errors.
+
+  - **Per-session freshness map** (`src/mcp/session.ts`):
+    `recordSeen` / `checkFreshness` / `markFresh` /
+    `clearFreshnessMap`. Tracks `(mtime_ns, size)` for every project
+    log this session has touched. Strict bigint-tuple equality on the
+    pair; "not seen yet" → not stale (recorded fresh on first
+    encounter). The map is purely in-memory; SIGHUP-triggered
+    `Host.reload()` clears it.
+
+  - **Per-call freshness gate** (`src/mcp/dispatch.ts`): resolves a
+    `projectIdsFromJson` extractor (`src/mcp/tool-metadata-map.ts`)
+    against each tool's raw args, expands `["*"]` wildcards via
+    `host.listProjects()` (with a stderr warning), and either
+    tail-replays silently (Tier-1 lenient) or refuses with
+    `permission` + `evidence.reason: "stale_state"` (Tier-2/3 strict)
+    when `(mtime_ns, size)` differs from the recorded tuple.
+    `host_compat` from `Host.reloadProjectTail` propagates as an MCP
+    error envelope. Successful Tier-2/3 writes re-seed the freshness
+    map so the same session can issue consecutive writes against the
+    same project.
+
+  - **Six new Tier-1 read-only tools**: `fdpm.primitive.search`,
+    `fdpm.primitive.get`, `fdpm.relation.list`, `fdpm.relation.get`,
+    `fdpm.log.tail`, `fdpm.log.diff`. All wrap existing
+    `Host.searchPrimitives` / `Host.searchRelations` / `Host.getLog`
+    / `Host.getProject` reads — no new Host methods required.
+
+  - **Eleven Tier-2 validating-write tools**: `fdpm.profile.register`,
+    `fdpm.project.create`, `fdpm.primitive.create`,
+    `fdpm.primitive.replace`, `fdpm.primitive.patch`,
+    `fdpm.primitive.field_patch`, `fdpm.relation.create`,
+    `fdpm.relation.replace`, `fdpm.relation.patch`,
+    `fdpm.structure.reorder`, `fdpm.structure.reparent`. Each returns
+    the SPEC §8.2 envelope `{ ok, operation, validation_report,
+    post_state_summary }`. The dispatcher branches on
+    `validation_report.accepted`:
+      - `true`  → `isError: false`, `ok: true`.
+      - `false` → `isError: false`, `ok: false` (per SPEC §12: the
+        protocol call succeeded; the operation was rejected by Core
+        validation).
+      - genuine `FDPMException` (not_found, conflict, etc.) →
+        `isError: true` with the typed envelope.
+
+  - **`Host.*` validation throws are caught** by the dispatcher and
+    mapped to the rejected-envelope shape so a §7 rejection always
+    surfaces with `validation_report.findings` populated, never as a
+    bare `validation`-category error envelope.
+
+  - **SIGHUP handler** (`src/bin/fdpm-mcp.ts`): replaces the prior
+    log-and-continue stub. Calls `host.reload()`, clears the session
+    freshness map, and audits the reload as a `phase: "reload"` entry
+    (`outcome: "ok" | "host_compat" | "internal"`). Reload failure
+    leaves the previous Host intact per `Host.reload()`'s contract;
+    the server keeps serving against the pre-reload state.
+
+  - **Audit log enrichment** (`src/persistence/mcp-audit-log.ts`):
+    new `McpAuditReloadEntry` for SIGHUP events;
+    `validation_status` populated as `"pass" | "fail"` for Tier-2
+    completes (was previously always `"n/a"` because Tier-2 hadn't
+    landed). Tier-1 stays `"n/a"`.
+
+  - **Tool ↔ command-metadata mapping** (`src/mcp/tool-metadata-map.ts`):
+    explicit table that maps every MCP tool name to either an
+    `ALL_COMMAND_METADATA` key, `null` (no project state), or an
+    inline `ProjectIdsFromJson` extractor (used for the `log.*`
+    tools whose closest CLI peer key isn't a 1:1 name match).
+    Boot-time assertion in `manifest.ts` fails server start if any
+    advertised tool lacks a mapping row.
+
+  - **Tests**: 15 new tests across `tests/mcp/`:
+      - `tier1-freshness.test.ts` — silent tail-replay,
+        `host_compat` propagation, `["*"]` wildcard scan + stderr
+        warning.
+      - `tier2-validation-report.test.ts` — happy paths populate
+        `validation_report`; §7 rejections surface with
+        `isError: false`/`ok: false`.
+      - `tier2-stale-state.test.ts` — strict-mode refusal on OOB
+        write; success after `host.reload()` analogue.
+      - `audit-log.test.ts` — 200 rapid calls produce 400 paired
+        start/complete entries with correct `validation_status`.
+      - `conformance-23-4.test.ts` — verbatim SPEC §23.4
+        end-to-end.
+
+#### SPEC-MCP-SERVER v0.1 — slice D (Tier 3 destructive surface, fuzz harness, plugin-tool stub)
+
+> ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some
+> form of error. Absence of output verification is a design defect, not
+> a runtime bug. All LLM output must be treated as untrusted and
+> validated explicitly.
+
+Phase D ships the destructive tool surface, the schema-fuzz CI gate,
+and the plugin-tool exposure stub. SPEC-MCP-SERVER acceptance items
+§22.3, §22.5, §22.7 (partial), and conformance items §23.1, §23.5
+are now testable end-to-end in `tests/mcp/`.
+
+  - **Tier 3 tools** (off by default; opt in via `--enable-destructive`
+    / `FDPM_MCP_ENABLE_DESTRUCTIVE=1`):
+    - `fdpm.project.delete` — wraps `Host.deleteProject`.
+    - `fdpm.primitive.delete` — wraps `Host.deletePrimitive`.
+    - `fdpm.relation.delete` — wraps `Host.deleteRelation`.
+
+    All three carry `annotations.destructiveHint: true` and return a
+    thin envelope `{ ok: true, operation, post_state_summary }`
+    (no `validation_report` — the underlying Host methods return
+    `AppendOutput`, not the validation envelope).
+
+  - **Tier 3 manifest filtering**: `advertisedTools(...)` excludes
+    Tier 3 tools when `enableDestructive` is false. The dispatcher's
+    tier gate is the authoritative refusal point — defense-in-depth
+    against a client that somehow learns the names regardless.
+    `manifest.ts` `EXPOSED_HOST_METHODS` now lists `deleteProject`,
+    `deletePrimitive`, `deleteRelation`; their entries in
+    `not-exposed.ts` were removed (SPEC §22.3 / §23.1).
+
+  - **Confirmation-token mode** (SPEC §9.3, opt-in): new optional
+    fields `requireConfirmationToken` and `confirmationToken` on
+    `DispatchCtx`. When true, Tier 2/3 calls without a matching
+    `_confirmation_token` argument refuse with `permission` +
+    `evidence.reason: "confirmation_required"`. The dispatcher
+    strips the token from the args before strict-schema validation.
+    The bin entry will wire `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN`
+    in a follow-up; the gate itself ships now.
+
+  - **Schema-fuzz CI gate** (SPEC §22.5 / §26): hand-rolled JSON
+    Schema sampler under `tests/mcp/_fuzz/sampler.ts` plus a
+    fuzz suite at `tests/mcp/schema-fuzz.test.ts`. Generates 10⁴
+    inputs per tool per run, filters them through Ajv against the
+    advertised JSON Schema, and asserts that every JSON-Schema-valid
+    sample is also accepted by the runtime Zod validator. Catches
+    drift between the advertised schema and the runtime contract.
+    Runs in <2 s for the 25 currently-shipping tools.
+    Adds `ajv@^8.17.1` to devDependencies.
+
+  - **Plugin-tool exposure stub** (SPEC §13 / §22.7): new module
+    `src/mcp/plugin-tools.ts` with a `discoverPluginTools()`
+    function that returns `[]` unconditionally and emits a
+    structured warning via `emitHostWarning(...)` when the operator
+    opts in. The amendment to SPEC-PLUGGABLE-ARCHITECTURE adding the
+    `mcp_tool` capability kind is deferred to v0.1.1; until it lands
+    no plugin tools leak into the manifest. Conformance test at
+    `tests/mcp/plugin-tools-stub.test.ts` guards the security posture.
+
+  - **HTTP transport refusal conformance** (SPEC §23.5): new test
+    `tests/mcp/conformance-23-5.test.ts` spawns the built
+    `dist/src/bin/fdpm-mcp.js` with `--http-port`, `--http-host`,
+    and `--sse` and asserts each exits non-zero with a stderr
+    pointer to §6.1 / v0.2.
+
+  - **Defense-in-depth in `resolveProjectIds`**: the freshness-step
+    helper now treats a tool name absent from `TOOL_TO_COMMAND_METADATA`
+    as "no project state" instead of throwing. The boot-time check in
+    `manifest.ts` still rejects manifest drift; the runtime fallback
+    only matters for synthetic test tools injected via the
+    `resolveTool` seam.
+
+#### SPEC-MCP-SERVER v0.1 — slice B-prelim (Tier 1 read-only surface)
+
+> ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some
+> form of error. Absence of output verification is a design defect, not
+> a runtime bug. All LLM output must be treated as untrusted and
+> validated explicitly.
+
+New `fdpm-mcp` binary implementing the SPEC-MCP-SERVER v0.1 stdio
+transport with five Tier 1 read-only tools:
+
+  - `fdpm.health` — server liveness + manifest version + counts.
+  - `fdpm.profile.list` — registered DomainProfiles.
+  - `fdpm.profile.get` — fetch a profile by id.
+  - `fdpm.project.list` — loaded projects.
+  - `fdpm.project.get` — project row + primitive/relation counts.
+
+Architecture follows SPEC-MCP-SERVER §4 (Architectural Principles), §8
+(Tool Surface tiers), §11 (Zod source of truth, JSON Schema derived),
+§12 (Error Model — reuses FDPMException taxonomy), §15 (Lifecycle).
+
+  - **Dependency**: `@modelcontextprotocol/sdk@^1.29.0` (pinned minor)
+    plus `zod-to-json-schema@^3.25.2` for advertisement-time schema
+    derivation.
+  - **Binary**: `bin.fdpm-mcp` registered in `package.json`; `build`
+    `chmod +x`s both `fdpm` and `fdpm-mcp`.
+  - **HTTP transport refusal**: passing `--http-port`, `--http-host`,
+    or `--sse` causes the process to refuse to start with a clear
+    pointer to SPEC-MCP-SERVER §6.1 (deferred to v0.2). Conformance §5.
+  - **Per-session rate limit**: token-bucket implementation in
+    `src/mcp/session.ts` defaulting to 120 calls/minute
+    (`--max-calls-per-minute` / `FDPM_MCP_MAX_CALLS_PER_MINUTE`).
+    Excess calls return `permission` + `evidence.reason: "rate_limited"`.
+  - **Tier gate**: `--enable-destructive` /
+    `FDPM_MCP_ENABLE_DESTRUCTIVE=1` is required to expose Tier 3 tools.
+    Slice B-prelim ships zero Tier 3 tools, but the gate logic is
+    runtime-tested via a synthetic Tier 3 entry in the test fixture
+    (see `tests/mcp/dispatch.test.ts`).
+  - **Audit log**: append-only JSONL at
+    `$FDPM_DATA_DIR/mcp-audit.jsonl` with one `start` and one
+    `complete` entry per call. Args are sha256-hashed by default;
+    `--audit-full-args` / `FDPM_MCP_AUDIT_FULL_ARGS=1` opts into full
+    args for debugging.
+  - **CI gates** (both mandatory):
+    - `tests/mcp-classification.test.ts` — every public Host method
+      is either wrapped by an MCP tool (named in
+      `EXPOSED_HOST_METHODS`) or explicitly listed in
+      `src/mcp/not-exposed.ts`. Adding a new public Host method
+      breaks the build until classified.
+    - `tests/mcp-source-imports.test.ts` — tool-handler modules
+      under `src/mcp/tools/` MUST NOT import `host.persistence`,
+      `host.store`, `node:child_process`, `node:vm`, or call `eval`
+      / `new Function(`. SPEC-MCP-SERVER §6.1 compliance.
+
+Known gaps deferred to slice B-final / slice C:
+
+  - **Freshness check** — the dispatcher's freshness step is a no-op
+    in slice B-prelim. Tier 1 tools are safe under this relaxation
+    (they take an explicit `project_id` for a pure read or touch no
+    project state). Tier 2 / Tier 3 tools cannot land until the
+    freshness mechanism is wired (REPL track step 3+5; the
+    `Host.reload` and `Host.statProjectLog` primitives exist but the
+    dispatcher does not yet consult them). See the `SLICE-B-FINAL`
+    marker in `src/mcp/dispatch.ts`.
+  - **SIGHUP host.reload** — slice B-prelim logs the SIGHUP and
+    continues; `Host.reload()` invocation is wired in slice B-final.
+  - **Plugin tools** — `--enable-plugins` is parsed and threaded
+    through `DispatchCtx` but no plugin tools ship in this slice.
+    Plugin-tool exposure follows SPEC-MCP-SERVER §13 / the plugin
+    manifest amendment.
+
+New env vars (`FDPM_NO_PLUGINS`, `FDPM_MCP_ENABLE_DESTRUCTIVE`,
+`FDPM_MCP_ENABLE_PLUGINS`, `FDPM_MCP_MAX_CALLS_PER_MINUTE`,
+`FDPM_MCP_AUDIT_FULL_ARGS`) are registered in
+`src/core/config/env.ts` and reflected in `.env.example`,
+`README.md`, and `MANUAL.md` per the env-contract test.
+
 #### SPEC-CORE 1.2 — SPEC-DNIS adoption (§5.6)
 
 The Core SPEC is bumped 1.1.1 → 1.2.0. New §5.6 "Document Node

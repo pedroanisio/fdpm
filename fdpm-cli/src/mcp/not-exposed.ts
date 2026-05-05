@@ -1,6 +1,6 @@
 /**
  * Public `Host` methods that are intentionally NOT exposed over MCP in
- * the current manifest revision (slice B-prelim).
+ * the current manifest revision (slice B-final + Phase C).
  *
  * SPEC-MCP-SERVER §8.4 / Compliance: every public Host method must be
  * either present in MANIFEST (with a declared tier) OR explicitly
@@ -11,12 +11,6 @@
  * Each entry below has a stable rationale recorded in this file's
  * comments — never delete an entry without either moving it into the
  * manifest or documenting why it was removed from the public surface.
- *
- * The list is conservative for slice B-prelim: every public Host
- * method that is not directly wrapped by the five Tier-1 tools is
- * listed here, including all writes (Tier 2/3 territory, deferred
- * to slice B-final / slice C) and read methods deferred for paged /
- * search-shaped surfaces.
  */
 
 export const NOT_EXPOSED: ReadonlyArray<string> = [
@@ -29,13 +23,12 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // `permission`+`evidence.reason: "stale_state"` instead.
   "reload",
   // `statProjectLog` is the freshness-check primitive consumed by
-  // dispatcher middleware (slice B-final). It is not a tool — it is a
-  // building block.
+  // dispatcher middleware. It is not a tool — it is a building block.
   "statProjectLog",
   // `reloadProjectTail` is the per-project lenient-replay primitive
   // (SPEC-REPL §13). Like `reload` it is operator-triggered, not LLM-
-  // facing. Slice B-final's dispatcher will call it from the
-  // freshness check, but it is never advertised as a tool.
+  // facing. The dispatcher's freshness check calls it from Tier-1
+  // lenient mode, but it is never advertised as a tool.
   "reloadProjectTail",
   // `reloadPlugins` re-runs plugin discovery + activation only
   // (SPEC-REPL §10.3 `:reload plugins`). Operator-triggered via SIGHUP
@@ -43,36 +36,7 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // shouldn't be able to mutate the host's capability surface.
   "reloadPlugins",
 
-  // -- Registry mutations ---------------------------------------------
-  // Profile registration is operator-only; an LLM should not contribute
-  // profiles via MCP without a destructive-tier classification.
-  "registerProfile",
-
-  // -- Project lifecycle (Tier 2/3 territory; deferred to slice C) ----
-  "createProject",
-  "deleteProject",
-
-  // -- Primitive writes (Tier 2/3) ------------------------------------
-  "createPrimitive",
-  "replacePrimitive",
-  "patchPrimitive",
-  "deletePrimitive",
-  "fieldPatchPrimitive",
-
-  // -- Relation writes (Tier 2/3) -------------------------------------
-  "createRelation",
-  "replaceRelation",
-  "patchRelation",
-  "deleteRelation",
-
-  // -- Structure writes (Tier 2/3) ------------------------------------
-  "reorder",
-  "reparent",
-
-  // -- Read surfaces deferred to slice B-final ------------------------
-  // Operation-log streaming wants paging + filtering ergonomics that
-  // the slice-B-prelim manifest does not yet model.
-  "getLog",
+  // -- Read surfaces deferred -----------------------------------------
   // Resolved-profile read; deferred until a `fdpm.profile.resolved.get`
   // tool exists. Profile reads in this slice return the raw form.
   "requireResolvedProfile",
@@ -80,10 +44,10 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   "lookupUid",
   "resolvePrimitiveByUid",
   "resolveRelationByUid",
-  // Project-wide read surfaces deferred to slice B-final.
+  // Project-wide read surfaces deferred. `diffProject` and
+  // `validateProject` produce non-trivial response shapes; defer until
+  // a stable wire format is agreed.
   "diffProject",
-  "searchPrimitives",
-  "searchRelations",
   "validateProject",
 
   // -- Internal append helpers ----------------------------------------
