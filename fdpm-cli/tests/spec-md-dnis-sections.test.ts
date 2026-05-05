@@ -57,7 +57,12 @@ async function createSection(
   documentId: DocumentId,
   parent: NodeId | null,
   index: number,
-  content: { title: string; body_md?: string; dispatch_kind?: string },
+  content: {
+    title: string;
+    body_md?: string;
+    dispatch_kind?: string;
+    ref_slug?: string;
+  },
 ): Promise<BuiltSection> {
   const opId = `OPSEC${String(index).padStart(20, "0")}A` as OperationId;
   // Compute position by appending after the last sibling under the same
@@ -315,5 +320,151 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     expect(text).toContain("## 1. DNIS section");
     expect(text).not.toContain("Legacy section to ignore");
     expect(text).not.toContain("## 99.");
+  });
+
+  it("buildSectionIndex emits slug-keyed entries (title-derived + author-supplied ref_slug + collision suffix)", async () => {
+    // End-to-end proof: build a real dnis:Document with three top-level
+    // sections (one with explicit ref_slug, two with colliding titles),
+    // call buildSectionIndex against the project's primitives, and
+    // assert the slug-keyed entries land. Then exercise the lookups
+    // through fn.section_of via the renderTemplate facade — using the
+    // EXACT map buildSectionIndex produced.
+    const { buildSectionIndex } = await import(
+      "../plugins/spec_authoring/renderers/spec_md.js"
+    );
+
+    const host = await freshHost();
+    const projectId = "test-spec-dnis-slugs";
+    await newComposedProject(host, projectId);
+    await host.createPrimitive(projectId, {
+      id: "spec:doc:slugs",
+      type_id: "spec:Document",
+      field_values: {
+        title: "Slug fixture",
+        spec_id: "spec:fixture:0.1",
+        version: "0.1.0",
+        status: "Draft",
+        audience: "test",
+        date: "2026-05-04",
+        disclaimer_path: "../DISCLAIMER.md",
+        pals_banner: false,
+        generated_by: "vitest fixture",
+      },
+    });
+    const adapter = new DnisHostAdapter(host, { projectId });
+    const document = await adapter.createDocument({
+      createdBy: AGENT,
+      schemaVersion: "0.1.7",
+      hashAlgorithm: "sha256",
+    });
+    // §1 Purpose and Scope    → slug from title
+    // §2 References (biblio)  → author-supplied ref_slug "biblio"
+    // §3 References           → collision with §2's title-derived
+    //                            slug → suffixed `section:references-2`
+    let counter = 0;
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "Purpose and Scope",
+      body_md: "Why this exists.",
+    });
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "References",
+      body_md: "First references list.",
+      ref_slug: "biblio",
+    });
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "References",
+      body_md: "Second references list (collision)!",
+    });
+
+    // Sanity-check the raw renderer outputs the right §-numbers.
+    const { text } = await renderWithRenderer(host, projectId);
+    expect(text).toContain("## 1. Purpose and Scope");
+    expect(text).toContain("## 2. References");
+    expect(text).toContain("## 3. References");
+
+    // Real test: buildSectionIndex emits the slug entries.
+    const slice = host.getProject(projectId);
+    const index = buildSectionIndex(Object.values(slice.primitives));
+    expect(index.get("section:purpose-and-scope")).toBe("1");
+    // §2 used an author-supplied ref_slug, so its baseSlug is
+    // `section:biblio` (NOT the title-derived `section:references`).
+    // That means §3's title-derived `section:references` is the FIRST
+    // occurrence of that base — it claims the bare slug, no suffix.
+    expect(index.get("section:biblio")).toBe("2");
+    expect(index.get("section:references")).toBe("3");
+    expect(index.has("section:references-2")).toBe(false);
+
+    // End-to-end via fn.section_of.
+    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const facade = host.renderDsl.createFacade({ slice, profile });
+    const a = facade.renderTemplate(
+      "see §${fn.section_of(\"section:purpose-and-scope\")}",
+      { templateId: "test:slug:purpose", sectionIndex: index },
+    );
+    expect(a.text).toBe("see §1");
+    expect(a.findings).toHaveLength(0);
+
+    const b = facade.renderTemplate(
+      "see §${fn.section_of(\"section:biblio\")}",
+      { templateId: "test:slug:biblio", sectionIndex: index },
+    );
+    expect(b.text).toBe("see §2");
+
+    const c = facade.renderTemplate(
+      "see §${fn.section_of(\"section:references\")}",
+      { templateId: "test:slug:references", sectionIndex: index },
+    );
+    expect(c.text).toBe("see §3");
+  });
+
+  it("buildSectionIndex disambiguates colliding title-derived slugs with -2, -3, ... in DFS order", async () => {
+    const { buildSectionIndex } = await import(
+      "../plugins/spec_authoring/renderers/spec_md.js"
+    );
+
+    const host = await freshHost();
+    const projectId = "test-spec-dnis-slug-collision";
+    await newComposedProject(host, projectId);
+    await host.createPrimitive(projectId, {
+      id: "spec:doc:slug-collision",
+      type_id: "spec:Document",
+      field_values: {
+        title: "Slug collision fixture",
+        spec_id: "spec:fixture:0.1",
+        version: "0.1.0",
+        status: "Draft",
+        audience: "test",
+        date: "2026-05-04",
+        disclaimer_path: "../DISCLAIMER.md",
+        pals_banner: false,
+        generated_by: "vitest fixture",
+      },
+    });
+    const adapter = new DnisHostAdapter(host, { projectId });
+    const document = await adapter.createDocument({
+      createdBy: AGENT,
+      schemaVersion: "0.1.7",
+      hashAlgorithm: "sha256",
+    });
+    // Three sections all titled "Open Questions" — no ref_slug.
+    let counter = 0;
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "Open Questions",
+      body_md: "First.",
+    });
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "Open Questions",
+      body_md: "Second.",
+    });
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "Open Questions",
+      body_md: "Third.",
+    });
+
+    const slice = host.getProject(projectId);
+    const index = buildSectionIndex(Object.values(slice.primitives));
+    expect(index.get("section:open-questions")).toBe("1");
+    expect(index.get("section:open-questions-2")).toBe("2");
+    expect(index.get("section:open-questions-3")).toBe("3");
   });
 });

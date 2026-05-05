@@ -137,16 +137,83 @@ function buildCtx(
  * BEFORE any rendering begins.
  */
 function populateSectionIndex(ctx: Ctx): number {
-  const dnisRoot = ctx.primitives.find((p) => p.type_id === "dnis:Document");
-  if (!dnisRoot) return 0;
-  const sections = ctx.primitives.filter(
+  const sections = collectActiveDnisSections(ctx.primitives);
+  if (sections.length === 0) return 0;
+  return walkSectionTree(sections, ctx.sectionIndex, (node) =>
+    deriveSectionSlug(parseDnisContent(ctx, node)),
+  );
+}
+
+/**
+ * Build a fresh §N.M.K → id index from a project's primitives — same
+ * algorithm as the renderer's internal populateSectionIndex but
+ * decoupled from the renderer's Ctx so callers (and tests) can
+ * exercise the indexing logic without spinning up a full render.
+ *
+ * The returned map is keyed by, for every active dnis:Node section:
+ *   - the bare NID (SPEC-CORE primitive `uid`)
+ *   - the slug-form primitive id (`p.id`, e.g. "dnis:node:01k…")
+ *   - the author-supplied `content.ref_slug` (if present), prefixed
+ *     with `section:` if the author didn't already
+ *   - the title-derived slug `section:<lowercased-hyphenated>` (if no
+ *     ref_slug). Title collisions across the document get
+ *     `-2`, `-3`, … suffixes in DFS order.
+ *
+ * SPEC-RENDER-DSL v0.1.7 / helper-set v1.2.0 §6.4 fn.section_of.
+ */
+export function buildSectionIndex(
+  primitives: readonly PrimitiveInstance[],
+): Map<string, string> {
+  const out = new Map<string, string>();
+  const sections = collectActiveDnisSections(primitives);
+  if (sections.length === 0) return out;
+  walkSectionTree(sections, out, (node) => {
+    // Tests exercise this path; we don't need the rendering finding
+    // surface, so skip parseDnisContent's diagnostic emission and
+    // call a content parser that returns null on bad shape.
+    const raw = ((node.field_values as Record<string, unknown>)["content"] ?? "") as string;
+    if (typeof raw !== "string" || raw.length === 0) return null;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const obj = parsed as Record<string, unknown>;
+    return deriveSectionSlug({
+      title: typeof obj["title"] === "string" ? (obj["title"] as string) : "",
+      body_md: typeof obj["body_md"] === "string" ? (obj["body_md"] as string) : "",
+      ...(typeof obj["ref_slug"] === "string" && { ref_slug: obj["ref_slug"] as string }),
+    });
+  });
+  return out;
+}
+
+function collectActiveDnisSections(
+  primitives: readonly PrimitiveInstance[],
+): readonly PrimitiveInstance[] {
+  const dnisRoot = primitives.find((p) => p.type_id === "dnis:Document");
+  if (!dnisRoot) return [];
+  return primitives.filter(
     (p) =>
       p.type_id === "dnis:Node" &&
       fvs(p, "kind") === "section" &&
       !nonEmpty(fvs(p, "retired_at")),
   );
-  if (sections.length === 0) return 0;
+}
 
+/**
+ * Shared DFS used by both the renderer's populateSectionIndex (which
+ * surfaces parseDnisContent findings) and the public buildSectionIndex
+ * (which returns a fresh map). The slug-deriver callback is the only
+ * difference between them.
+ */
+function walkSectionTree(
+  sections: readonly PrimitiveInstance[],
+  index: Map<string, string>,
+  slugFor: (node: PrimitiveInstance) => string | null,
+): number {
   const byParentNid = new Map<string, PrimitiveInstance[]>();
   for (const n of sections) {
     const parent = fvs(n, "parent_node_id") || "";
@@ -154,24 +221,27 @@ function populateSectionIndex(ctx: Ctx): number {
     byParentNid.get(parent)!.push(n);
   }
   for (const [, group] of byParentNid) {
-    group.sort((a, b) =>
-      fvs(a, "position").localeCompare(fvs(b, "position")),
-    );
+    group.sort((a, b) => fvs(a, "position").localeCompare(fvs(b, "position")));
   }
   let count = 0;
+  const slugOccurrences = new Map<string, number>();
   function dfs(parentNid: string, ancestorPath: number[]): void {
     const children = byParentNid.get(parentNid) ?? [];
     for (let i = 0; i < children.length; i += 1) {
       const child = children[i]!;
       const path = [...ancestorPath, i + 1];
       const number = path.join(".");
-      // Index by both forms so callers can pass either the bare NID
-      // (the SPEC-CORE primitive's `uid`) or the slug-form primitive
-      // id (e.g. "dnis:node:01k…"). resolveSectionOf falls back from
-      // direct → slug, but we cover both up front so it's O(1) either
-      // way.
-      ctx.sectionIndex.set(child.uid, number);
-      ctx.sectionIndex.set(child.id, number);
+      // Both id forms (NID + slug-form primitive id).
+      index.set(child.uid, number);
+      index.set(child.id, number);
+      // Slug-keyed entry; collisions get `-2`, `-3`, … in DFS order.
+      const baseSlug = slugFor(child);
+      if (baseSlug) {
+        const seen = slugOccurrences.get(baseSlug) ?? 0;
+        const finalSlug = seen === 0 ? baseSlug : `${baseSlug}-${seen + 1}`;
+        slugOccurrences.set(baseSlug, seen + 1);
+        index.set(finalSlug, number);
+      }
       count += 1;
       dfs(child.uid, path);
     }
@@ -770,6 +840,36 @@ function renderReferences(ctx: Ctx): string[] {
 const REFERENCE_ITEM_TEMPLATE =
   "- ${doc.fields.citation}${if: doc.fields.locator} (${doc.fields.locator})${endif} _[${doc.fields.verification}]_${if: doc.fields.verification_note} — ${doc.fields.verification_note}${endif}";
 
+/**
+ * Render a dnis:Node section's body_md as a template (SPEC-RENDER-DSL
+ * v0.1.7 §6.4 fn.section_of et al.). Threads the renderer's
+ * sectionIndex into the renderTemplate call so cross-section
+ * references resolve. Findings from the evaluator (parser errors,
+ * unknown names, unknown helpers) are forwarded to ctx.findings so
+ * they show up in the renderer output alongside other findings.
+ *
+ * The doc context for template evaluation is the spec:Document
+ * (default — what the facade resolves when docId is omitted), NOT the
+ * dnis:Node itself. Authors writing `${doc.title}` in a section's
+ * body get the spec's title; this matches the existing behaviour of
+ * the (template-driven) References section.
+ *
+ * Caller has already checked `ctx.renderDsl != null` and the section's
+ * `eval_body == true`.
+ */
+function evaluateDnisBody(
+  ctx: Ctx,
+  node: PrimitiveInstance,
+  body: string,
+): string {
+  const rendered = ctx.renderDsl!.renderTemplate(body, {
+    templateId: `spec:section:dnis:${node.id}`,
+    sectionIndex: ctx.sectionIndex,
+  });
+  ctx.findings.push(...rendered.findings);
+  return rendered.text;
+}
+
 function renderReferencesWithTemplate(
   ctx: Ctx,
   refs: readonly PrimitiveInstance[],
@@ -958,7 +1058,19 @@ function renderSectionsFromDnis(
       const depth = Math.min(Math.max(depthOverride ?? computed, 2), 6);
       const hashes = "#".repeat(depth);
       lines.push(`${hashes} ${number}. ${title}`, "");
-      if (nonEmpty(body)) lines.push(body.trim(), "");
+      if (nonEmpty(body)) {
+        // SPEC-RENDER-DSL v0.1.7: opt-in body_md template evaluation.
+        // Authors who want ${doc.title} / ${fn.section_of("section:foo")}
+        // / ${if: …}…${endif} / ${include: …} resolved at render
+        // time set content.eval_body = true. Default false preserves
+        // byte-equal output for prose containing literal `${…}`
+        // (e.g. CEL examples in SPEC-EXPRESSION-RUNTIME body_md).
+        const renderedBody =
+          parsed.eval_body && ctx.renderDsl
+            ? evaluateDnisBody(ctx, child, body)
+            : body;
+        lines.push(renderedBody.trim(), "");
+      }
       if (dispatchKind) {
         const fn = KIND_RENDERERS[dispatchKind];
         if (fn) lines.push(...fn(ctx));
@@ -981,6 +1093,25 @@ interface DnisSectionContent {
   body_md: string;
   dispatch_kind?: string;
   depth_override?: number;
+  /**
+   * Optional author-supplied stable reference handle, e.g.
+   * "purpose-and-scope". When present, populateSectionIndex emits a
+   * `section:<ref_slug>` entry into the index so prose can write
+   * `${fn.section_of("section:purpose-and-scope")}` instead of the
+   * 26-char NID. Takes priority over the title-derived slug; survives
+   * title rewrites.
+   */
+  ref_slug?: string;
+  /**
+   * Opt-in: route body_md through the render-DSL evaluator
+   * (`ctx.renderDsl.renderTemplate`) before emission. Default false,
+   * which preserves byte-equal output for SPECs whose body_md contains
+   * literal `${…}` documentation (e.g. CEL examples). When true, the
+   * body is treated as a template — `${doc.title}`, `${fn.section_of(
+   * "section:foo")}`, `${if: …}…${endif}`, `${include: …}` all work.
+   * Per-section opt-in keeps the migration risk contained.
+   */
+  eval_body?: boolean;
 }
 
 function parseDnisContent(ctx: Ctx, node: PrimitiveInstance): DnisSectionContent {
@@ -1014,7 +1145,38 @@ function parseDnisContent(ctx: Ctx, node: PrimitiveInstance): DnisSectionContent
   };
   if (typeof obj["dispatch_kind"] === "string") out.dispatch_kind = obj["dispatch_kind"] as string;
   if (typeof obj["depth_override"] === "number") out.depth_override = obj["depth_override"] as number;
+  if (typeof obj["ref_slug"] === "string") out.ref_slug = obj["ref_slug"] as string;
+  if (typeof obj["eval_body"] === "boolean") out.eval_body = obj["eval_body"] as boolean;
   return out;
+}
+
+/**
+ * Derive a stable, readable handle from a dnis:Node section's content
+ * for the slug-keyed section_index entry. Priority:
+ *   1. Author-supplied `content.ref_slug` (verbatim, no normalisation
+ *      beyond a `section:` prefix if absent). Survives title rewrites.
+ *   2. Lowercased title with non-alphanumeric runs collapsed to single
+ *      hyphens, leading/trailing hyphens trimmed.
+ * Returns `null` if neither path produces a non-empty slug — the
+ * caller skips slug indexing for that node and the NID/primitive-id
+ * entries still cover lookup.
+ *
+ * Collisions across siblings/uncles are possible (two sections both
+ * titled "Open Questions"). populateSectionIndex disambiguates by
+ * appending `-2`, `-3`, … to second+ occurrences in DFS order. The
+ * first occurrence keeps the bare slug.
+ */
+function deriveSectionSlug(content: DnisSectionContent): string | null {
+  if (content.ref_slug && content.ref_slug.trim().length > 0) {
+    const explicit = content.ref_slug.trim();
+    return explicit.startsWith("section:") ? explicit : `section:${explicit}`;
+  }
+  const fromTitle = content.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  if (fromTitle.length === 0) return null;
+  return `section:${fromTitle}`;
 }
 
 // ── Top-level renderer entry ─────────────────────────────────────
