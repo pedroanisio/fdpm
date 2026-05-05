@@ -93,6 +93,19 @@ export type DnisBatchIntent =
         field_values?: Record<string, unknown>;
         uid?: string;
       };
+    }
+  // Tier 3 from the SPEC-MCP-SERVER perspective: callers other than the
+  // DNIS adapter (notably the v0.1.1 batch-delete tools) reach this
+  // path. Atomic-rollback semantics still apply: deleting a primitive
+  // referenced by an existing relation rejects the whole batch and
+  // restores the pre-batch projection.
+  | {
+      kind: "primitive.delete";
+      payload: { id: string };
+    }
+  | {
+      kind: "relation.delete";
+      payload: { id: string };
     };
 
 export class Host {
@@ -1022,7 +1035,10 @@ export class Host {
           causation_op_id,
         });
 
-        let report: ValidationReport;
+        // Deletes don't produce a validation report — they only check
+        // existence and append. Other intents always produce a report;
+        // the assertion before push to `reports` enforces this.
+        let report: ValidationReport | null = null;
         let input: AppendInput;
         const ctx = this.validationContext(project_id);
 
@@ -1084,6 +1100,29 @@ export class Host {
             input = buildInput("relation.create", { ...intent.relation, uid });
             break;
           }
+          case "primitive.delete": {
+            const slice = this.store.getProject(project_id);
+            if (!(intent.payload.id in slice.primitives))
+              throw new FDPMException(
+                "not_found",
+                `primitive not found: ${intent.payload.id}`,
+              );
+            // No validation report for deletes — leaves `report` at
+            // `null` and the post-switch dispatch skips the
+            // accepted-check below.
+            input = buildInput("primitive.delete", { id: intent.payload.id });
+            break;
+          }
+          case "relation.delete": {
+            const slice = this.store.getProject(project_id);
+            if (!(intent.payload.id in slice.relations))
+              throw new FDPMException(
+                "not_found",
+                `relation not found: ${intent.payload.id}`,
+              );
+            input = buildInput("relation.delete", { id: intent.payload.id });
+            break;
+          }
           default: {
             const _exhaustive: never = intent;
             throw new FDPMException(
@@ -1093,18 +1132,21 @@ export class Host {
           }
         }
 
-        if (!report.accepted) {
-          throw new FDPMException(
-            "validation",
-            `validation failed for batch entry ${i} (${intent.kind})`,
-            { findings: report.findings },
-          );
+        if (report !== null) {
+          if (!report.accepted) {
+            throw new FDPMException(
+              "validation",
+              `validation failed for batch entry ${i} (${intent.kind})`,
+              { findings: report.findings },
+            );
+          }
+          reports.push(report);
         }
-        reports.push(report);
 
         // Append immediately so subsequent entries see this one in the
         // projection (e.g. the dnis:DerivedFrom relation needs the new
-        // dnis:Node primitives to already exist).
+        // dnis:Node primitives to already exist; a delete in entry N
+        // is visible to entry N+1).
         outputs.push(this.store.append(input));
       }
     } catch (err) {

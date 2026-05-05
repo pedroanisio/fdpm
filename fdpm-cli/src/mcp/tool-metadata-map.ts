@@ -78,7 +78,9 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
   // Tier 3 — destructive deletes (gated by --enable-destructive).
   "fdpm.project.delete": "project delete",
   "fdpm.primitive.delete": "primitive delete",
+  "fdpm.primitive.delete_batch": "primitive delete",
   "fdpm.relation.delete": "relation delete",
+  "fdpm.relation.delete_batch": "relation delete",
 };
 
 /**

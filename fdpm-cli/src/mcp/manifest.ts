@@ -51,7 +51,9 @@ import { tool as structureReparentTool } from "./tools/structure-reparent.js";
 // Tier 3 — destructive (off by default).
 import { tool as projectDeleteTool } from "./tools/project-delete.js";
 import { tool as primitiveDeleteTool } from "./tools/primitive-delete.js";
+import { tool as primitiveDeleteBatchTool } from "./tools/primitive-delete-batch.js";
 import { tool as relationDeleteTool } from "./tools/relation-delete.js";
+import { tool as relationDeleteBatchTool } from "./tools/relation-delete-batch.js";
 
 export type { Tier, McpToolEntry, DispatchCtx } from "./types.js";
 
@@ -96,7 +98,9 @@ export const TIER_2_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
 export const TIER_3_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
   projectDeleteTool,
   primitiveDeleteTool,
+  primitiveDeleteBatchTool,
   relationDeleteTool,
+  relationDeleteBatchTool,
 ] as ReadonlyArray<McpToolEntry<unknown, unknown>>;
 
 /**

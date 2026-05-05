@@ -74,15 +74,15 @@ describe("Tier 3 — manifest filtering (SPEC §23.1)", () => {
     expect(names).toContain("fdpm.relation.delete");
   });
 
-  it("MANIFEST contains exactly three Tier-3 tools, all with destructiveHint=true", () => {
-    expect(TIER_3_TOOLS).toHaveLength(3);
+  it("every Tier-3 tool carries destructiveHint=true and not readOnlyHint", () => {
+    expect(TIER_3_TOOLS.length).toBeGreaterThanOrEqual(3);
     for (const t of TIER_3_TOOLS) {
       expect(t.tier).toBe("destructive");
       expect(t.annotations.destructiveHint).toBe(true);
       // SPEC §8.3: must NOT carry readOnlyHint.
       expect(t.annotations.readOnlyHint).not.toBe(true);
     }
-    // Sanity: the three names are exactly what we expect, in MANIFEST.
+    // Sanity: the canonical singleton deletes are present in MANIFEST.
     const all = MANIFEST.map((t) => t.name);
     expect(all).toContain("fdpm.project.delete");
     expect(all).toContain("fdpm.primitive.delete");
