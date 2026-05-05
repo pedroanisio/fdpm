@@ -186,9 +186,9 @@ export function buildDnisCommand(host: Host): Command {
     .requiredOption("--document <document-id>", "DocumentId the node belongs to")
     .requiredOption("--node <node-id>", "NodeId to move")
     .requiredOption("--agent <agent>", "AgentId of the operation actor")
-    .option("--parent <node-id>", "new parent NodeId; root-level if omitted and neither --after nor --before given")
-    .option("--after <sibling-node-id>", "place immediately after this sibling (parent inferred from sibling)")
-    .option("--before <sibling-node-id>", "place immediately before this sibling (parent inferred from sibling)")
+    .option("--parent <node-id>", "new parent NodeId; if omitted, inferred from --after/--before; root-level otherwise. When given, overrides any sibling-inferred parent.")
+    .option("--after <sibling-node-id>", "place immediately after this sibling (its parent is the inferred default unless --parent overrides)")
+    .option("--before <sibling-node-id>", "place immediately before this sibling (its parent is the inferred default unless --parent overrides)")
     .option("--expected-revision <n>", "fail unless node revision matches", (v) => Number.parseInt(v, 10))
     .option("--operation-id <ulid>", "explicit OperationId; minted if omitted")
     .option("--issued-at <iso>", "operation issuedAt timestamp", new Date().toISOString())
@@ -200,36 +200,49 @@ export function buildDnisCommand(host: Host): Command {
 
       const after = (opts.after ?? null) as NodeId | null;
       const before = (opts.before ?? null) as NodeId | null;
+      const explicitParent = (opts.parent ?? null) as NodeId | null;
 
-      let newParent: NodeId | null = (opts.parent ?? null) as NodeId | null;
+      // Sibling-inferred parent: --after/--before must agree if both
+      // given. This is a correctness check (positionBetween across
+      // different parents is meaningless), not a UX preference.
+      let inferredParent: NodeId | null = null;
+      let inferredFromSibling = false;
       if (after !== null) {
-        const parentOfAfter = adapter.getNode(after).parentNodeId;
-        if (opts.parent && parentOfAfter !== opts.parent) {
-          throw new FDPMException(
-            "verification",
-            `--after sibling lives under parent=${parentOfAfter ?? "<root>"} but --parent=${opts.parent} was supplied; remove --parent or pick a sibling under it`,
-          );
-        }
-        newParent = parentOfAfter;
+        inferredParent = adapter.getNode(after).parentNodeId;
+        inferredFromSibling = true;
       }
       if (before !== null) {
         const parentOfBefore = adapter.getNode(before).parentNodeId;
-        if (after !== null && newParent !== parentOfBefore) {
+        if (inferredFromSibling && inferredParent !== parentOfBefore) {
           throw new FDPMException(
             "verification",
-            `--after and --before reference siblings under different parents (${newParent ?? "<root>"} vs ${parentOfBefore ?? "<root>"})`,
+            `--after and --before reference siblings under different parents (${inferredParent ?? "<root>"} vs ${parentOfBefore ?? "<root>"})`,
           );
         }
-        if (opts.parent && parentOfBefore !== opts.parent) {
-          throw new FDPMException(
-            "verification",
-            `--before sibling lives under parent=${parentOfBefore ?? "<root>"} but --parent=${opts.parent} was supplied`,
-          );
-        }
-        newParent = parentOfBefore;
+        inferredParent = parentOfBefore;
+        inferredFromSibling = true;
       }
 
-      const newPosition = adapter.nextPosition(documentId, newParent, after, before);
+      // --parent overrides the sibling-inferred default. When the
+      // override changes the parent, the sibling pointers no longer
+      // identify real siblings under the new parent — drop them so
+      // nextPosition computes an append-to-end position under the new
+      // parent. (Mixing "place under parent X but after a child of
+      // parent Y" has no well-defined meaning under SPEC-DNIS §6.)
+      let newParent: NodeId | null;
+      let effAfter: NodeId | null = after;
+      let effBefore: NodeId | null = before;
+      if (explicitParent !== null) {
+        newParent = explicitParent;
+        if (inferredFromSibling && inferredParent !== explicitParent) {
+          effAfter = null;
+          effBefore = null;
+        }
+      } else {
+        newParent = inferredParent;
+      }
+
+      const newPosition = adapter.nextPosition(documentId, newParent, effAfter, effBefore);
       const result = await adapter.apply({
         id: (opts.operationId ?? mintUid()) as OperationId,
         type: "move",
