@@ -3,6 +3,8 @@ import { ProfileRegistry } from "./profile/registry.js";
 import { ValidationPipeline } from "./validation/pipeline.js";
 import { FDPMException } from "./errors/fdpm-exception.js";
 import { JsonlLogStore, defaultDataDir } from "../persistence/jsonl-log.js";
+import { LocalWorkspace } from "./workspace/local.js";
+import type { Workspace } from "./workspace/types.js";
 import { createHash } from "node:crypto";
 import type { Operation } from "./operations/operation.js";
 import { DomainProfile } from "./models/meta.js";
@@ -130,6 +132,16 @@ export class Host {
   renderDsl: RenderDslEngine;
   pipeline: ValidationPipeline;
   persistence: JsonlLogStore | null;
+  /**
+   * SPEC-WORKSPACE §10. Populated after `Host.load()` / `Host.reload()`
+   * for any Host with persistence enabled; remains null when the Host is
+   * constructed with `dataDir: null` (used by the no-persist test helper)
+   * and during the brief window between Host construction and `load()`.
+   * Long-lived consumers should access via `host.workspace` after load;
+   * existing callers reading `host.persistence` keep working unchanged
+   * (Principle 7: plugin call sites unchanged).
+   */
+  workspace: Workspace | null;
   plugins: PluginRuntime;
   private hostOptions: HostOptions;
 
@@ -142,6 +154,7 @@ export class Host {
     this.pipeline = new ValidationPipeline(this.expr);
     this.persistence =
       opts?.dataDir === null ? null : new JsonlLogStore(opts?.dataDir ?? defaultDir());
+    this.workspace = null;
     this.plugins = new PluginRuntime(this);
   }
 
@@ -158,6 +171,15 @@ export class Host {
     //   3. Replay the operation log against the now-populated registry.
     if (this.persistence) {
       this.persistence.init();
+      // SPEC-WORKSPACE §15: open (or auto-mint) the LocalWorkspace
+      // before any persistence reads. The Workspace is the typed identity
+      // surface; `host.persistence` remains the raw JsonlLogStore for
+      // existing tier-bypass callers (host-extra.ts, MCP audit log).
+      this.workspace = await LocalWorkspace.open(this.persistence.dataDir, {
+        store: this.store,
+        profiles: this.profiles,
+        plugins: this.plugins,
+      });
       const profileFiles = await this.persistence.listProfileFiles();
       for (const path of profileFiles) {
         const raw = await this.persistence.readProfileFile(path);
@@ -292,6 +314,7 @@ export class Host {
       renderDsl: this.renderDsl,
       pipeline: this.pipeline,
       persistence: this.persistence,
+      workspace: this.workspace,
       plugins: this.plugins,
     };
     this.store = newStore;
@@ -300,9 +323,22 @@ export class Host {
     this.renderDsl = newRenderDsl;
     this.pipeline = newPipeline;
     this.persistence = newPersistence;
+    // Workspace is rebuilt below once newPersistence has been init'd.
+    this.workspace = null;
     this.plugins = newPlugins;
 
     try {
+      if (this.persistence) {
+        // Re-open the LocalWorkspace against the post-swap persistence.
+        // workspace.json on disk is unchanged; this is a re-bind, not a
+        // re-mint.
+        this.workspace = await LocalWorkspace.open(this.persistence.dataDir, {
+          store: this.store,
+          profiles: this.profiles,
+          plugins: this.plugins,
+        });
+      }
+
       if (!this.hostOptions.noPlugins) {
         try {
           await this.plugins.discoverAndRegister({
@@ -334,6 +370,7 @@ export class Host {
       this.renderDsl = snapshot.renderDsl;
       this.pipeline = snapshot.pipeline;
       this.persistence = snapshot.persistence;
+      this.workspace = snapshot.workspace;
       this.plugins = snapshot.plugins;
       throw err;
     }
@@ -430,6 +467,18 @@ export class Host {
           ...(this.hostOptions.cwd && { cwd: this.hostOptions.cwd }),
         });
         await this.plugins.activateAuto();
+      }
+
+      // Re-bind the workspace's profile/plugin references to the fresh
+      // instances. Identity (workspace.json) is unchanged so we re-use
+      // `LocalWorkspace.open` against the same dataDir; the registry
+      // upsert is a no-op for path/name fields that did not move.
+      if (this.persistence) {
+        this.workspace = await LocalWorkspace.open(this.persistence.dataDir, {
+          store: this.store,
+          profiles: this.profiles,
+          plugins: this.plugins,
+        });
       }
     } catch (err) {
       this.profiles = snapshot.profiles;

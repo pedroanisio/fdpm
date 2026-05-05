@@ -9,6 +9,7 @@ import { buildReplCommand } from "../commands/repl.js";
 import { buildProgram } from "./program.js";
 import { handleError } from "./error-handling.js";
 import { resolveOneShotCliRuntimeOptions } from "./runtime-options.js";
+import { resolveWorkspaceDataDir } from "../core/workspace/resolve.js";
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
@@ -31,8 +32,17 @@ async function main(): Promise<void> {
     process.env["FDPM_LOG_LEVEL"] = runtime.logLevelOverride;
   }
 
+  // SPEC-WORKSPACE §8.3 precedence: --data-dir > FDPM_DATA_DIR
+  // > FDPM_WORKSPACE > registry.current > default. `--no-persist`
+  // short-circuits to the no-persistence Host construction path.
+  let resolvedDataDir: string | undefined;
+  if (runtime.persist !== false) {
+    const resolved = await resolveWorkspaceDataDir({ cliDataDir: runtime.dataDir });
+    if (resolved.dataDir !== null) resolvedDataDir = resolved.dataDir;
+  }
+
   const host = new Host({
-    ...(runtime.dataDir != null && { dataDir: runtime.dataDir }),
+    ...(resolvedDataDir != null && { dataDir: resolvedDataDir }),
     ...(runtime.persist === false && { dataDir: null }),
   });
   await host.load();

@@ -160,6 +160,8 @@ fdpm --no-persist project create --json --id tmp --name Tmp \
 | `FDPM_MCP_ENABLE_PLUGINS` | `""` | `fdpm-mcp`: comma-separated plugin ids whose MCP tools are exposed. |
 | `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | `fdpm-mcp`: per-session rate limit on tool calls. |
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | `fdpm-mcp`: truthy -> log full args (default: sha256 hash only). |
+| `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when `FDPM_DATA_DIR` is set. |
+| `FDPM_REGISTRY_PATH` | `$XDG_STATE_HOME/fdpm/workspaces.json` | SPEC-WORKSPACE §12: override path to the operator-local workspace registry. |
 
 One-shot CLI ergonomics:
 - `fdpm` one-shot commands default plugin startup logs to `warn`, so human command output is not preceded by plugin activation banners.

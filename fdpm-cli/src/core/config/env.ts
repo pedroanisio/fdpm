@@ -121,6 +121,19 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     exampleValue: "1",
     summary: "fdpm-mcp: truthy -> log full args (default: sha256 hash only)",
   },
+  {
+    name: "FDPM_WORKSPACE",
+    defaultValue: "unset",
+    exampleValue: "prod-laptop",
+    summary:
+      "SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when FDPM_DATA_DIR is set",
+  },
+  {
+    name: "FDPM_REGISTRY_PATH",
+    defaultValue: "$XDG_STATE_HOME/fdpm/workspaces.json",
+    exampleValue: "/etc/fdpm/workspaces.json",
+    summary: "SPEC-WORKSPACE §12: override path to the operator-local workspace registry",
+  },
 ] as const;
 
 export const FDPM_ENV_VAR_NAMES = FDPM_ENV_VARS.map((spec) => spec.name);
