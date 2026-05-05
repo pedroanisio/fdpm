@@ -83,7 +83,7 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "0.1.1 — pass-2 refinement: corrected Host method names, error-taxonomy alignment, MCP response-shape clarity, plugin-manifest amendment grounded in SPEC-PLUGGABLE-ARCHITECTURE, removed unverifiable specifics.",
+      "0.1.2 — destructive-tool advertisement amendment: Tier 3 tools are now advertised when disabled, with a banner-prefixed description naming the enable mechanism. Dispatch refusal is unchanged. Replaces the prior 'absent when disabled' posture for self-recovery.",
     source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-mcp",
@@ -106,7 +106,7 @@ const terms: Array<[string, string, string?]> = [
   ],
   [
     "Tool tier",
-    "One of three classes governing default exposure and verification posture: read-only (always exposed), validating-write (exposed by default; runs the §7 pipeline), destructive (off by default; opt-in only).",
+    "One of three classes governing default exposure and verification posture: read-only (always exposed), validating-write (exposed by default; runs the §7 pipeline), destructive (advertised in both states; dispatch off by default, opt-in via FDPM_MCP_ENABLE_DESTRUCTIVE).",
   ],
   [
     "Authorization perimeter",
@@ -1109,9 +1109,9 @@ const invariants: PrimitiveSpec[] = [
     id: "spec:inv:tier-3-default-off",
     type: "spec:Invariant",
     fields: {
-      label: "Tier 3 tools are off by default.",
+      label: "Tier 3 dispatch is off by default; advertisement is unconditional.",
       statement:
-        "Without an explicit operator opt-in (FDPM_MCP_ENABLE_DESTRUCTIVE=1 or --enable-destructive), the manifest MUST NOT advertise Tier 3 tools and the server MUST refuse to dispatch them.",
+        "Tier 3 tools MUST appear in the advertised manifest in both states. Without an explicit operator opt-in (FDPM_MCP_ENABLE_DESTRUCTIVE=1 or --enable-destructive), every Tier 3 tool's advertised description MUST begin with the §8.3 disabled banner, and the server MUST refuse to dispatch them with permission/destructive_disabled. With opt-in, the banner MUST be absent and dispatch MUST execute.",
       enforcement: "runtime_check",
       scope_ref: "fdpm-cli/src/mcp/dispatch.ts",
     },
@@ -1283,7 +1283,7 @@ const acceptances: PrimitiveSpec[] = [
     fields: {
       ordinal: 3,
       criterion:
-        "Tier 3 tools are absent from the advertised manifest when `FDPM_MCP_ENABLE_DESTRUCTIVE` is unset.",
+        "Tier 3 tools are advertised in both states. When `FDPM_MCP_ENABLE_DESTRUCTIVE` is unset, every Tier 3 tool's description begins with the disabled-banner string defined in §8.3 and dispatch refuses with `permission` + `evidence.reason: \"destructive_disabled\"`. When set, the banner is absent and dispatch executes normally.",
       status: "open",
     },
   },
@@ -1337,11 +1337,11 @@ const conformance: PrimitiveSpec[] = [
     type: "spec:ConformanceItem",
     fields: {
       ordinal: 1,
-      name: "Tier 3 default-off enforced server-side",
+      name: "Tier 3 default-disabled enforced server-side (advertised, dispatch-gated)",
       procedure:
-        "Start `fdpm-mcp` with default config. Send an `fdpm.project.delete` tool call with a valid project_id.",
+        "Start `fdpm-mcp` with default config. Call `tools/list` and confirm `fdpm.project.delete` is present with its description prefixed by the §8.3 disabled banner. Then send an `fdpm.project.delete` tool call with a valid project_id.",
       expected:
-        "Response: isError=true, structuredContent.error.category='permission', evidence.reason='destructive_disabled'. Operation log unchanged. Audit log records the refusal.",
+        "tools/list shows the tool with banner-prefixed description. Dispatch response: isError=true, structuredContent.error.category='permission', evidence.reason='destructive_disabled'. Operation log unchanged. Audit log records the refusal. Restart with `--enable-destructive`: tools/list now returns the tool with NO banner; dispatch executes normally.",
     },
   },
   {
@@ -1913,6 +1913,19 @@ const revisions: PrimitiveSpec[] = [
       kind: "patch",
     },
   },
+  {
+    id: "spec:rev:0-1-2",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.2",
+      date: "2026-05-05",
+      title: "Destructive-tool advertisement amendment.",
+      notes:
+        "Inverts the Tier-3 advertisement posture from 'absent when disabled' to 'advertised with disabled banner.' Real-session evidence showed operators concluding 'the capability is missing' when in fact it was merely gated; the new posture lets LLM clients self-recover from destructive_disabled refusals. Authorization perimeter is unchanged — the dispatch gate was always the cryptographic boundary; advertisement is discoverability, not authorization. §8.3 prose, §22.3 acceptance criterion, §23.1 conformance procedure, and the Tier-3 invariant updated. Threat-model trade-off documented for v0.2 reconsideration under network deployment.",
+      affected_sections: ["5", "8", "22", "23"],
+      kind: "patch",
+    },
+  },
 ];
 
 // ── §0..§N Sections (the document tree) ────────────────────────────────────
@@ -2031,9 +2044,17 @@ const sections: PrimitiveSpec[] = [
         "",
         "A `validation_report` with `status: \"fail\"` MUST be paired with `isError: false` and `ok: false` in the structured payload — the call succeeded as a protocol matter, but the operation was rejected by the §7 pipeline.",
         "",
-        "### 8.3 Tier 3 — destructive (NOT exposed by default; opt-in via config)",
+        "### 8.3 Tier 3 — destructive (advertised but DISABLED by default; opt-in to enable dispatch)",
         "",
-        "These tools have effects that cannot be undone by another tool call. Tier 3 tools MUST be marked with `destructiveHint: true` and are exposed only when `FDPM_MCP_ENABLE_DESTRUCTIVE=1` or `--enable-destructive` is set.",
+        "These tools have effects that cannot be undone by another tool call. Tier 3 tools MUST be marked with `destructiveHint: true`. Their **dispatch** is enabled only when `FDPM_MCP_ENABLE_DESTRUCTIVE=1` or `--enable-destructive` is set; their **advertisement** is unconditional in v0.1.2.",
+        "",
+        "**Why advertise when disabled.** Earlier drafts (0.1.0, 0.1.1) hid Tier 3 tools from the advertised manifest when destructive was off. That created a Catch-22: an LLM that couldn't see the tool also couldn't be told how to enable it, and an operator who hit \"can't delete a relation\" couldn't tell whether the capability was missing or merely gated. v0.1.2 inverts this: Tier 3 tools are always present in the manifest, but when destructive is off, the advertised `description` is prefixed with a banner naming the enable mechanism, and the dispatcher refuses calls with `permission` + `evidence.reason: \"destructive_disabled\"`. The authorization perimeter is unchanged — the gate moved from advertisement to dispatch, and dispatch was always the cryptographic boundary.",
+        "",
+        "**Banner shape.** When `enableDestructive` is false, every Tier 3 tool's advertised description MUST begin with the line `\"⚠ DISABLED. Set FDPM_MCP_ENABLE_DESTRUCTIVE=1 (or pass --enable-destructive) and restart fdpm-mcp to enable dispatch. Calling now refuses with category=permission, reason=destructive_disabled.\"`, followed by a blank line and the tool's real description. When destructive is enabled, the banner MUST be absent and the real description stands alone. Per-tool descriptions are not stripped — the LLM sees what the tool would do if enabled, so it can plan ahead and request the operator-side change.",
+        "",
+        "**Schema unchanged.** Tier 3 tools advertise their real input/output schemas in both states. Hiding the schema while showing the tool name would be discoverability theatre once the name leaks via the advertised manifest. The dispatch gate is what protects.",
+        "",
+        "**Threat-model trade-off.** This posture is appropriate for v0.1.2's stdio-only deployment, where the trust boundary is the OS process boundary. A future network-deployed server (v0.2 HTTP) MAY revert to absence-when-disabled if minimum-advertised-surface is preferred over discoverability.",
         "",
         "### 8.4 Tools intentionally NOT exposed",
         "",

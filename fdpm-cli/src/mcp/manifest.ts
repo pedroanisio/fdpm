@@ -140,14 +140,55 @@ export function findTool(name: string): McpToolEntry<unknown, unknown> | null {
 }
 
 /**
- * Filter the manifest down to the surface the operator actually
- * wants advertised given the destructive flag.
+ * SPEC-MCP-SERVER §8.3 disabled-banner prefix. When destructive is
+ * off, every Tier 3 tool's advertised description MUST begin with
+ * this exact line followed by a blank line. Defined here as a
+ * single source of truth so dispatcher refusal messages, tests,
+ * and operator-facing docs all agree.
+ */
+export const TIER_3_DISABLED_BANNER =
+  "⚠ DISABLED. Set FDPM_MCP_ENABLE_DESTRUCTIVE=1 (or pass --enable-destructive) and restart fdpm-mcp to enable dispatch. Calling now refuses with category=permission, reason=destructive_disabled.";
+
+/**
+ * Wrap a Tier-3 tool entry with the disabled-banner prefix on its
+ * description (SPEC §8.3 / §22.3 v0.1.2). Returns a shallow copy —
+ * `input`, `output`, `handler`, and `annotations` are unchanged. The
+ * dispatcher's destructive gate still rejects the call; the wrapped
+ * entry exists only so `tools/list` advertises the tool with a
+ * description that names the enable mechanism.
+ */
+function withDisabledBanner(
+  t: McpToolEntry<unknown, unknown>,
+): McpToolEntry<unknown, unknown> {
+  return {
+    ...t,
+    description: `${TIER_3_DISABLED_BANNER}\n\n${t.description}`,
+  };
+}
+
+/**
+ * SPEC-MCP-SERVER §22.3 (v0.1.2): Tier 3 tools are advertised in
+ * BOTH states. When destructive is off, their description carries
+ * the §8.3 banner; when on, the banner is absent. Authorization
+ * happens at dispatch time, not advertisement time — see
+ * `dispatch.ts` destructive-gate.
+ *
+ * The earlier (0.1.0/0.1.1) "hide when disabled" posture was
+ * reversed because it created a Catch-22 for LLM clients hitting
+ * destructive_disabled refusals: they couldn't see the tool that
+ * just refused them, so they couldn't surface the enable hint to
+ * the operator. The new posture lets the LLM read the banner,
+ * relay it to the operator, and proceed once enabled.
  */
 export function advertisedTools(opts: {
   enableDestructive: boolean;
 }): ReadonlyArray<McpToolEntry<unknown, unknown>> {
   const out: McpToolEntry<unknown, unknown>[] = [...TIER_1_TOOLS, ...TIER_2_TOOLS];
-  if (opts.enableDestructive) out.push(...TIER_3_TOOLS);
+  if (opts.enableDestructive) {
+    out.push(...TIER_3_TOOLS);
+  } else {
+    out.push(...TIER_3_TOOLS.map(withDisabledBanner));
+  }
   return out;
 }
 

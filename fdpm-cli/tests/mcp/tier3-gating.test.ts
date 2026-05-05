@@ -1,15 +1,13 @@
 /**
- * SPEC-MCP-SERVER §23.1 — Tier 3 default-off conformance.
+ * SPEC-MCP-SERVER §23.1 — Tier 3 default-disabled conformance (v0.1.2).
  *
- * Verbatim conformance:
- *   - With destructive disabled, none of the three Tier-3 tools is
- *     advertised by `advertisedTools(...)`.
- *   - Calling `fdpm.project.delete` (or any Tier-3 tool) with valid
- *     args while destructive is disabled returns `isError: true` with
- *     `category: "permission"` and `evidence.reason:
- *     "destructive_disabled"`. The operation log MUST NOT have grown.
- *   - With destructive enabled, the three Tier-3 tools ARE advertised
- *     and successfully run.
+ * Updated for the v0.1.2 advertisement amendment (§8.3, AC §22.3):
+ *   - Tier 3 tools are advertised in BOTH states.
+ *   - When destructive is OFF, every Tier-3 tool's advertised
+ *     description begins with the §8.3 disabled banner; dispatch
+ *     refuses with `permission` + `evidence.reason: "destructive_disabled"`.
+ *   - When destructive is ON, the banner is absent from advertised
+ *     descriptions and dispatch executes normally.
  *   - The opt-in confirmation-token mode (SPEC §9.3) refuses Tier-2/3
  *     calls that omit the token and accepts those that supply it.
  *
@@ -24,6 +22,7 @@ import { TEST_PROFILE } from "../fixtures.js";
 import {
   advertisedTools,
   TIER_3_TOOLS,
+  TIER_3_DISABLED_BANNER,
   MANIFEST,
 } from "../../src/mcp/manifest.js";
 import { createDispatcher } from "../../src/mcp/dispatch.js";
@@ -53,25 +52,72 @@ function makeCtx(over: Partial<DispatchCtx> = {}): DispatchCtx {
   return { ...base, ...over };
 }
 
-describe("Tier 3 — manifest filtering (SPEC §23.1)", () => {
-  it("does NOT advertise the three Tier-3 tools when enableDestructive is false", () => {
+describe("Tier 3 — manifest advertisement (SPEC §22.3, §8.3 v0.1.2)", () => {
+  it("advertises every Tier-3 tool when enableDestructive is false, with banner-prefixed description", () => {
     const advertised = advertisedTools({ enableDestructive: false });
     const names = advertised.map((t) => t.name);
-    expect(names).not.toContain("fdpm.project.delete");
-    expect(names).not.toContain("fdpm.primitive.delete");
-    expect(names).not.toContain("fdpm.relation.delete");
-    // No tier-3 tool leaks through.
+    // Per v0.1.2: Tier 3 tools are present in BOTH states.
+    expect(names).toContain("fdpm.project.delete");
+    expect(names).toContain("fdpm.primitive.delete");
+    expect(names).toContain("fdpm.relation.delete");
+    // Every Tier-3 tool MUST be present and MUST carry the banner.
     for (const t of TIER_3_TOOLS) {
-      expect(names).not.toContain(t.name);
+      const adv = advertised.find((a) => a.name === t.name);
+      expect(adv, `${t.name} must be advertised when destructive is off`).toBeDefined();
+      expect(
+        adv!.description.startsWith(TIER_3_DISABLED_BANNER),
+        `${t.name} description must begin with the §8.3 disabled banner`,
+      ).toBe(true);
+      // The original description content must remain — banner is a prefix, not a replacement.
+      expect(
+        adv!.description.endsWith(t.description),
+        `${t.name} banner-prefixed description must contain the original description verbatim at the tail`,
+      ).toBe(true);
     }
   });
 
-  it("advertises all three Tier-3 tools when enableDestructive is true", () => {
+  it("advertises all Tier-3 tools without banner when enableDestructive is true", () => {
     const advertised = advertisedTools({ enableDestructive: true });
     const names = advertised.map((t) => t.name);
     expect(names).toContain("fdpm.project.delete");
     expect(names).toContain("fdpm.primitive.delete");
     expect(names).toContain("fdpm.relation.delete");
+    // No banner when enabled.
+    for (const t of TIER_3_TOOLS) {
+      const adv = advertised.find((a) => a.name === t.name);
+      expect(adv).toBeDefined();
+      expect(
+        adv!.description.startsWith(TIER_3_DISABLED_BANNER),
+        `${t.name} must NOT carry the disabled banner when destructive is enabled`,
+      ).toBe(false);
+      expect(adv!.description).toBe(t.description);
+    }
+  });
+
+  it("Tier-1 and Tier-2 tools never carry the disabled banner regardless of state", () => {
+    for (const enableDestructive of [true, false]) {
+      const advertised = advertisedTools({ enableDestructive });
+      for (const t of advertised) {
+        if (t.tier !== "destructive") {
+          expect(
+            t.description.startsWith(TIER_3_DISABLED_BANNER),
+            `${t.name} (${t.tier}) must never carry the §8.3 banner`,
+          ).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("banner-wrapped Tier-3 entries preserve input/output schemas and handler/annotations", () => {
+    const advertised = advertisedTools({ enableDestructive: false });
+    for (const original of TIER_3_TOOLS) {
+      const wrapped = advertised.find((a) => a.name === original.name)!;
+      expect(wrapped.input).toBe(original.input);
+      expect(wrapped.output).toBe(original.output);
+      expect(wrapped.handler).toBe(original.handler);
+      expect(wrapped.annotations).toEqual(original.annotations);
+      expect(wrapped.tier).toBe("destructive");
+    }
   });
 
   it("every Tier-3 tool carries destructiveHint=true and not readOnlyHint", () => {
