@@ -32,6 +32,14 @@ export interface RenderDslFacade {
       docId?: string;
       includes?: Readonly<Record<string, string>>;
       permissions?: ReadonlySet<string>;
+      /**
+       * Optional render-time section index — dnis:Node id (NID and slug
+       * form) → §N.M.K heading. Surfaced inside the template via the
+       * `fn.section_of(node_id)` helper (helper-set v1.2.0). Renderers
+       * that walk a DNIS Node graph (per SPEC-SECTIONS-TREE v0.2) build
+       * this map up front and pass it on every per-template invocation.
+       */
+      sectionIndex?: ReadonlyMap<string, string>;
     },
   ): RenderTemplateResult;
 }
@@ -74,6 +82,7 @@ export class RenderDslEngine {
       docId?: string;
       includes?: Readonly<Record<string, string>>;
       permissions?: ReadonlySet<string>;
+      sectionIndex?: ReadonlyMap<string, string>;
     },
     includeStack: Set<string>,
   ): RenderTemplateResult {
@@ -90,6 +99,7 @@ export class RenderDslEngine {
       includeStack,
       findings,
       permissions: opts.permissions,
+      sectionIndex: opts.sectionIndex,
     };
     const text = renderNodes(parsed, renderCtx);
     return { text, findings };
@@ -106,6 +116,7 @@ interface InternalRenderContext {
   readonly includeStack: Set<string>;
   readonly findings: RenderFinding[];
   readonly permissions?: ReadonlySet<string>;
+  readonly sectionIndex?: ReadonlyMap<string, string>;
 }
 
 function renderNodes(nodes: readonly TemplateNode[], ctx: InternalRenderContext): string {
@@ -227,6 +238,7 @@ function evaluateRenderExpression(expression: string, ctx: InternalRenderContext
     project: ctx.slice,
     projectFingerprint: `${ctx.slice.project.id}@${ctx.slice.project.revision}`,
     permissions: ctx.permissions,
+    ...(ctx.sectionIndex && { sectionIndex: ctx.sectionIndex }),
   };
   return ctx.expr.evaluateValueCEL(
     expression,

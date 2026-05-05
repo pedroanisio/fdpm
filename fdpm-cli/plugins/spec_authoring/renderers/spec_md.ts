@@ -71,6 +71,14 @@ interface Ctx {
   renderDsl: Parameters<RendererFn>[0]["renderDsl"];
   outgoing: Map<string, Map<string, string[]>>; // src → typeId → [tgt]
   incoming: Map<string, Map<string, string[]>>; // tgt → typeId → [src]
+  /**
+   * SPEC-SECTIONS-TREE v0.2 §6.4 — dnis:Node id → §N.M.K heading map.
+   * Built once at renderer entry by buildSectionIndex(); consumed by
+   * the `fn.section_of` helper (helper-set v1.2.0) when this map is
+   * threaded through the renderTemplate facade. Empty when the project
+   * contains no dnis:Document.
+   */
+  sectionIndex: Map<string, string>;
 }
 
 function buildCtx(
@@ -108,7 +116,68 @@ function buildCtx(
     renderDsl,
     outgoing,
     incoming,
+    // Empty by default; populated by populateSectionIndex() at the
+    // renderSpecMarkdown entry point if the project contains a dnis:
+    // Document. Building it before any renderSection call keeps the
+    // §N.M.K resolution available to every template anywhere in the
+    // document, not just inside the section body.
+    sectionIndex: new Map<string, string>(),
   };
+}
+
+/**
+ * Walk the dnis:Node graph DFS to build the §N.M.K → NodeId map for
+ * `fn.section_of`. Both the bare NID (the `uid` field) and the slug-form
+ * primitive id (`p.id`, e.g. "dnis:node:01k…") are inserted so callers
+ * can lookup either form. Idempotent: safe to call twice; later calls
+ * overwrite. Returns the count of indexed nodes (for diagnostics).
+ *
+ * Mirrors the DFS in renderSectionsFromDnis but emits NO output — pure
+ * index construction. Splitting these is what makes the index available
+ * BEFORE any rendering begins.
+ */
+function populateSectionIndex(ctx: Ctx): number {
+  const dnisRoot = ctx.primitives.find((p) => p.type_id === "dnis:Document");
+  if (!dnisRoot) return 0;
+  const sections = ctx.primitives.filter(
+    (p) =>
+      p.type_id === "dnis:Node" &&
+      fvs(p, "kind") === "section" &&
+      !nonEmpty(fvs(p, "retired_at")),
+  );
+  if (sections.length === 0) return 0;
+
+  const byParentNid = new Map<string, PrimitiveInstance[]>();
+  for (const n of sections) {
+    const parent = fvs(n, "parent_node_id") || "";
+    if (!byParentNid.has(parent)) byParentNid.set(parent, []);
+    byParentNid.get(parent)!.push(n);
+  }
+  for (const [, group] of byParentNid) {
+    group.sort((a, b) =>
+      fvs(a, "position").localeCompare(fvs(b, "position")),
+    );
+  }
+  let count = 0;
+  function dfs(parentNid: string, ancestorPath: number[]): void {
+    const children = byParentNid.get(parentNid) ?? [];
+    for (let i = 0; i < children.length; i += 1) {
+      const child = children[i]!;
+      const path = [...ancestorPath, i + 1];
+      const number = path.join(".");
+      // Index by both forms so callers can pass either the bare NID
+      // (the SPEC-CORE primitive's `uid`) or the slug-form primitive
+      // id (e.g. "dnis:node:01k…"). resolveSectionOf falls back from
+      // direct → slug, but we cover both up front so it's O(1) either
+      // way.
+      ctx.sectionIndex.set(child.uid, number);
+      ctx.sectionIndex.set(child.id, number);
+      count += 1;
+      dfs(child.uid, path);
+    }
+  }
+  dfs("", []);
+  return count;
 }
 
 function out(src: string, type: string, ctx: Ctx): string[] {
@@ -710,6 +779,7 @@ function renderReferencesWithTemplate(
     const rendered = ctx.renderDsl!.renderTemplate(REFERENCE_ITEM_TEMPLATE, {
       templateId: "spec:section:references:item",
       docId: ref.id,
+      sectionIndex: ctx.sectionIndex,
     });
     lines.push(rendered.text);
     ctx.findings.push(...rendered.findings);
@@ -951,6 +1021,12 @@ function parseDnisContent(ctx: Ctx, node: PrimitiveInstance): DnisSectionContent
 
 export const renderSpecMarkdown: RendererFn = (input): RendererOutput => {
   const ctx = buildCtx(input.primitives, input.relations, input.renderDsl);
+  // Build the §N.M.K → dnis:Node id index before any rendering begins.
+  // Templates anywhere in the document can resolve cross-section
+  // references via `fn.section_of(node_id)` (helper-set v1.2.0). The
+  // index is empty when the project has no dnis:Document — legacy
+  // spec:Section projects are unaffected.
+  populateSectionIndex(ctx);
   const lines: string[] = [];
 
   if (!ctx.doc) {

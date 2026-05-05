@@ -24,6 +24,7 @@ import {
   lower,
   plural,
   replace,
+  resolveSectionOf,
   slice,
   sortBy,
   title,
@@ -65,6 +66,14 @@ export interface ValidationEvaluationOptions {
     os: string | null;
     cpuCount: number | null;
   };
+  /**
+   * Render-time only: the dnis:Node id → §N.M.K heading map that the
+   * spec_md renderer (or any future DNIS-aware renderer) builds while
+   * DFS-walking the section tree. Consumed by `fn.section_of` per
+   * SPEC-RENDER-DSL §6.4 / helper-set v1.2.0. Empty for validate-time
+   * paths and for renders without a dnis:Document.
+   */
+  sectionIndex?: ReadonlyMap<string, string>;
 }
 
 interface RegisteredExprHelper extends ExprHelperRegistration {
@@ -82,6 +91,7 @@ const SORT_BY_INTERNAL_NAME = "fdpm_expr_fn_sortBy";
 const ITERATION_METHODS = new Set(["all", "exists", "exists_one", "map", "filter"]);
 const EXPR_LIST_ITERATION_CAP = 1000;
 const EXPR_OUTPUT_STRING_CAP = 65_536;
+const EMPTY_SECTION_INDEX: ReadonlyMap<string, string> = new Map();
 
 export class ExpressionRuntime {
   readonly helperSetVersion = EXPR_HELPER_SET_VERSION;
@@ -291,6 +301,16 @@ export class ExpressionRuntime {
         this.requireHelperContext("fn.hash"),
       ),
     );
+    // helper-set v1.2.0 — SPEC-SECTIONS-TREE v0.2 §6.4. Reads the
+    // render-time section index that the spec_md renderer populates by
+    // DFS-walking the dnis:Node graph; throws on unknown ids.
+    this.registerStandardHelper("fn.section_of", 1, (value) =>
+      assertHelperOutputStringCap(
+        resolveSectionOf(this.requireHelperContext("fn.section_of").sectionIndex, value),
+        "fn.section_of",
+        this.requireHelperContext("fn.section_of"),
+      ),
+    );
   }
 
   private registerStandardHelper(
@@ -342,6 +362,9 @@ export class ExpressionRuntime {
       outputStringCap: EXPR_OUTPUT_STRING_CAP,
       evaluateSortByKey: (iterVar, keyExpr, item) =>
         this.evaluateSortByKeyExpression(iterVar, keyExpr, item, bindings, rule_id),
+      // helper-set v1.2.0: render-time section index, empty when not
+      // provided (validate-time, or renders without a dnis:Document).
+      sectionIndex: options?.sectionIndex ?? EMPTY_SECTION_INDEX,
     };
     return {
       helperContext,

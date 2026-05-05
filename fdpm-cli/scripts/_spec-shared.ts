@@ -30,12 +30,14 @@ export const ACTIVATION_TIER_A_NAMES = [
 export const ACTIVATION_TIER_A_LIST = `{ ${ACTIVATION_TIER_A_NAMES.join(", ")} }`;
 
 /** Standard helper-set version (independent semver, §M14). v1.1.0 adds the
- *  graph.exists / graph.target_exists existence helpers (additive → minor). */
-export const HELPER_SET_VERSION = "1.1.0";
+ *  graph.exists / graph.target_exists existence helpers (additive → minor).
+ *  v1.2.0 adds fn.section_of for resolving DNIS NodeIds to their rendered
+ *  §N.M.K heading number under SPEC-SECTIONS-TREE v0.2 (additive → minor). */
+export const HELPER_SET_VERSION = "1.2.0";
 
 /** One canonical entry per shipped helper. */
 export interface HelperEntry {
-  readonly family: "string" | "collection" | "date" | "identity";
+  readonly family: "string" | "collection" | "date" | "identity" | "reference";
   /** The fully-qualified name as it appears in templates. */
   readonly name: string;
   /** Signature in human form, e.g. `fn.slice(s, a, b?)`. */
@@ -81,6 +83,10 @@ export const STANDARD_HELPERS: readonly HelperEntry[] = [
   // ── identity family ────────────────────────────────────────
   { family: "identity",   name: "fn.hash",    signature: "fn.hash(value)",
     summary: "SHA-256 hex digest. Canonicalisation rules in EXPR-RT §M14: primitives & lists supported; maps raise type-error in v1.0.0 (Future Work spec:fw:hash-maps)." },
+
+  // ── reference family (helper-set v1.2.0) ─────────────────────
+  { family: "reference",  name: "fn.section_of", signature: "fn.section_of(node_id)",
+    summary: "Resolve a DNIS NodeId (or its slug-form SPEC-CORE primitive id, e.g. 'dnis:node:01k…') to its rendered §N.M.K heading string. Reads from doc.section_index, which the renderer populates by DFS-walking the dnis:Node graph at render time (per SPEC-SECTIONS-TREE v0.2). Returns a render-error if the id is unknown — never silently coerces to '' (Principle 4)." },
 ];
 
 /** Total count, derived once. */
@@ -129,6 +135,7 @@ export const TIER_A_BINDINGS: readonly TierABinding[] = [
   { path: "doc.id",                  type: "string",      note: "↳ instance id." },
   { path: "doc.type_id",             type: "string",      note: "↳ instance type." },
   { path: "doc.fields",              type: "map",         note: "↳ raw field_values map." },
+  { path: "doc.section_index",       type: "map<string, string>", note: "↳ render-time only (helper-set v1.2.0). Maps every active dnis:Node id (both NID and slug-form like 'dnis:node:01k…') to its rendered §N.M.K heading. Empty at validate-time. Populated by spec:SpecMarkdownRenderer's DFS over the dnis:Node graph per SPEC-SECTIONS-TREE v0.2; consumed by `fn.section_of`." },
   { path: "project",                 type: "map",         note: "Project-level data." },
   { path: "project.id",              type: "string",      note: "↳" },
   { path: "project.profile_id",      type: "string",      note: "↳" },

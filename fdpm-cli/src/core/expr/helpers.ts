@@ -7,6 +7,45 @@ export interface ExprRuntimeHelperContext {
   listIterationCap: number;
   outputStringCap: number;
   evaluateSortByKey(iterVar: string, keyExpr: string, item: unknown): unknown;
+  /**
+   * Render-time only: a map from dnis:Node id (the SPEC-DNIS NID, plus
+   * its slug-form SPEC-CORE primitive id 'dnis:node:<lower nid>') to the
+   * §N.M.K heading the renderer assigns. Populated by the spec_md
+   * renderer's DFS over the dnis:Node graph per SPEC-SECTIONS-TREE v0.2.
+   * Empty (never undefined) at validate-time and on render paths that do
+   * not contain a dnis:Document.
+   *
+   * Consumed by `fn.section_of(node_id)` (helper-set v1.2.0).
+   */
+  sectionIndex: ReadonlyMap<string, string>;
+}
+
+/**
+ * Resolve a dnis:Node id to its rendered §N.M.K heading via the
+ * render-time `sectionIndex` (helper-set v1.2.0, SPEC-SECTIONS-TREE v0.2
+ * §6.4 fn.section_of). Throws on unknown ids — never silently coerces
+ * to '' (Principle 4 of SPEC-RENDER-DSL).
+ *
+ * The lookup tries the input verbatim first, then a slug-form fallback
+ * ('dnis:node:<lower(nodeId)>'), so callers can pass either the bare
+ * NID or the SPEC-CORE primitive id.
+ */
+export function resolveSectionOf(
+  index: ReadonlyMap<string, string>,
+  nodeId: unknown,
+): string {
+  if (typeof nodeId !== "string" || nodeId.length === 0) {
+    throw new Error("type-error: fn.section_of expects a non-empty string node_id");
+  }
+  const direct = index.get(nodeId);
+  if (direct !== undefined) return direct;
+  // Slug fallback: callers passing a bare NID get the slug form lookup.
+  const slug = `dnis:node:${nodeId.toLowerCase()}`;
+  const fromSlug = index.get(slug);
+  if (fromSlug !== undefined) return fromSlug;
+  throw new Error(
+    `unknown-name: fn.section_of: no rendered section for '${nodeId}'. The renderer either did not visit a dnis:Node with this id, or the id was retired before render time.`,
+  );
 }
 
 /**

@@ -1,8 +1,8 @@
-// Helper-set semver. Bumped to 1.1.0 in the SPEC-EXPRESSION-RUNTIME §M14
-// amendment that added `graph.exists` and `graph.target_exists` (additive
-// → minor per the §M14 bump rules). The `fn.*` standard inventory is
-// unchanged; the new helpers live on the `graph` receiver.
-export const EXPR_HELPER_SET_VERSION = "1.1.0" as const;
+// Helper-set semver. Bumped to 1.1.0 for the §M14 graph.exists /
+// graph.target_exists addition. Bumped to 1.2.0 for `fn.section_of`,
+// the SPEC-SECTIONS-TREE v0.2 NodeId → §N.M.K resolver. Both bumps are
+// additive (minor per the §M14 bump rules); no existing helper changed.
+export const EXPR_HELPER_SET_VERSION = "1.2.0" as const;
 export const EXPR_CEL_REVISION = "TBD" as const;
 
 export const STANDARD_HELPER_IDS = [
@@ -20,6 +20,7 @@ export const STANDARD_HELPER_IDS = [
   "fn.date.long",
   "fn.date.iso",
   "fn.hash",
+  "fn.section_of", // helper-set v1.2.0 — SPEC-SECTIONS-TREE v0.2 NodeId resolver
 ] as const;
 
 export type StandardHelperId = (typeof STANDARD_HELPER_IDS)[number];

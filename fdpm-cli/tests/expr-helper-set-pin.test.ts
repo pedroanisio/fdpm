@@ -250,7 +250,9 @@ describe("expression runtime Tier-A and Tier-B surface", () => {
         'doc.type_id == "test:section" && ' +
         'project.id == "p" && ' +
         'project.profile_id == "test:demo" && ' +
-        'host.helper_set_version == "1.1.0" && ' +
+        // helper-set 1.0.0 → 1.1.0: graph.exists / graph.target_exists.
+        // helper-set 1.1.0 → 1.2.0: fn.section_of (SPEC-SECTIONS-TREE v0.2 §6.4).
+        'host.helper_set_version == "1.2.0" && ' +
         'fn.upper(doc.fields.title) == "BAD" && ' +
         'fn.count("test:section") == 2 && ' +
         'fn.date.short(env.NOW).size() == 10',

@@ -113,8 +113,12 @@ describe("expr/std: graph helper inventory", () => {
     ]);
   });
 
-  it("helper-set version is 1.1.0 (additive minor bump from 1.0.0)", () => {
-    expect(EXPR_HELPER_SET_VERSION).toBe("1.1.0");
+  it("helper-set version is 1.2.0 (additive minor bumps from 1.0.0 → 1.1.0 → 1.2.0)", () => {
+    // 1.0.0 → 1.1.0: graph.exists / graph.target_exists.
+    // 1.1.0 → 1.2.0: fn.section_of (SPEC-SECTIONS-TREE v0.2 §6.4 — render-time
+    //                NodeId → §N.M.K resolver). Both bumps are additive (no
+    //                existing helper changed); minor per the §M14 bump rules.
+    expect(EXPR_HELPER_SET_VERSION).toBe("1.2.0");
   });
 });
 
