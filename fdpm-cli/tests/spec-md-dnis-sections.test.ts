@@ -62,6 +62,7 @@ async function createSection(
     body_md?: string;
     dispatch_kind?: string;
     ref_slug?: string;
+    number_override?: string;
   },
 ): Promise<BuiltSection> {
   const opId = `OPSEC${String(index).padStart(20, "0")}A` as OperationId;
@@ -466,5 +467,114 @@ describe("spec:SpecMarkdownRenderer — DNIS Node section path", () => {
     expect(index.get("section:open-questions")).toBe("1");
     expect(index.get("section:open-questions-2")).toBe("2");
     expect(index.get("section:open-questions-3")).toBe("3");
+  });
+
+  it("number_override on dnis:Node content drives heading label, depth, and section_index value", async () => {
+    // Two cases combined:
+    //   (1) Letter appendix — top-level "A" sibling of integer
+    //       top-level sections.
+    //   (2) Mid-chain insert — child node tagged "5.6" placed
+    //       under §5; depth derives from override's dot count (= 3 →
+    //       `### 5.6.`).
+    //
+    // Both override cases:
+    //   - Render the literal label as the heading number.
+    //   - Populate fn.section_of with the literal label as the value.
+    const { buildSectionIndex } = await import(
+      "../plugins/spec_authoring/renderers/spec_md.js"
+    );
+
+    const host = await freshHost();
+    const projectId = "test-spec-dnis-number-override";
+    await newComposedProject(host, projectId);
+    await host.createPrimitive(projectId, {
+      id: "spec:doc:override",
+      type_id: "spec:Document",
+      field_values: {
+        title: "Number-override fixture",
+        spec_id: "spec:fixture:0.1",
+        version: "0.1.0",
+        status: "Draft",
+        audience: "test",
+        date: "2026-05-04",
+        disclaimer_path: "../DISCLAIMER.md",
+        pals_banner: false,
+        generated_by: "vitest fixture",
+      },
+    });
+    const adapter = new DnisHostAdapter(host, { projectId });
+    const document = await adapter.createDocument({
+      createdBy: AGENT,
+      schemaVersion: "0.1.7",
+      hashAlgorithm: "sha256",
+    });
+
+    // §5 The Instance Model (top-level, plain DFS gives "5")
+    let counter = 0;
+    const s5 = await createSection(adapter, document.id, null, ++counter, {
+      title: "Instance Model",
+      ref_slug: "instance-model",
+    });
+    // §5.6 SPEC-DNIS adoption (CHILD of §5, override label "5.6"
+    // because legacy SPEC-CORE has it numbered 5.6 even though it's
+    // structurally the first/only child of §5).
+    await createSection(adapter, document.id, s5.nodeId, ++counter, {
+      title: "SPEC-DNIS adoption",
+      number_override: "5.6",
+      ref_slug: "dnis-adoption",
+    });
+    // §6 The Store (top-level)
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "The Store",
+    });
+    // §A Open Questions (top-level appendix; override "A")
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "Open Questions",
+      number_override: "A",
+      ref_slug: "open-questions",
+    });
+    // §B Revision History (top-level appendix; override "B")
+    await createSection(adapter, document.id, null, ++counter, {
+      title: "Revision History",
+      number_override: "B",
+      ref_slug: "revisions",
+    });
+
+    const { text, findings } = await renderWithRenderer(host, projectId);
+    expect(findings.filter((f) => f.expression?.startsWith("spec:render:dnis"))).toHaveLength(0);
+
+    // Heading labels match the overrides where set, DFS where not.
+    expect(text).toContain("## 1. Instance Model");
+    expect(text).toContain("### 5.6. SPEC-DNIS adoption");
+    expect(text).toContain("## 2. The Store");
+    expect(text).toContain("## A. Open Questions");
+    expect(text).toContain("## B. Revision History");
+
+    // Depth comes from the override's dot count when set: "5.6" has
+    // one dot → 1+2 = 3 (###). "A" has zero dots → 2 (##). "1" / "2"
+    // come from DFS path length (top-level → 2 → ##). The test above
+    // verifies this implicitly via the heading hashes.
+
+    // section_index value is the override when set, DFS otherwise.
+    const index = buildSectionIndex(
+      Object.values(host.getProject(projectId).primitives),
+    );
+    expect(index.get("section:instance-model")).toBe("1");
+    expect(index.get("section:dnis-adoption")).toBe("5.6");
+    expect(index.get("section:the-store")).toBe("2");
+    expect(index.get("section:open-questions")).toBe("A");
+    expect(index.get("section:revisions")).toBe("B");
+
+    // fn.section_of returns the literal override when callers
+    // reference the slug.
+    const slice = host.getProject(projectId);
+    const profile = host.profiles.getResolved(slice.project.profile_id);
+    const facade = host.renderDsl.createFacade({ slice, profile });
+    const r = facade.renderTemplate(
+      "see §${fn.section_of(\"section:dnis-adoption\")} and appendix §${fn.section_of(\"section:open-questions\")}",
+      { templateId: "test:override:lookup", sectionIndex: index },
+    );
+    expect(r.text).toBe("see §5.6 and appendix §A");
+    expect(r.findings).toHaveLength(0);
   });
 });

@@ -139,9 +139,15 @@ function buildCtx(
 function populateSectionIndex(ctx: Ctx): number {
   const sections = collectActiveDnisSections(ctx.primitives);
   if (sections.length === 0) return 0;
-  return walkSectionTree(sections, ctx.sectionIndex, (node) =>
-    deriveSectionSlug(parseDnisContent(ctx, node)),
-  );
+  return walkSectionTree(sections, ctx.sectionIndex, (node) => {
+    const content = parseDnisContent(ctx, node);
+    return {
+      slug: deriveSectionSlug(content),
+      ...(content.number_override !== undefined && {
+        numberOverride: content.number_override,
+      }),
+    };
+  });
 }
 
 /**
@@ -170,22 +176,30 @@ export function buildSectionIndex(
   walkSectionTree(sections, out, (node) => {
     // Tests exercise this path; we don't need the rendering finding
     // surface, so skip parseDnisContent's diagnostic emission and
-    // call a content parser that returns null on bad shape.
+    // parse content directly. Returns the empty meta on bad shape.
     const raw = ((node.field_values as Record<string, unknown>)["content"] ?? "") as string;
-    if (typeof raw !== "string" || raw.length === 0) return null;
+    if (typeof raw !== "string" || raw.length === 0) return { slug: null };
     let parsed: unknown;
     try {
       parsed = JSON.parse(raw);
     } catch {
-      return null;
+      return { slug: null };
     }
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { slug: null };
+    }
     const obj = parsed as Record<string, unknown>;
-    return deriveSectionSlug({
+    const content: DnisSectionContent = {
       title: typeof obj["title"] === "string" ? (obj["title"] as string) : "",
       body_md: typeof obj["body_md"] === "string" ? (obj["body_md"] as string) : "",
       ...(typeof obj["ref_slug"] === "string" && { ref_slug: obj["ref_slug"] as string }),
-    });
+    };
+    return {
+      slug: deriveSectionSlug(content),
+      ...(typeof obj["number_override"] === "string" && {
+        numberOverride: obj["number_override"] as string,
+      }),
+    };
   });
   return out;
 }
@@ -206,13 +220,20 @@ function collectActiveDnisSections(
 /**
  * Shared DFS used by both the renderer's populateSectionIndex (which
  * surfaces parseDnisContent findings) and the public buildSectionIndex
- * (which returns a fresh map). The slug-deriver callback is the only
- * difference between them.
+ * (which returns a fresh map). The per-node callback supplies the
+ * slug (for the slug-keyed entry) and an optional numberOverride
+ * (which becomes the entry's value in place of the DFS path label —
+ * see DnisSectionContent.number_override). Both fields are
+ * independent; either or both can be unset.
  */
+interface SectionMetaForIndex {
+  readonly slug: string | null;
+  readonly numberOverride?: string;
+}
 function walkSectionTree(
   sections: readonly PrimitiveInstance[],
   index: Map<string, string>,
-  slugFor: (node: PrimitiveInstance) => string | null,
+  metaFor: (node: PrimitiveInstance) => SectionMetaForIndex,
 ): number {
   const byParentNid = new Map<string, PrimitiveInstance[]>();
   for (const n of sections) {
@@ -230,12 +251,16 @@ function walkSectionTree(
     for (let i = 0; i < children.length; i += 1) {
       const child = children[i]!;
       const path = [...ancestorPath, i + 1];
-      const number = path.join(".");
+      const meta = metaFor(child);
+      // §-number used in the index is the override when present, else
+      // the DFS path label. Cross-references via fn.section_of resolve
+      // to whatever the rendered heading prints.
+      const number = meta.numberOverride ?? path.join(".");
       // Both id forms (NID + slug-form primitive id).
       index.set(child.uid, number);
       index.set(child.id, number);
       // Slug-keyed entry; collisions get `-2`, `-3`, … in DFS order.
-      const baseSlug = slugFor(child);
+      const baseSlug = meta.slug;
       if (baseSlug) {
         const seen = slugOccurrences.get(baseSlug) ?? 0;
         const finalSlug = seen === 0 ? baseSlug : `${baseSlug}-${seen + 1}`;
@@ -1054,10 +1079,22 @@ function renderSectionsFromDnis(
       const dispatchKind = parsed.dispatch_kind ?? "";
       const depthOverride = parsed.depth_override;
 
+      // §-number: literal override (for letter appendices, mid-chain
+      // inserts, etc. — see number_override docstring) or DFS-derived.
+      const numberLabel = parsed.number_override ?? number;
+      // Heading depth: explicit override → fall back to override's dot
+      // count (so a number_override of "5.6" gives depth 3 like the
+      // legacy spec_md path) → fall back to DFS path length.
+      const fromOverride = parsed.number_override
+        ? (parsed.number_override.match(/\./g)?.length ?? 0) + 2
+        : null;
       const computed = path.length + 1; // top-level = 2 (##), sub = 3 (###), …
-      const depth = Math.min(Math.max(depthOverride ?? computed, 2), 6);
+      const depth = Math.min(
+        Math.max(depthOverride ?? fromOverride ?? computed, 2),
+        6,
+      );
       const hashes = "#".repeat(depth);
-      lines.push(`${hashes} ${number}. ${title}`, "");
+      lines.push(`${hashes} ${numberLabel}. ${title}`, "");
       if (nonEmpty(body)) {
         // SPEC-RENDER-DSL v0.1.7: opt-in body_md template evaluation.
         // Authors who want ${doc.title} / ${fn.section_of("section:foo")}
@@ -1112,6 +1149,28 @@ interface DnisSectionContent {
    * Per-section opt-in keeps the migration risk contained.
    */
   eval_body?: boolean;
+  /**
+   * Optional literal heading-label override. When present, this string
+   * is used as the §-number in the rendered heading INSTEAD of the
+   * DFS-derived path index, and is emitted into the section_index
+   * (so cross-references resolve to the override too).
+   *
+   * Use cases that the pure DFS path cannot represent:
+   *   - Letter-labeled appendices ("A", "B") whose siblings are
+   *     numerically-labeled top-level sections.
+   *   - Mid-chain inserts that must keep a stable label (e.g. an
+   *     amendment §5.6 added between §5 and §6 in a SPEC whose
+   *     downstream sections cannot renumber without breaking external
+   *     references).
+   *
+   * Default unset = DFS-derived numbering. Setting this is a
+   * deliberate departure from the SPEC-SECTIONS-TREE v0.2 default;
+   * authors should reach for it only when the structure itself can't
+   * be expressed via DFS path. Cross-document refs to overridden
+   * sections work via fn.section_of (the slug entries are still
+   * generated; their value is the override string).
+   */
+  number_override?: string;
 }
 
 function parseDnisContent(ctx: Ctx, node: PrimitiveInstance): DnisSectionContent {
@@ -1147,6 +1206,7 @@ function parseDnisContent(ctx: Ctx, node: PrimitiveInstance): DnisSectionContent
   if (typeof obj["depth_override"] === "number") out.depth_override = obj["depth_override"] as number;
   if (typeof obj["ref_slug"] === "string") out.ref_slug = obj["ref_slug"] as string;
   if (typeof obj["eval_body"] === "boolean") out.eval_body = obj["eval_body"] as boolean;
+  if (typeof obj["number_override"] === "string") out.number_override = obj["number_override"] as string;
   return out;
 }
 
@@ -1223,9 +1283,28 @@ export const renderSpecMarkdown: RendererFn = (input): RendererOutput => {
   // spec:Reference primitive exists, even without a section of
   // kind='references'. PALS-LAW: a citation without a bibliography
   // is exactly the verification gap the SPEC banner forbids.
-  const hasReferenceSection = ctx.primitives.some(
-    (p) => p.type_id === "spec:Section" && fvs(p, "kind") === "references",
-  );
+  //
+  // The check covers BOTH the legacy spec:Section path AND the DNIS
+  // path (dnis:Node whose content.dispatch_kind == "references"); a
+  // SPEC migrated to the DNIS section tree retains its references
+  // section without re-emitting the closing block.
+  const hasReferenceSection =
+    ctx.primitives.some(
+      (p) => p.type_id === "spec:Section" && fvs(p, "kind") === "references",
+    ) ||
+    ctx.primitives.some((p) => {
+      if (p.type_id !== "dnis:Node") return false;
+      if (fvs(p, "kind") !== "section") return false;
+      if (nonEmpty(fvs(p, "retired_at"))) return false;
+      const raw = fvs(p, "content");
+      if (!raw) return false;
+      try {
+        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        return parsed && parsed["dispatch_kind"] === "references";
+      } catch {
+        return false;
+      }
+    });
   if (!hasReferenceSection) {
     const refs = ctx.primitives.filter((p) => p.type_id === "spec:Reference");
     if (refs.length > 0) {

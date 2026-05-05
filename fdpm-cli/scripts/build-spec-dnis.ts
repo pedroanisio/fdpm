@@ -35,7 +35,17 @@ import {
   type PrimitiveSpec,
   type RelationSpec,
 } from "../src/sdk.js";
-import { PROFILE_ID } from "../plugins/spec_authoring/index.js";
+import { PROFILE_ID } from "../plugins/spec_authoring_dnis/index.js";
+import { DnisHostAdapter } from "../src/core/dnis/adapter.js";
+import {
+  positionBetween,
+  type AgentId,
+  type NodeId,
+  type OperationId,
+} from "../src/core/dnis/index.js";
+import { mintUid } from "../src/core/identity/uid.js";
+
+const SPEC_DNIS_BUILD_AGENT = "agent:build-spec-dnis" as AgentId;
 
 const PROJECT_ID = "spec-dnis";
 
@@ -2078,12 +2088,14 @@ function rel(id: string, type: string, from: string, to: string): RelationSpec {
 async function main(): Promise<void> {
   const host = await openHost();
 
+  // Phase 1: typed spec-authoring primitives + non-section relations.
+  const phase1Relations = relations.filter((r) => r.type !== "spec:HasSection");
   const result = await defineProject(host, {
     id: PROJECT_ID,
     name: "DNIS — Document Node Identity Specification",
     profile: PROFILE_ID,
     description:
-      "1:1 migration of dnis-spec.md to a typed graph using the fdpm.spec-authoring profile. Materialises every Defined Term, Design Principle, ID-format rule, Position requirement, Operation contract, Idempotency clause, Concurrency level, Reference-resolution rule, Conformance level, Test Vector, Reference, Open Question, and the Appendix B change log as typed primitives joined by typed relations.",
+      "1:1 migration of dnis-spec.md to a typed graph using the fdpm.spec-authoring-dnis composition profile. Section tree is committed as dnis:Document + dnis:Node primitives in phase 2 per SPEC-SECTIONS-TREE v0.2.",
   })
     .primitives([
       documentSpec,
@@ -2100,15 +2112,79 @@ async function main(): Promise<void> {
       ...openQuestions,
       ...references,
       ...revisions,
-      ...sections,
+      // sections array is NOT committed as spec:Section. Phase 2 reads
+      // its content to build the dnis:Node tree.
     ])
-    .relations(relations)
+    .relations(phase1Relations)
     .commit();
 
-  console.log("Built project:", result.project_id);
+  console.log("Phase 1 — typed primitives committed:");
   console.log("  primitives:", result.primitives_created);
   console.log("  relations: ", result.relations_created);
-  console.log("  revision:  ", result.revision);
+
+  // Phase 2: build the §-tree as dnis:Node primitives.
+  // §A and §B are top-level appendices with letter labels — they get
+  // number_override="A" / "B" so the rendered heading prints the
+  // letter instead of the DFS-derived integer index.
+  const adapter = new DnisHostAdapter(host, { projectId: PROJECT_ID });
+  const dnisDoc = await adapter.createDocument({
+    createdBy: SPEC_DNIS_BUILD_AGENT,
+    schemaVersion: "0.1.7",
+    hashAlgorithm: "sha256",
+  });
+
+  // Sections whose label can't be derived from DFS path. Maps the
+  // legacy section-id → literal override.
+  const literalLabels: Record<string, string> = {
+    "spec:sec:appendix-a": "A",
+    "spec:sec:appendix-b": "B",
+  };
+
+  let opCounter = 0;
+  function nextOpId(): OperationId {
+    opCounter += 1;
+    return mintUid() as OperationId;
+  }
+
+  for (const sec of sections) {
+    const fields = sec.fields as Record<string, unknown>;
+    const title = String(fields["title"] ?? "(untitled)");
+    const body_md = String(fields["body_md"] ?? "");
+    const kindRaw = fields["kind"];
+    const dispatch_kind =
+      typeof kindRaw === "string" && kindRaw !== "prose" ? kindRaw : undefined;
+    const numberOverride = literalLabels[sec.id] ?? null;
+
+    const siblings = adapter.listActiveNodes(dnisDoc.id, null);
+    const last = siblings.length > 0 ? siblings[siblings.length - 1]! : null;
+    const position = positionBetween(last?.position ?? null, null);
+    const issuedAt = new Date(
+      Date.UTC(2026, 4, 4, 12, 0, opCounter),
+    ).toISOString();
+    await adapter.apply({
+      id: nextOpId(),
+      type: "create",
+      documentId: dnisDoc.id,
+      agentId: SPEC_DNIS_BUILD_AGENT,
+      issuedAt,
+      payload: {
+        kind: "section",
+        content: {
+          title,
+          body_md,
+          ...(dispatch_kind ? { dispatch_kind } : {}),
+          ...(numberOverride ? { number_override: numberOverride } : {}),
+        },
+        parentNodeId: null,
+        position,
+      },
+    });
+  }
+
+  console.log("Phase 2 — dnis:Node section tree built:");
+  console.log("  dnis:Document:", dnisDoc.id);
+  console.log("  sections     :", opCounter);
+  console.log("  revision     :", host.getProject(PROJECT_ID).project.revision);
   console.log("");
   console.log("Render with:");
   console.log(
