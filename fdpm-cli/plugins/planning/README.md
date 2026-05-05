@@ -228,6 +228,152 @@ A claim is short-term; assignee_id is durable. The two are independent.
 
 ---
 
+## SDK helpers (Shape A operations)
+
+[`sdk.ts`](./sdk.ts) ships a small surface of strict-by-default
+operations that wrap `Host.*` calls and encode the planning profile's
+invariants. Re-exported from the workbook SDK as the `planning`
+namespace:
+
+```ts
+import { openHost, planning } from "@fdpm/cli";
+
+const host = await openHost();
+await planning.markDone(host, { workbook: "my-plan", taskId: "task:foo" });
+```
+
+Strict by default means every helper that flips `Task.status` passes
+`fullValidate: true` to `host.patchPrimitive`, so the profile's
+graph-stateful CEL rules (`done-task-has-ac`, `non-root-task-has-deps`,
+`ai-task-has-machine-checkable-ac`) fire. `host.patchPrimitive` is
+lenient by default — it skips profile-level CEL rules per
+[pipeline.ts §runPrimitiveFieldPatch](../../src/core/validation/pipeline.ts) —
+which is correct for editing imported third-party data, but wrong for
+helpers that exist precisely to encode planning's workflow.
+
+### State transitions
+
+| Helper | Effect | Notable rule firings |
+| --- | --- | --- |
+| `markReady(host, {workbook, taskId})` | `status → Ready` | none planning-specific |
+| `markInProgress(host, {workbook, taskId, holder?, ttlMinutes?})` | `status → In_progress`, optional claim atomically | `claim-has-expiry` if holder set |
+| `markInReview(host, {workbook, taskId})` | `status → In_review` | none planning-specific |
+| `markDone(host, {workbook, taskId})` | `status → Done` | **`done-task-has-ac` — fails if no Verifies edge exists** |
+| `markCancelled(host, {workbook, taskId})` | `status → Cancelled` | none planning-specific |
+
+### Claim / release
+
+| Helper | Effect |
+| --- | --- |
+| `claimTask(host, {workbook, taskId, holder, ttlMinutes})` | sets `claim_holder_id` + `claim_until` |
+| `releaseClaim(host, {workbook, taskId})` | clears both, idempotent |
+
+### Schedule edges (idempotent)
+
+| Helper | Effect |
+| --- | --- |
+| `addToIteration(host, {workbook, taskId, iterationId})` | creates `plan:InIteration` edge if absent |
+| `hitsMilestone(host, {workbook, taskId, milestoneId})` | creates `plan:HitsMilestone` edge if absent |
+
+### Blocker flow (composite, no auto-rollback)
+
+`markBlocked` and `unblock` are multi-op helpers. If an intermediate op
+fails, the workbook is left in whatever intermediate state the failing
+op produced. Live-workbook edits have no transaction boundary outside
+`defineProject().commit()`, which is for fresh authoring; the helpers
+do not invent one.
+
+```ts
+await planning.markBlocked(host, {
+  workbook: "my-plan",
+  taskId: "task:foo",
+  newBlocker: {
+    id: "blocker:db-down",
+    description: "Database is down",
+    severity: "High",
+  },
+});
+// → creates Blocker, plan:BlockedBy edge, flips Task.status = "Blocked"
+
+await planning.unblock(host, {
+  workbook: "my-plan",
+  taskId: "task:foo",
+  blockerId: "blocker:db-down",
+  resolveBlocker: true, // also sets Blocker.resolved_at
+});
+```
+
+### Trap-dodging composites
+
+The README's §Authoring AI tasks documents a 4-step pattern to satisfy
+the create-time validation order. Two helpers package that pattern:
+
+```ts
+// Born-AI task with AC + Verifies edge — single call, full validation.
+await planning.createAITask(host, {
+  workbook: "my-plan",
+  task: {
+    id: "task:foo",
+    name: "foo",
+    summary: "do the thing",
+    kind: "Implementation",
+    priority: "P1",
+    aiMinutes: 30,           // bounded enum {5,10,15,…,60}
+  },
+  ac: {
+    id: "ac:foo",
+    criterion: "tests pass",
+    expression: "true",      // CEL — must be non-empty for AI tasks
+  },
+});
+
+// Back-fill an already-completed Human task.
+await planning.createDoneTask(host, {
+  workbook: "my-plan",
+  task: { id: "task:bar", name: "bar", summary: "shipped last week",
+          kind: "Documentation", priority: "P3" },
+  ac: { id: "ac:bar", criterion: "doc shipped", expression: "true",
+        status: "met" },
+});
+```
+
+Both create the AC first → the Task as `executor_kind: "Either"` (so
+the AI rule doesn't fire prematurely) → the `plan:Verifies` edge → a
+`replacePrimitive` to flip the final field (`executor_kind: "AI"` /
+`status: "Done"`) under full validation.
+
+### Out of scope
+
+- **`closeTask`** — ambiguous. Use `markDone` (success) or `markCancelled` (abort).
+- **`archiveTask`** — no `archived` field exists in `plan:Task`. Pin a meaning (soft flag, hard delete, move to archive iteration, export+delete) and that's a separate change to the schema or the helper set.
+
+### CLI surface
+
+The single-op state-transition helpers are exposed as `fdpm planning <verb>`
+subcommands (six verbs in v1; composite helpers ship later):
+
+```bash
+fdpm planning mark-ready       <workbook> <task-id>
+fdpm planning mark-in-progress <workbook> <task-id>
+fdpm planning mark-in-review   <workbook> <task-id>
+fdpm planning mark-done        <workbook> <task-id>   # strict — needs Verifies edge
+fdpm planning mark-cancelled   <workbook> <task-id>
+fdpm planning release-claim    <workbook> <task-id>
+```
+
+Each subcommand emits `--json` for machine output and propagates the
+SDK helper's exception verbatim. The web frontend wraps these via
+`POST /api/planning/<verb>` (see `web/server/bridge.ts`); the bridge is
+the only HTTP-shape mutation surface in the FDPM web app.
+
+### Source + tests
+
+- [`sdk.ts`](./sdk.ts) — implementation.
+- [`tests/planning-sdk.test.ts`](../../tests/planning-sdk.test.ts) — 16 end-to-end tests including a `should-fail` test that proves the naive 1-op flow can't create an AI task and the helper does.
+- [`src/commands/planning.ts`](../../src/commands/planning.ts) — `fdpm planning <verb>` Commander wiring.
+
+---
+
 ## See also
 
 - [`validation_rules.ts`](./validation_rules.ts) — full text of all 12 rules.

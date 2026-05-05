@@ -30,9 +30,14 @@ Bridge  (Node HTTP server, port 5174)
 fdpm CLI  →  local FDPM workbook store
 ```
 
-- **Bridge** (`server/bridge.ts`) — minimal Node HTTP shim that spawns
-  `fdpm` per request and returns parsed JSON. Read-only by construction:
-  only `workbook list` and `workbook get` are wired.
+- **Bridge** (`server/bridge.ts`) — Node HTTP shim that spawns `fdpm`
+  per request and returns parsed JSON. Read endpoints (workbook,
+  plugin, profile listings + details) plus a single mutating surface:
+  `POST /api/planning/:verb` for the strict-by-default planning SDK
+  helpers (`mark-ready`, `mark-in-progress`, `mark-in-review`,
+  `mark-done`, `mark-cancelled`, `release-claim`). Verbs are
+  allowlisted; the bridge spawns `fdpm planning <verb>` which delegates
+  to `plugins/planning/sdk.ts`.
 - **Frontend** (`src/`) — React app with two views: a workbook list and a
   workbook detail page that groups primitives by `type_id` and shows
   their fields.
@@ -77,20 +82,33 @@ npm run dev:vite     # terminal 2
 
 ## API surface (bridge)
 
-| Method | Path                  | Returns                                                  |
-| ------ | --------------------- | -------------------------------------------------------- |
-| GET    | `/api/health`         | `{ ok, workbooks }` — proves the CLI is reachable        |
-| GET    | `/api/workbooks`      | `{ workbooks: [{ id, name, profile_id, revision }] }`    |
-| GET    | `/api/workbooks/:id`  | `{ workbook, primitives, relations? }` (full snapshot)   |
+| Method | Path                          | Returns                                                       |
+| ------ | ----------------------------- | ------------------------------------------------------------- |
+| GET    | `/api/health`                 | `{ ok, workbooks }` — proves the CLI is reachable             |
+| GET    | `/api/workbooks`              | `{ workbooks: [{ id, name, profile_id, revision }] }`         |
+| GET    | `/api/workbooks/:id`          | `{ workbook, primitives, relations? }` (full snapshot)        |
+| GET    | `/api/plugins`                | `{ plugins: [...] }`                                          |
+| GET    | `/api/plugins/:id`            | full plugin record (capabilities, contributions, source)      |
+| GET    | `/api/plugins/:id/manifest`   | raw `fdpm-plugin.json`                                        |
+| GET    | `/api/plugins/:id/readme`     | `{ markdown }` or 404                                         |
+| GET    | `/api/profiles`               | `{ profiles: [...] }`                                         |
+| GET    | `/api/profiles/:id`           | resolved profile (primitive types, relation types, fields)    |
+| POST   | `/api/planning/:verb`         | `{ ok, status, revision, ... }` — body `{ workbook, taskId }` |
 
 Errors are surfaced as `{ error, detail? }`. For unknown workbooks, the
 bridge maps the CLI's `not_found` envelope (exit code 4) to HTTP 404
-and forwards the structured envelope under `detail.stderr`.
+and forwards the structured envelope under `detail.stderr`. CLI
+validation failures (e.g., `mark-done` against a task with no
+`plan:Verifies` edge) come back as HTTP 500 with the structured
+findings array — `web/src/api.ts:extractCliError` flattens those into a
+human-readable message.
 
 ## What this does NOT do
 
-- **Write operations.** No create/patch/delete endpoints. Mutating a
-  workbook still goes through `fdpm` directly.
+- **Generic write operations.** The only mutating surface is the
+  planning verb allowlist (`POST /api/planning/:verb`). No primitive
+  create/patch/delete, no relation create/delete. Other mutations still
+  go through `fdpm` directly.
 - **Live updates.** The bridge spawns a fresh CLI per request, so each
   view reflects the on-disk state at the time it was loaded. Refresh
   the browser to pick up edits made elsewhere.
@@ -125,7 +143,9 @@ web/
         ├── Math.tsx                       # KaTeX-backed <MathBlock> / <MathInline>
         ├── ProseWithMath.tsx              # split prose on $...$ / $$...$$
         ├── FormalSpecificationView.tsx    # profile:formal-specification:*
-        └── PlanningView.tsx               # profile:planning:*
+        ├── PlanningView.tsx               # profile:planning:* (Board + Gantt tabs)
+        ├── GanttView.tsx                  # interactive Gantt sub-view of PlanningView
+        └── TaskActions.tsx                # per-task action menu wired into the Board
 ```
 
 ## Math rendering
@@ -179,7 +199,7 @@ the generic group-by-type view.
 | Profile prefix                     | Template                                                                        | What it does |
 | ---------------------------------- | ------------------------------------------------------------------------------- | ------------ |
 | `profile:formal-specification:`    | [`FormalSpecificationView`](./src/templates/FormalSpecificationView.tsx)        | Renders sections in number order with a sticky table of contents; opinionated cards for `fs:Equation` (KaTeX-rendered display math with collapsible LaTeX source + variables table), `fs:Phase` (input/output/procedure grid + Precedes chain), `fs:Definition`, `fs:FormalProperty` (claim/intuition/caveat), `fs:Assumption` (kind+status badges), `fs:Limitation`, `fs:FailureMode` (severity + OccursIn link), `fs:Citation` (DOI link), `fs:Actor`. All prose fields run through `<ProseWithMath>`, so `$M_\odot$` inside a definition or claim renders as math. Surfaces `fs:Cites` cross-references inline. Primitives outside any section land in an "Unfiled" section so nothing is hidden. |
-| `profile:planning:`                | [`PlanningView`](./src/templates/PlanningView.tsx)                              | Iteration board: sticky TOC of iterations + milestones; per-iteration kanban grouped by status (In_progress / Blocked / Ready / In_review / Backlog / Done / Cancelled). Per-task cards show priority/executor/duration badges and inline cross-refs for `plan:DependsOn`, `plan:Verifies` (with AC status pill), and `plan:BlockedBy`. Top strip surfaces WorkBreakdown roots and Milestones; active blockers get a callout panel above the board. Tasks not bound to an iteration land in a "(no iteration)" column. |
+| `profile:planning:`                | [`PlanningView`](./src/templates/PlanningView.tsx)                              | Two tabs: **Board** (default) — sticky TOC of iterations + milestones; per-iteration kanban grouped by status; per-task cards with priority/executor/duration badges + inline cross-refs for `plan:DependsOn`, `plan:Verifies` (with AC status pill), and `plan:BlockedBy`; per-task action menu (`mark-ready`, `mark-done`, etc.) with native `<dialog>` confirmation for destructive verbs. **Gantt** ([`GanttView`](./src/templates/GanttView.tsx)) — descriptive timeline: bars for tasks with both `planned_start` and `planned_finish` set, status-colored, with iteration bands, milestone markers, today-line, and `plan:DependsOn` arrows. Click a bar or row label → smooth-scroll to that task in the Board view (with a brief flash). Tasks missing dates land in an "Unscheduled" footer with the same scroll-to-task affordance. No drag-to-reschedule in v1 (planned dates have no SDK helper yet). |
 | (any other)                        | generic group-by-type view                                                      | The original card grid — every primitive's fields rendered as a flat key/value list, grouped by `type_id`. |
 
 ### Adding a template

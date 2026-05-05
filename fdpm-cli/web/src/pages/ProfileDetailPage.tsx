@@ -44,7 +44,7 @@ export function ProfileDetailPage({ id }: Props) {
     <article className="profile-detail">
       <a href="#/plugins" className="back">← Plugins</a>
       <header className="profile-hero">
-        <h2>{profile.label}</h2>
+        <h1>{profile.label}</h1>
         <div className="profile-hero-meta">
           <code>{profile.id}</code>
           <span className="sep">·</span>

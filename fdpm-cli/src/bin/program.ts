@@ -37,6 +37,7 @@ import { buildValidateCommand } from "../commands/validate.js";
 import { buildDiffCommand } from "../commands/diff.js";
 import { buildMigrateCommand } from "../commands/migrate.js";
 import { buildDnisCommand } from "../commands/dnis.js";
+import { buildPlanningCommand } from "../commands/planning.js";
 import { buildWorkspaceCommand } from "../commands/workspace.js";
 import { renderRootAfterHelp } from "../commands/completions.js";
 import { HOST_VERSION } from "../core/version/spec.js";
@@ -114,6 +115,7 @@ export function buildProgram(host: Host, opts: BuildProgramOptions = {}): Comman
   program.addCommand(buildDiffCommand(host));
   program.addCommand(buildMigrateCommand(host));
   program.addCommand(buildDnisCommand(host));
+  program.addCommand(buildPlanningCommand(host));
   program.addCommand(buildWorkspaceCommand(host));
 
   return program;

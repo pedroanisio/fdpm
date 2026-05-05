@@ -1,23 +1,26 @@
 /**
- * FDPM Web Bridge — read-only HTTP shim over the `fdpm` CLI.
+ * FDPM Web Bridge — HTTP shim over the `fdpm` CLI.
  *
  * Endpoints:
- *   GET /api/health                          -> { ok, workbooks }
- *   GET /api/workbooks                       -> { workbooks: [...] }
- *   GET /api/workbooks/:id                   -> { workbook, primitives, relations? }
- *   GET /api/plugins                         -> { plugins: [...] }
- *   GET /api/plugins/:id                     -> { ...plugin record, capabilities, contributions, source }
- *   GET /api/plugins/:id/manifest            -> raw fdpm-plugin.json
- *   GET /api/plugins/:id/readme              -> { markdown } or 404
- *   GET /api/profiles                        -> { profiles: [...] }
- *   GET /api/profiles/:id                    -> resolved profile (types, fields)
+ *   GET  /api/health                            -> { ok, workbooks }
+ *   GET  /api/workbooks                         -> { workbooks: [...] }
+ *   GET  /api/workbooks/:id                     -> { workbook, primitives, relations? }
+ *   GET  /api/plugins                           -> { plugins: [...] }
+ *   GET  /api/plugins/:id                       -> { ...plugin record, capabilities, contributions, source }
+ *   GET  /api/plugins/:id/manifest              -> raw fdpm-plugin.json
+ *   GET  /api/plugins/:id/readme                -> { markdown } or 404
+ *   GET  /api/profiles                          -> { profiles: [...] }
+ *   GET  /api/profiles/:id                      -> resolved profile (types, fields)
+ *
+ *   POST /api/planning/:verb                    -> { ok, status, revision, ... }
+ *     body: { workbook, taskId }
+ *     verb in PLANNING_VERBS allowlist (mark-ready, mark-done, etc.)
+ *     This is the ONLY write surface. Mutations go through `fdpm planning`
+ *     subcommands which call the strict-by-default planning SDK helpers.
  *
  * Each request spawns `fdpm <args> --json` and forwards parsed stdout.
  * Spawn-per-request is fine for a local dev tool; the CLI is fast enough
  * and this avoids holding a stale projection across edits made elsewhere.
- *
- * Read-only by construction — no endpoint accepts write verbs and no
- * mutating subcommand is wired here.
  */
 
 import { spawn } from "node:child_process";
@@ -123,13 +126,89 @@ async function readPluginReadme(id: string): Promise<string | null> {
   }
 }
 
-async function handle(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  if (req.method !== "GET") {
-    send(res, 405, { error: "method_not_allowed" });
-    return;
+/**
+ * Allowlist of planning verbs. Each maps directly to a `fdpm planning <verb>`
+ * subcommand. Adding a verb here without adding the corresponding CLI
+ * subcommand will produce an `fdpm_exit_nonzero` error to the caller.
+ */
+const PLANNING_VERBS: ReadonlySet<string> = new Set([
+  "mark-ready",
+  "mark-in-progress",
+  "mark-in-review",
+  "mark-done",
+  "mark-cancelled",
+  "release-claim",
+]);
+
+const TASK_ID_RE = /^[a-zA-Z0-9._:-]{1,256}$/;
+const VERB_RE = /^[a-z][a-z0-9-]{0,40}$/;
+
+async function readJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const chunk of req) {
+    const buf = chunk as Buffer;
+    total += buf.length;
+    if (total > 65536) {
+      throw new Error("request_body_too_large");
+    }
+    chunks.push(buf);
   }
+  if (total === 0) return {};
+  const raw = Buffer.concat(chunks).toString("utf8");
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`invalid_json: ${(err as Error).message}`);
+  }
+}
+
+async function handle(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const method = req.method ?? "GET";
   const url = new URL(req.url ?? "/", `http://${HOST}`);
   const path = url.pathname;
+
+  // POST /api/planning/:verb — the one and only mutating surface.
+  if (method === "POST") {
+    const planningMatch = path.match(/^\/api\/planning\/([^/]+)$/);
+    if (!planningMatch) {
+      send(res, 404, { error: "not_found", detail: { method, path } });
+      return;
+    }
+    const verb = decodeURIComponent(planningMatch[1]);
+    if (!VERB_RE.test(verb) || !PLANNING_VERBS.has(verb)) {
+      send(res, 400, { error: "invalid_verb", detail: { verb, allowed: [...PLANNING_VERBS] } });
+      return;
+    }
+    let body: unknown;
+    try {
+      body = await readJsonBody(req);
+    } catch (err) {
+      send(res, 400, { error: (err as Error).message });
+      return;
+    }
+    const { workbook, taskId } = (body ?? {}) as { workbook?: unknown; taskId?: unknown };
+    if (typeof workbook !== "string" || !WORKBOOK_ID_RE.test(workbook)) {
+      send(res, 400, { error: "invalid_workbook", detail: { workbook } });
+      return;
+    }
+    if (typeof taskId !== "string" || !TASK_ID_RE.test(taskId)) {
+      send(res, 400, { error: "invalid_task_id", detail: { taskId } });
+      return;
+    }
+    const r = await runFdpm(["planning", verb, workbook, taskId, "--json"]);
+    if (!r.ok) {
+      send(res, r.status, r.body);
+      return;
+    }
+    send(res, 200, r.data);
+    return;
+  }
+
+  if (method !== "GET") {
+    send(res, 405, { error: "method_not_allowed", detail: { method } });
+    return;
+  }
 
   if (path === "/api/health") {
     const r = await runFdpm(["workbook", "list", "--json"]);

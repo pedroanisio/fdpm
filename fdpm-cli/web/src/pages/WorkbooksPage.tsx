@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { WorkbookSummary } from "../types";
 import { WorkbookList } from "../components/WorkbookList";
+import { SkeletonList } from "../components/Skeleton";
 import { navigate } from "../App";
 
 export function WorkbooksPage() {
@@ -25,10 +26,17 @@ export function WorkbooksPage() {
       </div>
     );
   }
-  if (!workbooks) return <div className="loading">Loading…</div>;
+  if (!workbooks) {
+    return (
+      <>
+        <h1 className="page-title">Workbooks</h1>
+        <SkeletonList count={5} variant="workbook" />
+      </>
+    );
+  }
   return (
     <>
-      <h2 className="page-title">Workbooks <span className="page-count">({workbooks.length})</span></h2>
+      <h1 className="page-title">Workbooks <span className="page-count">({workbooks.length})</span></h1>
       <WorkbookList workbooks={workbooks} onSelect={(id) => navigate(`#/wb/${encodeURIComponent(id)}`)} />
     </>
   );

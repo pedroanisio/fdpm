@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { PluginSummary } from "../types";
+import { SkeletonList } from "../components/Skeleton";
 
 export function PluginsPage() {
   const [plugins, setPlugins] = useState<PluginSummary[] | null>(null);
@@ -20,12 +21,23 @@ export function PluginsPage() {
       </div>
     );
   }
-  if (!plugins) return <div className="loading">Loading plugins…</div>;
+  if (!plugins) {
+    return (
+      <>
+        <h1 className="page-title">Plugins</h1>
+        <p className="page-lede">
+          Each plugin contributes profiles, primitive/relation types, validators, and renderers
+          to the FDPM host. Click a plugin to see what it actually ships.
+        </p>
+        <SkeletonList count={6} variant="plugin" />
+      </>
+    );
+  }
   return (
     <>
-      <h2 className="page-title">
+      <h1 className="page-title">
         Plugins <span className="page-count">({plugins.length})</span>
-      </h2>
+      </h1>
       <p className="page-lede">
         Each plugin contributes profiles, primitive/relation types, validators, and renderers
         to the FDPM host. Click a plugin to see what it actually ships.

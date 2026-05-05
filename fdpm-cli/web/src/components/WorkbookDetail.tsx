@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
 import type { Primitive, WorkbookDetailResponse } from "../types";
 import { PrimitiveCard } from "./PrimitiveCard";
@@ -26,14 +26,20 @@ export function WorkbookDetail({ id, onBack }: Props) {
   const [data, setData] = useState<WorkbookDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const refresh = useCallback(async () => {
+    try {
+      const fresh = await api.getWorkbook(id);
+      setData(fresh);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }, [id]);
+
   useEffect(() => {
     setData(null);
     setError(null);
-    api
-      .getWorkbook(id)
-      .then(setData)
-      .catch((e: Error) => setError(e.message));
-  }, [id]);
+    void refresh();
+  }, [id, refresh]);
 
   if (error) {
     return (
@@ -59,7 +65,7 @@ export function WorkbookDetail({ id, onBack }: Props) {
     <div className="workbook-detail">
       <button onClick={onBack} className="back">← Back</button>
       <header className="detail-header">
-        <h2>{data.workbook.name}</h2>
+        <h1>{data.workbook.name}</h1>
         <div className="detail-meta">
           <code>{data.workbook.id}</code>
           <span className="sep">·</span>
@@ -87,7 +93,7 @@ export function WorkbookDetail({ id, onBack }: Props) {
       </header>
 
       {TemplateComponent ? (
-        <TemplateComponent data={data} />
+        <TemplateComponent data={data} onRefresh={refresh} />
       ) : (
         <GenericGrouped data={data} />
       )}

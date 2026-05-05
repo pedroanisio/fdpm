@@ -44,10 +44,10 @@ export function App() {
   return (
     <div className="layout">
       <header className="topbar">
-        <h1>
-          <a href="#/">FDPM</a>
-        </h1>
-        <nav className="topnav">
+        <a href="#/" className="brand" aria-label="FDPM home">
+          FDPM
+        </a>
+        <nav className="topnav" aria-label="Primary">
           <a href="#/" className={navActive("workbooks") ? "active" : ""}>
             Workbooks
           </a>

@@ -17,10 +17,20 @@
  *
  * Falls back to a generic card for any plan:* type not enumerated.
  */
+import { useState } from "react";
 import type { Primitive, Relation, WorkbookDetailResponse } from "../types";
+import { TaskActions } from "./TaskActions";
+import { GanttView } from "./GanttView";
+
+type PlanningTab = "board" | "gantt";
 
 interface Props {
   data: WorkbookDetailResponse;
+  /**
+   * Re-fetch the workbook detail. The TaskActions menu calls this after
+   * a successful mutation; without it, action buttons are hidden.
+   */
+  onRefresh?: () => Promise<void> | void;
 }
 
 // ---------------------------------------------------------------------
@@ -90,10 +100,12 @@ function TaskCard({
   primitive,
   data,
   rels,
+  onRefresh,
 }: {
   primitive: Primitive;
   data: WorkbookDetailResponse;
   rels: Relation[];
+  onRefresh?: () => Promise<void> | void;
 }) {
   const f = primitive.field_values ?? {};
   const status = asString(f["status"]);
@@ -121,6 +133,9 @@ function TaskCard({
       <header className="plan-card-header">
         <h4>{asString(f["name"]) || primitive.id}</h4>
         <code className="plan-card-id">{primitive.id}</code>
+        {onRefresh && (
+          <TaskActions task={primitive} data={data} onRefresh={onRefresh} />
+        )}
       </header>
       {asString(f["summary"]) && (
         <p className="plan-task-summary">{asString(f["summary"])}</p>
@@ -409,7 +424,8 @@ function groupByStatus(tasks: Primitive[]): Map<string, Primitive[]> {
   );
 }
 
-export function PlanningView({ data }: Props) {
+export function PlanningView({ data, onRefresh }: Props) {
+  const [tab, setTab] = useState<PlanningTab>("board");
   const rels = asRelationArray(data.relations);
   const board = buildBoard(data, rels);
 
@@ -443,6 +459,30 @@ export function PlanningView({ data }: Props) {
   );
 
   return (
+    <>
+      <nav className="plan-tabs" role="tablist" aria-label="Planning views">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "board"}
+          className={tab === "board" ? "plan-tab plan-tab-active" : "plan-tab"}
+          onClick={() => setTab("board")}
+        >
+          Board
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "gantt"}
+          className={tab === "gantt" ? "plan-tab plan-tab-active" : "plan-tab"}
+          onClick={() => setTab("gantt")}
+        >
+          Gantt
+        </button>
+      </nav>
+      {tab === "gantt" ? (
+        <GanttView data={data} />
+      ) : (
     <div className="plan-doc">
       <nav className="plan-toc" aria-label="Iterations">
         <div className="plan-toc-title">Iterations</div>
@@ -564,6 +604,7 @@ export function PlanningView({ data }: Props) {
                             primitive={t}
                             data={data}
                             rels={rels}
+                            onRefresh={onRefresh}
                           />
                         ))}
                       </div>
@@ -598,5 +639,7 @@ export function PlanningView({ data }: Props) {
         )}
       </div>
     </div>
+      )}
+    </>
   );
 }

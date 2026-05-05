@@ -22,6 +22,7 @@ import { commandMetadata as editMetadata } from "./edit.js";
 import { commandMetadata as healthMetadata } from "./health.js";
 import { commandMetadata as logMetadata } from "./log.js";
 import { commandMetadata as migrateMetadata } from "./migrate.js";
+import { commandMetadata as planningMetadata } from "./planning.js";
 import { commandMetadata as pluginMetadata } from "./plugin.js";
 import { commandMetadata as primitiveMetadata } from "./primitive.js";
 import { commandMetadata as profileMetadata } from "./profile.js";
@@ -44,6 +45,7 @@ export const ALL_COMMAND_METADATA: CommandMetadataMap = {
   ...healthMetadata,
   ...logMetadata,
   ...migrateMetadata,
+  ...planningMetadata,
   ...pluginMetadata,
   ...primitiveMetadata,
   ...profileMetadata,

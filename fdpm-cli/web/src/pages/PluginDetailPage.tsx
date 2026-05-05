@@ -121,7 +121,7 @@ export function PluginDetailPage({ id }: Props) {
 
       <header className="plugin-hero">
         <div className="plugin-hero-head">
-          <h2>{manifest.name}</h2>
+          <h1>{manifest.name}</h1>
           <span className={`plugin-state plugin-state-${record.state}`}>{record.state}</span>
         </div>
         <div className="plugin-hero-meta">

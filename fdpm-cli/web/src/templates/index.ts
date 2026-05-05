@@ -19,6 +19,12 @@ import { SoftwareArchitectureView } from "./SoftwareArchitectureView";
 
 export interface TemplateProps {
   data: WorkbookDetailResponse;
+  /**
+   * Re-fetch the workbook detail. Templates that expose write actions
+   * (e.g., the planning task-action menu) call this after a successful
+   * mutation so the UI reflects the new state.
+   */
+  onRefresh?: () => Promise<void> | void;
 }
 
 export type TemplateComponent = ComponentType<TemplateProps>;

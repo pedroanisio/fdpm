@@ -753,3 +753,21 @@ export async function renderProject(
   );
   return result;
 }
+
+/**
+ * Planning plugin SDK helpers — strict-by-default operations on top of
+ * `Host.*` that encode the planning profile's invariants. See
+ * plugins/planning/sdk.ts for the full surface.
+ *
+ * Usage:
+ * ```ts
+ * import { openHost, planning } from "@fdpm/cli";
+ * const host = await openHost();
+ * await planning.markDone(host, { workbook: "my-plan", taskId: "task:foo" });
+ * ```
+ *
+ * Pinned to the in-tree `fdpm.planning` plugin's profile
+ * (`profile:planning:0.1`). Calling these helpers against a workbook
+ * bound to a different profile yields `not_found` errors from Host.*.
+ */
+export * as planning from "../plugins/planning/sdk.js";
