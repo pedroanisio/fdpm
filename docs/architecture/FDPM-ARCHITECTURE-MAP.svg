@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#444"/>
+    </marker>
+    <marker id="arrow-heavy" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto">
+      <path d="M0,0 L12,5 L0,10 Z" fill="#c0392b"/>
+    </marker>
+    <marker id="arrow-light" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#888"/>
+    </marker>
+    <pattern id="tension-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#e74c3c" stroke-width="1" opacity="0.25"/>
+    </pattern>
+  </defs>
+
+  <!-- Title -->
+  <text x="700" y="32" text-anchor="middle" font-size="22" font-weight="600" fill="#222">FDPM — Software Architecture Map</text>
+  <text x="700" y="52" text-anchor="middle" font-size="12" fill="#666">Concept-first synthesis. Domain (blue) · Control (green) · Platform (orange) · Integration (purple)</text>
+
+  <!-- Legend -->
+  <g transform="translate(20,75)">
+    <rect x="0" y="0" width="320" height="100" fill="#fafafa" stroke="#ddd" rx="4"/>
+    <text x="10" y="18" font-size="12" font-weight="600" fill="#333">Legend</text>
+    <rect x="10" y="28" width="14" height="14" fill="#3498db" stroke="#2980b9"/>
+    <text x="30" y="40" font-size="11" fill="#333">Domain (workbook content)</text>
+    <rect x="160" y="28" width="14" height="14" fill="#27ae60" stroke="#1e8449"/>
+    <text x="180" y="40" font-size="11" fill="#333">Control (state mutation)</text>
+    <rect x="10" y="48" width="14" height="14" fill="#e67e22" stroke="#ca6f1e"/>
+    <text x="30" y="60" font-size="11" fill="#333">Platform (extension)</text>
+    <rect x="160" y="48" width="14" height="14" fill="#8e44ad" stroke="#6c3483"/>
+    <text x="180" y="60" font-size="11" fill="#333">Integration (LLM/CLI)</text>
+    <line x1="10" y1="75" x2="40" y2="75" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arrow-heavy)"/>
+    <text x="46" y="79" font-size="11" fill="#333">Cryptographic boundary</text>
+    <line x1="190" y1="75" x2="220" y2="75" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="226" y="79" font-size="11" fill="#333">Data flow / state</text>
+    <line x1="10" y1="90" x2="40" y2="90" stroke="#888" stroke-dasharray="4,3" stroke-width="1" marker-end="url(#arrow-light)"/>
+    <text x="46" y="94" font-size="11" fill="#333">Contract / dependency</text>
+  </g>
+
+  <!-- Tension legend -->
+  <g transform="translate(360,75)">
+    <rect x="0" y="0" width="220" height="100" fill="#fafafa" stroke="#ddd" rx="4"/>
+    <text x="10" y="18" font-size="12" font-weight="600" fill="#333">Tensions (§6)</text>
+    <rect x="10" y="28" width="20" height="14" fill="url(#tension-hatch)" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="36" y="40" font-size="11" fill="#333">T1 — Plugin naming inconsistent</text>
+    <text x="10" y="56" font-size="11" fill="#666">T2 — `extends` rubber-stamped today</text>
+    <text x="10" y="70" font-size="11" fill="#666">T3 — project→workbook rename mid-flight</text>
+    <text x="10" y="84" font-size="11" fill="#666">T4 — DNIS uid-pin lone caller</text>
+    <text x="10" y="98" font-size="11" fill="#666">T5 — Validation-timing two-stage</text>
+  </g>
+
+  <!-- ========== DOMAIN CLUSTER (top) ========== -->
+  <g transform="translate(0,200)">
+    <text x="700" y="0" text-anchor="middle" font-size="13" font-weight="600" fill="#2980b9">DOMAIN — what the operator authors</text>
+
+    <!-- Workbook -->
+    <g transform="translate(640,15)">
+      <rect width="120" height="44" fill="#3498db" stroke="#2980b9" stroke-width="1.5" rx="4"/>
+      <text x="60" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="white">Workbook</text>
+      <text x="60" y="35" text-anchor="middle" font-size="9" fill="white">project-level state</text>
+    </g>
+
+    <!-- Primitive -->
+    <g transform="translate(450,15)">
+      <rect width="110" height="44" fill="#3498db" stroke="#2980b9" stroke-width="1.5" rx="4"/>
+      <text x="55" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="white">Primitive</text>
+      <text x="55" y="35" text-anchor="middle" font-size="9" fill="white">typed instance</text>
+    </g>
+
+    <!-- Relation -->
+    <g transform="translate(840,15)">
+      <rect width="110" height="44" fill="#3498db" stroke="#2980b9" stroke-width="1.5" rx="4"/>
+      <text x="55" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="white">Relation</text>
+      <text x="55" y="35" text-anchor="middle" font-size="9" fill="white">typed edge</text>
+    </g>
+
+    <!-- DNIS Node -->
+    <g transform="translate(1050,15)">
+      <rect width="120" height="44" fill="#3498db" stroke="#2980b9" stroke-width="1.5" rx="4"/>
+      <text x="60" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="white">DNIS Node</text>
+      <text x="60" y="35" text-anchor="middle" font-size="9" fill="white">stable-id scaffold</text>
+    </g>
+
+    <!-- Workbook → Primitive / Relation lines -->
+    <line x1="640" y1="38" x2="560" y2="38" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="760" y1="38" x2="840" y2="38" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Relation → Primitive (source/target) -->
+    <line x1="895" y1="59" x2="505" y2="59" stroke="#888" stroke-dasharray="4,3" stroke-width="1" marker-end="url(#arrow-light)"/>
+    <text x="700" y="74" text-anchor="middle" font-size="9" fill="#888" font-style="italic">source / target</text>
+  </g>
+
+  <!-- ========== CONTROL CLUSTER (middle, with §7 pipeline as the heart) ========== -->
+  <g transform="translate(0,310)">
+    <text x="700" y="0" text-anchor="middle" font-size="13" font-weight="600" fill="#1e8449">CONTROL — the §7 pipeline is the cryptographic boundary</text>
+
+    <!-- Host -->
+    <g transform="translate(625,15)">
+      <rect width="150" height="60" fill="#27ae60" stroke="#1e8449" stroke-width="2" rx="6"/>
+      <text x="75" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="white">Host</text>
+      <text x="75" y="38" text-anchor="middle" font-size="9" fill="white">single composition point</text>
+      <text x="75" y="50" text-anchor="middle" font-size="9" fill="white">store + profiles + pipeline</text>
+    </g>
+
+    <!-- §7 ValidationPipeline -->
+    <g transform="translate(625,100)">
+      <rect width="150" height="60" fill="#27ae60" stroke="#c0392b" stroke-width="3" rx="6"/>
+      <text x="75" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="white">§7 Pipeline</text>
+      <text x="75" y="38" text-anchor="middle" font-size="9" fill="white">Zod + CEL + cardinality</text>
+      <text x="75" y="50" text-anchor="middle" font-size="9" fill="white">PALS-LAW boundary</text>
+    </g>
+
+    <!-- Store -->
+    <g transform="translate(420,100)">
+      <rect width="130" height="60" fill="#27ae60" stroke="#1e8449" stroke-width="1.5" rx="4"/>
+      <text x="65" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">Store</text>
+      <text x="65" y="38" text-anchor="middle" font-size="9" fill="white">in-memory state</text>
+      <text x="65" y="50" text-anchor="middle" font-size="9" fill="white">replay target</text>
+    </g>
+
+    <!-- Operation -->
+    <g transform="translate(820,100)">
+      <rect width="130" height="60" fill="#27ae60" stroke="#1e8449" stroke-width="1.5" rx="4"/>
+      <text x="65" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">Operation</text>
+      <text x="65" y="38" text-anchor="middle" font-size="9" fill="white">immutable record</text>
+      <text x="65" y="50" text-anchor="middle" font-size="9" fill="white">id, kind, payload</text>
+    </g>
+
+    <!-- Host → §7 (heavy: cryptographic boundary) -->
+    <line x1="700" y1="75" x2="700" y2="100" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arrow-heavy)"/>
+    <text x="730" y="92" font-size="9" fill="#c0392b" font-style="italic">every write</text>
+
+    <!-- §7 → Operation -->
+    <line x1="775" y1="130" x2="820" y2="130" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Operation → Store (replay) -->
+    <line x1="820" y1="120" x2="550" y2="120" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="685" y="113" text-anchor="middle" font-size="9" fill="#666" font-style="italic">replay</text>
+  </g>
+
+  <!-- ========== PERSISTENCE CLUSTER (bottom of control) ========== -->
+  <g transform="translate(0,490)">
+    <text x="700" y="0" text-anchor="middle" font-size="13" font-weight="600" fill="#1e8449">PERSISTENCE — JSONL is the source of truth</text>
+
+    <!-- JSONL Log -->
+    <g transform="translate(625,15)">
+      <rect width="150" height="50" fill="#27ae60" stroke="#1e8449" stroke-width="2" rx="4"/>
+      <text x="75" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="white">JSONL Log</text>
+      <text x="75" y="38" text-anchor="middle" font-size="9" fill="white">one file per workbook</text>
+    </g>
+
+    <!-- MCP Audit Log -->
+    <g transform="translate(820,15)">
+      <rect width="150" height="50" fill="#27ae60" stroke="#1e8449" stroke-width="1.5" rx="4"/>
+      <text x="75" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">MCP Audit Log</text>
+      <text x="75" y="38" text-anchor="middle" font-size="9" fill="white">who asked for what</text>
+    </g>
+
+    <!-- Workspace -->
+    <g transform="translate(420,15)">
+      <rect width="150" height="50" fill="#e67e22" stroke="#ca6f1e" stroke-width="1.5" rx="4"/>
+      <text x="75" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">Workspace</text>
+      <text x="75" y="38" text-anchor="middle" font-size="9" fill="white">data dir identity</text>
+    </g>
+  </g>
+
+  <!-- Operation → JSONL Log (heavy: every op persisted) -->
+  <line x1="885" y1="470" x2="725" y2="505" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arrow-heavy)"/>
+  <text x="850" y="490" font-size="9" fill="#c0392b" font-style="italic">append</text>
+
+  <!-- JSONL Log → Store (replay arrow back) -->
+  <line x1="700" y1="505" x2="500" y2="465" stroke="#444" stroke-dasharray="4,2" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <text x="555" y="495" font-size="9" fill="#666" font-style="italic">load() / reload()</text>
+
+  <!-- ========== PLATFORM CLUSTER (left side: plugins) ========== -->
+  <g transform="translate(0,330)">
+    <text x="170" y="0" text-anchor="middle" font-size="13" font-weight="600" fill="#ca6f1e">PLATFORM — extension points</text>
+
+    <!-- DomainProfile -->
+    <g transform="translate(50,15)">
+      <rect width="140" height="50" fill="#e67e22" stroke="#ca6f1e" stroke-width="1.5" rx="4"/>
+      <text x="70" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">DomainProfile</text>
+      <text x="70" y="38" text-anchor="middle" font-size="9" fill="white">type catalogue</text>
+    </g>
+
+    <!-- Plugin -->
+    <g transform="translate(220,15)">
+      <rect width="120" height="50" fill="#e67e22" stroke="#ca6f1e" stroke-width="1.5" rx="4"/>
+      <text x="60" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">Plugin</text>
+      <text x="60" y="38" text-anchor="middle" font-size="9" fill="white">7 today</text>
+    </g>
+
+    <!-- structural_shape -->
+    <g transform="translate(50,90)">
+      <rect width="290" height="50" fill="#e67e22" stroke="#ca6f1e" stroke-width="1.5" stroke-dasharray="4,3" rx="4"/>
+      <text x="145" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">structural_shape (proposed gate)</text>
+      <text x="145" y="38" text-anchor="middle" font-size="9" fill="white">prose-tree · node-tree · system-graph · dependency-graph</text>
+    </g>
+
+    <!-- Plugin → DomainProfile -->
+    <line x1="220" y1="40" x2="190" y2="40" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Plugin → structural_shape (declares) -->
+    <line x1="280" y1="65" x2="280" y2="90" stroke="#888" stroke-dasharray="4,3" stroke-width="1" marker-end="url(#arrow-light)"/>
+    <text x="320" y="80" font-size="9" fill="#888" font-style="italic">declares</text>
+  </g>
+
+  <!-- DomainProfile → Host (registers) -->
+  <line x1="190" y1="385" x2="625" y2="345" stroke="#888" stroke-dasharray="4,3" stroke-width="1" marker-end="url(#arrow-light)"/>
+  <text x="400" y="358" font-size="9" fill="#888" font-style="italic">registered at host.load()</text>
+
+  <!-- ========== INTEGRATION CLUSTER (right side: MCP + CLI) ========== -->
+  <g transform="translate(0,330)">
+    <text x="1230" y="0" text-anchor="middle" font-size="13" font-weight="600" fill="#6c3483">INTEGRATION — three front-ends</text>
+
+    <!-- MCP Server -->
+    <g transform="translate(1100,15)">
+      <rect width="160" height="50" fill="#8e44ad" stroke="#6c3483" stroke-width="2" rx="4"/>
+      <text x="80" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="white">MCP Server</text>
+      <text x="80" y="38" text-anchor="middle" font-size="9" fill="white">30 tools, 3 tiers, stdio</text>
+    </g>
+
+    <!-- Dispatch Gate -->
+    <g transform="translate(1100,75)">
+      <rect width="160" height="50" fill="#8e44ad" stroke="#c0392b" stroke-width="3" rx="4"/>
+      <text x="80" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="white">Dispatch Gate</text>
+      <text x="80" y="38" text-anchor="middle" font-size="9" fill="white">tier · rate · freshness · token</text>
+    </g>
+
+    <!-- CLI -->
+    <g transform="translate(1100,135)">
+      <rect width="160" height="50" fill="#8e44ad" stroke="#6c3483" stroke-width="1.5" rx="4"/>
+      <text x="80" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="white">CLI / REPL</text>
+      <text x="80" y="38" text-anchor="middle" font-size="9" fill="white">operator front-ends</text>
+    </g>
+
+    <!-- MCP → Dispatch Gate -->
+    <line x1="1180" y1="65" x2="1180" y2="75" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arrow-heavy)"/>
+
+    <!-- Dispatch Gate → Host -->
+    <line x1="1100" y1="100" x2="780" y2="345" stroke="#c0392b" stroke-width="2" marker-end="url(#arrow-heavy)"/>
+    <text x="900" y="232" font-size="9" fill="#c0392b" font-style="italic">authorized only</text>
+
+    <!-- CLI → Host -->
+    <line x1="1100" y1="160" x2="780" y2="350" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- Audit log dependency from MCP -->
+  <line x1="1180" y1="465" x2="970" y2="525" stroke="#888" stroke-dasharray="4,3" stroke-width="1" marker-end="url(#arrow-light)"/>
+  <text x="1075" y="497" font-size="9" fill="#888" font-style="italic">writes audit</text>
+
+  <!-- ========== CAPABILITIES CLUSTER (bottom, prose) ========== -->
+  <g transform="translate(0,610)">
+    <rect x="20" y="0" width="1360" height="100" fill="#fafafa" stroke="#ddd" rx="4"/>
+    <text x="700" y="20" text-anchor="middle" font-size="13" font-weight="600" fill="#333">Capability clusters (§3)</text>
+
+    <text x="60" y="42" font-size="11" fill="#333"><tspan font-weight="600">C1</tspan> Author workbook</text>
+    <text x="60" y="58" font-size="10" fill="#666">create + bind profile</text>
+
+    <text x="220" y="42" font-size="11" fill="#333"><tspan font-weight="600">C2</tspan> Mutate graph</text>
+    <text x="220" y="58" font-size="10" fill="#666">create/replace/patch/delete + batch</text>
+
+    <text x="430" y="42" font-size="11" fill="#333"><tspan font-weight="600">C3</tspan> Replay state</text>
+    <text x="430" y="58" font-size="10" fill="#666">JSONL → Store; tail-replay</text>
+
+    <text x="610" y="42" font-size="11" fill="#333"><tspan font-weight="600">C4</tspan> Validate</text>
+    <text x="610" y="58" font-size="10" fill="#666">§7 pipeline; CEL rules</text>
+
+    <text x="760" y="42" font-size="11" fill="#333"><tspan font-weight="600">C5</tspan> Render</text>
+    <text x="760" y="58" font-size="10" fill="#666">profile-keyed renderers</text>
+
+    <text x="900" y="42" font-size="11" fill="#333"><tspan font-weight="600">C6</tspan> Compose plugins</text>
+    <text x="900" y="58" font-size="10" fill="#666">extends + structural_shape</text>
+
+    <text x="1080" y="42" font-size="11" fill="#333"><tspan font-weight="600">C7</tspan> Expose to LLMs</text>
+    <text x="1080" y="58" font-size="10" fill="#666">MCP tier-3 surface, audit</text>
+
+    <text x="1240" y="42" font-size="11" fill="#333"><tspan font-weight="600">C8</tspan> Backup/restore</text>
+    <text x="1240" y="58" font-size="10" fill="#666">workspace tarball</text>
+
+    <text x="700" y="86" text-anchor="middle" font-size="10" fill="#888" font-style="italic">All capabilities flow through the Host (§7 pipeline gate). No bypass.</text>
+  </g>
+
+  <!-- Tension overlays -->
+  <!-- T1 around plugin cluster -->
+  <rect x="40" y="335" width="320" height="125" fill="url(#tension-hatch)" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="3,2" rx="4" pointer-events="none"/>
+  <text x="50" y="455" font-size="10" font-weight="600" fill="#c0392b">T1 — plugin naming inconsistent (3/7 fail §3.6 audit)</text>
+
+  <!-- T2 around extends → structural_shape -->
+  <rect x="40" y="415" width="320" height="50" fill="url(#tension-hatch)" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="3,2" rx="4" pointer-events="none"/>
+  <text x="50" y="478" font-size="10" font-weight="600" fill="#c0392b">T2 — `extends` rubber-stamped today; gate proposed</text>
+
+  <!-- ========== Footer ========== -->
+  <g transform="translate(0,725)">
+    <text x="700" y="20" text-anchor="middle" font-size="11" fill="#666">
+      <tspan font-weight="600">14 concepts · 8 capabilities · 5 flows · 6 boundaries · 5 tensions = 38 conceptual items (target ≤40)</tspan>
+    </text>
+    <text x="700" y="38" text-anchor="middle" font-size="10" fill="#888">
+      Generated by conceptual-codebase-analysis from /home/admin/github-mirror/_editors/fdpm-cli/ — 2026-05-05
+    </text>
+    <text x="700" y="55" text-anchor="middle" font-size="10" fill="#888">
+      Specs: SPEC-CORE · SPEC-MCP-SERVER · SPEC-PLUGIN-NAMING · SPEC-DNIS · SPEC-PLUGGABLE-ARCHITECTURE · SPEC-WORKSPACE · SPEC-REPL · 6 more
+    </text>
+  </g>
+</svg>
