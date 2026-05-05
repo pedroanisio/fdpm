@@ -3,6 +3,11 @@ import type { Host } from "../core/host.js";
 import { emit, readInput, type OutputContext } from "./util.js";
 import { batchEdit, BATCH_EDITABLE_KINDS, type BatchOpInput } from "../core/host-extra.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 
 /**
  * Batch edit (§9.7.5) — atomic ordered list of operations.
@@ -230,3 +235,11 @@ const EXAMPLE_PAYLOADS = {
     to_scope_id: "scope:b",
   },
 } as const satisfies Record<string, Record<string, unknown>>;
+
+export const commandMetadata: CommandMetadataMap = {
+  edit: {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(1),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

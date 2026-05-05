@@ -23,13 +23,9 @@ import {
   renderRootAfterHelp,
   renderRootOnboarding,
 } from "../commands/completions.js";
-import {
-  EXIT_CODE_FOR_CATEGORY,
-  FDPMException,
-} from "../core/errors/fdpm-exception.js";
 import { HOST_VERSION } from "../core/version/spec.js";
-import { isVerbose, renderHumanError } from "../core/diagnostics/error-render.js";
 import { renderEnvVarHelpLines } from "../core/config/env.js";
+import { handleError } from "./error-handling.js";
 
 async function main(): Promise<void> {
   const program = new Command("fdpm");
@@ -108,33 +104,6 @@ async function main(): Promise<void> {
   } catch (err) {
     handleError(err);
   }
-}
-
-function handleError(err: unknown): never {
-  const wantsJson = process.argv.includes("--json");
-  if (err instanceof FDPMException) {
-    if (wantsJson) {
-      // JSON mode is the machine contract — full envelope, no truncation.
-      process.stderr.write(JSON.stringify({ error: err.toEnvelope() }, null, 2) + "\n");
-    } else {
-      // Human mode: scannable summary by default; full dump under
-      // `--verbose` or `FDPM_VERBOSE=1`. Findings and evidence stay
-      // available either via verbose mode or by re-running with --json.
-      process.stderr.write(renderHumanError(err, { verbose: isVerbose() }) + "\n");
-    }
-    process.exit(EXIT_CODE_FOR_CATEGORY[err.category]);
-  }
-  // Unknown error: surface as internal.
-  const message = err instanceof Error ? err.message : String(err);
-  if (wantsJson) {
-    process.stderr.write(
-      JSON.stringify({ error: { category: "internal", message } }, null, 2) + "\n",
-    );
-  } else {
-    process.stderr.write(`error: [internal] ${message}\n`);
-    if (err instanceof Error && err.stack) process.stderr.write(err.stack + "\n");
-  }
-  process.exit(EXIT_CODE_FOR_CATEGORY.internal);
 }
 
 main().catch(handleError);

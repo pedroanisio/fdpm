@@ -2,6 +2,11 @@ import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { compileRegexOrThrow, emit, parseFieldMatchArgs, readInput, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 
 /**
  * `cite` builds a default relation id like `rel:cites:foo-bar` from the
@@ -300,3 +305,18 @@ export function buildPrimitiveCommand(host: Host): Command {
 
   return cmd;
 }
+
+const PROJECT_DEPTH_2 = firstPositionalAfter(2);
+const PROJECT_JSON = projectFromJsonField("project", "project_id");
+
+export const commandMetadata: CommandMetadataMap = {
+  "primitive list":         { readOnly: true,  projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive get":          { readOnly: true,  projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive cite":         { readOnly: false, projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive search":       { readOnly: true,  projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive create":       { readOnly: false, projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive replace":      { readOnly: false, projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive patch":        { readOnly: false, projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive delete":       { readOnly: false, projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+  "primitive field-patch":  { readOnly: false, projectIdsFromArgv: PROJECT_DEPTH_2, projectIdsFromJson: PROJECT_JSON },
+};

@@ -2,6 +2,13 @@ import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { emit, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
+import {
+  type CommandMetadataMap,
+  ALL_PROJECTS_ARGV,
+  ALL_PROJECTS_JSON,
+  NO_PROJECT_ARGV,
+  NO_PROJECT_JSON,
+} from "./metadata.js";
 
 /**
  * §6.6 Admin API surface — exposed as CLI subcommands instead of HTTP
@@ -153,3 +160,33 @@ export function buildPluginCommand(host: Host): Command {
 
   return cmd;
 }
+
+const PLUGIN_GLOBAL_RO = {
+  readOnly: true,
+  projectIdsFromArgv: NO_PROJECT_ARGV,
+  projectIdsFromJson: NO_PROJECT_JSON,
+};
+const PLUGIN_GLOBAL_WRITE = {
+  readOnly: false,
+  projectIdsFromArgv: NO_PROJECT_ARGV,
+  projectIdsFromJson: NO_PROJECT_JSON,
+};
+
+export const commandMetadata: CommandMetadataMap = {
+  "plugin list":              PLUGIN_GLOBAL_RO,
+  "plugin get":               PLUGIN_GLOBAL_RO,
+  "plugin manifest":          PLUGIN_GLOBAL_RO,
+  "plugin capabilities":      PLUGIN_GLOBAL_RO,
+  "plugin enable":            PLUGIN_GLOBAL_WRITE,
+  "plugin disable":           PLUGIN_GLOBAL_WRITE,
+  // `plugin reload` re-runs discovery and activation; profile/type
+  // registries change which can affect every project's renderers and
+  // validators. Mark as touching every project so the freshness gate
+  // re-stats them after the reload completes.
+  "plugin reload": {
+    readOnly: false,
+    projectIdsFromArgv: ALL_PROJECTS_ARGV,
+    projectIdsFromJson: ALL_PROJECTS_JSON,
+  },
+  "plugin quarantine-clear":  PLUGIN_GLOBAL_WRITE,
+};

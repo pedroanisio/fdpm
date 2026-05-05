@@ -4,6 +4,14 @@ import { emit, readInput, type OutputContext } from "./util.js";
 import { isValidProjectId } from "../core/identity/id-rules.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { splitProject, cloneProject, rebuildFromLog } from "../core/host-extra.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  idFlagArgv,
+  NO_PROJECT_ARGV,
+  NO_PROJECT_JSON,
+  projectFromJsonField,
+} from "./metadata.js";
 
 export function buildProjectCommand(host: Host): Command {
   const cmd = new Command("project");
@@ -125,3 +133,27 @@ export function buildProjectCommand(host: Host): Command {
 
   return cmd;
 }
+
+const PROJECT_ID_DEPTH_2 = firstPositionalAfter(2);
+const PROJECT_JSON_FIELD = projectFromJsonField("id", "project_id", "project");
+
+export const commandMetadata: CommandMetadataMap = {
+  // The new project's id arrives via --id; the freshness check has
+  // nothing to stat (the log doesn't exist yet), so this is also
+  // effectively a no-op stat.
+  "project create": {
+    readOnly: false,
+    projectIdsFromArgv: idFlagArgv(),
+    projectIdsFromJson: PROJECT_JSON_FIELD,
+  },
+  "project list": {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "project get":              { readOnly: true,  projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
+  "project delete":           { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
+  "project split":            { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
+  "project clone":            { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
+  "project rebuild-from-log": { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
+};

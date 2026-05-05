@@ -1,6 +1,11 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { emit, type OutputContext } from "./util.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 
 /**
  * `fdpm migrate` — explicit, opt-in data migrations.
@@ -41,3 +46,11 @@ export function buildMigrateCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "migrate normalize-metadata": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

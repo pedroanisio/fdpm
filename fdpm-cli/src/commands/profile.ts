@@ -3,6 +3,11 @@ import type { Host } from "../core/host.js";
 import { DomainProfile } from "../core/models/meta.js";
 import { emit, readInput, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
+import {
+  type CommandMetadataMap,
+  NO_PROJECT_ARGV,
+  NO_PROJECT_JSON,
+} from "./metadata.js";
 
 /**
  * Profile commands — §9.1 GET /profiles, /profiles/{id}, /profiles/{id}/raw.
@@ -67,3 +72,21 @@ export function buildProfileCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "profile list": {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "profile get": {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "profile register": {
+    readOnly: false,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+};

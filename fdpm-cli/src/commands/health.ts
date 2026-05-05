@@ -7,6 +7,11 @@ import {
   SPEC_CORE_REVISION,
   SPEC_CORE_VERSION,
 } from "../core/version/spec.js";
+import {
+  type CommandMetadataMap,
+  NO_PROJECT_ARGV,
+  NO_PROJECT_JSON,
+} from "./metadata.js";
 
 export function buildVersionCommand(): Command {
   const cmd = new Command("version");
@@ -62,3 +67,21 @@ export function buildHealthCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  version: {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "health liveness": {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "health readiness": {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+};

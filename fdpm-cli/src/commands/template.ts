@@ -3,6 +3,11 @@ import type { Host } from "../core/host.js";
 import { emit, readInput, type OutputContext } from "./util.js";
 import { ProjectTemplate } from "../core/models/instance.js";
 import { applyTemplate, createTemplate } from "../core/host-extra.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 
 export function buildTemplateCommand(host: Host): Command {
@@ -51,3 +56,21 @@ export function buildTemplateCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "template list": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "template create": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "template apply": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

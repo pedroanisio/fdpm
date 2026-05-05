@@ -3,6 +3,11 @@ import type { Host } from "../core/host.js";
 import { compileRegexOrThrow, emit, parseFieldMatchArgs, readInput, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { relationFieldPatch } from "../core/host-extra.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 import type { JsonPatchOp } from "../core/operations/json-patch.js";
 import { resolveSlug } from "./primitive.js";
 
@@ -178,3 +183,17 @@ export function buildRelationCommand(host: Host): Command {
 
   return cmd;
 }
+
+const RELATION_PROJECT_DEPTH_2 = firstPositionalAfter(2);
+const RELATION_PROJECT_JSON = projectFromJsonField("project", "project_id");
+
+export const commandMetadata: CommandMetadataMap = {
+  "relation list":         { readOnly: true,  projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+  "relation get":          { readOnly: true,  projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+  "relation search":       { readOnly: true,  projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+  "relation create":       { readOnly: false, projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+  "relation replace":      { readOnly: false, projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+  "relation patch":        { readOnly: false, projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+  "relation delete":       { readOnly: false, projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+  "relation field-patch":  { readOnly: false, projectIdsFromArgv: RELATION_PROJECT_DEPTH_2, projectIdsFromJson: RELATION_PROJECT_JSON },
+};

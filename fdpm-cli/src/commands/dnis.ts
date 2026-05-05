@@ -27,6 +27,11 @@ import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { DnisHostAdapter } from "../core/dnis/adapter.js";
 import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
+import {
   type AgentId,
   type DnisHashAlgorithm,
   type DocumentId,
@@ -277,3 +282,36 @@ export function buildDnisCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "dnis create-doc": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "dnis create-node": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "dnis list": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "dnis edit": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "dnis move": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "dnis resolve": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

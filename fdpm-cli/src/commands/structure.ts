@@ -1,6 +1,11 @@
 import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { emit, readInput, type OutputContext } from "./util.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 
 export function buildStructureCommand(host: Host): Command {
   const cmd = new Command("structure");
@@ -39,3 +44,16 @@ export function buildStructureCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "structure reorder": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "structure reparent": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

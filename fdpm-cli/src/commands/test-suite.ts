@@ -3,6 +3,11 @@ import type { Host } from "../core/host.js";
 import { emit, readInput, type OutputContext } from "./util.js";
 import { TestSuite } from "../core/models/instance.js";
 import { createTestSuite, runTestSuite } from "../core/host-extra.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 
 export function buildTestSuiteCommand(host: Host): Command {
@@ -49,3 +54,21 @@ export function buildTestSuiteCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "test-suite list": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "test-suite create": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "test-suite run": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

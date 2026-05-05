@@ -1,5 +1,5 @@
 import { promises as fs } from "node:fs";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { Operation } from "../core/operations/operation.js";
@@ -46,6 +46,37 @@ export class JsonlLogStore {
       // (we deliberately use sync APIs for the init path only)
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       fs.writeFile(manifestPath(this.dataDir), JSON.stringify(manifest, null, 2));
+    }
+  }
+
+  /**
+   * SPEC-REPL §10.2 freshness check: returns the (mtime_ns, size)
+   * pair for a project's JSONL log, or `null` if the log file does not
+   * yet exist (the project has been created but no operation has been
+   * persisted, or the project is unknown). Used by the REPL and
+   * SPEC-MCP-SERVER to detect out-of-band writes by another process
+   * between commands; never touches the file's contents and is safe
+   * to call hot per-command.
+   *
+   * Resolution: nanosecond mtime via `stats.mtimeNs` (Node's bigint
+   * timestamp). Two writes within the same millisecond are
+   * disambiguated. The (mtime_ns, size) tuple together is the
+   * freshness key — comparing only one of them misses size-preserving
+   * rewrites and ms-aliased writes respectively.
+   *
+   * Synchronous on purpose: the freshness check runs in the REPL's
+   * pre-dispatch path and must not yield to the event loop (a yield
+   * could let an in-flight write race ahead of the stat). `statSync`
+   * with `bigint: true` returns `mtimeNs` as `bigint`.
+   */
+  statProjectLog(project_id: string): { mtime_ns: bigint; size: bigint } | null {
+    const path = logPathFor(this.dataDir, project_id);
+    try {
+      const stats = statSync(path, { bigint: true });
+      return { mtime_ns: stats.mtimeNs, size: stats.size };
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw err;
     }
   }
 

@@ -3,6 +3,12 @@ import type { Host } from "../core/host.js";
 import { emit, readInput, type OutputContext } from "./util.js";
 import { ProjectTransfer } from "../core/models/instance.js";
 import { exportTransfer, importTransfer, type ImportUidMode } from "../core/host-extra.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectIdFlagArgv,
+  projectFromJsonField,
+} from "./metadata.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 
 export function buildTransferCommand(host: Host): Command {
@@ -156,3 +162,21 @@ function collectKeyValue(
     throw new FDPMException("verification", `--extra key must be non-empty`);
   return { ...acc, [key]: value };
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "transfer export": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "transfer import": {
+    readOnly: false,
+    projectIdsFromArgv: projectIdFlagArgv(),
+    projectIdsFromJson: projectFromJsonField("project_id"),
+  },
+  "transfer import-as": {
+    readOnly: false,
+    projectIdsFromArgv: projectIdFlagArgv(),
+    projectIdsFromJson: projectFromJsonField("project_id"),
+  },
+};

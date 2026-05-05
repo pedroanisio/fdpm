@@ -1,4 +1,9 @@
 import { Command } from "commander";
+import {
+  type CommandMetadataMap,
+  NO_PROJECT_ARGV,
+  NO_PROJECT_JSON,
+} from "./metadata.js";
 
 const TOP_LEVEL_COMMANDS = [
   "version",
@@ -132,6 +137,14 @@ ${Object.entries(COMMAND_SUBCOMMANDS)
 complete -F _fdpm_completions fdpm
 `;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  completions: {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+};
 
 function renderZshCompletion(): string {
   const commandSpecs = TOP_LEVEL_COMMANDS.map((name) => `"${name}:${name}"`).join(" \\\n  ");

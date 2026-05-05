@@ -3,6 +3,11 @@ import type { Host } from "../core/host.js";
 import { emit, parseKindCsv, type OutputContext } from "./util.js";
 import { undo } from "../core/host-extra.js";
 import { buildAuditRecord } from "../core/audit/projection.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 
 /**
  * Time-travel + undo (§9.8): /log, /at, :undo are surfaced here.
@@ -87,3 +92,26 @@ export function buildLogCommand(host: Host): Command {
 
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  "log show": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "log audit": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "log at": {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+  "log undo": {
+    readOnly: false,
+    projectIdsFromArgv: firstPositionalAfter(2),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

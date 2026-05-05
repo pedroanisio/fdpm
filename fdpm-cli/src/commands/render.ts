@@ -4,6 +4,11 @@ import type { Host } from "../core/host.js";
 import { emit, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { EXIT_CODE_FOR_CATEGORY } from "../core/errors/fdpm-exception.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 
 /**
  * `fdpm render <project> <target>` — invoke a registered cap:renderer
@@ -121,3 +126,11 @@ export function buildRenderCommand(host: Host): Command {
     );
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  render: {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(1),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};

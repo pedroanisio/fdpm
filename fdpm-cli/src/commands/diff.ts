@@ -2,6 +2,11 @@ import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { emit, type OutputContext } from "./util.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
+import {
+  type CommandMetadataMap,
+  firstPositionalAfter,
+  projectFromJsonField,
+} from "./metadata.js";
 
 /**
  * `fdpm diff <project>` — structural diff across two snapshots.
@@ -111,3 +116,11 @@ export function buildDiffCommand(host: Host): Command {
     );
   return cmd;
 }
+
+export const commandMetadata: CommandMetadataMap = {
+  diff: {
+    readOnly: true,
+    projectIdsFromArgv: firstPositionalAfter(1),
+    projectIdsFromJson: projectFromJsonField("project", "project_id"),
+  },
+};
