@@ -146,6 +146,7 @@ fdpm --no-persist project create --json --id tmp --name Tmp \
 | `FDPM_LOG_LEVEL` | `info` | Plugin logger threshold: `debug`, `info`, `warn`, `error`, `silent`. |
 | `FDPM_DEBUG` | unset | Truthy -> also emit plugin debug logs. |
 | `FDPM_VERBOSE` | unset | Truthy -> expand human-mode error output. |
+| `FDPM_JSON_COMPACT` | unset | `1` -> emit compact (single-line) JSON; set automatically by `fdpm repl --json` and SPEC-MCP-SERVER. |
 | `FDPM_MAX_REQUEST_BYTES` | `5242880` | Cap on `-f` / stdin input size in bytes. |
 | `FDPM_MAX_FIELD_PATCH_OPS` | `100` | Cap on operations per field-patch request. |
 | `FDPM_LOG_PAGE_MAX` | `10000` | Max events returned by one log page. |
@@ -154,6 +155,11 @@ fdpm --no-persist project create --json --id tmp --name Tmp \
 | `FDPM_TRUSTED_KEYS` | `""` | Comma-separated keys allowed for verified plugin trust. |
 | `FDPM_MAX_RENDER_BYTES` | `52428800` | Cap on renderer output size in bytes. |
 | `FDPM_SNAPSHOT_EVERY_OPS` | `1000` | Store snapshot after every N appended operations. |
+| `FDPM_NO_PLUGINS` | unset | Truthy -> `fdpm-mcp` constructs Host with `noPlugins=true`. |
+| `FDPM_MCP_ENABLE_DESTRUCTIVE` | unset | `fdpm-mcp`: truthy -> expose Tier-3 destructive tools (off by default). |
+| `FDPM_MCP_ENABLE_PLUGINS` | `""` | `fdpm-mcp`: comma-separated plugin ids whose MCP tools are exposed. |
+| `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | `fdpm-mcp`: per-session rate limit on tool calls. |
+| `FDPM_MCP_AUDIT_FULL_ARGS` | unset | `fdpm-mcp`: truthy -> log full args (default: sha256 hash only). |
 
 ---
 

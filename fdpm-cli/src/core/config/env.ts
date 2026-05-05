@@ -37,6 +37,13 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     summary: "truthy -> expand human-mode error output",
   },
   {
+    name: "FDPM_JSON_COMPACT",
+    defaultValue: "unset",
+    exampleValue: "1",
+    summary:
+      "1 -> emit compact (single-line) JSON; set by `fdpm repl --json` and SPEC-MCP-SERVER",
+  },
+  {
     name: "FDPM_MAX_REQUEST_BYTES",
     defaultValue: "5242880",
     exampleValue: "5242880",
@@ -83,6 +90,36 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     defaultValue: "1000",
     exampleValue: "1000",
     summary: "store snapshot after every N appended operations",
+  },
+  {
+    name: "FDPM_NO_PLUGINS",
+    defaultValue: "unset",
+    exampleValue: "1",
+    summary: "truthy -> fdpm-mcp constructs Host with noPlugins=true",
+  },
+  {
+    name: "FDPM_MCP_ENABLE_DESTRUCTIVE",
+    defaultValue: "unset",
+    exampleValue: "1",
+    summary: "fdpm-mcp: truthy -> expose Tier-3 destructive tools (off by default)",
+  },
+  {
+    name: "FDPM_MCP_ENABLE_PLUGINS",
+    defaultValue: '""',
+    exampleValue: "plugin-id-1,plugin-id-2",
+    summary: "fdpm-mcp: comma-separated plugin ids whose MCP tools are exposed",
+  },
+  {
+    name: "FDPM_MCP_MAX_CALLS_PER_MINUTE",
+    defaultValue: "120",
+    exampleValue: "120",
+    summary: "fdpm-mcp: per-session rate limit on tool calls",
+  },
+  {
+    name: "FDPM_MCP_AUDIT_FULL_ARGS",
+    defaultValue: "unset",
+    exampleValue: "1",
+    summary: "fdpm-mcp: truthy -> log full args (default: sha256 hash only)",
   },
 ] as const;
 

@@ -11,11 +11,18 @@ export interface OutputContext {
 }
 
 export function emit(ctx: OutputContext, payload: unknown, human?: () => string): void {
+  // SPEC-REPL §8.2 + SPEC-MCP-SERVER both require one JSON value per
+  // line in agent-driven mode. The one-shot CLI keeps its
+  // pretty-printed default for human readability; the REPL and MCP
+  // dispatchers set `FDPM_JSON_COMPACT=1` at session start so this
+  // helper produces line-delimited JSON. The choice is environmental,
+  // not per-call, so every command module gets it without API churn.
+  const compact = process.env["FDPM_JSON_COMPACT"] === "1";
   const text = ctx.json
-    ? JSON.stringify(payload, null, 2) + "\n"
+    ? JSON.stringify(payload, null, compact ? undefined : 2) + "\n"
     : human
       ? human() + "\n"
-      : JSON.stringify(payload, null, 2) + "\n";
+      : JSON.stringify(payload, null, compact ? undefined : 2) + "\n";
   writeAllSync(text);
 }
 

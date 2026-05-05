@@ -103,6 +103,14 @@ export function buildReplCommand(host: Host): Command {
         printBanner(host);
       }
 
+      // SPEC-REPL §8.2: in JSON mode, every command response MUST be a
+      // single JSON value on one line. Signal that to `emit()` (used
+      // by every command module) via FDPM_JSON_COMPACT — process-local
+      // env var so the change is invisible to one-shot CLI callers.
+      if (session.json) {
+        process.env["FDPM_JSON_COMPACT"] = "1";
+      }
+
       const summary = { ok: 0, error: 0, maxExitCode: 0, startedAt: Date.now() };
       const freshness: FreshnessSnapshot = { perProject: new Map() };
 
@@ -325,9 +333,15 @@ async function handleMeta(
       return "continue";
     case "json": {
       const next = rest[0];
-      if (next === "on") session.json = true;
-      else if (next === "off") session.json = false;
-      else writeStderr(`json mode: ${session.json ? "on" : "off"}\n`);
+      if (next === "on") {
+        session.json = true;
+        process.env["FDPM_JSON_COMPACT"] = "1";
+      } else if (next === "off") {
+        session.json = false;
+        delete process.env["FDPM_JSON_COMPACT"];
+      } else {
+        writeStderr(`json mode: ${session.json ? "on" : "off"}\n`);
+      }
       return "continue";
     }
     case "history":
