@@ -1,0 +1,133 @@
+{
+  "__sidecarSpec": "0.1",
+  "entities": {
+    "AudienceSegment": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Claim": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Entity": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Evidence": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "ExpectedQuestion": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Objection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Option": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "PainPoint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "PersuasionStrategy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Presenter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Risk": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Slide": {
+      "idField": "slide_number",
+      "identityKind": "id-field"
+    },
+    "VisualArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    }
+  },
+  "references": [
+    {
+      "acyclic": true,
+      "cardinality": "many-to-one",
+      "field": "parent_claim_id",
+      "from": "Claim",
+      "to": "Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "claims_supported",
+      "from": "Evidence",
+      "to": "Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "supports_claim_ids",
+      "from": "Slide",
+      "to": "Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "uses_evidence_ids",
+      "from": "Slide",
+      "to": "Evidence"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "addresses_objection_ids",
+      "from": "Slide",
+      "to": "Objection"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "risk_ids",
+      "from": "Option",
+      "to": "Risk"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "differentiation_claim_ids",
+      "from": "Option",
+      "to": "Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "speaks_for_claim_ids",
+      "from": "Presenter",
+      "to": "Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "field": "addresses_objection_id",
+      "from": "ExpectedQuestion",
+      "to": "Objection"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "references_evidence_ids",
+      "from": "ExpectedQuestion",
+      "to": "Evidence"
+    },
+    {
+      "cardinality": "many-to-one",
+      "field": "source_segment_id",
+      "from": "Objection",
+      "to": "AudienceSegment"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "affected_persona_ids",
+      "from": "PainPoint",
+      "to": "AudienceSegment"
+    }
+  ],
+  "variants": []
+}

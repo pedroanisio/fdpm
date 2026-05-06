@@ -1,0 +1,962 @@
+{
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "panels": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "core",
+            "supporting",
+            "sub",
+            "action"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "text",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "parent_claim_id",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualifier",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Claim",
+      "title": "Claim"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "claims_supported",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "data",
+            "example",
+            "case_study",
+            "expert_opinion",
+            "benchmark",
+            "financial_model",
+            "technical_analysis",
+            "user_research",
+            "experiment",
+            "logical_argument",
+            "scenario_analysis",
+            "risk_analysis",
+            "comparison_matrix"
+          ],
+          "kind": "enum",
+          "name": "evidence_type",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "source",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "kind": "enum",
+          "name": "strength",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "warrant",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Evidence",
+      "title": "Evidence"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high",
+            "unknown"
+          ],
+          "kind": "enum",
+          "name": "likelihood",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high",
+            "unknown"
+          ],
+          "kind": "enum",
+          "name": "impact",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "mitigation",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "owner",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Risk",
+      "title": "Risk"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "pros",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "cons",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "risk_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "decision_relevance",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "recommended",
+            "rejected",
+            "fallback",
+            "status_quo",
+            "direct_competitor",
+            "internal_build",
+            "manual_process",
+            "do_nothing",
+            "adjacent_solution"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "differentiation_claim_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_pre_selected",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Option",
+      "title": "Option"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "actor",
+            "object",
+            "system",
+            "process",
+            "capability",
+            "resource",
+            "input",
+            "output",
+            "constraint",
+            "dependency",
+            "risk",
+            "control",
+            "metric",
+            "evidence",
+            "option",
+            "decision",
+            "environment",
+            "principle",
+            "assumption",
+            "unknown"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "primary",
+            "secondary",
+            "supporting",
+            "background"
+          ],
+          "kind": "enum",
+          "name": "importance",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "kind": "enum",
+          "name": "confidence",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "acme:Entity",
+      "title": "Entity"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "diagram",
+            "chart",
+            "table",
+            "matrix",
+            "timeline",
+            "map",
+            "flow",
+            "stack",
+            "comparison",
+            "dashboard",
+            "illustration",
+            "framework"
+          ],
+          "kind": "enum",
+          "name": "artifact_type",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "explain_structure",
+            "show_flow",
+            "compare_options",
+            "show_change_over_time",
+            "show_relationships",
+            "show_distribution",
+            "show_tradeoffs",
+            "summarize",
+            "warn",
+            "support_decision",
+            "make_abstract_concrete"
+          ],
+          "kind": "enum",
+          "name": "purpose",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "struct",
+          "name": "composition",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "required_elements",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "constraints",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:VisualArtifact",
+      "title": "VisualArtifact"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "text",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "must",
+            "should",
+            "nice_to_have"
+          ],
+          "kind": "enum",
+          "name": "severity",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "source_segment_id",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "counter_argument",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Objection",
+      "title": "Objection"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "logos_reasoning",
+            "evidence_based",
+            "risk_avoidance",
+            "opportunity_capture",
+            "cost_reduction",
+            "urgency",
+            "strategic_alignment",
+            "contrast_before_after",
+            "social_proof",
+            "authority_based",
+            "narrative_story",
+            "tradeoff_transparency",
+            "loss_aversion",
+            "visionary_future",
+            "pragmatic_feasibility",
+            "moral_or_values_based",
+            "provocation"
+          ],
+          "kind": "enum",
+          "name": "strategy_type",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "purpose",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "audience_fit",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "required_rhetorical_moves",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "required_evidence_types",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "constraints",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "failure_modes",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "kind": "enum",
+          "name": "empirical_grade",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "empirical_grade_rationale",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "empirical_grade_caveats",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:PersuasionStrategy",
+      "title": "PersuasionStrategy"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "primary",
+            "co_presenter",
+            "support",
+            "subject_matter_expert"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "owner",
+            "delegate",
+            "expert",
+            "facilitator",
+            "messenger",
+            "unknown"
+          ],
+          "kind": "enum",
+          "name": "authority",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "credibility_basis",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "speaks_for_claim_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "number",
+          "name": "delivers_slide_numbers",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Presenter",
+      "title": "Presenter"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "question",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "likely_asker_segment",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "prepared_answer",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "addresses_objection_id",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "references_evidence_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:ExpectedQuestion",
+      "title": "ExpectedQuestion"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "executive",
+            "technical",
+            "business",
+            "mixed",
+            "regulatory",
+            "customer",
+            "investor",
+            "internal_team",
+            "public"
+          ],
+          "kind": "enum",
+          "name": "audience_type",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "expert"
+          ],
+          "kind": "enum",
+          "name": "prior_knowledge",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "supportive",
+            "neutral",
+            "curious",
+            "skeptical",
+            "hostile",
+            "uninformed",
+            "divided"
+          ],
+          "kind": "enum",
+          "name": "attitude",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "kind": "enum",
+          "name": "complexity_tolerance",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "none",
+            "influencer",
+            "recommender",
+            "approver",
+            "final_decision_maker"
+          ],
+          "kind": "enum",
+          "name": "decision_power",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "what_they_need_to_believe",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "economic_buyer",
+            "technical_buyer",
+            "champion",
+            "user_buyer",
+            "procurement",
+            "legal",
+            "security",
+            "executive_sponsor",
+            "blocker",
+            "influencer"
+          ],
+          "kind": "enum",
+          "name": "buyer_role",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "priorities",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "fears",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "success_criteria",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "functional_jobs",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "emotional_jobs",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "social_jobs",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "promotion",
+            "prevention",
+            "balanced"
+          ],
+          "kind": "enum",
+          "name": "regulatory_focus",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "kind": "enum",
+          "name": "need_for_cognition",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "acme:AudienceSegment",
+      "title": "AudienceSegment"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "affected_persona_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "kind": "enum",
+          "name": "severity",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "current_cost_or_impact",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:PainPoint",
+      "title": "PainPoint"
+    },
+    {
+      "fields": [
+        {
+          "kind": "number",
+          "name": "slide_number",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "opening",
+            "context",
+            "problem",
+            "definition",
+            "claim",
+            "model",
+            "mechanism",
+            "evidence",
+            "example",
+            "comparison",
+            "tradeoff",
+            "risk",
+            "objection",
+            "option",
+            "recommendation",
+            "decision",
+            "closing",
+            "appendix",
+            "value_proposition",
+            "pricing"
+          ],
+          "kind": "enum",
+          "name": "role_in_deck",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "key_message",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "audience_question_answered",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "content_blocks",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "visual_strategy",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "speaker_intent",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "supports_claim_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "uses_evidence_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "addresses_objection_ids",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "rhetorical_moves",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "number",
+          "name": "narrative_steps",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "expected_audience_responses",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "cognitive_load",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Slide",
+      "title": "Slide"
+    }
+  ],
+  "plugin_id": "acme.business-deck"
+}

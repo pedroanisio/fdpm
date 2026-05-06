@@ -1,0 +1,81 @@
+{
+  "bridgeRealization": {
+    "id": "zod-bridge",
+    "version": "0.3.0"
+  },
+  "candidates": [],
+  "classifications": [
+    {
+      "kind": "Entity",
+      "name": "AudienceSegment",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Claim",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Entity",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Evidence",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "ExpectedQuestion",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Objection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Option",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "PainPoint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "PersuasionStrategy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Presenter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Risk",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Slide",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "VisualArtifact",
+      "reason": "explicit-entities-list"
+    }
+  ],
+  "divergences": [],
+  "generalSpecVersion": "0.2",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "losses": [],
+  "overrides": [],
+  "realizationSpecVersion": "0.2",
+  "sidecarSpecVersion": "0.1"
+}

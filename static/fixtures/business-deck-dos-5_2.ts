@@ -219,7 +219,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
         },
         {
           id: "claim_pilot",
-          kind: "supporting",
+          kind: "action",
           parent_claim_id: "claim_core",
           text: "The appropriate decision is not full rollback, but a feasibility assessment and pilot design for constrained endpoint roles.",
         },
@@ -836,6 +836,14 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
             "Convert the provocation into a bounded executive decision.",
           deck_section_or_slide_role: "decision",
         },
+        {
+          order: 8,
+          strategy_id: "tradeoff_transparency",
+          rhetorical_move: "show_future_state",
+          intended_effect_on_audience:
+            "Anchor the principle that survives rejection: simplification is the durable lesson, regardless of whether DOS itself is approved.",
+          deck_section_or_slide_role: "closing",
+        },
       ],
 
       ethical_constraints: [
@@ -855,7 +863,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
     slide_plan: [
       {
         slide_number: 1,
-        title: "Reconsidering Endpoint Complexity",
+        title: "DOS 5.2 is a deliberate provocation, not a serious rollback proposal",
         role_in_deck: "opening",
         key_message:
           "The DOS 5.2 rollback idea is intentionally extreme; its value is to challenge whether every endpoint really needs modern general-purpose complexity.",
@@ -972,14 +980,20 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
         narrative_steps: [3],
         content_blocks: [
           {
+            type: "diagram",
+            purpose: "Render the scope boundary as a two-region scope diagram with explicit pilot preconditions.",
+            content_summary: "visual_dos_scope_boundary",
+            visual_artifact_id: "visual_dos_scope_boundary",
+          },
+          {
             type: "table",
-            purpose: "Define scope boundaries.",
+            purpose: "Enumerate scope inclusions and exclusions next to the diagram for the read-track audience.",
             content_summary:
               "Included: fixed-function stations, terminal workflows, controlled data entry. Excluded: knowledge work, collaboration-heavy work, browser-centric work.",
           },
           {
             type: "callout",
-            purpose: "Neutralize the absurdity objection.",
+            purpose: "Neutralize the absurdity objection by anchoring the proposal to the diagram's boundary line.",
             content_summary:
               "Universal rollback is not recommended; constrained assessment is the decision.",
           },
@@ -991,18 +1005,19 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
           visual_hierarchy: [
             { element: "Included scope", priority: "primary" },
             { element: "Excluded scope", priority: "primary" },
+            { element: "Pilot preconditions", priority: "secondary" },
             { element: "Clarifying callout", priority: "secondary" },
           ],
         },
         speaker_intent:
-          "Defuse the absurdity reflex up front by drawing the in-scope / out-of-scope line before any further argument.",
+          "Defuse the absurdity reflex up front by drawing the in-scope / out-of-scope line before any further argument; the diagram makes the boundary unmistakable to both live and read tracks.",
         supports_claim_ids: ["claim_core", "claim_constrained_fit"],
         addresses_objection_ids: ["obj_absurdity", "obj_compatibility"],
         rhetorical_moves: ["address_objections", "show_mechanism"],
       },
       {
         slide_number: 4,
-        title: "Target operating model",
+        title: "The constrained model reduces endpoint variability through five concrete control layers",
         role_in_deck: "model",
         key_message:
           "The model is not old software for its own sake; it is extreme reduction of endpoint variability.",
@@ -1040,7 +1055,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
       },
       {
         slide_number: 5,
-        title: "Tradeoff matrix: modern OS vs DOS-like endpoint",
+        title: "The DOS-like model wins on narrow dimensions and loses on modern work",
         role_in_deck: "tradeoff",
         key_message:
           "The DOS-like model wins only on narrow dimensions; it loses badly when business work requires modern general-purpose capability.",
@@ -1062,7 +1077,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
           },
         ],
         visual_strategy: {
-          layout: "matrix",
+          layout: "comparison",
           density: "high",
           focal_point: "Comparison dimensions",
           visual_hierarchy: [
@@ -1072,7 +1087,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
           ],
         },
         speaker_intent:
-          "Force the audience to compare on explicit dimensions instead of vibes — the matrix should make 'where it loses' as visible as 'where it wins'.",
+          "Force the audience to compare on explicit dimensions instead of vibes — the layout should make 'where it loses' as visible as 'where it wins'.",
         supports_claim_ids: [
           "claim_core",
           "claim_constrained_fit",
@@ -1191,7 +1206,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
       },
       {
         slide_number: 8,
-        title: "Evidence required before any pilot",
+        title: "Approving this requires four evidence artifacts before any pilot starts",
         role_in_deck: "evidence",
         key_message:
           "A real decision requires compatibility inventory, cost model, risk model, and role-suitability map.",
@@ -1308,7 +1323,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
       },
       {
         slide_number: 10,
-        title: "Decision requested",
+        title: "Approve a 60-day feasibility assessment, or reject and close the question",
         role_in_deck: "decision",
         key_message:
           "Approve a 60-day assessment with strict scope, security gates, and pilot/no-pilot exit criteria.",
@@ -1321,12 +1336,6 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
             purpose: "Make the ask explicit.",
             content_summary:
               "Approve or reject the 60-day feasibility assessment for constrained endpoint roles.",
-          },
-          {
-            type: "summary",
-            purpose: "Close the provocation into an actionable principle.",
-            content_summary:
-              "Even if DOS is rejected, the organization should still pursue DOS-like simplification where general-purpose endpoint complexity is unnecessary.",
           },
         ],
         visual_strategy: {
@@ -1375,9 +1384,185 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
           },
         ],
       },
+      {
+        slide_number: 11,
+        title: "Even if DOS is rejected, the simplification discipline survives the no",
+        role_in_deck: "closing",
+        key_message:
+          "The durable lesson is the discipline of asking where general-purpose endpoint complexity is unnecessary; that question is worth carrying forward whatever the decision on the assessment.",
+        audience_question_answered:
+          "What insight survives if the extreme proposal is rejected?",
+        narrative_steps: [11],
+        content_blocks: [
+          {
+            type: "summary",
+            purpose: "Separate the decision from the underlying principle.",
+            content_summary:
+              "The principle that survives any decision: simplify endpoint footprints where general-purpose breadth is unnecessary; do not buy capability you will not use.",
+          },
+          {
+            type: "callout",
+            purpose: "Name the durable next step regardless of outcome.",
+            content_summary:
+              "Whether the assessment is approved or rejected, the organization should map which endpoint roles are over-provisioned today.",
+          },
+        ],
+        visual_strategy: {
+          layout: "single_message",
+          density: "low",
+          focal_point: "Principle that survives rejection",
+          visual_hierarchy: [
+            { element: "Surviving principle", priority: "primary" },
+            { element: "Decoupled next step", priority: "secondary" },
+          ],
+        },
+        speaker_intent:
+          "Decouple the case-level recommendation from the durable organizational lesson, so the audience leaves with usable framing even if they reject the assessment.",
+        supports_claim_ids: ["claim_core", "claim_complexity_cost"],
+        rhetorical_moves: ["show_future_state", "connect_to_values"],
+        expected_audience_responses: [
+          {
+            segment_id: "seg_coo",
+            expected_emotion: "agreement",
+            expected_reactions: ["accept_framing", "nod"],
+            confidence: "medium",
+          },
+          {
+            segment_id: "seg_cfo",
+            expected_emotion: "interest",
+            expected_reactions: ["accept_framing", "take_notes"],
+            confidence: "medium",
+          },
+          {
+            segment_id: "seg_ciso",
+            expected_emotion: "trust",
+            expected_reactions: ["accept_framing"],
+            confidence: "low",
+          },
+        ],
+      },
+      {
+        slide_number: 12,
+        title: "Reduce endpoint complexity where general-purpose computing is unnecessary",
+        role_in_deck: "closing",
+        key_message:
+          "Close by reframing the provocation as a discipline: not 'should we use DOS?' but 'where is general-purpose endpoint complexity unnecessary?'",
+        audience_question_answered:
+          "What should the audience remember after this deck?",
+        narrative_steps: [12],
+        content_blocks: [
+          {
+            type: "callout",
+            purpose: "Restate the closing question as the audience's takeaway.",
+            content_summary:
+              "Not 'should we use DOS?' but 'where is general-purpose endpoint complexity unnecessary?' — the question leadership owns from this point forward.",
+          },
+          {
+            type: "headline",
+            purpose: "Anchor the closing line that callbacks the opening provocation.",
+            content_summary:
+              "DOS 5.2 was the provocation. Endpoint discipline is the lesson.",
+          },
+        ],
+        visual_strategy: {
+          layout: "title_only",
+          density: "low",
+          focal_point: "Closing reframe",
+          visual_hierarchy: [
+            { element: "Closing question", priority: "primary" },
+            { element: "Callback line", priority: "secondary" },
+          ],
+        },
+        speaker_intent:
+          "Land the deck on a question the room can carry, not a directive — the provocation closes back into a leadership question, exactly where slide 1 opened.",
+        supports_claim_ids: ["claim_core"],
+        rhetorical_moves: ["connect_to_values", "show_future_state"],
+        expected_audience_responses: [
+          {
+            segment_id: "seg_coo",
+            expected_emotion: "agreement",
+            expected_reactions: ["accept_framing", "nod"],
+            confidence: "medium",
+          },
+          {
+            segment_id: "seg_cio_infra",
+            expected_emotion: "validation",
+            expected_reactions: ["accept_framing"],
+            confidence: "low",
+          },
+        ],
+      },
     ],
 
     visual_artifacts: [
+      {
+        // Mirrors the full-render FrameGraph at
+        // static/refs/framegraph_dos_scope_boundary.yml (scene.id =
+        // dos_scope_boundary). The deck-level artifact captures the
+        // intent and required elements; the FrameGraph file carries
+        // the canvas/layers/ports/connectors that render this slide.
+        id: "visual_dos_scope_boundary",
+        title: "DOS scope boundary — included vs excluded endpoint roles",
+        artifact_type: "diagram",
+        purpose: "explain_structure",
+        composition: {
+          orientation: "left_to_right",
+          information_density: "balanced",
+          reveal_strategy: "section_by_section",
+          primary_focal_point: "Scope boundary line between in-scope and out-of-scope endpoint roles",
+        },
+        required_elements: [
+          {
+            id: "ve_preconditions",
+            label: "Pilot preconditions (governance gate)",
+            communicative_role: "contextualize",
+          },
+          {
+            id: "ve_in_scope_fixed_function",
+            label: "Fixed-function stations",
+            communicative_role: "differentiate",
+          },
+          {
+            id: "ve_in_scope_terminal",
+            label: "Terminal-driven workflows",
+            communicative_role: "differentiate",
+          },
+          {
+            id: "ve_in_scope_controlled_entry",
+            label: "Controlled data entry",
+            communicative_role: "differentiate",
+          },
+          {
+            id: "ve_out_of_scope_knowledge_work",
+            label: "Knowledge work (excluded)",
+            communicative_role: "warn",
+          },
+          {
+            id: "ve_out_of_scope_collaboration",
+            label: "Collaboration-heavy work (excluded)",
+            communicative_role: "warn",
+          },
+          {
+            id: "ve_out_of_scope_browser",
+            label: "Browser-centric work (excluded)",
+            communicative_role: "warn",
+          },
+          {
+            id: "ve_boundary_line",
+            label: "Scope boundary line",
+            communicative_role: "summarize",
+          },
+          {
+            id: "ve_proposal_callout",
+            label: "Proposal restated as anchor to the boundary",
+            communicative_role: "summarize",
+          },
+        ],
+        constraints: {
+          must_be_readable: true,
+          avoid_visual_clutter: true,
+        },
+      },
       {
         id: "visual_complexity_stack",
         title: "Modern endpoint complexity stack",
@@ -1597,7 +1782,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
             "claim_constrained_fit",
             "claim_pilot",
           ],
-          delivers_slide_numbers: [1, 2, 3, 4, 5, 7, 8, 9, 10],
+          delivers_slide_numbers: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12],
         },
         {
           id: "presenter_security",
@@ -1925,7 +2110,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
             "ev_total_cost_model",
             "ev_pilot_logic",
           ],
-          time_allocation_minutes: 3,
+          time_allocation_minutes: 2,
           expected_reading_minutes: 3,
         },
         {
@@ -1939,6 +2124,18 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
           exhibit_ids: ["ev_pilot_logic", "ev_total_cost_model"],
           time_allocation_minutes: 3,
           expected_reading_minutes: 2,
+        },
+        {
+          order: 7,
+          section_label: "Close into the surviving discipline and callback the opening",
+          purpose: "close",
+          slide_numbers: [11, 12],
+          narrative_steps: [11, 12],
+          persuasion_sequence_orders: [8],
+          witness_id: "presenter_primary",
+          exhibit_ids: [],
+          time_allocation_minutes: 1,
+          expected_reading_minutes: 1,
         },
       ],
 
@@ -1995,6 +2192,7 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
           "Reopens the provocation from slide 1: not 'should we use DOS?' but 'where is general-purpose endpoint complexity unnecessary?' — closes the loop into a question leadership owns.",
         decision_demanded:
           "Approve a 60-day feasibility assessment for constrained endpoint roles, with strict scope, security gates, and pilot/no-pilot exit criteria.",
+        anchored_in_slide_number: 12,
       },
 
       rehearsal_state: "walked",

@@ -1,0 +1,954 @@
+{
+  "expr_helpers": [],
+  "feature_flag_states": [
+    {
+      "flag": "flag:scope-server-only",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-v3-support",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:auto-migration",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-cross-field-refine",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-async-refine",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-discriminated-union",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-intersection",
+      "state": "enabled"
+    },
+    {
+      "flag": "flag:zod-recursive-lazy",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-function-promise",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-brand",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-regex-flags",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-pipe-transform",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-default",
+      "state": "behind-flag"
+    }
+  ],
+  "host_compatibility": ">=1.1,<2",
+  "plugin_id": "acme.business-deck",
+  "profile_id": "profile:acme-business-deck:0.1",
+  "relation_types": [
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:ClaimParent_claim_id",
+      "source": "acme:Claim",
+      "target": "acme:Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:EvidenceClaims_supported",
+      "source": "acme:Evidence",
+      "target": "acme:Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideSupports_claim_ids",
+      "source": "acme:Slide",
+      "target": "acme:Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideUses_evidence_ids",
+      "source": "acme:Slide",
+      "target": "acme:Evidence"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideAddresses_objection_ids",
+      "source": "acme:Slide",
+      "target": "acme:Objection"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:OptionRisk_ids",
+      "source": "acme:Option",
+      "target": "acme:Risk"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:OptionDifferentiation_claim_ids",
+      "source": "acme:Option",
+      "target": "acme:Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:PresenterSpeaks_for_claim_ids",
+      "source": "acme:Presenter",
+      "target": "acme:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:ExpectedQuestionAddresses_objection_id",
+      "source": "acme:ExpectedQuestion",
+      "target": "acme:Objection"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:ExpectedQuestionReferences_evidence_ids",
+      "source": "acme:ExpectedQuestion",
+      "target": "acme:Evidence"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:ObjectionSource_segment_id",
+      "source": "acme:Objection",
+      "target": "acme:AudienceSegment"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:PainPointAffected_persona_ids",
+      "source": "acme:PainPoint",
+      "target": "acme:AudienceSegment"
+    }
+  ],
+  "schemas": [
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "text",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "parent_claim_id",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualifier",
+          "required": false
+        }
+      ],
+      "name": "Claim",
+      "primitive_type_id": "acme:Claim",
+      "source_path": "domain.entities.Claim.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "claims_supported",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "evidence_type",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "source",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "strength",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "warrant",
+          "required": false
+        }
+      ],
+      "name": "Evidence",
+      "primitive_type_id": "acme:Evidence",
+      "source_path": "domain.entities.Evidence.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "likelihood",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "impact",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "mitigation",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "owner",
+          "required": false
+        }
+      ],
+      "name": "Risk",
+      "primitive_type_id": "acme:Risk",
+      "source_path": "domain.entities.Risk.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "pros",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "cons",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "risk_ids",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "decision_relevance",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "differentiation_claim_ids",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_pre_selected",
+          "required": false
+        }
+      ],
+      "name": "Option",
+      "primitive_type_id": "acme:Option",
+      "source_path": "domain.entities.Option.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "role",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "importance",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "confidence",
+          "required": false
+        }
+      ],
+      "name": "Entity",
+      "primitive_type_id": "acme:Entity",
+      "source_path": "domain.entities.Entity.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "artifact_type",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "purpose",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "composition",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "required_elements",
+          "required": false
+        },
+        {
+          "kind": "struct",
+          "name": "constraints",
+          "required": false
+        }
+      ],
+      "name": "VisualArtifact",
+      "primitive_type_id": "acme:VisualArtifact",
+      "source_path": "domain.entities.VisualArtifact.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "text",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "severity",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "source_segment_id",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "counter_argument",
+          "required": false
+        }
+      ],
+      "name": "Objection",
+      "primitive_type_id": "acme:Objection",
+      "source_path": "domain.entities.Objection.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "strategy_type",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "purpose",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "audience_fit",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "required_rhetorical_moves",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "required_evidence_types",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "constraints",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "failure_modes",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "empirical_grade",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "empirical_grade_rationale",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "empirical_grade_caveats",
+          "required": false
+        }
+      ],
+      "name": "PersuasionStrategy",
+      "primitive_type_id": "acme:PersuasionStrategy",
+      "source_path": "domain.entities.PersuasionStrategy.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "role",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "authority",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "credibility_basis",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "speaks_for_claim_ids",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "delivers_slide_numbers",
+          "required": false
+        }
+      ],
+      "name": "Presenter",
+      "primitive_type_id": "acme:Presenter",
+      "source_path": "domain.entities.Presenter.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "question",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "likely_asker_segment",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "prepared_answer",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "addresses_objection_id",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "references_evidence_ids",
+          "required": false
+        }
+      ],
+      "name": "ExpectedQuestion",
+      "primitive_type_id": "acme:ExpectedQuestion",
+      "source_path": "domain.entities.ExpectedQuestion.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "audience_type",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "prior_knowledge",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "attitude",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "complexity_tolerance",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "decision_power",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "what_they_need_to_believe",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "buyer_role",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "priorities",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "fears",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "success_criteria",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "functional_jobs",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "emotional_jobs",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "social_jobs",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "regulatory_focus",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "need_for_cognition",
+          "required": false
+        }
+      ],
+      "name": "AudienceSegment",
+      "primitive_type_id": "acme:AudienceSegment",
+      "source_path": "domain.entities.AudienceSegment.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "affected_persona_ids",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "severity",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "current_cost_or_impact",
+          "required": false
+        }
+      ],
+      "name": "PainPoint",
+      "primitive_type_id": "acme:PainPoint",
+      "source_path": "domain.entities.PainPoint.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "number",
+          "name": "slide_number",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "role_in_deck",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "key_message",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "audience_question_answered",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "content_blocks",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "visual_strategy",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "speaker_intent",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "supports_claim_ids",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "uses_evidence_ids",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "addresses_objection_ids",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "rhetorical_moves",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "narrative_steps",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "expected_audience_responses",
+          "required": false
+        },
+        {
+          "kind": "struct",
+          "name": "cognitive_load",
+          "required": false
+        }
+      ],
+      "name": "Slide",
+      "primitive_type_id": "acme:Slide",
+      "source_path": "domain.entities.Slide.schema"
+    }
+  ],
+  "validator_rule_ids": [
+    "acme.business-deck:zod.audiencesegment.invalid_type",
+    "acme.business-deck:zod.audiencesegment.invalid_type.emotional_jobs",
+    "acme.business-deck:zod.audiencesegment.invalid_type.fears",
+    "acme.business-deck:zod.audiencesegment.invalid_type.functional_jobs",
+    "acme.business-deck:zod.audiencesegment.invalid_type.id",
+    "acme.business-deck:zod.audiencesegment.invalid_type.label",
+    "acme.business-deck:zod.audiencesegment.invalid_type.priorities",
+    "acme.business-deck:zod.audiencesegment.invalid_type.social_jobs",
+    "acme.business-deck:zod.audiencesegment.invalid_type.success_criteria",
+    "acme.business-deck:zod.audiencesegment.invalid_type.what_they_need_to_believe",
+    "acme.business-deck:zod.audiencesegment.invalid_value.attitude",
+    "acme.business-deck:zod.audiencesegment.invalid_value.audience_type",
+    "acme.business-deck:zod.audiencesegment.invalid_value.buyer_role",
+    "acme.business-deck:zod.audiencesegment.invalid_value.complexity_tolerance",
+    "acme.business-deck:zod.audiencesegment.invalid_value.decision_power",
+    "acme.business-deck:zod.audiencesegment.invalid_value.need_for_cognition",
+    "acme.business-deck:zod.audiencesegment.invalid_value.prior_knowledge",
+    "acme.business-deck:zod.audiencesegment.invalid_value.regulatory_focus",
+    "acme.business-deck:zod.audiencesegment.unrecognized_keys",
+    "acme.business-deck:zod.claim.invalid_type",
+    "acme.business-deck:zod.claim.invalid_type.id",
+    "acme.business-deck:zod.claim.invalid_type.parent_claim_id",
+    "acme.business-deck:zod.claim.invalid_type.qualifier",
+    "acme.business-deck:zod.claim.invalid_type.text",
+    "acme.business-deck:zod.claim.invalid_value.kind",
+    "acme.business-deck:zod.claim.unrecognized_keys",
+    "acme.business-deck:zod.entity.invalid_type",
+    "acme.business-deck:zod.entity.invalid_type.description",
+    "acme.business-deck:zod.entity.invalid_type.id",
+    "acme.business-deck:zod.entity.invalid_type.label",
+    "acme.business-deck:zod.entity.invalid_value.confidence",
+    "acme.business-deck:zod.entity.invalid_value.importance",
+    "acme.business-deck:zod.entity.invalid_value.role",
+    "acme.business-deck:zod.entity.unrecognized_keys",
+    "acme.business-deck:zod.evidence.invalid_type",
+    "acme.business-deck:zod.evidence.invalid_type.claims_supported",
+    "acme.business-deck:zod.evidence.invalid_type.id",
+    "acme.business-deck:zod.evidence.invalid_type.source",
+    "acme.business-deck:zod.evidence.invalid_type.summary",
+    "acme.business-deck:zod.evidence.invalid_type.warrant",
+    "acme.business-deck:zod.evidence.invalid_value.evidence_type",
+    "acme.business-deck:zod.evidence.invalid_value.strength",
+    "acme.business-deck:zod.evidence.too_small.claims_supported",
+    "acme.business-deck:zod.evidence.unrecognized_keys",
+    "acme.business-deck:zod.expectedquestion.invalid_type",
+    "acme.business-deck:zod.expectedquestion.invalid_type.addresses_objection_id",
+    "acme.business-deck:zod.expectedquestion.invalid_type.id",
+    "acme.business-deck:zod.expectedquestion.invalid_type.likely_asker_segment",
+    "acme.business-deck:zod.expectedquestion.invalid_type.prepared_answer",
+    "acme.business-deck:zod.expectedquestion.invalid_type.question",
+    "acme.business-deck:zod.expectedquestion.invalid_type.references_evidence_ids",
+    "acme.business-deck:zod.expectedquestion.unrecognized_keys",
+    "acme.business-deck:zod.objection.invalid_type",
+    "acme.business-deck:zod.objection.invalid_type.counter_argument",
+    "acme.business-deck:zod.objection.invalid_type.id",
+    "acme.business-deck:zod.objection.invalid_type.source_segment_id",
+    "acme.business-deck:zod.objection.invalid_type.text",
+    "acme.business-deck:zod.objection.invalid_value.severity",
+    "acme.business-deck:zod.objection.unrecognized_keys",
+    "acme.business-deck:zod.option.invalid_type",
+    "acme.business-deck:zod.option.invalid_type.cons",
+    "acme.business-deck:zod.option.invalid_type.decision_relevance",
+    "acme.business-deck:zod.option.invalid_type.description",
+    "acme.business-deck:zod.option.invalid_type.differentiation_claim_ids",
+    "acme.business-deck:zod.option.invalid_type.id",
+    "acme.business-deck:zod.option.invalid_type.is_pre_selected",
+    "acme.business-deck:zod.option.invalid_type.label",
+    "acme.business-deck:zod.option.invalid_type.pros",
+    "acme.business-deck:zod.option.invalid_type.risk_ids",
+    "acme.business-deck:zod.option.invalid_value.kind",
+    "acme.business-deck:zod.option.unrecognized_keys",
+    "acme.business-deck:zod.painpoint.invalid_type",
+    "acme.business-deck:zod.painpoint.invalid_type.affected_persona_ids",
+    "acme.business-deck:zod.painpoint.invalid_type.current_cost_or_impact",
+    "acme.business-deck:zod.painpoint.invalid_type.description",
+    "acme.business-deck:zod.painpoint.invalid_type.id",
+    "acme.business-deck:zod.painpoint.invalid_value.severity",
+    "acme.business-deck:zod.painpoint.unrecognized_keys",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.audience_fit.best_for",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.audience_fit.risky_when_audience_is",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.audience_fit.works_when_audience_is",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.constraints",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.constraints.id",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.constraints.rule",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.constraints.validation_question",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.empirical_grade_caveats",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.empirical_grade_rationale",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.failure_modes",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.failure_modes.correction",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.failure_modes.failure_mode",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.failure_modes.symptom",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.id",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.purpose",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.required_evidence_types",
+    "acme.business-deck:zod.persuasionstrategy.invalid_type.required_rhetorical_moves",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.audience_fit.best_for",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.audience_fit.minimum_prior_knowledge",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.audience_fit.risky_when_audience_is",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.audience_fit.works_when_audience_is",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.constraints.severity",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.empirical_grade",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.required_evidence_types",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.required_rhetorical_moves",
+    "acme.business-deck:zod.persuasionstrategy.invalid_value.strategy_type",
+    "acme.business-deck:zod.persuasionstrategy.unrecognized_keys",
+    "acme.business-deck:zod.presenter.invalid_format.delivers_slide_numbers",
+    "acme.business-deck:zod.presenter.invalid_type",
+    "acme.business-deck:zod.presenter.invalid_type.credibility_basis",
+    "acme.business-deck:zod.presenter.invalid_type.delivers_slide_numbers",
+    "acme.business-deck:zod.presenter.invalid_type.id",
+    "acme.business-deck:zod.presenter.invalid_type.name",
+    "acme.business-deck:zod.presenter.invalid_type.speaks_for_claim_ids",
+    "acme.business-deck:zod.presenter.invalid_value.authority",
+    "acme.business-deck:zod.presenter.invalid_value.role",
+    "acme.business-deck:zod.presenter.too_small.delivers_slide_numbers",
+    "acme.business-deck:zod.presenter.unrecognized_keys",
+    "acme.business-deck:zod.risk.invalid_type",
+    "acme.business-deck:zod.risk.invalid_type.description",
+    "acme.business-deck:zod.risk.invalid_type.id",
+    "acme.business-deck:zod.risk.invalid_type.mitigation",
+    "acme.business-deck:zod.risk.invalid_type.owner",
+    "acme.business-deck:zod.risk.invalid_value.impact",
+    "acme.business-deck:zod.risk.invalid_value.likelihood",
+    "acme.business-deck:zod.risk.unrecognized_keys",
+    "acme.business-deck:zod.slide.invalid_format.cognitive_load.chunk_count",
+    "acme.business-deck:zod.slide.invalid_format.narrative_steps",
+    "acme.business-deck:zod.slide.invalid_format.slide_number",
+    "acme.business-deck:zod.slide.invalid_type",
+    "acme.business-deck:zod.slide.invalid_type.addresses_objection_ids",
+    "acme.business-deck:zod.slide.invalid_type.audience_question_answered",
+    "acme.business-deck:zod.slide.invalid_type.cognitive_load.chunk_count",
+    "acme.business-deck:zod.slide.invalid_type.cognitive_load.chunk_rationale",
+    "acme.business-deck:zod.slide.invalid_type.content_blocks",
+    "acme.business-deck:zod.slide.invalid_type.content_blocks.content_summary",
+    "acme.business-deck:zod.slide.invalid_type.content_blocks.purpose",
+    "acme.business-deck:zod.slide.invalid_type.content_blocks.visual_artifact_id",
+    "acme.business-deck:zod.slide.invalid_type.expected_audience_responses",
+    "acme.business-deck:zod.slide.invalid_type.expected_audience_responses.expected_reactions",
+    "acme.business-deck:zod.slide.invalid_type.expected_audience_responses.if_off_target",
+    "acme.business-deck:zod.slide.invalid_type.expected_audience_responses.segment_id",
+    "acme.business-deck:zod.slide.invalid_type.key_message",
+    "acme.business-deck:zod.slide.invalid_type.narrative_steps",
+    "acme.business-deck:zod.slide.invalid_type.rhetorical_moves",
+    "acme.business-deck:zod.slide.invalid_type.slide_number",
+    "acme.business-deck:zod.slide.invalid_type.speaker_intent",
+    "acme.business-deck:zod.slide.invalid_type.supports_claim_ids",
+    "acme.business-deck:zod.slide.invalid_type.title",
+    "acme.business-deck:zod.slide.invalid_type.uses_evidence_ids",
+    "acme.business-deck:zod.slide.invalid_type.visual_strategy.focal_point",
+    "acme.business-deck:zod.slide.invalid_type.visual_strategy.visual_hierarchy",
+    "acme.business-deck:zod.slide.invalid_type.visual_strategy.visual_hierarchy.element",
+    "acme.business-deck:zod.slide.invalid_value.content_blocks.type",
+    "acme.business-deck:zod.slide.invalid_value.expected_audience_responses.confidence",
+    "acme.business-deck:zod.slide.invalid_value.expected_audience_responses.expected_emotion",
+    "acme.business-deck:zod.slide.invalid_value.expected_audience_responses.expected_reactions",
+    "acme.business-deck:zod.slide.invalid_value.expected_audience_responses.secondary_emotion",
+    "acme.business-deck:zod.slide.invalid_value.rhetorical_moves",
+    "acme.business-deck:zod.slide.invalid_value.role_in_deck",
+    "acme.business-deck:zod.slide.invalid_value.visual_strategy.density",
+    "acme.business-deck:zod.slide.invalid_value.visual_strategy.layout",
+    "acme.business-deck:zod.slide.invalid_value.visual_strategy.visual_hierarchy.priority",
+    "acme.business-deck:zod.slide.too_small.cognitive_load.chunk_count",
+    "acme.business-deck:zod.slide.too_small.content_blocks",
+    "acme.business-deck:zod.slide.too_small.narrative_steps",
+    "acme.business-deck:zod.slide.too_small.slide_number",
+    "acme.business-deck:zod.slide.unrecognized_keys",
+    "acme.business-deck:zod.visualartifact.invalid_format.constraints.max_height_px",
+    "acme.business-deck:zod.visualartifact.invalid_format.constraints.max_width_px",
+    "acme.business-deck:zod.visualartifact.invalid_type",
+    "acme.business-deck:zod.visualartifact.invalid_type.composition.primary_focal_point",
+    "acme.business-deck:zod.visualartifact.invalid_type.constraints.avoid_visual_clutter",
+    "acme.business-deck:zod.visualartifact.invalid_type.constraints.max_height_px",
+    "acme.business-deck:zod.visualartifact.invalid_type.constraints.max_width_px",
+    "acme.business-deck:zod.visualartifact.invalid_type.constraints.must_be_readable",
+    "acme.business-deck:zod.visualartifact.invalid_type.id",
+    "acme.business-deck:zod.visualartifact.invalid_type.required_elements",
+    "acme.business-deck:zod.visualartifact.invalid_type.required_elements.id",
+    "acme.business-deck:zod.visualartifact.invalid_type.required_elements.label",
+    "acme.business-deck:zod.visualartifact.invalid_type.title",
+    "acme.business-deck:zod.visualartifact.invalid_value.artifact_type",
+    "acme.business-deck:zod.visualartifact.invalid_value.composition.information_density",
+    "acme.business-deck:zod.visualartifact.invalid_value.composition.orientation",
+    "acme.business-deck:zod.visualartifact.invalid_value.composition.reveal_strategy",
+    "acme.business-deck:zod.visualartifact.invalid_value.purpose",
+    "acme.business-deck:zod.visualartifact.invalid_value.required_elements.communicative_role",
+    "acme.business-deck:zod.visualartifact.too_small.constraints.max_height_px",
+    "acme.business-deck:zod.visualartifact.too_small.constraints.max_width_px",
+    "acme.business-deck:zod.visualartifact.unrecognized_keys"
+  ],
+  "version": "0.1.0"
+}

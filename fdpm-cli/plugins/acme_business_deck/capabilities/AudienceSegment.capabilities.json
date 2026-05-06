@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "audienceSegmentExporter",
+    "local_name": "audiencesegment-json",
+    "metadata": {
+      "format_id": "acme.business-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidAudienceSegment",
+    "local_name": "is-valid-audience-segment",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acme.isValidAudienceSegment",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "audienceSegmentImporter",
+    "local_name": "audiencesegment-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "acme.business-deck:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "audienceSegmentMarkdownRenderer",
+    "local_name": "acme-audience-segment",
+    "metadata": {
+      "primitive_type_id": "acme:AudienceSegment",
+      "target": "text/markdown"
+    }
+  }
+}

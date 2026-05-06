@@ -1,0 +1,9 @@
+{
+  "hash": "9296d0ef3e1f98e789ae6747a4cf064fe55fc1f245879fda051edfca727340f9",
+  "hash_algo": "sha256",
+  "pinned_plugin_version": "0.1.0",
+  "sources": [
+    "schemas/business-deck.ts",
+    "sidecar.ts"
+  ]
+}

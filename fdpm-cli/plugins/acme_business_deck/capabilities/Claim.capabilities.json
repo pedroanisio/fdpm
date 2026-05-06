@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "claimExporter",
+    "local_name": "claim-json",
+    "metadata": {
+      "format_id": "acme.business-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidClaim",
+    "local_name": "is-valid-claim",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acme.isValidClaim",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "claimImporter",
+    "local_name": "claim-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "acme.business-deck:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "claimMarkdownRenderer",
+    "local_name": "acme-claim",
+    "metadata": {
+      "primitive_type_id": "acme:Claim",
+      "target": "text/markdown"
+    }
+  }
+}

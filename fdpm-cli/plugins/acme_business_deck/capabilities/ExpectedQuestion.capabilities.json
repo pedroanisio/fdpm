@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "expectedQuestionExporter",
+    "local_name": "expectedquestion-json",
+    "metadata": {
+      "format_id": "acme.business-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidExpectedQuestion",
+    "local_name": "is-valid-expected-question",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acme.isValidExpectedQuestion",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "expectedQuestionImporter",
+    "local_name": "expectedquestion-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "acme.business-deck:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "expectedQuestionMarkdownRenderer",
+    "local_name": "acme-expected-question",
+    "metadata": {
+      "primitive_type_id": "acme:ExpectedQuestion",
+      "target": "text/markdown"
+    }
+  }
+}
