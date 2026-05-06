@@ -1,0 +1,1341 @@
+{
+  "expr_helpers": [],
+  "feature_flag_states": [
+    {
+      "flag": "flag:scope-server-only",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-v3-support",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:auto-migration",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-cross-field-refine",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-async-refine",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-discriminated-union",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-intersection",
+      "state": "enabled"
+    },
+    {
+      "flag": "flag:zod-recursive-lazy",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-function-promise",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-brand",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-regex-flags",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-pipe-transform",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-default",
+      "state": "behind-flag"
+    }
+  ],
+  "host_compatibility": ">=1.1,<2",
+  "plugin_id": "acme.pitch-deck",
+  "profile_id": "profile:acme-pitch-deck:0.1",
+  "relation_types": [
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:DataPointSourceIds",
+      "source": "acme:DataPoint",
+      "target": "acme:Source"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideEvidenceUsed",
+      "source": "acme:Slide",
+      "target": "acme:DataPoint"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:StrategicClaimSupportedByDataPoints",
+      "source": "acme:StrategicClaim",
+      "target": "acme:DataPoint"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:StrategicClaimSupportedByClaims",
+      "source": "acme:StrategicClaim",
+      "target": "acme:StrategicClaim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideClaimsAdvanced",
+      "source": "acme:Slide",
+      "target": "acme:StrategicClaim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideRisksAddressed",
+      "source": "acme:Slide",
+      "target": "acme:Risk"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideCompetitorsCited",
+      "source": "acme:Slide",
+      "target": "acme:Competitor"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideAntiPatternsAvoided",
+      "source": "acme:Slide",
+      "target": "acme:AntiPattern"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualTitle",
+      "source": "acme:Slide",
+      "target": "acme:Slide_Title"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualThesisWithImplications",
+      "source": "acme:Slide",
+      "target": "acme:Slide_ThesisWithImplications"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualStatTilesPlusChart",
+      "source": "acme:Slide",
+      "target": "acme:Slide_StatTilesPlusChart"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualComparisonTwoColumn",
+      "source": "acme:Slide",
+      "target": "acme:Slide_ComparisonTwoColumn"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualChartWithSignalRail",
+      "source": "acme:Slide",
+      "target": "acme:Slide_ChartWithSignalRail"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualTriggerEventPair",
+      "source": "acme:Slide",
+      "target": "acme:Slide_TriggerEventPair"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualCompetitiveQuadrant",
+      "source": "acme:Slide",
+      "target": "acme:Slide_CompetitiveQuadrant"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualRecommendationThreePillars",
+      "source": "acme:Slide",
+      "target": "acme:Slide_RecommendationThreePillars"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualMilestoneTimeline",
+      "source": "acme:Slide",
+      "target": "acme:Slide_MilestoneTimeline"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualThreatAnswerPairs",
+      "source": "acme:Slide",
+      "target": "acme:Slide_ThreatAnswerPairs"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualAskWithStats",
+      "source": "acme:Slide",
+      "target": "acme:Slide_AskWithStats"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualAppendixSources",
+      "source": "acme:Slide",
+      "target": "acme:Slide_AppendixSources"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acme:SlideVisualOpenQuestions",
+      "source": "acme:Slide",
+      "target": "acme:Slide_OpenQuestions"
+    }
+  ],
+  "schemas": [
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "primaryQuestion",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "evaluationCriteria",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "failureMode",
+          "required": true
+        }
+      ],
+      "name": "Audience",
+      "primitive_type_id": "acme:Audience",
+      "source_path": "domain.entities.Audience.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "type",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citation",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "date",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "lastVerifiedDate",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "derivedFrom",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "name": "Source",
+      "primitive_type_id": "acme:Source",
+      "source_path": "domain.entities.Source.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "value",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "unit",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "verificationStatus",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "sourceIds",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "usedOnSlides",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "appendixEntry",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "name": "DataPoint",
+      "primitive_type_id": "acme:DataPoint",
+      "source_path": "domain.entities.DataPoint.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "boolean",
+          "name": "loadBearing",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "supportedByDataPoints",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "supportedByClaims",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "appearsOnSlides",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "potentialDismissals",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "antiDismissalEvidence",
+          "required": false
+        }
+      ],
+      "name": "StrategicClaim",
+      "primitive_type_id": "acme:StrategicClaim",
+      "source_path": "domain.entities.StrategicClaim.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "severity",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "likelihood",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "category",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "mitigation",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "addressedOnSlides",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "acceptedAsNotAddressed",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "name": "Risk",
+      "primitive_type_id": "acme:Risk",
+      "source_path": "domain.entities.Risk.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "axes",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "threatLevel",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "citationKind",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "name": "Competitor",
+      "primitive_type_id": "acme:Competitor",
+      "source_path": "domain.entities.Competitor.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "whyHarmful",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "detectionSignals",
+          "required": true
+        }
+      ],
+      "name": "AntiPattern",
+      "primitive_type_id": "acme:AntiPattern",
+      "source_path": "domain.entities.AntiPattern.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "displayNumber",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "phase",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "eyebrow",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "headline",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "strategicJob",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "buyerObjectionAddressed",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rationaleForPosition",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "evidenceUsed",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "claimsAdvanced",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "competitorsCited",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "risksAddressed",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "antiPatternsAvoided",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "audienceReadings",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "openQuestions",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "estimatedSpeakingSeconds",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "background",
+          "required": true
+        }
+      ],
+      "name": "Slide",
+      "primitive_type_id": "acme:Slide",
+      "source_path": "domain.entities.Slide.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "tagline",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "audienceLine",
+          "required": false
+        }
+      ],
+      "name": "Slide_Title",
+      "primitive_type_id": "acme:Slide_Title",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "thesisRich",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "implications",
+          "required": true
+        }
+      ],
+      "name": "Slide_ThesisWithImplications",
+      "primitive_type_id": "acme:Slide_ThesisWithImplications",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "tiles",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "chartLabel",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "chartType",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "chartDataPointIds",
+          "required": false
+        },
+        {
+          "kind": "struct",
+          "name": "sideCallout",
+          "required": false
+        }
+      ],
+      "name": "Slide_StatTilesPlusChart",
+      "primitive_type_id": "acme:Slide_StatTilesPlusChart",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftHeader",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftClaim",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftBody",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftFootlabel",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftFootnote",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightHeader",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightClaim",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightBody",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightFootlabel",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightFootnote",
+          "required": true
+        }
+      ],
+      "name": "Slide_ComparisonTwoColumn",
+      "primitive_type_id": "acme:Slide_ComparisonTwoColumn",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "chartTitle",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "chartType",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "chartDataPointIds",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "signalRailItems",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "chartFootnote",
+          "required": false
+        }
+      ],
+      "name": "Slide_ChartWithSignalRail",
+      "primitive_type_id": "acme:Slide_ChartWithSignalRail",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "cards",
+          "required": true
+        }
+      ],
+      "name": "Slide_TriggerEventPair",
+      "primitive_type_id": "acme:Slide_TriggerEventPair",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xAxisLabel",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "yAxisLabel",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "items",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "positionRail",
+          "required": true
+        }
+      ],
+      "name": "Slide_CompetitiveQuadrant",
+      "primitive_type_id": "acme:Slide_CompetitiveQuadrant",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "pillars",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "antiRecommendation",
+          "required": false
+        }
+      ],
+      "name": "Slide_RecommendationThreePillars",
+      "primitive_type_id": "acme:Slide_RecommendationThreePillars",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "phases",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "closingNote",
+          "required": false
+        }
+      ],
+      "name": "Slide_MilestoneTimeline",
+      "primitive_type_id": "acme:Slide_MilestoneTimeline",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "pairs",
+          "required": true
+        }
+      ],
+      "name": "Slide_ThreatAnswerPairs",
+      "primitive_type_id": "acme:Slide_ThreatAnswerPairs",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "capitalRange",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "capitalRationale",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "capitalComps",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "asks",
+          "required": true
+        }
+      ],
+      "name": "Slide_AskWithStats",
+      "primitive_type_id": "acme:Slide_AskWithStats",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "groups",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "asteriskNote",
+          "required": true
+        }
+      ],
+      "name": "Slide_AppendixSources",
+      "primitive_type_id": "acme:Slide_AppendixSources",
+      "source_path": "<unknown>"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "questions",
+          "required": true
+        }
+      ],
+      "name": "Slide_OpenQuestions",
+      "primitive_type_id": "acme:Slide_OpenQuestions",
+      "source_path": "<unknown>"
+    }
+  ],
+  "validator_rule_ids": [
+    "acme.pitch-deck:zod.antipattern.invalid_format.id",
+    "acme.pitch-deck:zod.antipattern.invalid_type",
+    "acme.pitch-deck:zod.antipattern.invalid_type.description",
+    "acme.pitch-deck:zod.antipattern.invalid_type.detectionSignals",
+    "acme.pitch-deck:zod.antipattern.invalid_type.id",
+    "acme.pitch-deck:zod.antipattern.invalid_type.label",
+    "acme.pitch-deck:zod.antipattern.invalid_type.whyHarmful",
+    "acme.pitch-deck:zod.antipattern.too_big.id",
+    "acme.pitch-deck:zod.antipattern.too_small.description",
+    "acme.pitch-deck:zod.antipattern.too_small.detectionSignals",
+    "acme.pitch-deck:zod.antipattern.too_small.id",
+    "acme.pitch-deck:zod.antipattern.too_small.label",
+    "acme.pitch-deck:zod.antipattern.too_small.whyHarmful",
+    "acme.pitch-deck:zod.antipattern.unrecognized_keys",
+    "acme.pitch-deck:zod.audience.invalid_format.id",
+    "acme.pitch-deck:zod.audience.invalid_type",
+    "acme.pitch-deck:zod.audience.invalid_type.evaluationCriteria",
+    "acme.pitch-deck:zod.audience.invalid_type.failureMode",
+    "acme.pitch-deck:zod.audience.invalid_type.id",
+    "acme.pitch-deck:zod.audience.invalid_type.label",
+    "acme.pitch-deck:zod.audience.invalid_type.primaryQuestion",
+    "acme.pitch-deck:zod.audience.too_big.id",
+    "acme.pitch-deck:zod.audience.too_small.evaluationCriteria",
+    "acme.pitch-deck:zod.audience.too_small.failureMode",
+    "acme.pitch-deck:zod.audience.too_small.id",
+    "acme.pitch-deck:zod.audience.too_small.label",
+    "acme.pitch-deck:zod.audience.too_small.primaryQuestion",
+    "acme.pitch-deck:zod.audience.unrecognized_keys",
+    "acme.pitch-deck:zod.competitor.invalid_format.id",
+    "acme.pitch-deck:zod.competitor.invalid_type",
+    "acme.pitch-deck:zod.competitor.invalid_type.axes.x",
+    "acme.pitch-deck:zod.competitor.invalid_type.axes.y",
+    "acme.pitch-deck:zod.competitor.invalid_type.axes.z",
+    "acme.pitch-deck:zod.competitor.invalid_type.id",
+    "acme.pitch-deck:zod.competitor.invalid_type.name",
+    "acme.pitch-deck:zod.competitor.invalid_type.notes",
+    "acme.pitch-deck:zod.competitor.invalid_value.citationKind",
+    "acme.pitch-deck:zod.competitor.invalid_value.threatLevel",
+    "acme.pitch-deck:zod.competitor.too_big.axes.x",
+    "acme.pitch-deck:zod.competitor.too_big.axes.y",
+    "acme.pitch-deck:zod.competitor.too_big.axes.z",
+    "acme.pitch-deck:zod.competitor.too_big.id",
+    "acme.pitch-deck:zod.competitor.too_small.axes.x",
+    "acme.pitch-deck:zod.competitor.too_small.axes.y",
+    "acme.pitch-deck:zod.competitor.too_small.axes.z",
+    "acme.pitch-deck:zod.competitor.too_small.id",
+    "acme.pitch-deck:zod.competitor.too_small.name",
+    "acme.pitch-deck:zod.competitor.unrecognized_keys",
+    "acme.pitch-deck:zod.datapoint.invalid_format.id",
+    "acme.pitch-deck:zod.datapoint.invalid_format.sourceIds",
+    "acme.pitch-deck:zod.datapoint.invalid_format.usedOnSlides",
+    "acme.pitch-deck:zod.datapoint.invalid_type",
+    "acme.pitch-deck:zod.datapoint.invalid_type.appendixEntry",
+    "acme.pitch-deck:zod.datapoint.invalid_type.id",
+    "acme.pitch-deck:zod.datapoint.invalid_type.label",
+    "acme.pitch-deck:zod.datapoint.invalid_type.notes",
+    "acme.pitch-deck:zod.datapoint.invalid_type.sourceIds",
+    "acme.pitch-deck:zod.datapoint.invalid_type.unit",
+    "acme.pitch-deck:zod.datapoint.invalid_type.usedOnSlides",
+    "acme.pitch-deck:zod.datapoint.invalid_value.verificationStatus",
+    "acme.pitch-deck:zod.datapoint.too_big.id",
+    "acme.pitch-deck:zod.datapoint.too_big.sourceIds",
+    "acme.pitch-deck:zod.datapoint.too_big.usedOnSlides",
+    "acme.pitch-deck:zod.datapoint.too_small.id",
+    "acme.pitch-deck:zod.datapoint.too_small.label",
+    "acme.pitch-deck:zod.datapoint.too_small.sourceIds",
+    "acme.pitch-deck:zod.datapoint.too_small.usedOnSlides",
+    "acme.pitch-deck:zod.datapoint.unrecognized_keys",
+    "acme.pitch-deck:zod.risk.invalid_format.addressedOnSlides",
+    "acme.pitch-deck:zod.risk.invalid_format.id",
+    "acme.pitch-deck:zod.risk.invalid_type",
+    "acme.pitch-deck:zod.risk.invalid_type.acceptedAsNotAddressed",
+    "acme.pitch-deck:zod.risk.invalid_type.addressedOnSlides",
+    "acme.pitch-deck:zod.risk.invalid_type.description",
+    "acme.pitch-deck:zod.risk.invalid_type.id",
+    "acme.pitch-deck:zod.risk.invalid_type.mitigation",
+    "acme.pitch-deck:zod.risk.invalid_type.notes",
+    "acme.pitch-deck:zod.risk.invalid_value.category",
+    "acme.pitch-deck:zod.risk.invalid_value.likelihood",
+    "acme.pitch-deck:zod.risk.invalid_value.severity",
+    "acme.pitch-deck:zod.risk.too_big.addressedOnSlides",
+    "acme.pitch-deck:zod.risk.too_big.id",
+    "acme.pitch-deck:zod.risk.too_small.addressedOnSlides",
+    "acme.pitch-deck:zod.risk.too_small.description",
+    "acme.pitch-deck:zod.risk.too_small.id",
+    "acme.pitch-deck:zod.risk.too_small.mitigation",
+    "acme.pitch-deck:zod.risk.unrecognized_keys",
+    "acme.pitch-deck:zod.slide.invalid_format.antiPatternsAvoided",
+    "acme.pitch-deck:zod.slide.invalid_format.audienceReadings.audienceId",
+    "acme.pitch-deck:zod.slide.invalid_format.claimsAdvanced",
+    "acme.pitch-deck:zod.slide.invalid_format.competitorsCited",
+    "acme.pitch-deck:zod.slide.invalid_format.displayNumber",
+    "acme.pitch-deck:zod.slide.invalid_format.estimatedSpeakingSeconds",
+    "acme.pitch-deck:zod.slide.invalid_format.evidenceUsed",
+    "acme.pitch-deck:zod.slide.invalid_format.id",
+    "acme.pitch-deck:zod.slide.invalid_format.risksAddressed",
+    "acme.pitch-deck:zod.slide.invalid_type",
+    "acme.pitch-deck:zod.slide.invalid_type.antiPatternsAvoided",
+    "acme.pitch-deck:zod.slide.invalid_type.audienceReadings",
+    "acme.pitch-deck:zod.slide.invalid_type.audienceReadings.audienceId",
+    "acme.pitch-deck:zod.slide.invalid_type.audienceReadings.expectedTakeaway",
+    "acme.pitch-deck:zod.slide.invalid_type.buyerObjectionAddressed",
+    "acme.pitch-deck:zod.slide.invalid_type.claimsAdvanced",
+    "acme.pitch-deck:zod.slide.invalid_type.competitorsCited",
+    "acme.pitch-deck:zod.slide.invalid_type.displayNumber",
+    "acme.pitch-deck:zod.slide.invalid_type.estimatedSpeakingSeconds",
+    "acme.pitch-deck:zod.slide.invalid_type.evidenceUsed",
+    "acme.pitch-deck:zod.slide.invalid_type.eyebrow",
+    "acme.pitch-deck:zod.slide.invalid_type.headline",
+    "acme.pitch-deck:zod.slide.invalid_type.id",
+    "acme.pitch-deck:zod.slide.invalid_type.openQuestions",
+    "acme.pitch-deck:zod.slide.invalid_type.openQuestions.question",
+    "acme.pitch-deck:zod.slide.invalid_type.openQuestions.whyHere",
+    "acme.pitch-deck:zod.slide.invalid_type.rationaleForPosition",
+    "acme.pitch-deck:zod.slide.invalid_type.risksAddressed",
+    "acme.pitch-deck:zod.slide.invalid_type.strategicJob",
+    "acme.pitch-deck:zod.slide.invalid_value.background",
+    "acme.pitch-deck:zod.slide.invalid_value.phase",
+    "acme.pitch-deck:zod.slide.too_big.antiPatternsAvoided",
+    "acme.pitch-deck:zod.slide.too_big.audienceReadings.audienceId",
+    "acme.pitch-deck:zod.slide.too_big.claimsAdvanced",
+    "acme.pitch-deck:zod.slide.too_big.competitorsCited",
+    "acme.pitch-deck:zod.slide.too_big.displayNumber",
+    "acme.pitch-deck:zod.slide.too_big.estimatedSpeakingSeconds",
+    "acme.pitch-deck:zod.slide.too_big.evidenceUsed",
+    "acme.pitch-deck:zod.slide.too_big.id",
+    "acme.pitch-deck:zod.slide.too_big.risksAddressed",
+    "acme.pitch-deck:zod.slide.too_small.antiPatternsAvoided",
+    "acme.pitch-deck:zod.slide.too_small.audienceReadings",
+    "acme.pitch-deck:zod.slide.too_small.audienceReadings.audienceId",
+    "acme.pitch-deck:zod.slide.too_small.audienceReadings.expectedTakeaway",
+    "acme.pitch-deck:zod.slide.too_small.buyerObjectionAddressed",
+    "acme.pitch-deck:zod.slide.too_small.claimsAdvanced",
+    "acme.pitch-deck:zod.slide.too_small.competitorsCited",
+    "acme.pitch-deck:zod.slide.too_small.displayNumber",
+    "acme.pitch-deck:zod.slide.too_small.estimatedSpeakingSeconds",
+    "acme.pitch-deck:zod.slide.too_small.evidenceUsed",
+    "acme.pitch-deck:zod.slide.too_small.eyebrow",
+    "acme.pitch-deck:zod.slide.too_small.headline",
+    "acme.pitch-deck:zod.slide.too_small.id",
+    "acme.pitch-deck:zod.slide.too_small.openQuestions.question",
+    "acme.pitch-deck:zod.slide.too_small.openQuestions.whyHere",
+    "acme.pitch-deck:zod.slide.too_small.rationaleForPosition",
+    "acme.pitch-deck:zod.slide.too_small.risksAddressed",
+    "acme.pitch-deck:zod.slide.too_small.strategicJob",
+    "acme.pitch-deck:zod.slide.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_appendixsources.invalid_type",
+    "acme.pitch-deck:zod.slide_appendixsources.invalid_type.asteriskNote",
+    "acme.pitch-deck:zod.slide_appendixsources.invalid_type.groups",
+    "acme.pitch-deck:zod.slide_appendixsources.invalid_type.groups.items",
+    "acme.pitch-deck:zod.slide_appendixsources.invalid_type.groups.section",
+    "acme.pitch-deck:zod.slide_appendixsources.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_appendixsources.too_small.asteriskNote",
+    "acme.pitch-deck:zod.slide_appendixsources.too_small.groups",
+    "acme.pitch-deck:zod.slide_appendixsources.too_small.groups.items",
+    "acme.pitch-deck:zod.slide_appendixsources.too_small.groups.section",
+    "acme.pitch-deck:zod.slide_appendixsources.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_askwithstats.invalid_type",
+    "acme.pitch-deck:zod.slide_askwithstats.invalid_type.asks",
+    "acme.pitch-deck:zod.slide_askwithstats.invalid_type.capitalComps",
+    "acme.pitch-deck:zod.slide_askwithstats.invalid_type.capitalRange",
+    "acme.pitch-deck:zod.slide_askwithstats.invalid_type.capitalRationale",
+    "acme.pitch-deck:zod.slide_askwithstats.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_askwithstats.too_big.asks",
+    "acme.pitch-deck:zod.slide_askwithstats.too_small.asks",
+    "acme.pitch-deck:zod.slide_askwithstats.too_small.capitalRationale",
+    "acme.pitch-deck:zod.slide_askwithstats.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_format.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.chartFootnote",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.chartTitle",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.signalRailItems",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.signalRailItems.body",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.signalRailItems.label",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_value.chartType",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.too_big.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.chartTitle",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.signalRailItems",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.signalRailItems.body",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.signalRailItems.label",
+    "acme.pitch-deck:zod.slide_chartwithsignalrail.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftBody",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftClaim",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftFootlabel",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftFootnote",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftHeader",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightBody",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightClaim",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightFootlabel",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightFootnote",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightHeader",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftBody",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftClaim",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftFootlabel",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftFootnote",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftHeader",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightBody",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightClaim",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightFootlabel",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightFootnote",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightHeader",
+    "acme.pitch-deck:zod.slide_comparisontwocolumn.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_format.items.competitorId",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.axes.x",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.axes.y",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.caption",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.competitorId",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.label",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.positionRail.claims",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.positionRail.entryClaim",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.positionRail.label",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.xAxisLabel",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.yAxisLabel",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_value.items.emphasis",
+    "acme.pitch-deck:zod.slide_competitivequadrant.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_big.items.axes.x",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_big.items.axes.y",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_big.items.competitorId",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.axes.x",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.axes.y",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.competitorId",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.label",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.positionRail.claims",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.positionRail.entryClaim",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.positionRail.label",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.xAxisLabel",
+    "acme.pitch-deck:zod.slide_competitivequadrant.too_small.yAxisLabel",
+    "acme.pitch-deck:zod.slide_competitivequadrant.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.closingNote",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.bullets",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.gateCriteria",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.gateLabel",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.monthRange",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.title",
+    "acme.pitch-deck:zod.slide_milestonetimeline.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases",
+    "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.bullets",
+    "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.gateCriteria",
+    "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.gateLabel",
+    "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.monthRange",
+    "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.title",
+    "acme.pitch-deck:zod.slide_milestonetimeline.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_format.questions.byWhen",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_type",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.byWhen",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.question",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.whoAnswers",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.whyOpen",
+    "acme.pitch-deck:zod.slide_openquestions.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_openquestions.too_small.questions",
+    "acme.pitch-deck:zod.slide_openquestions.too_small.questions.question",
+    "acme.pitch-deck:zod.slide_openquestions.too_small.questions.whoAnswers",
+    "acme.pitch-deck:zod.slide_openquestions.too_small.questions.whyOpen",
+    "acme.pitch-deck:zod.slide_openquestions.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.antiRecommendation",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.body",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.kpi",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.n",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.title",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.body",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.kpi",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.n",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.title",
+    "acme.pitch-deck:zod.slide_recommendationthreepillars.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_format.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_format.tiles.dataPointId",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.chartLabel",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.sideCallout.body",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.sideCallout.implication",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.sideCallout.label",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.dataPointId",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.label",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.sublabel",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.value",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_value.chartType",
+    "acme.pitch-deck:zod.slide_stattilespluschart.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_big.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_big.tiles",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_big.tiles.dataPointId",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.chartDataPointIds",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.chartLabel",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.sideCallout.body",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.sideCallout.label",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles.dataPointId",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles.label",
+    "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles.value",
+    "acme.pitch-deck:zod.slide_stattilespluschart.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.implications",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.implications.body",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.implications.title",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.thesisRich",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.too_small.implications.body",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.too_small.implications.title",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.too_small.thesisRich",
+    "acme.pitch-deck:zod.slide_thesiswithimplications.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.moveBody",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.ourMove",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.threat",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.threatBody",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.too_big.pairs",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.moveBody",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.ourMove",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.threat",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.threatBody",
+    "acme.pitch-deck:zod.slide_threatanswerpairs.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_title.invalid_type",
+    "acme.pitch-deck:zod.slide_title.invalid_type.audienceLine",
+    "acme.pitch-deck:zod.slide_title.invalid_type.tagline",
+    "acme.pitch-deck:zod.slide_title.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_title.unrecognized_keys",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.body",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.cta",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.date",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.eyebrow",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.proof",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.title",
+    "acme.pitch-deck:zod.slide_triggereventpair.invalid_value.kind",
+    "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.body",
+    "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.cta",
+    "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.date",
+    "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.eyebrow",
+    "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.proof",
+    "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.title",
+    "acme.pitch-deck:zod.slide_triggereventpair.unrecognized_keys",
+    "acme.pitch-deck:zod.source.custom",
+    "acme.pitch-deck:zod.source.invalid_format.date",
+    "acme.pitch-deck:zod.source.invalid_format.derivedFrom",
+    "acme.pitch-deck:zod.source.invalid_format.id",
+    "acme.pitch-deck:zod.source.invalid_format.lastVerifiedDate",
+    "acme.pitch-deck:zod.source.invalid_format.url",
+    "acme.pitch-deck:zod.source.invalid_type",
+    "acme.pitch-deck:zod.source.invalid_type.citation",
+    "acme.pitch-deck:zod.source.invalid_type.date",
+    "acme.pitch-deck:zod.source.invalid_type.derivedFrom",
+    "acme.pitch-deck:zod.source.invalid_type.id",
+    "acme.pitch-deck:zod.source.invalid_type.lastVerifiedDate",
+    "acme.pitch-deck:zod.source.invalid_type.notes",
+    "acme.pitch-deck:zod.source.invalid_type.url",
+    "acme.pitch-deck:zod.source.invalid_value.type",
+    "acme.pitch-deck:zod.source.too_big.derivedFrom",
+    "acme.pitch-deck:zod.source.too_big.id",
+    "acme.pitch-deck:zod.source.too_small.citation",
+    "acme.pitch-deck:zod.source.too_small.derivedFrom",
+    "acme.pitch-deck:zod.source.too_small.id",
+    "acme.pitch-deck:zod.source.unrecognized_keys",
+    "acme.pitch-deck:zod.strategicclaim.invalid_format.appearsOnSlides",
+    "acme.pitch-deck:zod.strategicclaim.invalid_format.id",
+    "acme.pitch-deck:zod.strategicclaim.invalid_format.supportedByClaims",
+    "acme.pitch-deck:zod.strategicclaim.invalid_format.supportedByDataPoints",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.antiDismissalEvidence",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.appearsOnSlides",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.id",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.loadBearing",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.potentialDismissals",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.statement",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.supportedByClaims",
+    "acme.pitch-deck:zod.strategicclaim.invalid_type.supportedByDataPoints",
+    "acme.pitch-deck:zod.strategicclaim.too_big.appearsOnSlides",
+    "acme.pitch-deck:zod.strategicclaim.too_big.id",
+    "acme.pitch-deck:zod.strategicclaim.too_big.supportedByClaims",
+    "acme.pitch-deck:zod.strategicclaim.too_big.supportedByDataPoints",
+    "acme.pitch-deck:zod.strategicclaim.too_small.antiDismissalEvidence",
+    "acme.pitch-deck:zod.strategicclaim.too_small.appearsOnSlides",
+    "acme.pitch-deck:zod.strategicclaim.too_small.id",
+    "acme.pitch-deck:zod.strategicclaim.too_small.potentialDismissals",
+    "acme.pitch-deck:zod.strategicclaim.too_small.statement",
+    "acme.pitch-deck:zod.strategicclaim.too_small.supportedByClaims",
+    "acme.pitch-deck:zod.strategicclaim.too_small.supportedByDataPoints",
+    "acme.pitch-deck:zod.strategicclaim.unrecognized_keys"
+  ],
+  "version": "0.1.0"
+}

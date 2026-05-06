@@ -1,0 +1,108 @@
+{
+  "__sidecarSpec": "0.1",
+  "entities": {
+    "AntiPattern": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Audience": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Competitor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "DataPoint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Risk": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Slide": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Source": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "StrategicClaim": {
+      "idField": "id",
+      "identityKind": "id-field"
+    }
+  },
+  "references": [
+    {
+      "cardinality": "many-to-many",
+      "field": "sourceIds",
+      "from": "DataPoint",
+      "to": "Source"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "evidenceUsed",
+      "from": "Slide",
+      "inverse": {
+        "field": "usedOnSlides",
+        "on": "DataPoint"
+      },
+      "to": "DataPoint"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "supportedByDataPoints",
+      "from": "StrategicClaim",
+      "to": "DataPoint"
+    },
+    {
+      "acyclic": true,
+      "cardinality": "many-to-many",
+      "field": "supportedByClaims",
+      "from": "StrategicClaim",
+      "to": "StrategicClaim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "claimsAdvanced",
+      "from": "Slide",
+      "inverse": {
+        "field": "appearsOnSlides",
+        "on": "StrategicClaim"
+      },
+      "to": "StrategicClaim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "risksAddressed",
+      "from": "Slide",
+      "inverse": {
+        "field": "addressedOnSlides",
+        "on": "Risk"
+      },
+      "to": "Risk"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "competitorsCited",
+      "from": "Slide",
+      "to": "Competitor"
+    },
+    {
+      "cardinality": "many-to-many",
+      "field": "antiPatternsAvoided",
+      "from": "Slide",
+      "to": "AntiPattern"
+    }
+  ],
+  "variants": [
+    {
+      "discriminator": "kind",
+      "field": "visual",
+      "from": "Slide",
+      "strategy": "variant-per-primitive"
+    }
+  ]
+}

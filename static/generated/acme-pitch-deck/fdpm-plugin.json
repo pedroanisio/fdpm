@@ -11,7 +11,7 @@
     {
       "capability_id": "cap:validator",
       "entry": "antiPatternValidator",
-      "local_name": "antipattern-zod",
+      "local_name": "anti-pattern-zod",
       "metadata": {
         "applies_to": "primitive",
         "rule_ids": [
@@ -107,7 +107,7 @@
     {
       "capability_id": "cap:validator",
       "entry": "dataPointValidator",
-      "local_name": "datapoint-zod",
+      "local_name": "data-point-zod",
       "metadata": {
         "applies_to": "primitive",
         "rule_ids": [
@@ -290,7 +290,7 @@
     {
       "capability_id": "cap:validator",
       "entry": "strategicClaimValidator",
-      "local_name": "strategicclaim-zod",
+      "local_name": "strategic-claim-zod",
       "metadata": {
         "applies_to": "primitive",
         "rule_ids": [

@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "sourceExporter",
+    "local_name": "source-json",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidSource",
+    "local_name": "is-valid-source",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acme.isValidSource",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "sourceImporter",
+    "local_name": "source-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "acme.pitch-deck:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "sourceMarkdownRenderer",
+    "local_name": "acme-source",
+    "metadata": {
+      "primitive_type_id": "acme:Source",
+      "target": "text/markdown"
+    }
+  }
+}

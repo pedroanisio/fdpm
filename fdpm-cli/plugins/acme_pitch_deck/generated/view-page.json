@@ -1,0 +1,892 @@
+{
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "panels": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "primaryQuestion",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "evaluationCriteria",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "failureMode",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Audience",
+      "title": "Audience"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "internal-data",
+            "vendor-disclosure",
+            "regulator",
+            "industry-publication",
+            "community-source",
+            "derived"
+          ],
+          "kind": "enum",
+          "name": "type",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "citation",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "date",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "lastVerifiedDate",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "derivedFrom",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Source",
+      "title": "Source"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "value",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "unit",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "verified-multi-source",
+            "verified-internal",
+            "single-sourced-asterisked",
+            "derived",
+            "asserted-without-source"
+          ],
+          "kind": "enum",
+          "name": "verificationStatus",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "sourceIds",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "usedOnSlides",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "appendixEntry",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:DataPoint",
+      "title": "DataPoint"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "boolean",
+          "name": "loadBearing",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "supportedByDataPoints",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "supportedByClaims",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "appearsOnSlides",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "potentialDismissals",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "antiDismissalEvidence",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:StrategicClaim",
+      "title": "StrategicClaim"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "kind": "enum",
+          "name": "severity",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "unlikely",
+            "possible",
+            "likely",
+            "near-certain"
+          ],
+          "kind": "enum",
+          "name": "likelihood",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "market",
+            "execution",
+            "regulatory",
+            "technical",
+            "financial",
+            "team",
+            "competitive",
+            "macro"
+          ],
+          "kind": "enum",
+          "name": "category",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "mitigation",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "addressedOnSlides",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "acceptedAsNotAddressed",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Risk",
+      "title": "Risk"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "axes",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "direct",
+            "adjacent",
+            "non-threat",
+            "ourselves"
+          ],
+          "kind": "enum",
+          "name": "threatLevel",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "positioned-against",
+            "benchmark",
+            "inspiration"
+          ],
+          "kind": "enum",
+          "name": "citationKind",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Competitor",
+      "title": "Competitor"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "whyHarmful",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "detectionSignals",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:AntiPattern",
+      "title": "AntiPattern"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "displayNumber",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "opening",
+            "thesis",
+            "evidence",
+            "differentiation",
+            "market",
+            "timing",
+            "positioning",
+            "recommendation",
+            "execution",
+            "defense",
+            "ask",
+            "appendix"
+          ],
+          "kind": "enum",
+          "name": "phase",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "eyebrow",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "headline",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "strategicJob",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "buyerObjectionAddressed",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rationaleForPosition",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "evidenceUsed",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "claimsAdvanced",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "competitorsCited",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "risksAddressed",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "antiPatternsAvoided",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "audienceReadings",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "openQuestions",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "estimatedSpeakingSeconds",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "light",
+            "dark"
+          ],
+          "kind": "enum",
+          "name": "background",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "acme:Slide",
+      "title": "Slide"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "tagline",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "audienceLine",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Slide_Title",
+      "title": "Slide_Title"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "thesisRich",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "implications",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_ThesisWithImplications",
+      "title": "Slide_ThesisWithImplications"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tiles",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "chartLabel",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "bar-horizontal",
+            "bar-vertical",
+            "line",
+            "pie"
+          ],
+          "kind": "enum",
+          "name": "chartType",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "chartDataPointIds",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "sideCallout",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Slide_StatTilesPlusChart",
+      "title": "Slide_StatTilesPlusChart"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftHeader",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftClaim",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftBody",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftFootlabel",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "leftFootnote",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightHeader",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightClaim",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightBody",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightFootlabel",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rightFootnote",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_ComparisonTwoColumn",
+      "title": "Slide_ComparisonTwoColumn"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "chartTitle",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "bar-vertical-log",
+            "bar-vertical",
+            "bar-horizontal",
+            "line"
+          ],
+          "kind": "enum",
+          "name": "chartType",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "chartDataPointIds",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "signalRailItems",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "chartFootnote",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Slide_ChartWithSignalRail",
+      "title": "Slide_ChartWithSignalRail"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "cards",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_TriggerEventPair",
+      "title": "Slide_TriggerEventPair"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xAxisLabel",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "yAxisLabel",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "items",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "positionRail",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_CompetitiveQuadrant",
+      "title": "Slide_CompetitiveQuadrant"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "pillars",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "antiRecommendation",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Slide_RecommendationThreePillars",
+      "title": "Slide_RecommendationThreePillars"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "phases",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "closingNote",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acme:Slide_MilestoneTimeline",
+      "title": "Slide_MilestoneTimeline"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "pairs",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_ThreatAnswerPairs",
+      "title": "Slide_ThreatAnswerPairs"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "capitalRange",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "capitalRationale",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "capitalComps",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "asks",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_AskWithStats",
+      "title": "Slide_AskWithStats"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "groups",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "asteriskNote",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_AppendixSources",
+      "title": "Slide_AppendixSources"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "questions",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "acme:Slide_OpenQuestions",
+      "title": "Slide_OpenQuestions"
+    }
+  ],
+  "plugin_id": "acme.pitch-deck"
+}

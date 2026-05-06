@@ -4,14 +4,382 @@
   ],
   "capabilities": [
     {
+      "capability_id": "cap:exporter",
+      "entry": "antiPatternExporter",
+      "local_name": "anti-pattern-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:anti-pattern-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "entry": "audienceExporter",
+      "local_name": "audience-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:audience-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "entry": "competitorExporter",
+      "local_name": "competitor-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:competitor-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "entry": "dataPointExporter",
+      "local_name": "data-point-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:data-point-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "entry": "riskExporter",
+      "local_name": "risk-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:risk-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "entry": "slideExporter",
+      "local_name": "slide-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:slide-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "entry": "sourceExporter",
+      "local_name": "source-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:source-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "entry": "strategicClaimExporter",
+      "local_name": "strategic-claim-json",
+      "metadata": {
+        "format_id": "acme.pitch-deck:strategic-claim-json",
+        "produces_mime": "application/json"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidAntiPattern",
+      "local_name": "is-valid-anti-pattern",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidAntiPattern",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidAudience",
+      "local_name": "is-valid-audience",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidAudience",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidCompetitor",
+      "local_name": "is-valid-competitor",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidCompetitor",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidDataPoint",
+      "local_name": "is-valid-data-point",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidDataPoint",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidRisk",
+      "local_name": "is-valid-risk",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidRisk",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidSlide",
+      "local_name": "is-valid-slide",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidSlide",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidSource",
+      "local_name": "is-valid-source",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidSource",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:expr-helper",
+      "entry": "isValidStrategicClaim",
+      "local_name": "is-valid-strategic-claim",
+      "metadata": {
+        "arg_types": [
+          "object"
+        ],
+        "arity": 1,
+        "function_name": "acme.isValidStrategicClaim",
+        "pure": true,
+        "return_type": "boolean"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "antiPatternImporter",
+      "local_name": "anti-pattern-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:anti-pattern-json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "audienceImporter",
+      "local_name": "audience-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:audience-json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "competitorImporter",
+      "local_name": "competitor-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:competitor-json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "dataPointImporter",
+      "local_name": "data-point-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:data-point-json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "riskImporter",
+      "local_name": "risk-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:risk-json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "slideImporter",
+      "local_name": "slide-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:slide-json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "sourceImporter",
+      "local_name": "source-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:source-json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "entry": "strategicClaimImporter",
+      "local_name": "strategic-claim-json",
+      "metadata": {
+        "accepts_mime": [
+          "application/json"
+        ],
+        "file_extensions": [
+          ".json"
+        ],
+        "format_id": "acme.pitch-deck:strategic-claim-json"
+      }
+    },
+    {
       "capability_id": "cap:profile",
       "entry": "profile",
       "local_name": "acme-pitch-deck"
     },
     {
+      "capability_id": "cap:renderer",
+      "entry": "antiPatternMarkdownRenderer",
+      "local_name": "anti-pattern-md",
+      "metadata": {
+        "primitive_type_id": "acme:AntiPattern",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "audienceMarkdownRenderer",
+      "local_name": "audience-md",
+      "metadata": {
+        "primitive_type_id": "acme:Audience",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "competitorMarkdownRenderer",
+      "local_name": "competitor-md",
+      "metadata": {
+        "primitive_type_id": "acme:Competitor",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "dataPointMarkdownRenderer",
+      "local_name": "data-point-md",
+      "metadata": {
+        "primitive_type_id": "acme:DataPoint",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "riskMarkdownRenderer",
+      "local_name": "risk-md",
+      "metadata": {
+        "primitive_type_id": "acme:Risk",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "slideMarkdownRenderer",
+      "local_name": "slide-md",
+      "metadata": {
+        "primitive_type_id": "acme:Slide",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "sourceMarkdownRenderer",
+      "local_name": "source-md",
+      "metadata": {
+        "primitive_type_id": "acme:Source",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "strategicClaimMarkdownRenderer",
+      "local_name": "strategic-claim-md",
+      "metadata": {
+        "primitive_type_id": "acme:StrategicClaim",
+        "target": "text/markdown"
+      }
+    },
+    {
       "capability_id": "cap:validator",
       "entry": "antiPatternValidator",
-      "local_name": "antipattern-zod",
+      "local_name": "anti-pattern-zod",
       "metadata": {
         "applies_to": "primitive",
         "rule_ids": [
@@ -107,7 +475,7 @@
     {
       "capability_id": "cap:validator",
       "entry": "dataPointValidator",
-      "local_name": "datapoint-zod",
+      "local_name": "data-point-zod",
       "metadata": {
         "applies_to": "primitive",
         "rule_ids": [
@@ -133,6 +501,29 @@
           "acme.pitch-deck:zod.datapoint.unrecognized_keys"
         ],
         "target_type_id": "acme:DataPoint",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "deckCoherenceValidator",
+      "local_name": "deck-coherence",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:deck.audience-coverage",
+          "acme.pitch-deck:deck.claim-bidirectional",
+          "acme.pitch-deck:deck.claim-cycle",
+          "acme.pitch-deck:deck.evidence-bidirectional",
+          "acme.pitch-deck:deck.slide-display-numbers",
+          "acme.pitch-deck:deck.source-freshness-missing",
+          "acme.pitch-deck:deck.time-budget-coverage"
+        ],
+        "target_type_id": "acme:Slide",
         "triggers": [
           "create",
           "patch",
@@ -168,6 +559,418 @@
           "acme.pitch-deck:zod.risk.unrecognized_keys"
         ],
         "target_type_id": "acme:Risk",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_AppendixSourcesValidator",
+      "local_name": "slide-appendix-sources-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_appendixsources.invalid_type",
+          "acme.pitch-deck:zod.slide_appendixsources.invalid_type.asteriskNote",
+          "acme.pitch-deck:zod.slide_appendixsources.invalid_type.groups",
+          "acme.pitch-deck:zod.slide_appendixsources.invalid_type.groups.items",
+          "acme.pitch-deck:zod.slide_appendixsources.invalid_type.groups.section",
+          "acme.pitch-deck:zod.slide_appendixsources.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_appendixsources.too_small.asteriskNote",
+          "acme.pitch-deck:zod.slide_appendixsources.too_small.groups",
+          "acme.pitch-deck:zod.slide_appendixsources.too_small.groups.items",
+          "acme.pitch-deck:zod.slide_appendixsources.too_small.groups.section",
+          "acme.pitch-deck:zod.slide_appendixsources.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_AppendixSources",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_AskWithStatsValidator",
+      "local_name": "slide-ask-with-stats-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_askwithstats.invalid_type",
+          "acme.pitch-deck:zod.slide_askwithstats.invalid_type.asks",
+          "acme.pitch-deck:zod.slide_askwithstats.invalid_type.capitalComps",
+          "acme.pitch-deck:zod.slide_askwithstats.invalid_type.capitalRange",
+          "acme.pitch-deck:zod.slide_askwithstats.invalid_type.capitalRationale",
+          "acme.pitch-deck:zod.slide_askwithstats.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_askwithstats.too_big.asks",
+          "acme.pitch-deck:zod.slide_askwithstats.too_small.asks",
+          "acme.pitch-deck:zod.slide_askwithstats.too_small.capitalRationale",
+          "acme.pitch-deck:zod.slide_askwithstats.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_AskWithStats",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_ChartWithSignalRailValidator",
+      "local_name": "slide-chart-with-signal-rail-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_format.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.chartFootnote",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.chartTitle",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.signalRailItems",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.signalRailItems.body",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_type.signalRailItems.label",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_value.chartType",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.too_big.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.chartTitle",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.signalRailItems",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.signalRailItems.body",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.too_small.signalRailItems.label",
+          "acme.pitch-deck:zod.slide_chartwithsignalrail.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_ChartWithSignalRail",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_ComparisonTwoColumnValidator",
+      "local_name": "slide-comparison-two-column-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftBody",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftClaim",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftFootlabel",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftFootnote",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.leftHeader",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightBody",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightClaim",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightFootlabel",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightFootnote",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_type.rightHeader",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftBody",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftClaim",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftFootlabel",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftFootnote",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.leftHeader",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightBody",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightClaim",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightFootlabel",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightFootnote",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.too_small.rightHeader",
+          "acme.pitch-deck:zod.slide_comparisontwocolumn.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_ComparisonTwoColumn",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_CompetitiveQuadrantValidator",
+      "local_name": "slide-competitive-quadrant-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_format.items.competitorId",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.axes.x",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.axes.y",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.caption",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.competitorId",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.items.label",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.positionRail.claims",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.positionRail.entryClaim",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.positionRail.label",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.xAxisLabel",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_type.yAxisLabel",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_value.items.emphasis",
+          "acme.pitch-deck:zod.slide_competitivequadrant.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_big.items.axes.x",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_big.items.axes.y",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_big.items.competitorId",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.axes.x",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.axes.y",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.competitorId",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.items.label",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.positionRail.claims",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.positionRail.entryClaim",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.positionRail.label",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.xAxisLabel",
+          "acme.pitch-deck:zod.slide_competitivequadrant.too_small.yAxisLabel",
+          "acme.pitch-deck:zod.slide_competitivequadrant.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_CompetitiveQuadrant",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_MilestoneTimelineValidator",
+      "local_name": "slide-milestone-timeline-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.closingNote",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.bullets",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.gateCriteria",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.gateLabel",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.monthRange",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_type.phases.title",
+          "acme.pitch-deck:zod.slide_milestonetimeline.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases",
+          "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.bullets",
+          "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.gateCriteria",
+          "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.gateLabel",
+          "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.monthRange",
+          "acme.pitch-deck:zod.slide_milestonetimeline.too_small.phases.title",
+          "acme.pitch-deck:zod.slide_milestonetimeline.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_MilestoneTimeline",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_OpenQuestionsValidator",
+      "local_name": "slide-open-questions-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_openquestions.invalid_format.questions.byWhen",
+          "acme.pitch-deck:zod.slide_openquestions.invalid_type",
+          "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions",
+          "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.byWhen",
+          "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.question",
+          "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.whoAnswers",
+          "acme.pitch-deck:zod.slide_openquestions.invalid_type.questions.whyOpen",
+          "acme.pitch-deck:zod.slide_openquestions.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_openquestions.too_small.questions",
+          "acme.pitch-deck:zod.slide_openquestions.too_small.questions.question",
+          "acme.pitch-deck:zod.slide_openquestions.too_small.questions.whoAnswers",
+          "acme.pitch-deck:zod.slide_openquestions.too_small.questions.whyOpen",
+          "acme.pitch-deck:zod.slide_openquestions.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_OpenQuestions",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_RecommendationThreePillarsValidator",
+      "local_name": "slide-recommendation-three-pillars-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.antiRecommendation",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.body",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.kpi",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.n",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_type.pillars.title",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.body",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.kpi",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.n",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.too_small.pillars.title",
+          "acme.pitch-deck:zod.slide_recommendationthreepillars.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_RecommendationThreePillars",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_StatTilesPlusChartValidator",
+      "local_name": "slide-stat-tiles-plus-chart-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_format.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_format.tiles.dataPointId",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.chartLabel",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.sideCallout.body",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.sideCallout.implication",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.sideCallout.label",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.dataPointId",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.label",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.sublabel",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_type.tiles.value",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_value.chartType",
+          "acme.pitch-deck:zod.slide_stattilespluschart.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_big.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_big.tiles",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_big.tiles.dataPointId",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.chartDataPointIds",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.chartLabel",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.sideCallout.body",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.sideCallout.label",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles.dataPointId",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles.label",
+          "acme.pitch-deck:zod.slide_stattilespluschart.too_small.tiles.value",
+          "acme.pitch-deck:zod.slide_stattilespluschart.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_StatTilesPlusChart",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_ThesisWithImplicationsValidator",
+      "local_name": "slide-thesis-with-implications-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.implications",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.implications.body",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.implications.title",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_type.thesisRich",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.too_small.implications.body",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.too_small.implications.title",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.too_small.thesisRich",
+          "acme.pitch-deck:zod.slide_thesiswithimplications.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_ThesisWithImplications",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_ThreatAnswerPairsValidator",
+      "local_name": "slide-threat-answer-pairs-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.moveBody",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.ourMove",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.threat",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_type.pairs.threatBody",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.too_big.pairs",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.moveBody",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.ourMove",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.threat",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.too_small.pairs.threatBody",
+          "acme.pitch-deck:zod.slide_threatanswerpairs.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_ThreatAnswerPairs",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_TitleValidator",
+      "local_name": "slide-title-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_title.invalid_type",
+          "acme.pitch-deck:zod.slide_title.invalid_type.audienceLine",
+          "acme.pitch-deck:zod.slide_title.invalid_type.tagline",
+          "acme.pitch-deck:zod.slide_title.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_title.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_Title",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slide_TriggerEventPairValidator",
+      "local_name": "slide-trigger-event-pair-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.body",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.cta",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.date",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.eyebrow",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.proof",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_type.cards.title",
+          "acme.pitch-deck:zod.slide_triggereventpair.invalid_value.kind",
+          "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.body",
+          "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.cta",
+          "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.date",
+          "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.eyebrow",
+          "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.proof",
+          "acme.pitch-deck:zod.slide_triggereventpair.too_small.cards.title",
+          "acme.pitch-deck:zod.slide_triggereventpair.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide_TriggerEventPair",
         "triggers": [
           "create",
           "patch",
@@ -290,7 +1093,7 @@
     {
       "capability_id": "cap:validator",
       "entry": "strategicClaimValidator",
-      "local_name": "strategicclaim-zod",
+      "local_name": "strategic-claim-zod",
       "metadata": {
         "applies_to": "primitive",
         "rule_ids": [
@@ -329,7 +1132,7 @@
       }
     }
   ],
-  "description": "Strategic pitch-deck plugin auto-generated from static/schemas/pitch-deck.schema.v2.ts via @fdpm/zod-bridge. Models 8 entities (Audience, Source, DataPoint, StrategicClaim, Risk, Competitor, AntiPattern, Slide) and 8 cross-entity relations. Cross-deck invariants (audience coverage, time budget, source freshness, displayNumber contiguity) remain in the schema's superRefine and require author-supplied cap:validator closures to lift them to the host.",
+  "description": "Strategic pitch-deck plugin auto-generated from schemas/pitch-deck.schema.v2.ts via @fdpm/zod-bridge. Models 8 entities (Audience, Source, DataPoint, StrategicClaim, Risk, Competitor, AntiPattern, Slide) and 8 cross-entity relations. Cross-deck invariants (audience coverage, time budget, source freshness, displayNumber contiguity) lift to a deck-coherence cap:validator. The four optional capabilities (renderer / importer / exporter / expr-helper) are derived per Entity by the bridge.",
   "host_compatibility": {
     "fdpm": ">=1.1,<2"
   },
@@ -338,9 +1141,12 @@
   "license": "MIT",
   "name": "Acme Pitch Deck",
   "permissions": [
+    "export:workbook",
+    "import:workbook",
     "read:primitives",
     "read:relations",
-    "read:workbooks"
+    "read:workbooks",
+    "render:server"
   ],
   "spec_version": "1.0.0",
   "version": "0.1.0"

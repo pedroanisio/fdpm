@@ -511,6 +511,266 @@
       "name": "acme.slide.background.enum"
     },
     {
+      "expression": "self.field_values.kind == \"title\"",
+      "level": "error",
+      "name": "acme.slide_title.kind.literal"
+    },
+    {
+      "expression": "self.field_values.kind == \"thesis-with-implications\"",
+      "level": "error",
+      "name": "acme.slide_thesiswithimplications.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.thesisRich) >= 10",
+      "level": "error",
+      "name": "acme.slide_thesiswithimplications.thesisRich.min_length"
+    },
+    {
+      "expression": "size(self.field_values.implications) == 3",
+      "level": "error",
+      "name": "acme.slide_thesiswithimplications.implications.length"
+    },
+    {
+      "expression": "self.field_values.kind == \"stat-tiles-plus-chart\"",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.tiles) >= 2",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.tiles.min_items"
+    },
+    {
+      "expression": "size(self.field_values.tiles) <= 4",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.tiles.max_items"
+    },
+    {
+      "expression": "size(self.field_values.chartLabel) >= 2",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.chartLabel.min_length"
+    },
+    {
+      "expression": "self.field_values.chartType in [\"bar-horizontal\", \"bar-vertical\", \"line\", \"pie\"]",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.chartType.enum"
+    },
+    {
+      "expression": "self.field_values.chartDataPointIds.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.chartDataPointIds.item.min_length"
+    },
+    {
+      "expression": "self.field_values.chartDataPointIds.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.chartDataPointIds.item.max_length"
+    },
+    {
+      "expression": "self.field_values.chartDataPointIds.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.slide_stattilespluschart.chartDataPointIds.item.regex"
+    },
+    {
+      "expression": "self.field_values.kind == \"comparison-two-column\"",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.leftHeader) >= 2",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.leftHeader.min_length"
+    },
+    {
+      "expression": "size(self.field_values.leftClaim) >= 5",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.leftClaim.min_length"
+    },
+    {
+      "expression": "size(self.field_values.leftBody) >= 10",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.leftBody.min_length"
+    },
+    {
+      "expression": "size(self.field_values.leftFootlabel) >= 2",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.leftFootlabel.min_length"
+    },
+    {
+      "expression": "size(self.field_values.leftFootnote) >= 5",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.leftFootnote.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rightHeader) >= 2",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.rightHeader.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rightClaim) >= 5",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.rightClaim.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rightBody) >= 10",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.rightBody.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rightFootlabel) >= 2",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.rightFootlabel.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rightFootnote) >= 5",
+      "level": "error",
+      "name": "acme.slide_comparisontwocolumn.rightFootnote.min_length"
+    },
+    {
+      "expression": "self.field_values.kind == \"chart-with-signal-rail\"",
+      "level": "error",
+      "name": "acme.slide_chartwithsignalrail.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.chartTitle) >= 2",
+      "level": "error",
+      "name": "acme.slide_chartwithsignalrail.chartTitle.min_length"
+    },
+    {
+      "expression": "self.field_values.chartType in [\"bar-vertical-log\", \"bar-vertical\", \"bar-horizontal\", \"line\"]",
+      "level": "error",
+      "name": "acme.slide_chartwithsignalrail.chartType.enum"
+    },
+    {
+      "expression": "self.field_values.chartDataPointIds.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.slide_chartwithsignalrail.chartDataPointIds.item.min_length"
+    },
+    {
+      "expression": "self.field_values.chartDataPointIds.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.slide_chartwithsignalrail.chartDataPointIds.item.max_length"
+    },
+    {
+      "expression": "self.field_values.chartDataPointIds.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.slide_chartwithsignalrail.chartDataPointIds.item.regex"
+    },
+    {
+      "expression": "size(self.field_values.signalRailItems) >= 3",
+      "level": "error",
+      "name": "acme.slide_chartwithsignalrail.signalRailItems.min_items"
+    },
+    {
+      "expression": "self.field_values.kind == \"trigger-event-pair\"",
+      "level": "error",
+      "name": "acme.slide_triggereventpair.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.cards) == 2",
+      "level": "error",
+      "name": "acme.slide_triggereventpair.cards.length"
+    },
+    {
+      "expression": "self.field_values.kind == \"competitive-quadrant\"",
+      "level": "error",
+      "name": "acme.slide_competitivequadrant.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.xAxisLabel) >= 2",
+      "level": "error",
+      "name": "acme.slide_competitivequadrant.xAxisLabel.min_length"
+    },
+    {
+      "expression": "size(self.field_values.yAxisLabel) >= 2",
+      "level": "error",
+      "name": "acme.slide_competitivequadrant.yAxisLabel.min_length"
+    },
+    {
+      "expression": "size(self.field_values.items) >= 3",
+      "level": "error",
+      "name": "acme.slide_competitivequadrant.items.min_items"
+    },
+    {
+      "expression": "self.field_values.kind == \"recommendation-three-pillars\"",
+      "level": "error",
+      "name": "acme.slide_recommendationthreepillars.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.pillars) == 3",
+      "level": "error",
+      "name": "acme.slide_recommendationthreepillars.pillars.length"
+    },
+    {
+      "expression": "self.field_values.kind == \"milestone-timeline\"",
+      "level": "error",
+      "name": "acme.slide_milestonetimeline.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.phases) >= 2",
+      "level": "error",
+      "name": "acme.slide_milestonetimeline.phases.min_items"
+    },
+    {
+      "expression": "self.field_values.kind == \"threat-answer-pairs\"",
+      "level": "error",
+      "name": "acme.slide_threatanswerpairs.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.pairs) >= 2",
+      "level": "error",
+      "name": "acme.slide_threatanswerpairs.pairs.min_items"
+    },
+    {
+      "expression": "size(self.field_values.pairs) <= 4",
+      "level": "error",
+      "name": "acme.slide_threatanswerpairs.pairs.max_items"
+    },
+    {
+      "expression": "self.field_values.kind == \"ask-with-stats\"",
+      "level": "error",
+      "name": "acme.slide_askwithstats.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.capitalRationale) >= 10",
+      "level": "error",
+      "name": "acme.slide_askwithstats.capitalRationale.min_length"
+    },
+    {
+      "expression": "size(self.field_values.asks) >= 1",
+      "level": "error",
+      "name": "acme.slide_askwithstats.asks.min_items"
+    },
+    {
+      "expression": "size(self.field_values.asks) <= 6",
+      "level": "error",
+      "name": "acme.slide_askwithstats.asks.max_items"
+    },
+    {
+      "expression": "self.field_values.kind == \"appendix-sources\"",
+      "level": "error",
+      "name": "acme.slide_appendixsources.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.groups) >= 2",
+      "level": "error",
+      "name": "acme.slide_appendixsources.groups.min_items"
+    },
+    {
+      "expression": "size(self.field_values.asteriskNote) >= 5",
+      "level": "error",
+      "name": "acme.slide_appendixsources.asteriskNote.min_length"
+    },
+    {
+      "expression": "self.field_values.kind == \"open-questions\"",
+      "level": "error",
+      "name": "acme.slide_openquestions.kind.literal"
+    },
+    {
+      "expression": "size(self.field_values.questions) >= 1",
+      "level": "error",
+      "name": "acme.slide_openquestions.questions.min_items"
+    },
+    {
       "expression": "graph.acyclic(\"acme:StrategicClaimSupportedByClaims\")",
       "level": "error",
       "name": "acme.strategicclaim.acyclic-supportedByClaims"
@@ -597,6 +857,28 @@
       ]
     },
     {
+      "description": "Enum derived from Slide_ChartWithSignalRail.chartType",
+      "id": "enum:SlideChartWithSignalRailChartType",
+      "name": "SlideChartWithSignalRailChartType",
+      "values": [
+        "bar-vertical-log",
+        "bar-vertical",
+        "bar-horizontal",
+        "line"
+      ]
+    },
+    {
+      "description": "Enum derived from Slide_CompetitiveQuadrant.ItemsItem.emphasis",
+      "id": "enum:SlideCompetitiveQuadrantItemsItemEmphasis",
+      "name": "SlideCompetitiveQuadrantItemsItemEmphasis",
+      "values": [
+        "ourselves",
+        "incumbent",
+        "adjacent",
+        "non-threat"
+      ]
+    },
+    {
       "description": "Enum derived from Slide.phase",
       "id": "enum:SlidePhase",
       "name": "SlidePhase",
@@ -613,6 +895,17 @@
         "defense",
         "ask",
         "appendix"
+      ]
+    },
+    {
+      "description": "Enum derived from Slide_StatTilesPlusChart.chartType",
+      "id": "enum:SlideStatTilesPlusChartChartType",
+      "name": "SlideStatTilesPlusChartChartType",
+      "values": [
+        "bar-horizontal",
+        "bar-vertical",
+        "line",
+        "pie"
       ]
     },
     {
@@ -716,7 +1009,12 @@
           ]
         }
       ],
-      "id": "acme:Audience"
+      "id": "acme:Audience",
+      "id_format": {
+        "pattern": "acme:Audience:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -753,7 +1051,8 @@
           ],
           "kind": "enum",
           "name": "type",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
@@ -770,7 +1069,8 @@
         {
           "kind": "string",
           "name": "url",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
@@ -821,15 +1121,22 @@
           },
           "kind": "list",
           "name": "derivedFrom",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:Source"
+      "id": "acme:Source",
+      "id_format": {
+        "pattern": "acme:Source:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -871,12 +1178,14 @@
           "format": "json-union",
           "kind": "string",
           "name": "value",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "unit",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "enum_values": [
@@ -888,7 +1197,8 @@
           ],
           "kind": "enum",
           "name": "verificationStatus",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -916,7 +1226,8 @@
           },
           "kind": "list",
           "name": "sourceIds",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -944,21 +1255,29 @@
           },
           "kind": "list",
           "name": "usedOnSlides",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: false",
           "kind": "boolean",
           "name": "appendixEntry",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:DataPoint"
+      "id": "acme:DataPoint",
+      "id_format": {
+        "pattern": "acme:DataPoint:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -999,7 +1318,8 @@
         {
           "kind": "boolean",
           "name": "loadBearing",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1027,7 +1347,8 @@
           },
           "kind": "list",
           "name": "supportedByDataPoints",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1055,7 +1376,8 @@
           },
           "kind": "list",
           "name": "supportedByClaims",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "item_field": {
@@ -1107,7 +1429,8 @@
           },
           "kind": "list",
           "name": "potentialDismissals",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1125,10 +1448,16 @@
           },
           "kind": "list",
           "name": "antiDismissalEvidence",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:StrategicClaim"
+      "id": "acme:StrategicClaim",
+      "id_format": {
+        "pattern": "acme:StrategicClaim:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -1175,7 +1504,8 @@
           ],
           "kind": "enum",
           "name": "severity",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "enum_values": [
@@ -1186,7 +1516,8 @@
           ],
           "kind": "enum",
           "name": "likelihood",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "enum_values": [
@@ -1201,7 +1532,8 @@
           ],
           "kind": "enum",
           "name": "category",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
@@ -1241,21 +1573,29 @@
           },
           "kind": "list",
           "name": "addressedOnSlides",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: false",
           "kind": "boolean",
           "name": "acceptedAsNotAddressed",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:Risk"
+      "id": "acme:Risk",
+      "id_format": {
+        "pattern": "acme:Risk:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -1297,7 +1637,8 @@
           "kind": "struct",
           "name": "axes",
           "required": true,
-          "struct_id": "CompetitorAxes"
+          "struct_id": "CompetitorAxes",
+          "validations": []
         },
         {
           "enum_values": [
@@ -1308,7 +1649,8 @@
           ],
           "kind": "enum",
           "name": "threatLevel",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "description": "default: \"positioned-against\"",
@@ -1319,15 +1661,22 @@
           ],
           "kind": "enum",
           "name": "citationKind",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
       "id": "acme:Competitor",
+      "id_format": {
+        "pattern": "acme:Competitor:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
       "inline_structs": [
         {
           "fields": [
@@ -1472,7 +1821,12 @@
           ]
         }
       ],
-      "id": "acme:AntiPattern"
+      "id": "acme:AntiPattern",
+      "id_format": {
+        "pattern": "acme:AntiPattern:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -1532,7 +1886,8 @@
           ],
           "kind": "enum",
           "name": "phase",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
@@ -1595,12 +1950,6 @@
           ]
         },
         {
-          "format": "json-union",
-          "kind": "string",
-          "name": "visual",
-          "required": true
-        },
-        {
           "description": "default: []",
           "item_field": {
             "kind": "string",
@@ -1626,7 +1975,8 @@
           },
           "kind": "list",
           "name": "evidenceUsed",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1654,7 +2004,8 @@
           },
           "kind": "list",
           "name": "claimsAdvanced",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1682,7 +2033,8 @@
           },
           "kind": "list",
           "name": "competitorsCited",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1710,7 +2062,8 @@
           },
           "kind": "list",
           "name": "risksAddressed",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1738,14 +2091,16 @@
           },
           "kind": "list",
           "name": "antiPatternsAvoided",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "item_field": {
             "kind": "struct",
             "name": "audienceReadingsItem",
             "required": true,
-            "struct_id": "SlideAudienceReadingsItem"
+            "struct_id": "SlideAudienceReadingsItem",
+            "validations": []
           },
           "kind": "list",
           "name": "audienceReadings",
@@ -1764,11 +2119,13 @@
             "kind": "struct",
             "name": "openQuestionsItem",
             "required": true,
-            "struct_id": "SlideOpenQuestionsItem"
+            "struct_id": "SlideOpenQuestionsItem",
+            "validations": []
           },
           "kind": "list",
           "name": "openQuestions",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "number",
@@ -1789,10 +2146,16 @@
           ],
           "kind": "enum",
           "name": "background",
-          "required": true
+          "required": true,
+          "validations": []
         }
       ],
       "id": "acme:Slide",
+      "id_format": {
+        "pattern": "acme:Slide:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
       "inline_structs": [
         {
           "fields": [
@@ -1863,6 +2226,1442 @@
           "id": "SlideOpenQuestionsItem"
         }
       ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "tagline",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "audienceLine",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_Title",
+      "id_format": {
+        "pattern": "acme:Slide_Title:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "thesisRich",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "implicationsItem",
+            "required": true,
+            "struct_id": "Slide_ThesisWithImplicationsImplicationsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "implications",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_ThesisWithImplications",
+      "id_format": {
+        "pattern": "acme:Slide_ThesisWithImplications:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "title",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "body",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "id": "Slide_ThesisWithImplicationsImplicationsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tilesItem",
+            "required": true,
+            "struct_id": "Slide_StatTilesPlusChartTilesItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tiles",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "chartLabel",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "bar-horizontal",
+            "bar-vertical",
+            "line",
+            "pie"
+          ],
+          "kind": "enum",
+          "name": "chartType",
+          "required": true,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "chartDataPointIdsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "chartDataPointIds",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "sideCallout",
+          "required": false,
+          "struct_id": "Slide_StatTilesPlusChartSideCallout",
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_StatTilesPlusChart",
+      "id_format": {
+        "pattern": "acme:Slide_StatTilesPlusChart:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "label",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "sublabel",
+              "required": false,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "dataPointId",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 80
+                },
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^[a-z0-9][a-z0-9-]*$"
+                }
+              ]
+            }
+          ],
+          "id": "Slide_StatTilesPlusChartTilesItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "label",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "body",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "implication",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "Slide_StatTilesPlusChartSideCallout"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "leftHeader",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "leftClaim",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "leftBody",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "leftFootlabel",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "leftFootnote",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "rightHeader",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "rightClaim",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "rightBody",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "rightFootlabel",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "rightFootnote",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 5
+            }
+          ]
+        }
+      ],
+      "id": "acme:Slide_ComparisonTwoColumn",
+      "id_format": {
+        "pattern": "acme:Slide_ComparisonTwoColumn:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "chartTitle",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "bar-vertical-log",
+            "bar-vertical",
+            "bar-horizontal",
+            "line"
+          ],
+          "kind": "enum",
+          "name": "chartType",
+          "required": true,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "chartDataPointIdsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "chartDataPointIds",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "signalRailItemsItem",
+            "required": true,
+            "struct_id": "Slide_ChartWithSignalRailSignalRailItemsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "signalRailItems",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "chartFootnote",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_ChartWithSignalRail",
+      "id_format": {
+        "pattern": "acme:Slide_ChartWithSignalRail:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "label",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "body",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "id": "Slide_ChartWithSignalRailSignalRailItemsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "cardsItem",
+            "required": true,
+            "struct_id": "Slide_TriggerEventPairCardsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "cards",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_TriggerEventPair",
+      "id_format": {
+        "pattern": "acme:Slide_TriggerEventPair:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "eyebrow",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "date",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "title",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "body",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "proof",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 5
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "cta",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "id": "Slide_TriggerEventPairCardsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "xAxisLabel",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "yAxisLabel",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "itemsItem",
+            "required": true,
+            "struct_id": "Slide_CompetitiveQuadrantItemsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "items",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "positionRail",
+          "required": true,
+          "struct_id": "Slide_CompetitiveQuadrantPositionRail",
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_CompetitiveQuadrant",
+      "id_format": {
+        "pattern": "acme:Slide_CompetitiveQuadrant:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "number",
+              "name": "x",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "y",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "Slide_CompetitiveQuadrantItemsItemAxes"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "label",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "competitorId",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 80
+                },
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^[a-z0-9][a-z0-9-]*$"
+                }
+              ]
+            },
+            {
+              "kind": "struct",
+              "name": "axes",
+              "required": true,
+              "struct_id": "Slide_CompetitiveQuadrantItemsItemAxes",
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "ourselves",
+                "incumbent",
+                "adjacent",
+                "non-threat"
+              ],
+              "kind": "enum",
+              "name": "emphasis",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "caption",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "Slide_CompetitiveQuadrantItemsItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "label",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "claimsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 5
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "claims",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_items",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "entryClaim",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 5
+                }
+              ]
+            }
+          ],
+          "id": "Slide_CompetitiveQuadrantPositionRail"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "pillarsItem",
+            "required": true,
+            "struct_id": "Slide_RecommendationThreePillarsPillarsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "pillars",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "antiRecommendation",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_RecommendationThreePillars",
+      "id_format": {
+        "pattern": "acme:Slide_RecommendationThreePillars:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "n",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "title",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "body",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "kpi",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "id": "Slide_RecommendationThreePillarsPillarsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "phasesItem",
+            "required": true,
+            "struct_id": "Slide_MilestoneTimelinePhasesItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "phases",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "closingNote",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acme:Slide_MilestoneTimeline",
+      "id_format": {
+        "pattern": "acme:Slide_MilestoneTimeline:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "monthRange",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "title",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "bulletsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 3
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "bullets",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_items",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "gateLabel",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "gateCriteria",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "id": "Slide_MilestoneTimelinePhasesItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "pairsItem",
+            "required": true,
+            "struct_id": "Slide_ThreatAnswerPairsPairsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "pairs",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 4
+            }
+          ]
+        }
+      ],
+      "id": "acme:Slide_ThreatAnswerPairs",
+      "id_format": {
+        "pattern": "acme:Slide_ThreatAnswerPairs:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "threat",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 5
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "threatBody",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "ourMove",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 5
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "moveBody",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "id": "Slide_ThreatAnswerPairsPairsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "capitalRange",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "capitalRationale",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "capitalComps",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "format": "json-union",
+            "kind": "string",
+            "name": "asksItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "asks",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 6
+            }
+          ]
+        }
+      ],
+      "id": "acme:Slide_AskWithStats",
+      "id_format": {
+        "pattern": "acme:Slide_AskWithStats:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "groupsItem",
+            "required": true,
+            "struct_id": "Slide_AppendixSourcesGroupsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "groups",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "asteriskNote",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 5
+            }
+          ]
+        }
+      ],
+      "id": "acme:Slide_AppendixSources",
+      "id_format": {
+        "pattern": "acme:Slide_AppendixSources:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "section",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "itemsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 2
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "items",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_items",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "Slide_AppendixSourcesGroupsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "questionsItem",
+            "required": true,
+            "struct_id": "Slide_OpenQuestionsQuestionsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "questions",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "id": "acme:Slide_OpenQuestions",
+      "id_format": {
+        "pattern": "acme:Slide_OpenQuestions:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "question",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "whyOpen",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "whoAnswers",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "byWhen",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              ]
+            }
+          ],
+          "id": "Slide_OpenQuestionsQuestionsItem"
+        }
+      ]
     }
   ],
   "relation_types": [
@@ -1921,6 +3720,97 @@
       "id": "acme:SlideAntiPatternsAvoided",
       "source_type_id": "acme:Slide",
       "target_type_id": "acme:AntiPattern"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualTitle",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_Title"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualThesisWithImplications",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_ThesisWithImplications"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualStatTilesPlusChart",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_StatTilesPlusChart"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualComparisonTwoColumn",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_ComparisonTwoColumn"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualChartWithSignalRail",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_ChartWithSignalRail"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualTriggerEventPair",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_TriggerEventPair"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualCompetitiveQuadrant",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_CompetitiveQuadrant"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualRecommendationThreePillars",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_RecommendationThreePillars"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualMilestoneTimeline",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_MilestoneTimeline"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualThreatAnswerPairs",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_ThreatAnswerPairs"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualAskWithStats",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_AskWithStats"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualAppendixSources",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_AppendixSources"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acme:SlideVisualOpenQuestions",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Slide_OpenQuestions"
     }
   ]
 }

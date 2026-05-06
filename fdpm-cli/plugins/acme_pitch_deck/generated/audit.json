@@ -1,0 +1,56 @@
+{
+  "bridgeRealization": {
+    "id": "zod-bridge",
+    "version": "0.3.0"
+  },
+  "candidates": [],
+  "classifications": [
+    {
+      "kind": "Entity",
+      "name": "AntiPattern",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Audience",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Competitor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "DataPoint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Risk",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Slide",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Source",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "StrategicClaim",
+      "reason": "explicit-entities-list"
+    }
+  ],
+  "divergences": [],
+  "generalSpecVersion": "0.2",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "losses": [],
+  "overrides": [],
+  "realizationSpecVersion": "0.2",
+  "sidecarSpecVersion": "0.1"
+}

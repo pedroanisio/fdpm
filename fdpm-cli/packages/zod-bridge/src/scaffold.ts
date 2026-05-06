@@ -161,7 +161,7 @@ function buildManifest(
     const ruleIds = ruleIdsByType[primitiveTypeId]!;
     capabilities.push({
       capability_id: "cap:validator",
-      local_name: `${tailOf(primitiveTypeId).toLowerCase()}-zod`,
+      local_name: `${kebabTail(primitiveTypeId)}-zod`,
       entry: `${camelCaseLast(primitiveTypeId)}Validator`,
       metadata: {
         target_type_id: primitiveTypeId,
@@ -323,6 +323,29 @@ function safeResolveUnder(root: string, ...parts: string[]): string {
 
 function tailOf(s: string): string {
   return s.split(":").pop() ?? s;
+}
+
+/**
+ * Convert a primitive type id's tail to a kebab-case local_name
+ * matching the host's PluginManifest local_name regex `^[a-z0-9-]+$`.
+ *
+ * "acme:Slide_Title"               -> "slide-title"
+ * "acme:Slide_StatTilesPlusChart"  -> "slide-stat-tiles-plus-chart"
+ * "acme:Customer"                  -> "customer"
+ *
+ * Underscores and casing transitions both become "-"; the result is
+ * lower-cased and stripped of leading/trailing/duplicate dashes.
+ */
+function kebabTail(typeId: string): string {
+  const tail = tailOf(typeId);
+  return tail
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[A-Z]+(?=[A-Z][a-z])/g, (m) => m + "-")
+    .replace(/_/g, "-")
+    .replace(/[^a-zA-Z0-9-]+/g, "-")
+    .toLowerCase()
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
 }
 
 function camelCaseLast(s: string): string {

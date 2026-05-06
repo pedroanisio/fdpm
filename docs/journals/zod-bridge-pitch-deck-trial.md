@@ -542,3 +542,293 @@ layer.
 - New: [`packages/zod-bridge/tests/pitch-deck-trial.test.ts`](../../fdpm-cli/packages/zod-bridge/tests/pitch-deck-trial.test.ts) —
   end-to-end integration trial, 8 tests.
 
+---
+
+## Re-trial: `@fdpm/zod-bridge@0.4.0` — full how-to conformance (2026-05-06)
+
+The v0.3.0 trial closed the structural layer (8 primitives, 8 relations, 103
+constraints) but left several how-to-mandated obligations open: variant-per-
+primitive splitting was unimplemented, the four optional capabilities
+(`cap:renderer` / `cap:importer` / `cap:exporter` / `cap:expr-helper`) were not
+wired through to the live plugin, no failure-mode coverage existed, and the
+plugin had no schema-hash gate to enforce `principle:schema-change-implies-
+version-bump`.
+
+Goal of this trial: bring `plugins/acme_pitch_deck/` to full conformance
+against [`howto-zod-to-fdpm-plugin`](fdpm://workbook/howto-zod-to-fdpm-plugin)
+sections §2, §4, §5, §7, §8, §9, §11, §12 — measured by a 9-row compliance
+table.
+
+### Hypothesis
+
+The bridge package already has the machinery (per `pitch-deck-emit.test.ts`
+the bridge can emit all six `generated/*.json` files plus per-Entity
+`capabilities/<Entity>.capabilities.json` shapes). The plugin directory just
+isn't *consuming* it. So the work should be primarily glue:
+
+1. Factor the sidecar out of `index.ts` into `sidecar.ts` so a build-time
+   script can call it without spinning up the full activate path.
+2. Author `scripts/run-bridge.ts` that calls `writeArtefactsToDir` +
+   `writePluginScaffold` and emits one capability file per Entity. Add a
+   `--check` mode for the CI drift gate.
+3. Wire the four optional capabilities into `index.ts` activate(), adapting
+   the bridge's per-primitive shapes (`MarkdownRendererResult`,
+   `ImporterEmission`, `ExporterEmission`) to the host's per-workbook shapes
+   (`RendererFn` over `RendererInput`, `ImporterFn`→`ProjectTransfer`,
+   `ExporterFn`←`ProjectTransfer`).
+4. Add per-variant validators alongside per-entity ones (the manifest
+   declares one `cap:validator` per emitted PrimitiveTypeDef including the
+   13 Slide visual variants; runtime must register them all or the
+   manifest's closed `rule_ids[]` claim is unenforced).
+5. Author six plugin-scoped test files, one per how-to §8 testcase.
+
+Bridge changes expected: zero. The package is feature-complete for v0.4.0;
+this trial wires the plugin to it.
+
+### Plan (9 sub-tasks)
+
+1. Extract `sidecar.ts` (and helpers `variantFieldsByEntity`,
+   `validatorSchemaFor`) so runtime and tests compute the omit-stripped
+   schema identically.
+2. Add `package.json` (peer-dep on `zod ^4`, `@fdpm/zod-bridge ^0.4.0`;
+   scripts `bridge`, `bridge:check`, `test`, `typecheck`).
+3. Author `scripts/run-bridge.ts` (writes 16 files: 6 generated, 8
+   capabilities, manifest, plus a new `schema-hash.json`).
+4. Wire renderer / importer / exporter / per-variant validators into
+   `index.ts`. Update logger output.
+5. Add runtime drift assertion in activate() (per how-to §4
+   `example:bridge-entry-module`): `result.profile.id === PROFILE_ID` and
+   `manifest.id === PLUGIN_ID`.
+6. Author six mandatory testcases at `tests/plugins/acme_pitch_deck/` —
+   `bridge-mapping.test.ts`, `cel-translation.test.ts`,
+   `validator-equivalence.test.ts`, `roundtrip.test.ts`,
+   `determinism.test.ts`, `expr-helper-purity.test.ts`.
+7. Author three closure tests — `failure-modes.test.ts` (six §9 failures),
+   `manifest-parity.test.ts` (rule_id closed-set property),
+   `version-bump.test.ts` (schema-hash gate enforcing §11).
+8. Author plugin `README.md` consuming `product-page-bundle.json` (§12).
+9. Author `.github/workflows/plugin-acme-pitch-deck.yml` (drift check →
+   plugin tests → typecheck → full host suite).
+
+### Result
+
+Hypothesis **mostly correct** — bridge needed one defect fix surfaced by
+the variant-per-primitive expansion.
+
+#### Defect: scaffold's `local_name` derivation breaks variant arms
+
+After variant-per-primitive fan-out, `Slide.visual` produces 13 sibling
+primitives whose ids contain underscores: `acme:Slide_Title`,
+`acme:Slide_StatTilesPlusChart`, etc. The bridge's `scaffold.ts` derived
+each cap:validator's `local_name` as `tailOf(typeId).toLowerCase() + "-zod"`,
+producing `slide_title-zod`. The host's `PluginManifest` schema validates
+`local_name` against `^[a-z0-9-]+$` — underscores are rejected. Every
+variant cap entry failed `parseManifest` at host load.
+
+**Root cause analysis (5-Whys):**
+
+1. Why did manifest validation fail? Because `slide_title-zod` contains an
+   underscore.
+2. Why does the bridge emit underscores? Because `tailOf(typeId).toLowerCase()`
+   passes through whatever's in the id's tail.
+3. Why is the tail underscored? Because the variant naming pattern
+   (`<Parent>_<DiscriminatorValuePascalCased>`) deliberately uses `_` as a
+   separator (per `SPEC-FDPM-BRIDGE-ZOD` §5.3).
+4. Why didn't this fail before? Because the v0.3.0 trial didn't exercise
+   variant-per-primitive — Slide.visual was emitted as `payload-blob`. The
+   defect was latent.
+5. So the layering is wrong: variant naming (Zod realization concern) and
+   manifest field derivation (FDPM host conformance concern) need to be
+   reconciled. The bridge's scaffold must kebab-case the tail before
+   emitting it as `local_name`. The rule_id namespace stays underscore-
+   preserving so manifest's declared `rule_ids[]` and runtime emission
+   still match.
+
+**Fix.** [`packages/zod-bridge/src/scaffold.ts`](../../fdpm-cli/packages/zod-bridge/src/scaffold.ts):
+new `kebabTail()` function applied at the `local_name` derivation site:
+
+```
+"acme:Customer"                  -> "customer"
+"acme:Slide_Title"               -> "slide-title"
+"acme:Slide_StatTilesPlusChart"  -> "slide-stat-tiles-plus-chart"
+```
+
+Bridge package's own 151 tests still green. Plugin manifest now satisfies
+`parseManifest` cleanly: 55 capabilities (1 profile + 22 validator + 8 each
+of renderer/importer/exporter/expr-helper), 6 permissions, all host-
+accepted.
+
+#### Defect: renderer registration target was a fragment URI
+
+Initial wiring used `target: "text/markdown#${primitiveTypeId}"` to
+disambiguate per-Entity renderers sharing the markdown mime type. The
+host's MCP resource layer parses Resource.mimeType strictly; fragments
+break the `text/markdown` lookup. Fixed by using bare `target: "text/markdown"`
+and disambiguating via `rendererId` (which is the convention every other
+plugin already uses — `plan:RoadmapRenderer`, `fs:SpecRenderer`, etc.).
+
+#### Output (post-fixes)
+
+```
+plugins/acme_pitch_deck/  (16 generated files)
+├── fdpm-plugin.json              55 caps, 6 permissions, host-valid
+├── package.json                  peer-dep on zod ^4 + @fdpm/zod-bridge ^0.4.0
+├── sidecar.ts                    + variantFieldsByEntity, validatorSchemaFor
+├── index.ts                      + runtime drift assertion + 4 optional caps
+├── README.md                     consumes product-page-bundle.json
+├── scripts/run-bridge.ts         16-file emission + --check drift gate
+├── generated/   (7 files)
+│   ├── profile.json              21 primitives, 21 relations
+│   ├── view-page.json
+│   ├── product-page-bundle.json  396 rule_ids, 13 flag states
+│   ├── audit.json
+│   ├── migration-hints.json
+│   ├── usl-ng-core.json
+│   └── schema-hash.json          NEW — sha256(schema + sidecar) + pinned version
+└── capabilities/   (8 files)
+    ├── Audience.capabilities.json
+    └── … one per Entity
+
+tests/plugins/acme_pitch_deck/   (9 test files, 40 tests)
+├── bridge-mapping.test.ts        6 tests
+├── cel-translation.test.ts       4 tests
+├── validator-equivalence.test.ts 4 tests
+├── roundtrip.test.ts             3 tests
+├── determinism.test.ts           3 tests (one spawns --check in subprocess)
+├── expr-helper-purity.test.ts    4 tests
+├── failure-modes.test.ts         6 tests (one per §9 failure)
+├── manifest-parity.test.ts       6 tests
+└── version-bump.test.ts          3 tests
+```
+
+The schema-hash file is the key gate for `principle:schema-change-implies-
+version-bump`: it records `{ hash: sha256(schemaSrc + sidecarSrc),
+pinned_plugin_version: PLUGIN_VERSION }`. Editing the schema rewrites the
+hash on the next `npm run bridge`; if the developer didn't bump
+`PLUGIN_VERSION`, `pinned_plugin_version` no longer equals `manifest.version`
+and `version-bump.test.ts` fails with an actionable diagnostic. The
+complementary failure (schema edited but bridge not run) is caught by
+`determinism.test.ts` spawning `run-bridge.ts --check` in a fresh
+subprocess.
+
+#### Spec patches (general + Zod realization)
+
+Both spec changes ratified on the MCP:
+
+- **`spec-fdpm-bridge`** rev **0.2.3** — added §11.8 "Host-regex
+  conformance for emitted manifest fields", a new normative obligation
+  general to any realization that emits an FDPM plugin manifest. The
+  rule fixes a previously-implicit gap: the bridge MUST produce
+  `local_name` strings that satisfy the host's `^[a-z0-9-]+$` regex.
+  Includes the four-step kebab algorithm.
+- **`spec-fdpm-bridge-zod`** rev **0.2.4** — added §5.5 "Manifest
+  `local_name` derivation for variant arms", binding the Zod realization
+  to §11.8. Worked examples
+  (`acme:Slide_StatTilesPlusChart` → `slide-stat-tiles-plus-chart-zod`)
+  and the explicit clarification that the rule_id namespace
+  (`<pluginId>:zod.<typeName>.<code>`) is *not* affected — `typeName`
+  keeps the underscore (`slide_title`) so manifest-declared rule_ids
+  match runtime emission.
+- **`spec-domain-sidecar`** unchanged — sidecar format unaffected.
+
+#### Compliance against how-to (final)
+
+| Section | Pre-trial | Post-trial |
+|---|---|---|
+| §2 layout | 2/11 | 11/11 |
+| §4 profile + CI gate + runtime drift | 2/3 | 4/4 (added runtime drift assertion) |
+| §5 validator + manifest perms + closed rule_id set | 3/4 | 4/4 (parity test added) |
+| §6 CEL emission verified by plugin tests | unenforced | enforced |
+| §7 optional capabilities | 0/4 | 4/4 |
+| §8 mandatory tests | 0/6 | 6/6 |
+| §9 failure-mode coverage | 0/6 | 6/6 |
+| §11 maintenance + version-bump principle | 0/3 | 3/3 (schema-hash gate active) |
+| §12 approval (view-page + product-page + README) | 0/3 | 3/3 |
+
+#### What is still NOT covered
+
+The deck-level invariants from the v0.3.0 honest-residuals list
+(audience-coverage, time-budget, source-freshness, displayNumber
+contiguity) lifted from the per-entity validator layer to a deck-wide
+`cap:validator` registered against `acme:Slide` that walks
+`context.workbook.primitives`. Implementation in
+[`plugins/acme_pitch_deck/index.ts`](../../fdpm-cli/plugins/acme_pitch_deck/index.ts)
+`findingsForDeck()`. Seven `acme.pitch-deck:deck.<rule>` rule_ids
+declared in the manifest's deck-coherence cap entry.
+
+Two residuals remain:
+
+- **Workbook-level renderers** (a single deck → one Markdown / SVG / PDF
+  artefact) are not yet wired. The plugin registers per-Entity Markdown
+  renderers; composition into a deck artefact requires a separate
+  `text/markdown` renderer that walks Slide primitives in `displayNumber`
+  order and emits one section per slide. Tracked separately; not a how-to
+  obligation.
+- **`cap:transformer`** (one of the optional caps the host supports) is
+  not exercised. The how-to lists it under "future" because no schema-
+  driven derivation exists yet.
+
+### End-state summary (v0.4.0 re-trial)
+
+| Question | Answer |
+|---|---|
+| Did the bridge succeed end-to-end? | Yes, after 2 fixes (`scaffold.ts` kebab; renderer target convention). |
+| Are all tests green? | Yes, **1096/1096** (was 1080/1080 pre-trial; +16 from the new plugin tests). |
+| Plugin tests pass? | Yes, **40/40** across 9 files. |
+| Bridge package tests pass? | Yes, 151/151 (unchanged). |
+| Output deterministic? | Yes, byte-stable across runs and processes. The drift gate (`--check` in fresh subprocess) is exercised by `determinism.test.ts`. |
+| Spec gaps surfaced? | One general + one realization-specific clause needed (§11.8 + §5.5). Both ratified on the MCP as `spec-fdpm-bridge@0.2.3` and `spec-fdpm-bridge-zod@0.2.4`. |
+| Bridge bugs surfaced? | One: `scaffold.ts` `local_name` derivation broken for variant primitives with underscored tails. Latent in v0.3.0 (no variant-per-primitive coverage); fixed for v0.4.0. |
+| Plugin defects surfaced? | One: initial renderer wiring used a fragment URI as `target`. Fixed by following the bare-mime + `rendererId` convention used by other host plugins. |
+| Ready to ship as `acme.pitch-deck@0.1.0`? | Yes. The plugin is contract-conformant against the how-to, with CI gates enforcing every regression class the how-to lists. |
+
+### Files touched (v0.4.0 re-trial)
+
+Bridge package:
+
+- [`packages/zod-bridge/src/scaffold.ts`](../../fdpm-cli/packages/zod-bridge/src/scaffold.ts) —
+  new `kebabTail()` for host-valid `local_name` derivation.
+
+Plugin (new):
+
+- [`plugins/acme_pitch_deck/sidecar.ts`](../../fdpm-cli/plugins/acme_pitch_deck/sidecar.ts) —
+  extracted from `index.ts`; adds `variantFieldsByEntity()`,
+  `validatorSchemaFor()`.
+- [`plugins/acme_pitch_deck/scripts/run-bridge.ts`](../../fdpm-cli/plugins/acme_pitch_deck/scripts/run-bridge.ts) —
+  16-file emission, `--check` drift gate, schema-hash gate.
+- [`plugins/acme_pitch_deck/package.json`](../../fdpm-cli/plugins/acme_pitch_deck/package.json) —
+  peer-deps + scripts.
+- [`plugins/acme_pitch_deck/README.md`](../../fdpm-cli/plugins/acme_pitch_deck/README.md) —
+  Product Page consuming `product-page-bundle.json`.
+- [`plugins/acme_pitch_deck/generated/`](../../fdpm-cli/plugins/acme_pitch_deck/generated/) —
+  7 bridge artefacts including new `schema-hash.json`.
+- [`plugins/acme_pitch_deck/capabilities/`](../../fdpm-cli/plugins/acme_pitch_deck/capabilities/) —
+  8 per-Entity capability descriptors.
+- [`.github/workflows/plugin-acme-pitch-deck.yml`](../../fdpm-cli/.github/workflows/plugin-acme-pitch-deck.yml) —
+  CI gate.
+
+Plugin (modified):
+
+- [`plugins/acme_pitch_deck/index.ts`](../../fdpm-cli/plugins/acme_pitch_deck/index.ts) —
+  imports sidecar; runtime drift assertion; per-variant validator
+  registration; renderer/importer/exporter wiring.
+- [`plugins/acme_pitch_deck/fdpm-plugin.json`](../../fdpm-cli/plugins/acme_pitch_deck/fdpm-plugin.json) —
+  regenerated (55 capabilities, 6 permissions).
+
+Plugin tests (new):
+
+- [`tests/plugins/acme_pitch_deck/bridge-mapping.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/bridge-mapping.test.ts)
+- [`tests/plugins/acme_pitch_deck/cel-translation.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/cel-translation.test.ts)
+- [`tests/plugins/acme_pitch_deck/validator-equivalence.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/validator-equivalence.test.ts)
+- [`tests/plugins/acme_pitch_deck/roundtrip.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/roundtrip.test.ts)
+- [`tests/plugins/acme_pitch_deck/determinism.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/determinism.test.ts)
+- [`tests/plugins/acme_pitch_deck/expr-helper-purity.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/expr-helper-purity.test.ts)
+- [`tests/plugins/acme_pitch_deck/failure-modes.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/failure-modes.test.ts)
+- [`tests/plugins/acme_pitch_deck/manifest-parity.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/manifest-parity.test.ts)
+- [`tests/plugins/acme_pitch_deck/version-bump.test.ts`](../../fdpm-cli/tests/plugins/acme_pitch_deck/version-bump.test.ts)
+
+Spec workbooks (MCP):
+
+- `spec-fdpm-bridge` rev **0.2.3** — §11.8 added.
+- `spec-fdpm-bridge-zod` rev **0.2.4** — §5.5 added.
+- `spec-domain-sidecar` — unchanged.
