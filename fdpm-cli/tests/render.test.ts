@@ -347,4 +347,95 @@ describe("runRenderer — disambiguation", () => {
       }),
     ).rejects.toThrow(/no renderer registered/);
   });
+
+  // Regression: prior to the v0.1.2 findRenderer fix, multiple
+  // plugins registering the same target (text/markdown is shared by
+  // formal_specification → fs:SpecRenderer, spec_authoring →
+  // spec:SpecMarkdownRenderer, _starter → recipe:ShoppingListRenderer,
+  // and a few others) caused findRenderer to return whichever plugin
+  // happened to load first. The result depended on directory walk
+  // order and broke any test that asked for text/markdown without
+  // an explicit rendererId. The fix: when `rendererId` is omitted
+  // but a profile is supplied, prefer renderers declared in the
+  // profile's renderer_bindings. The two tests below pin that
+  // behaviour against real in-tree plugins.
+  it("prefers the profile-declared renderer when multiple plugins share a target", async () => {
+    const host = await newFsHostWithPaper();
+    const slice = host.getProject("paper");
+    const profile = host.profiles.getResolved(slice.workbook.profile_id);
+    // Multiple in-tree plugins register text/markdown; bind sanity-
+    // check before we run, so the test fails informatively if the
+    // fixture changes underneath us.
+    const targetCount = host.plugins
+      .listRenderers()
+      .filter((r) => r.target === "text/markdown").length;
+    expect(targetCount).toBeGreaterThan(1);
+    // No rendererId, no fragment — relies on profile-aware
+    // disambiguation. The formal-specification profile's
+    // renderer_bindings list `fs:SpecRenderer` for text/markdown.
+    const out = await host.plugins.runRenderer("text/markdown", {
+      workbookId: "paper",
+      primitives: Object.values(slice.primitives),
+      relations: Object.values(slice.relations),
+      profile,
+    });
+    expect(out.rendererId).toBe("fs:SpecRenderer");
+  });
+
+  it("findRenderer is profile-aware: same target, two profiles, different winners", async () => {
+    const host = await newFsHost();
+    // Anchor the assumption: the in-tree plugin set must include
+    // both the fs and the recipe renderers under text/markdown for
+    // this regression to cover anything.
+    const fsReg = host.plugins
+      .listRenderers()
+      .find((r) => r.rendererId === "fs:SpecRenderer");
+    const recipeReg = host.plugins
+      .listRenderers()
+      .find((r) => r.rendererId === "recipe:ShoppingListRenderer");
+    expect(fsReg).toBeDefined();
+    expect(recipeReg).toBeDefined();
+
+    // Use the formal-specification profile → expect fs:SpecRenderer.
+    const fsProfile = host.profiles.getResolved(PROFILE_ID);
+    const pickedForFs = host.plugins.findRenderer(
+      "text/markdown",
+      undefined,
+      fsProfile,
+    );
+    expect(pickedForFs?.rendererId).toBe("fs:SpecRenderer");
+
+    // Use the _starter profile → expect recipe:ShoppingListRenderer.
+    // (The _starter plugin's profile id is "profile:starter:0.1".)
+    const recipeProfile = host.profiles.getResolved("profile:starter:0.1");
+    const pickedForRecipe = host.plugins.findRenderer(
+      "text/markdown",
+      undefined,
+      recipeProfile,
+    );
+    expect(pickedForRecipe?.rendererId).toBe("recipe:ShoppingListRenderer");
+
+    // No profile, no rendererId → falls back to first-by-insertion.
+    // We assert the call returns SOMETHING that targets text/markdown
+    // rather than asserting which one — insertion order is not part
+    // of the contract, only that the function is total in this case.
+    const fallback = host.plugins.findRenderer("text/markdown");
+    expect(fallback?.target).toBe("text/markdown");
+  });
+
+  it("explicit rendererId always wins, even against a contradicting profile", async () => {
+    // Profile-aware disambiguation is a default for the no-id path;
+    // a caller-supplied rendererId is an assertion that must NOT be
+    // overridden. This test guards against a future "helpful" tweak
+    // that prefers profile bindings even when an id is given.
+    const host = await newFsHost();
+    const fsProfile = host.profiles.getResolved(PROFILE_ID);
+    // Ask for the recipe renderer while passing the fs profile.
+    const reg = host.plugins.findRenderer(
+      "text/markdown",
+      "recipe:ShoppingListRenderer",
+      fsProfile,
+    );
+    expect(reg?.rendererId).toBe("recipe:ShoppingListRenderer");
+  });
 });

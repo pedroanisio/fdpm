@@ -155,8 +155,10 @@ export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
 
     // Verify the renderer is registered before invoking. Pass the
     // optional `rendererId` so a fragment-disambiguated URI selects
-    // the right one when multiple plugins share a target.
-    const renderer = host.plugins.findRenderer(matched.target, matched.rendererId);
+    // the right one when multiple plugins share a target, and pass
+    // the workbook's profile so profile-declared renderer_bindings
+    // win over insertion order when no fragment is given.
+    const renderer = host.plugins.findRenderer(matched.target, matched.rendererId, profile);
     if (renderer === undefined) {
       throw new FDPMException(
         "not_found",

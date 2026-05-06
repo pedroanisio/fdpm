@@ -190,10 +190,19 @@ describe("listResources / listTemplates", () => {
     }
   });
 
-  it("returns no entries when there are no workbooks", async () => {
+  it("emits no render entries when there are no workbooks", async () => {
+    // Pre-v0.1.2 this test asserted listResources was globally empty
+    // — true while render was the only provider. With the profile
+    // provider also wired in (v0.1.2) the registry-aggregated list
+    // always includes the profiles index plus one entry per
+    // registered profile. The render-specific invariant is what we
+    // actually care about: a host with zero workbooks contributes
+    // zero render URIs.
     const host = await freshHost();
-    const resources = listResources(host);
-    expect(resources.length).toBe(0);
+    const renderEntries = listResources(host).filter((e) =>
+      e.uri.includes("/render/"),
+    );
+    expect(renderEntries.length).toBe(0);
   });
 });
 

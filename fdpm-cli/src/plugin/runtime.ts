@@ -549,21 +549,55 @@ export class PluginRuntime implements PluginRuntimeFacade {
 
   /**
    * Locate a registered renderer by `target` (the MIME type or symbolic
-   * id the renderer was registered under). When multiple renderers are
-   * registered against the same target — possible only across distinct
-   * `rendererId` values within a single plugin since cross-plugin slot
-   * uniqueness covers `(target, rendererId)` — `rendererId` disambiguates.
+   * id the renderer was registered under).
+   *
+   * Disambiguation order when more than one renderer is registered
+   * against the same `target` (e.g. several profiles ship a
+   * text/markdown renderer):
+   *
+   *   1. If `rendererId` is given, take the exact match. Caller-
+   *      asserted; never overridden by profile bindings.
+   *   2. If `profile` is given, take the first renderer whose
+   *      `rendererId` appears in the profile's `renderer_bindings`
+   *      (or the `renderers` alias — Python parity). Profiles that
+   *      declare `text/markdown → fs:SpecRenderer` get
+   *      `fs:SpecRenderer` even when other plugins also registered
+   *      `text/markdown`. This is the safety net that keeps a
+   *      formal-specification workbook from rendering through a
+   *      recipe-themed plugin merely because the recipe plugin
+   *      loaded first.
+   *   3. Otherwise, return the first renderer matching `target` by
+   *      insertion order. Backwards-compatible with pre-profile
+   *      callers (no behaviour change for single-binding targets).
    */
   findRenderer(
     target: string,
     rendererId?: string,
+    profile?: { renderer_bindings?: readonly { renderer_id?: string }[]; renderers?: readonly { renderer_id?: string }[] },
   ): (RendererRegistration & { pluginId: string }) | undefined {
+    let firstMatch: (RendererRegistration & { pluginId: string }) | undefined;
     for (const reg of this.renderers.values()) {
       if (reg.target !== target) continue;
       if (rendererId != null && reg.rendererId !== rendererId) continue;
-      return reg;
+      // Caller-supplied id wins outright, no profile fallback search.
+      if (rendererId != null) return reg;
+      if (firstMatch === undefined) firstMatch = reg;
     }
-    return undefined;
+    if (rendererId != null) return undefined;
+
+    // Profile-aware disambiguation. The bindings list is small (one
+    // per output format per profile), so the linear scan is cheap.
+    if (profile !== undefined) {
+      const declared = collectDeclaredRendererIds(profile);
+      if (declared.size > 0) {
+        for (const reg of this.renderers.values()) {
+          if (reg.target !== target) continue;
+          if (declared.has(reg.rendererId)) return reg;
+        }
+      }
+    }
+
+    return firstMatch;
   }
 
   /**
@@ -582,7 +616,13 @@ export class PluginRuntime implements PluginRuntimeFacade {
     input: RendererInput,
     options?: { rendererId?: string },
   ): Promise<RendererOutput & { pluginId: string; rendererId: string }> {
-    const reg = this.findRenderer(target, options?.rendererId);
+    // Pass the workbook's profile to findRenderer so a target shared
+    // by multiple plugins (e.g. text/markdown registered by both
+    // formal_specification and _starter) is disambiguated by the
+    // profile's renderer_bindings instead of falling through to
+    // insertion order. See findRenderer for the full disambiguation
+    // contract.
+    const reg = this.findRenderer(target, options?.rendererId, input.profile);
     if (!reg)
       throw new PluginError(
         "lifecycle",
@@ -653,6 +693,35 @@ export class PluginRuntime implements PluginRuntimeFacade {
     if (!r) throw new PluginError("lifecycle", `plugin not found: ${id}`, { pluginId: id });
     return r;
   }
+}
+
+/**
+ * Collect the renderer ids declared by a profile. A profile's
+ * `renderer_bindings` is the CLI-native list; `renderers` is the
+ * Python-source alias (`compileProfile` keeps both populated). Either
+ * may carry an entry shaped `{ renderer_id: "...", ... }`. We accept
+ * both because the registry stores raw profiles in whichever shape
+ * was registered, and `findRenderer` is called from paths that can
+ * see either form (resolved profiles are merges of both).
+ */
+function collectDeclaredRendererIds(
+  profile: {
+    renderer_bindings?: readonly { renderer_id?: string }[];
+    renderers?: readonly { renderer_id?: string }[];
+  },
+): Set<string> {
+  const out = new Set<string>();
+  for (const binding of profile.renderer_bindings ?? []) {
+    if (typeof binding.renderer_id === "string" && binding.renderer_id.length > 0) {
+      out.add(binding.renderer_id);
+    }
+  }
+  for (const binding of profile.renderers ?? []) {
+    if (typeof binding.renderer_id === "string" && binding.renderer_id.length > 0) {
+      out.add(binding.renderer_id);
+    }
+  }
+  return out;
 }
 
 /**

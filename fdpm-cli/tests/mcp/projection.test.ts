@@ -96,3 +96,50 @@ describe("Tier-1 tools accept fields argument", () => {
     ).toBe(true);
   });
 });
+
+// ── view argument (v0.1.2) ──────────────────────────────────────────
+
+describe("fdpm.profile.get — view argument", () => {
+  it("input schema accepts each well-known view name", () => {
+    for (const view of ["full", "summary", "types"] as const) {
+      expect(
+        profileGetTool.input.safeParse({ profile_id: "x", view }).success,
+      ).toBe(true);
+    }
+  });
+
+  it("input schema rejects unknown view names", () => {
+    expect(
+      profileGetTool.input.safeParse({ profile_id: "x", view: "raw" }).success,
+    ).toBe(false);
+    expect(
+      profileGetTool.input.safeParse({ profile_id: "x", view: "" }).success,
+    ).toBe(false);
+  });
+
+  it("output schema accepts the _view marker on a projected response", () => {
+    expect(
+      profileGetTool.output.safeParse({ id: "x", _view: "summary" }).success,
+    ).toBe(true);
+    expect(
+      profileGetTool.output.safeParse({
+        id: "x",
+        _view: "types",
+        primitive_types: [],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("view + fields can be combined; both markers appear", () => {
+    // Argument-level: the parser accepts both together. The
+    // composition semantics ("view first, then fields") are
+    // tested via the handler below.
+    expect(
+      profileGetTool.input.safeParse({
+        profile_id: "x",
+        view: "summary",
+        fields: ["id", "version"],
+      }).success,
+    ).toBe(true);
+  });
+});

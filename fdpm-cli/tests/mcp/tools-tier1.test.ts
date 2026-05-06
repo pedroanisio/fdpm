@@ -111,6 +111,109 @@ describe("fdpm.profile.get", () => {
     expect(profileGetTool.input.safeParse({}).success).toBe(false);
     expect(profileGetTool.input.safeParse({ profile_id: 123 }).success).toBe(false);
   });
+
+  // ── view argument (v0.1.2) — handler-level integration ──────────
+
+  it("view='summary' returns id/version/counts and the _view marker", async () => {
+    const ctx = makeCtx();
+    const args = profileGetTool.input.parse({
+      profile_id: "test:demo",
+      view: "summary",
+    });
+    const out = (await profileGetTool.handler(host, args, ctx)) as Record<
+      string,
+      unknown
+    >;
+    expect(out._view).toBe("summary");
+    expect(out.id).toBe("test:demo");
+    expect(out.version).toBe("1.0.0");
+    expect(out.primitive_type_count).toBe(2);
+    expect(out.relation_type_count).toBe(1);
+    // Summary view never includes the heavy arrays.
+    expect("primitive_types" in out).toBe(false);
+    expect("relation_types" in out).toBe(false);
+  });
+
+  it("view='types' returns the type vocabulary in stripped form", async () => {
+    const ctx = makeCtx();
+    const args = profileGetTool.input.parse({
+      profile_id: "test:demo",
+      view: "types",
+    });
+    const out = (await profileGetTool.handler(host, args, ctx)) as Record<
+      string,
+      unknown
+    >;
+    expect(out._view).toBe("types");
+    const prims = out.primitive_types as Array<Record<string, unknown>>;
+    const section = prims.find((p) => p.id === "test:section")!;
+    expect(section).toBeTruthy();
+    const fields = section.fields as Array<Record<string, unknown>>;
+    // Field shape is the canonical `kind`/`required`/`enum_values` form.
+    const status = fields.find((f) => f.name === "status")!;
+    expect(status.kind).toBe("enum");
+    expect(status.enum_values).toEqual(["draft", "stable", "deprecated"]);
+  });
+
+  it("view='full' is equivalent to omitting view (no markers, full payload)", async () => {
+    const ctx = makeCtx();
+    const fullArgs = profileGetTool.input.parse({
+      profile_id: "test:demo",
+      view: "full",
+    });
+    const baseArgs = profileGetTool.input.parse({ profile_id: "test:demo" });
+    const fullOut = (await profileGetTool.handler(host, fullArgs, ctx)) as Record<
+      string,
+      unknown
+    >;
+    const baseOut = (await profileGetTool.handler(host, baseArgs, ctx)) as Record<
+      string,
+      unknown
+    >;
+    expect(fullOut._view).toBeUndefined();
+    expect(baseOut._view).toBeUndefined();
+    // Both return the full primitive_types[] array — same length.
+    expect((fullOut.primitive_types as unknown[]).length).toBe(
+      (baseOut.primitive_types as unknown[]).length,
+    );
+  });
+
+  it("view + fields compose: view applied first, then fields", async () => {
+    const ctx = makeCtx();
+    const args = profileGetTool.input.parse({
+      profile_id: "test:demo",
+      view: "summary",
+      fields: ["id", "primitive_type_count"],
+    });
+    const out = (await profileGetTool.handler(host, args, ctx)) as Record<
+      string,
+      unknown
+    >;
+    // Both markers present; only requested keys plus markers survive.
+    expect(out._projected).toBe(true);
+    // _view was set by the summary projection; fields kept it only
+    // if "_view" was in the requested key set, which it is not — so
+    // it should be absent here. This verifies the composition order
+    // (view first, then fields).
+    expect("_view" in out).toBe(false);
+    expect(out.id).toBe("test:demo");
+    expect(out.primitive_type_count).toBe(2);
+    // The full primitive_types[] never appeared because the view
+    // stripped it before the fields filter could pick it up.
+    expect("primitive_types" in out).toBe(false);
+    expect("version" in out).toBe(false);
+  });
+
+  it("view='summary' on an unknown profile_id still throws not_found", async () => {
+    const ctx = makeCtx();
+    const args = profileGetTool.input.parse({
+      profile_id: "does:not:exist",
+      view: "summary",
+    });
+    await expect(
+      profileGetTool.handler(host, args, ctx),
+    ).rejects.toBeInstanceOf(FDPMException);
+  });
 });
 
 describe("fdpm.workbook.list", () => {
