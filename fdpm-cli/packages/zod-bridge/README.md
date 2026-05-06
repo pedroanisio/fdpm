@@ -1,0 +1,176 @@
+---
+disclaimer:
+  notice: >-
+    No information within this document should be taken for granted.
+    Any statement or premise not backed by a real logical definition
+    or verifiable reference may be invalid, erroneous, or a hallucination.
+  generated_by: "Claude Opus 4.7 (1M context) via Claude Code"
+  date: "2026-05-06"
+---
+
+# `@fdpm/zod-bridge`
+
+> Deterministic, one-way translation from **Zod v4** schemas into FDPM
+> `PrimitiveTypeDef`s, CEL constraints, validators, and approval-page
+> descriptors.
+
+## Disclaimer
+
+This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](../../../DISCLAIMER.md).
+> No statement or premise not backed by a real logical definition or verifiable reference should be taken for granted.
+
+## Status
+
+`v0.1.0` — core bridge functions implemented and tested. Optional-cap factories
+(`zodSchemaToMarkdownRenderer`, `zodSchemaToImporter`, `zodSchemaToExporter`,
+`zodSchemaToExprHelper`) are deferred to `v0.2.0`; the workbook §7 examples
+show how to hand-author them in the meantime.
+
+## Specification
+
+This package is the reference implementation of the workbook
+[`howto-zod-to-fdpm-plugin`](fdpm://workbook/howto-zod-to-fdpm-plugin)
+(revision 179). Every claim the package makes — soundness, determinism,
+validator-Zod equivalence — is encoded as an `fs:FormalProperty` and verified
+by an `fs:TestCase` in the `tests/` directory.
+
+## Install
+
+```bash
+npm install @fdpm/zod-bridge zod@^4
+```
+
+`zod` is a peer dependency. The bridge itself depends only on
+`@marcbachmann/cel-js` for offline CEL syntax compatibility.
+
+## Quick start
+
+```ts
+import { z } from 'zod';
+import { assembleDomainProfile, stableStringify } from '@fdpm/zod-bridge';
+
+const Customer = z.object({
+  id: z.string().regex(/^cust-[a-z0-9]+$/),
+  name: z.string().min(1).max(120),
+  tier: z.enum(['free', 'pro', 'enterprise']),
+  age: z.number().int().nonnegative().optional(),
+  tags: z.array(z.string()).max(8),
+});
+
+const result = assembleDomainProfile({
+  schemas: { Customer },
+  options: {
+    profileId: 'profile:acme-customers:0.1',
+    vendor: 'acme',
+    pluginVersion: '0.1.0',
+    hostCompatibility: '>=0.5.0 <0.6.0',
+  },
+  pluginId: 'acme.customers',
+  schemaSources: { Customer: 'schemas/customer.ts' },
+});
+
+// Write the four artefacts to disk for the CI snapshot gate.
+import { writeFileSync } from 'node:fs';
+writeFileSync('generated/profile.json', stableStringify(result.profile));
+writeFileSync('generated/view-page.json', stableStringify(result.viewPage));
+writeFileSync('generated/product-page-bundle.json', stableStringify(result.productPage));
+writeFileSync('generated/migration-hints.json', stableStringify(result.migrationHints));
+```
+
+## What gets emitted
+
+| Artefact | Type | Purpose |
+|---|---|---|
+| `result.profile` | `DomainProfile` | Argument to `ctx.registerProfile()` at activation |
+| `result.viewPage` | `ViewPageDescriptor` | Served at `fdpm://plugin/<id>/view-page`; consumed by the web frontend |
+| `result.productPage` | `ProductPageBundle` | Structured facts for the README; drift-protected |
+| `result.migrationHints` | `MigrationHints` | Future `fdpm migrate` input ([`flag:auto-migration`](../../../docs/howto-zod-to-fdpm-plugin)) |
+| `result.ruleIdsByType` | `Record<id, string[]>` | Closed set of rule_ids the validator may emit; goes verbatim into `manifest.capabilities[].metadata.rule_ids` |
+
+## The 23 CEL translation rules
+
+The bridge emits CEL constraints for any Zod refinement that matches one of
+the 23 rows of [`type:ZodToCelTranslationTable`](fdpm://workbook/howto-zod-to-fdpm-plugin#type:ZodToCelTranslationTable).
+Refinements outside the table fall back to validator findings via `safeParse`.
+
+| # | Zod node | Emitted CEL fragment |
+|---|---|---|
+| 1–3 | `z.string().min/max/length(n)` | `size(self.x) {>= == <=} n` |
+| 4 | `z.string().regex(/p/)` (no flags) | `self.x.matches('p')` |
+| 5–7 | `.startsWith / .endsWith / .includes` | matching CEL methods |
+| 8 | `z.iso.datetime()` | `timestamp(self.x).getFullYear() > 0` |
+| 9–14 | `z.number()` `.min / .max / .gt / .lt / .positive / .negative / .nonneg / .nonpos` | comparison ops |
+| 15 | `.multipleOf(k)` | `self.x % k == 0` |
+| 16 | `z.enum([...])` | `self.x in [...]` |
+| 17–20 | `z.array(T)` `.min / .max / .length / .nonempty` | `size(self.x) ...` |
+| 21 | `.optional()` | (no CEL; field-level `required: false`) |
+| 22 | `.nullable()` | composes with inner |
+| 23 | `z.literal(v)` | `self.x == v` |
+
+## Feature flags
+
+Twelve `fs:Limitation` × `fs:DesignDecision` pairs in the workbook record
+*every* construct the bridge does not auto-translate, with a documented
+implementation path. Snapshot at `v0.1.0`:
+
+| State | Flags |
+|---|---|
+| `enabled` (default-on) | `flag:zod-intersection` |
+| `behind-flag` (opt-in escape hatch exists) | `flag:zod-cross-field-refine`, `flag:zod-discriminated-union`, `flag:zod-recursive-lazy`, `flag:zod-brand`, `flag:zod-regex-flags`, `flag:zod-pipe-transform`, `flag:zod-default` |
+| `disabled` (fallback only) | `flag:scope-server-only`, `flag:zod-v3-support`, `flag:auto-migration`, `flag:zod-async-refine`, `flag:zod-function-promise` |
+
+Each flag's `context` field on its paired `fs:DesignDecision` carries the
+five-tuple: `state | default | owner | sunset_criterion | migration_path |
+trigger_event`. Read those before opening an issue to lift a limitation.
+
+## Tests
+
+```bash
+npm test
+```
+
+Runs five suites mapping 1:1 to the workbook's `fs:TestCase` set:
+
+| Test file | Workbook TestCase | Property verified |
+|---|---|---|
+| `mapping.test.ts` | `testcase:bridge-mapping-table` | Field-mapping coverage |
+| `cel-translation.test.ts` | `testcase:cel-translation-table` | `property:cel-translation-soundness` |
+| `validator-equiv.test.ts` | `testcase:bridge-validator-equivalence` | `property:validator-zod-equivalence` |
+| `roundtrip.test.ts` | `testcase:bridge-roundtrip` | Importer/exporter round-trip |
+| `determinism.test.ts` | `testcase:bridge-determinism` | Byte-stable output for the CI gate |
+
+All 49 tests pass against `zod@4.4.3` + `@marcbachmann/cel-js@7.6.1`.
+
+## Public API
+
+```ts
+// Orchestrator
+function assembleDomainProfile(args: AssembleArgs): AssembleResult;
+
+// Per-step factories
+function zodSchemaToPrimitiveType(name, schema, opts);
+function zodSchemaToValidator(schema, opts);
+function zodSchemaToCelConstraints(schema, ctx);
+function buildViewPageDescriptor(pluginId, primitives, opts, generatedAt);
+function buildProductPageBundle(args);
+
+// Utility
+function stableStringify(value): string;
+```
+
+See `src/index.ts` for the complete export list.
+
+## Versioning
+
+The bridge follows semver. Output stability across patch versions is a
+contract: a `0.1.x` release MUST emit the same JSON for the same input. Minor
+version bumps (`0.x.0`) MAY change emitted JSON; consumers SHOULD expect to
+regenerate `generated/profile.json` and bump their plugin version when
+upgrading.
+
+## Related
+
+- Workbook (spec): `howto-zod-to-fdpm-plugin` (revision 179)
+- Plugin contract: `spec-plugin-authoring-howto`
+- Host CEL evaluator: `@marcbachmann/cel-js@^7`
+- Zod: `^4.0.0` (peer dep)

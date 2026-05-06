@@ -23,6 +23,57 @@ upgrade.
 
 ### Added
 
+#### `@fdpm/zod-bridge@0.1.0` — Zod v4 → FDPM plugin reference package
+
+New workspace-sibling package at [`packages/zod-bridge/`](packages/zod-bridge/).
+Deterministic, one-way translation from Zod v4 schemas into FDPM
+`PrimitiveTypeDef`s, CEL constraints, validators, and approval-page
+descriptors. Companion to the workbook `howto-zod-to-fdpm-plugin`
+(rev 179) which is the normative spec.
+
+  - **Public API** (`src/index.ts`): `assembleDomainProfile`,
+    `zodSchemaToPrimitiveType`, `zodSchemaToValidator`,
+    `zodSchemaToCelConstraints`, `buildViewPageDescriptor`,
+    `buildProductPageBundle`, `stableStringify`, `BridgeError`.
+  - **23-rule CEL translation table** (`src/cel.ts`) capped at the
+    verified host CEL surface (`@marcbachmann/cel-js@^7` operators
+    + helper-set v1.2.0 from `src/core/expr/std.ts` +
+    `graph.*` helpers). Rule 8 (`z.iso.datetime()`) emits
+    `timestamp(self.<f>).getFullYear() > 0` because cel-js v7 rejects
+    `Timestamp != null` at type-check; the workbook's table uses
+    `!= null` and will be patched in a follow-up rev.
+  - **Validator equivalence** (`src/validator.ts`): the derived
+    `ValidatorFn`'s findings are 1:1 with `schema.safeParse` issues
+    modulo namespaced rule_id rewriting
+    (`<plugin-id>:zod.<type>.<code>[.<path>]`). Rule_id closed set is
+    enumerated at build time and goes verbatim into
+    `manifest.capabilities[].metadata.rule_ids`.
+  - **Determinism** (`src/stable-stringify.ts`): same input → byte-equal
+    output across runs and processes. The CI snapshot gate
+    (`generated/profile.json` matches a fresh bridge run) is the
+    intended consumer; mismatches block the commit.
+  - **Auto-emitted approval pages**: `buildViewPageDescriptor` emits
+    one panel per primitive type with fields in schema-declared order,
+    `buildProductPageBundle` emits the structured fact bundle that
+    drives the README's Product Page. Eliminates schema-vs-page drift
+    by construction.
+  - **Feature-flag snapshot** (`DEFAULT_FEATURE_FLAG_STATES`): captures
+    the 13 `fs:Limitation`/`fs:DesignDecision` pairs from the workbook
+    at rev 179. One `enabled`, seven `behind-flag`, five `disabled`.
+    Each flag carries an explicit transition contract; advancing a
+    flag requires a paired bridge release and a workbook revision.
+  - **Tests** (`tests/`, 49 passing): mapping-table coverage,
+    cel-translation soundness (evaluated against the host CEL
+    runtime), validator equivalence, importer/exporter round-trip,
+    output determinism. Tested against `zod@4.4.3` +
+    `@marcbachmann/cel-js@7.6.1`.
+
+Deferred to `v0.2.0`: optional-cap factories
+(`zodSchemaToMarkdownRenderer`, `zodSchemaToImporter`,
+`zodSchemaToExporter`, `zodSchemaToExprHelper`). The workbook §7 shows
+how to hand-author them; bridge core is sufficient to ship a useful
+plugin today.
+
 #### SPEC-WORKSPACE v0.1 — Workspace as first-class primitive
 
 > ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some

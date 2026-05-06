@@ -929,6 +929,18 @@ Everything listed in SPEC §20 (Out of Scope) plus:
   persistent install marker, which is operator tooling deferred to a
   future SPEC.
 
+## Adjacent packages
+
+- [`fdpm-cli/packages/zod-bridge`](fdpm-cli/packages/zod-bridge/) —
+  `@fdpm/zod-bridge@0.1.0`. Deterministic, one-way translation from Zod v4
+  schemas into FDPM `PrimitiveTypeDef`s, CEL constraints, validators, and
+  approval-page descriptors. Reference implementation of the workbook
+  `howto-zod-to-fdpm-plugin` (rev 179): the schema is the source of truth,
+  the profile and view-page are derivations, and the CI snapshot gate keeps
+  them in sync. Targets Zod v4 explicitly; the host CLI itself stays on
+  Zod v3 — they coexist via peer-dependency installation in the consuming
+  plugin package.
+
 ## License
 
 Same as the parent workbook (see [../LICENSE](../LICENSE) if present).
