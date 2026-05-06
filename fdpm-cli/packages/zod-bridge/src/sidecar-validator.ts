@@ -404,8 +404,23 @@ function validateIdentity(name: string, entity: EntitySpec): void {
       }
       if (entity.idSchema) {
         const u = unwrap(ft);
-        // Reference equality on the unwrapped node, per §3.3.
-        if (u.inner !== entity.idSchema && ft !== entity.idSchema) {
+        // Per SPEC-DOMAIN-SIDECAR §3.3: reference equality on the
+        // Zod definition the idField points at. In Zod v4, `.describe()`
+        // returns a fresh wrapper instance whose `_def` is the SAME
+        // reference as the underlying schema — schema metadata, not a
+        // new schema. The check therefore matches on `_def` identity
+        // (or the wrapper itself, post-unwrap). This admits common
+        // `.describe()` chains while still catching genuinely
+        // independent z.string() / z.number() calls.
+        const ftDef = (ft as unknown as { _def?: unknown })._def;
+        const idDef = (entity.idSchema as unknown as { _def?: unknown })._def;
+        const innerDef = (u.inner as unknown as { _def?: unknown })._def;
+        const matches =
+          u.inner === entity.idSchema ||
+          ft === entity.idSchema ||
+          (ftDef !== undefined && ftDef === idDef) ||
+          (innerDef !== undefined && innerDef === idDef);
+        if (!matches) {
           throw new SidecarError(
             "sidecar:identity-schema-mismatch",
             `entity "${name}".idSchema is not reference-equal to the type of field "${entity.idField}"`,
