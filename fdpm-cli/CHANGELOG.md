@@ -21,6 +21,26 @@ upgrade.
 
 ## [Unreleased]
 
+### Fixed
+
+#### `@fdpm/zod-bridge@0.1.1` — six trial-surfaced correctness fixes
+
+A trial run of `@fdpm/zod-bridge@0.1.0` against a real production
+schema (`static/schemas/pitch-deck.schema.v2.ts`) surfaced six bugs.
+All fixed with paired regression tests; full narrative at
+[`docs/journals/zod-bridge-pitch-deck-trial.md`](../docs/journals/zod-bridge-pitch-deck-trial.md);
+documentation workbook at MCP `trial-zod-bridge-pitch-deck` (rev 32).
+
+  - Decoupled lazy-recursion bound from object nesting depth.
+  - Fixed quadratic struct-name compounding in nested objects.
+  - Accepted `.transform()`/`.pipe()` per `flag:zod-pipe-transform`.
+  - Field-level `z.union` and `z.discriminatedUnion` now fall back to
+    payload-blob (`format: 'json-union'`) instead of throwing.
+  - Added a `z.record` branch (`format: 'json-record'`).
+  - Disambiguated array-element struct ids by parent field name.
+
+61/61 tests passing (was 49/49).
+
 ### Added
 
 #### `@fdpm/zod-bridge@0.1.0` — Zod v4 → FDPM plugin reference package

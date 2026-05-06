@@ -15,10 +15,10 @@ export interface UnwrappedSchema {
   brand: boolean;
 }
 
-const UNSUPPORTED_WRAPPERS = new Set([
+/** Wrappers we reject outright — no representable storage shape. */
+const HARD_REJECT_WRAPPERS = new Set([
   "promise",
   "function",
-  "pipe",
 ]);
 
 export class BridgeError extends Error {
@@ -70,12 +70,22 @@ export function unwrap(schema: z.ZodType): UnwrappedSchema {
       cursor = def.innerType as z.ZodType;
       continue;
     }
-    if (type && UNSUPPORTED_WRAPPERS.has(type)) {
+    if (type === "pipe") {
+      // flag:zod-pipe-transform (behind-flag, default=validate-pre-transform).
+      // Walk the input side; the post-transform value is the workbook author's
+      // responsibility. Per Zod v4, _def.in is the source side, _def.out is the
+      // transformed side; older releases used innerType. We probe both.
+      const pipeIn =
+        ((cursor as unknown as { _def?: { in?: z.ZodType } })._def?.in as z.ZodType | undefined) ??
+        (def.innerType as z.ZodType | undefined);
+      if (!pipeIn) break;
+      cursor = pipeIn;
+      continue;
+    }
+    if (type && HARD_REJECT_WRAPPERS.has(type)) {
       throw new BridgeError(
         `Zod node type \`${type}\` is not supported by the bridge.`,
-        type === "function" || type === "promise"
-          ? "flag:zod-function-promise"
-          : "flag:zod-pipe-transform",
+        "flag:zod-function-promise",
         { node_type: type },
       );
     }

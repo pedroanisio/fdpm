@@ -23,9 +23,10 @@ export interface MapFieldContext {
   typePath: readonly string[];
   /** Lift markers (decision:nesting-strategy). */
   liftMarkers?: WeakSet<z.ZodType>;
-  /** Recursion depth bound (flag:zod-recursive-lazy). */
+  /** Lazy-recursion bound (flag:zod-recursive-lazy). Counts only z.lazy unwrapping. */
   recursionDepth: number;
-  currentDepth: number;
+  /** How many z.lazy nodes have been entered on the current path. */
+  lazyDepth: number;
 }
 
 export interface MappedField {
@@ -38,9 +39,11 @@ export function mapField(
   schema: z.ZodType,
   ctx: MapFieldContext,
 ): MappedField {
-  if (ctx.currentDepth > ctx.recursionDepth) {
+  // Recursion bound applies ONLY to z.lazy unwrapping, not to plain object
+  // nesting. Bumped when we enter a lazy node below.
+  if (ctx.lazyDepth > ctx.recursionDepth) {
     throw new BridgeError(
-      `recursion depth bound ${ctx.recursionDepth} exceeded at ${ctx.typePath.join(".")}.${ctx.fieldName}`,
+      `z.lazy recursion depth bound ${ctx.recursionDepth} exceeded at ${ctx.typePath.join(".")}.${ctx.fieldName}`,
       "flag:zod-recursive-lazy",
       { depth_bound: ctx.recursionDepth, path: ctx.typePath, field: ctx.fieldName },
     );
@@ -53,16 +56,22 @@ export function mapField(
     // flag:zod-brand defaults to strip; we proceed with the underlying type.
   }
 
-  // Reject z.discriminatedUnion / z.union / z.intersection variants the bridge
-  // does not yet auto-translate (flag:zod-discriminated-union default is
-  // variant-per-primitive but that requires multi-schema context, not field-
-  // level). At field level we surface the limitation.
+  // flag:zod-discriminated-union — at the field level we cannot emit a
+  // variant-per-primitive split (that requires schema-set context). Emit a
+  // payload-blob field instead: kind=string, format=json-union. The validator
+  // (safeParse) still enforces the union's per-variant rules end-to-end.
+  // Authors who need split storage hoist the union to the schemas map and the
+  // bridge generates one PrimitiveTypeDef per variant at the orchestrator
+  // layer (future v0.2.0).
   if (u.type === "union" || u.type === "discriminated_union") {
-    throw new BridgeError(
-      `union/discriminated_union at field level is not yet supported at the field-mapping layer.`,
-      "flag:zod-discriminated-union",
-      { node_type: u.type, path: ctx.typePath, field: ctx.fieldName },
-    );
+    const field: FieldDef = {
+      name: ctx.fieldName,
+      kind: "string",
+      required: !u.optional && !u.defaulted,
+      format: "json-union",
+      ...(u.nullable ? { nullable: true } : {}),
+    };
+    return { field, enums: [], inlineStructs: [] };
   }
   if (u.type === "intersection") {
     throw new BridgeError(
@@ -139,22 +148,29 @@ export function mapField(
         validations.push({ kind: "max_items", value: c.maximum as number, level: "error" });
       }
     }
+    // Disambiguate item structs by absorbing the array's own field name into
+    // the typePath. `tags: z.array(z.object(...))` → struct id ends in "Tags",
+    // not collides with every other array's "Item".
     const sub = mapField(element, {
       ...ctx,
-      fieldName: "_item",
-      currentDepth: ctx.currentDepth + 1,
+      fieldName: `${ctx.fieldName}Item`,
+      typePath: ctx.typePath,
+      lazyDepth: ctx.lazyDepth,
     });
     item_field = sub.field;
     enums.push(...sub.enums);
     inlineStructs.push(...sub.inlineStructs);
   } else if (u.type === "object") {
     // Lifted? -> emit relation handled at the orchestrator layer.
+    // Struct id is the typePath plus the current fieldName, NOT typePath
+    // joined with itself. Compounding here was a bug.
+    const fieldPath = [...ctx.typePath, pascalCase(ctx.fieldName)];
+    const structName = fieldPath.join("");
     if (ctx.liftMarkers && ctx.liftMarkers.has(u.inner)) {
       kind = "relation";
-      struct_id = pascalCase(`${ctx.typePath.join("")}_${ctx.fieldName}`);
+      struct_id = structName;
     } else {
       kind = "struct";
-      const structName = pascalCase(`${ctx.typePath.join("")}_${ctx.fieldName}`);
       struct_id = structName;
       const shape = getObjectShape(u.inner);
       if (shape) {
@@ -163,8 +179,8 @@ export function mapField(
           const sub = mapField(subSchema, {
             ...ctx,
             fieldName: subName,
-            typePath: [...ctx.typePath, structName],
-            currentDepth: ctx.currentDepth + 1,
+            typePath: fieldPath,
+            lazyDepth: ctx.lazyDepth,
           });
           subFields.push(sub.field);
           enums.push(...sub.enums);
@@ -173,12 +189,23 @@ export function mapField(
         inlineStructs.push({ id: structName, fields: subFields });
       }
     }
+  } else if (u.type === "record") {
+    // flag:zod-pipe-transform-adjacent: z.record(K, V) has no clean primitive
+    // representation. Emit as opaque JSON-encoded string and let the validator
+    // (safeParse) enforce key/value rules. Documented as a partial mapping.
+    kind = "string";
+    format = "json-record";
   } else if (u.type === "lazy") {
-    throw new BridgeError(
-      `z.lazy recursive schemas exceed the configured depth bound`,
-      "flag:zod-recursive-lazy",
-      { path: ctx.typePath, field: ctx.fieldName },
-    );
+    // Unwrap one level of z.lazy and recurse with bumped lazyDepth.
+    const lazyInner = (u.inner as unknown as { _def?: { getter?: () => z.ZodType } })._def?.getter?.();
+    if (!lazyInner) {
+      throw new BridgeError(
+        `z.lazy without resolvable getter at ${ctx.typePath.join(".")}.${ctx.fieldName}`,
+        "flag:zod-recursive-lazy",
+        { path: ctx.typePath, field: ctx.fieldName },
+      );
+    }
+    return mapField(lazyInner, { ...ctx, lazyDepth: ctx.lazyDepth + 1 });
   } else {
     throw new BridgeError(
       `unsupported Zod node type at ${ctx.typePath.join(".")}.${ctx.fieldName}: ${u.type}`,

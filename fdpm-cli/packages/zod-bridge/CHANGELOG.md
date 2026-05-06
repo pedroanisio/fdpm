@@ -18,6 +18,62 @@ emit the same JSON for the same input. Minor version bumps (`0.x.0`) MAY change
 emitted JSON; consumers should expect to regenerate `generated/profile.json`
 and bump their plugin version when upgrading.
 
+## [0.1.1] — 2026-05-06
+
+Patch release. Six correctness fixes surfaced by a real-schema trial
+([`docs/journals/zod-bridge-pitch-deck-trial.md`](../../../docs/journals/zod-bridge-pitch-deck-trial.md))
+against `static/schemas/pitch-deck.schema.v2.ts` (1347 lines, 13 named
+sub-schemas, 2 discriminated unions, 1 z.record, 1 .transform() chain).
+Each fix has a paired test in `tests/regressions.test.ts`.
+
+### Fixed
+
+- **Recursion-depth conflated with object nesting.** `mapField` counted
+  plain `z.object` nesting against `recursionDepth`, tripping
+  `flag:zod-recursive-lazy` on any 2-deep schema. Now `lazyDepth`
+  tracks `z.lazy` unwrapping separately; object nesting is unbounded.
+  ([`field-mapping.ts`](src/field-mapping.ts), trial failure:1.)
+- **Struct-name compounding.** Recursive calls passed the full struct
+  id as a typePath segment, producing quadratic names like
+  `PitchDeckPitchDeckDesignSystemPalette`. Now passes
+  `pascalCase(fieldName)` only; struct ids stay linear in depth.
+  ([`field-mapping.ts`](src/field-mapping.ts), trial failure:2.)
+- **`.transform()` / `.pipe()` hard-rejected.** `walker.ts` lumped `pipe`
+  with `function`/`promise`. Per `flag:zod-pipe-transform` (state=
+  behind-flag, default=validate-pre-transform) the bridge should walk
+  the input side, not reject. Now does. `function` and `promise` remain
+  hard rejects. ([`walker.ts`](src/walker.ts), trial failure:3.)
+- **`z.union` / `z.discriminatedUnion` rejected at field level.**
+  Variant-per-primitive splitting needs schema-set context that field
+  mapping does not have; field-level fallback is payload-blob (string +
+  `format: 'json-union'`), with end-to-end semantics enforced by the
+  validator. ([`field-mapping.ts`](src/field-mapping.ts), trial failure:4.)
+- **`z.record` had no field-mapping branch.** Fell through to the
+  unknown-type catch with an ad-hoc flag id. Now emits string +
+  `format: 'json-record'`. ([`field-mapping.ts`](src/field-mapping.ts),
+  trial failure:5.)
+- **Array-element struct id collisions.** Multiple arrays under the
+  same parent (e.g. `audiences`, `slides`, `risks`) all produced struct
+  ids ending in `Item`. Recursive call now passes
+  `${arrayFieldName}Item` to disambiguate; result is e.g.
+  `RootAudiencesItem` vs `RootSlidesItem`.
+  ([`field-mapping.ts`](src/field-mapping.ts), trial failure:6.)
+
+### Tests
+
+`61/61` passing (was 49/49). Added `tests/regressions.test.ts` with one
+test per fix plus boundary cases (5-deep nesting, real `z.lazy`,
+`function`/`promise` still rejected).
+
+### Trial workbook
+
+A documentation workbook capturing this trial is in MCP:
+`trial-zod-bridge-pitch-deck` (rev 32, 18 primitives, 13 relations).
+Contents: bug catalogue, output statistics, two new
+`fs:Limitation` entries pointing at spec gaps in the workbook
+`howto-zod-to-fdpm-plugin` (no `flag:zod-record`; field-level union
+fallback under-specified).
+
 ## [0.1.0] — 2026-05-06
 
 Initial release. Reference implementation of the workbook

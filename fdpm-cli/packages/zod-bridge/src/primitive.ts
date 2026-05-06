@@ -48,7 +48,7 @@ export function zodSchemaToPrimitiveType(
       typePath: [name],
       ...(opts.liftMarkers ? { liftMarkers: opts.liftMarkers } : {}),
       recursionDepth,
-      currentDepth: 0,
+      lazyDepth: 0,
     });
     fields.push(sub.field);
     enums.push(...sub.enums);
