@@ -24,7 +24,7 @@ export function WorkbookList({ workbooks, onSelect }: Props) {
               <span className="sep">·</span>
               <span>{w.profile_id}</span>
               <span className="sep">·</span>
-              <span>rev {w.revision}</span>
+              <span className="meta-stat"><strong>rev</strong> {w.revision}</span>
             </div>
           </button>
         </li>

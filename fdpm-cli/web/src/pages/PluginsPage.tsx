@@ -59,8 +59,8 @@ export function PluginsPage() {
                 <span className="sep">·</span>
                 <span>trust: {p.trust}</span>
                 <span className="sep">·</span>
-                <span>
-                  {p.capabilities} capabilit{p.capabilities === 1 ? "y" : "ies"}
+                <span className="meta-stat">
+                  <strong>{p.capabilities}</strong> capabilit{p.capabilities === 1 ? "y" : "ies"}
                 </span>
               </div>
             </a>

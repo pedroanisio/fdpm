@@ -4,6 +4,7 @@ import { PluginsPage } from "./pages/PluginsPage";
 import { PluginDetailPage } from "./pages/PluginDetailPage";
 import { ProfileDetailPage } from "./pages/ProfileDetailPage";
 import { WorkbookDetail } from "./components/WorkbookDetail";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 type Route =
   | { kind: "home" }
@@ -13,15 +14,26 @@ type Route =
   | { kind: "plugin"; id: string }
   | { kind: "profile"; id: string };
 
+/** Last route, kept so that non-route hashes (in-page anchors like
+ *  `#prim-section-3` produced by template TOC links) do NOT throw the user
+ *  back to home — they navigate within the current document instead.
+ *  Module-level state is intentional: parseHash is called from a hashchange
+ *  listener and must remember what we were rendering before the anchor jump. */
+let lastRoute: Route = { kind: "home" };
+
 function parseHash(): Route {
   const h = window.location.hash || "#/";
-  if (h === "#/" || h === "" || h === "#") return { kind: "home" };
-  if (h === "#/workbooks") return { kind: "workbooks" };
-  if (h === "#/plugins") return { kind: "plugins" };
-  if (h.startsWith("#/wb/")) return { kind: "workbook", id: decodeURIComponent(h.slice("#/wb/".length)) };
-  if (h.startsWith("#/plugin/")) return { kind: "plugin", id: decodeURIComponent(h.slice("#/plugin/".length)) };
-  if (h.startsWith("#/profile/")) return { kind: "profile", id: decodeURIComponent(h.slice("#/profile/".length)) };
-  return { kind: "home" };
+  if (h === "#/" || h === "" || h === "#") {
+    lastRoute = { kind: "home" };
+    return lastRoute;
+  }
+  if (h === "#/workbooks") { lastRoute = { kind: "workbooks" }; return lastRoute; }
+  if (h === "#/plugins")   { lastRoute = { kind: "plugins" };   return lastRoute; }
+  if (h.startsWith("#/wb/"))      { lastRoute = { kind: "workbook", id: decodeURIComponent(h.slice("#/wb/".length)) }; return lastRoute; }
+  if (h.startsWith("#/plugin/"))  { lastRoute = { kind: "plugin",   id: decodeURIComponent(h.slice("#/plugin/".length)) }; return lastRoute; }
+  if (h.startsWith("#/profile/")) { lastRoute = { kind: "profile",  id: decodeURIComponent(h.slice("#/profile/".length)) }; return lastRoute; }
+  // Non-route hash (in-page anchor) — keep current route so :target can do its job.
+  return lastRoute;
 }
 
 export function navigate(hash: string): void {
@@ -47,14 +59,17 @@ export function App() {
         <a href="#/" className="brand" aria-label="FDPM home">
           FDPM
         </a>
-        <nav className="topnav" aria-label="Primary">
-          <a href="#/" className={navActive("workbooks") ? "active" : ""}>
-            Workbooks
-          </a>
-          <a href="#/plugins" className={navActive("plugins") ? "active" : ""}>
-            Plugins
-          </a>
-        </nav>
+        <div className="topbar-end">
+          <nav className="topnav" aria-label="Primary">
+            <a href="#/" className={navActive("workbooks") ? "active" : ""}>
+              Workbooks
+            </a>
+            <a href="#/plugins" className={navActive("plugins") ? "active" : ""}>
+              Plugins
+            </a>
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
       <main>
         {route.kind === "home" || route.kind === "workbooks" ? (

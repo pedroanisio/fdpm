@@ -17,6 +17,21 @@
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Theme bootstrap — runs before paint to prevent FOUC.
+      // Resolution order: localStorage → prefers-color-scheme → 'dark'.
+      (function () {
+        try {
+          var saved = localStorage.getItem('fdpm-theme');
+          var theme = saved === 'light' || saved === 'dark'
+            ? saved
+            : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (_) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

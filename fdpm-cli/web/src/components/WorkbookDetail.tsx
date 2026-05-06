@@ -71,13 +71,13 @@ export function WorkbookDetail({ id, onBack }: Props) {
           <span className="sep">·</span>
           <span>{data.workbook.profile_id}</span>
           <span className="sep">·</span>
-          <span>rev {data.workbook.revision}</span>
+          <span className="meta-stat"><strong>rev</strong> {data.workbook.revision}</span>
           <span className="sep">·</span>
-          <span>{total} primitives</span>
+          <span className="meta-stat"><strong>{total}</strong> primitives</span>
           {relCount > 0 && (
             <>
               <span className="sep">·</span>
-              <span>{relCount} relations</span>
+              <span className="meta-stat"><strong>{relCount}</strong> relations</span>
             </>
           )}
           {template && (
