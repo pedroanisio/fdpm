@@ -18,6 +18,98 @@ emit the same JSON for the same input. Minor version bumps (`0.x.0`) MAY change
 emitted JSON; consumers should expect to regenerate `generated/profile.json`
 and bump their plugin version when upgrading.
 
+## [0.3.0] — 2026-05-06
+
+Minor release. **Sidecar consumer.** Adds the
+[`SPEC-DOMAIN-SIDECAR`](../../docs/specs/SPEC-DOMAIN-SIDECAR.md) v0.1.3
+input surface and a sidecar-driven orchestrator that emits the seven
+artefacts mandated by [`SPEC-FDPM-BRIDGE`](../../docs/specs/SPEC-FDPM-BRIDGE.md)
+§2.2.
+
+The legacy `assembleDomainProfile` entrypoint from v0.2.0 is unchanged.
+Sidecar-aware callers use the new `assembleDomainProfileFromSidecar`.
+
+### Added
+
+- **`defineDomain<T>`** (`src/sidecar-types.ts`) — identity passthrough
+  for editor autocomplete + compile-time type-checking. The returned
+  `Domain` is the bridge's input contract.
+- **Eight parse-time validation passes** (`src/sidecar-validator.ts`),
+  per `SPEC-DOMAIN-SIDECAR` §11.3:
+  1. schema-name resolution
+  2. path resolution (top-level fields)
+  3. aggregate consistency (no cross-aggregate parts; no self-aggregation)
+  4. inverse pairing (`inverse.on` resolves; matches `references[].to`)
+  5. variant consistency (discriminator matches the source z.discriminatedUnion)
+  6. identity consistency (idField present; idSchema reference-equal;
+     naturalKey constraints — non-empty, no duplicates, scalar fields
+     only, all required)
+  7. variant-local references (`from` matches a generated per-variant
+     primitive name)
+  8. DNIS field consistency (`fdpm.dnis.managedFields[]` resolve;
+     unwrapped type is `z.string()`; `nodeKind` non-empty; `lineage`
+     in `{"track","none"}`).
+  Plus pre-pass shape gates: `sidecar:missing-version`,
+  `sidecar:missing-entities`, `sidecar:hash-manifest-malformed`,
+  `sidecar:hash-algorithm-unsupported`. Failure aborts with
+  `SidecarError` carrying a stable `code` — no partial output.
+- **`zod-ast-canonical-v1` schema hash** (`src/sidecar-hash.ts`) per
+  `SPEC-FDPM-BRIDGE-ZOD` §7. Strips comments, normalises whitespace,
+  SHA-256s the canonical text. Emits `"<algorithm>:<hex>"`.
+  `recomputeSchemaHashes` returns drift entries; the orchestrator
+  raises `sidecar:hash-drift` when any are present.
+- **`assembleDomainProfileFromSidecar`** (`src/sidecar-orchestrator.ts`)
+  emits the seven artefacts:
+  1. `DomainProfile` — primitives (one per entity, one per variant
+     arm with `variant-per-primitive`, one `dnis:Node` sibling per
+     DNIS-managed field), relations (sidecar `references[]` only;
+     bridge does NOT infer references from source shapes per
+     `SPEC-FDPM-BRIDGE` §8.1), enum defs, and profile-level CEL
+     constraints (including `graph.acyclic("<rel-id>")` for
+     self-referential edges with `acyclic: true`).
+  2. `ValidatorFn` per Entity, with closed-set rule_ids in
+     `ruleIdsByType`.
+  3. `ViewPageDescriptor` — one panel per emitted primitive.
+  4. `ProductPageBundle` — `declaredLoss[]` flows through to
+     `feature_flag_states` as `declared-loss:<feature>` entries.
+  5. `MigrationHints`.
+  6. `SidecarAuditLog` — classifications, candidates, overrides,
+     divergences (incl. `aggregate.cascade-default` and
+     `dnis.field-promoted`), and losses. Carries
+     `bridgeRealization`, `generalSpecVersion`, `realizationSpecVersion`,
+     `sidecarSpecVersion`, and `generatedAt` per
+     `SPEC-FDPM-BRIDGE` §11.5.
+  7. `usl-ng-core.json` companion — sidecar standard sections only.
+     The entire `fdpm` section (including `dnis`) is excluded per
+     `SPEC-FDPM-BRIDGE` §11.6 / `SPEC-DOMAIN-SIDECAR` §12.1.
+- **DNIS managed-fields support** (`SPEC-FDPM-BRIDGE` §17 +
+  `SPEC-DOMAIN-SIDECAR` §9.4) at field-promotion granularity:
+  declared `fdpm.dnis.managedFields[]` cause the named field to
+  disappear from the parent entity's emitted primitive and reappear
+  as a `<vendor>:<Entity><Field>Node` sibling joined by a one-to-one
+  `<vendor>:<Entity>Has<Field>` relation. Only `z.string()`
+  (post-unwrap) is promotable in this revision; other types raise
+  `sidecar:dnis-field-invalid`. Source schemas are never mutated.
+
+### Changed
+
+- **`RelationTypeDef.cardinality`** widened from a 3-value union to
+  the full 4-value union (`one-to-one | one-to-many | many-to-one |
+  many-to-many`) per `SPEC-FDPM-BRIDGE` §8.2. v0.2.0 only emitted
+  `"one-to-one"`; the addition is non-breaking for storage/render
+  consumers.
+
+### Out of scope (deferred)
+
+- `liftOverrides` — the type is accepted and shipped to the USL-NG
+  companion verbatim, but the orchestrator does not yet flip
+  inline↔lift at emission. The classifier-driven default is
+  preserved; documented in `SPEC-DOMAIN-SIDECAR` §7 for the next
+  patch.
+- DNIS `lineage: "track"` runtime instance creation — relation type
+  is registered; per-edit `dnis:DerivedFrom` instances are the host
+  adapter's responsibility per `SPEC-FDPM-BRIDGE` §17.5.
+
 ## [0.2.0] — 2026-05-06
 
 Minor release. Hybrid lift detection — the bridge now classifies

@@ -32,6 +32,56 @@ export {
   DEFAULT_FEATURE_FLAG_STATES,
 } from "./product-page.js";
 export { assembleDomainProfile } from "./orchestrator.js";
+export {
+  assembleDomainProfileFromSidecar,
+  hashSchemaSource,
+} from "./sidecar-orchestrator.js";
+export type {
+  SidecarBridgeArgs,
+  SidecarBridgeResult,
+  UslNgCompanion,
+} from "./sidecar-orchestrator.js";
+export {
+  defineDomain,
+} from "./sidecar-types.js";
+export type {
+  Domain,
+  EntitySpec,
+  IdentityKind,
+  ReferenceSpec,
+  ReferenceCardinality,
+  ReferenceInverse,
+  CascadeKind,
+  AggregateSpec,
+  VariantSpec,
+  VariantStrategy,
+  VariantReferenceSpec,
+  LiftOverrides,
+  LiftOverrideKind,
+  DeclaredLossSpec,
+  LossKind,
+  LossClassification,
+  FdpmSection,
+  DnisSection,
+  DnisManagedField,
+  DnisLineage,
+  SchemaHashManifest,
+  SidecarSpecVersion,
+} from "./sidecar-types.js";
+export {
+  validateDomain,
+  SidecarError,
+} from "./sidecar-validator.js";
+export type {
+  SidecarErrorCode,
+  ValidateResult,
+} from "./sidecar-validator.js";
+export type {
+  SidecarAuditLog,
+  DivergenceEntry,
+  OverrideEntry,
+  LossEntry,
+} from "./sidecar-audit.js";
 export { stableStringify } from "./stable-stringify.js";
 export { BridgeError } from "./walker.js";
 export type {

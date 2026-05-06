@@ -1,7 +1,7 @@
 {
   "name": "@fdpm/zod-bridge",
-  "version": "0.2.0",
-  "description": "Deterministic, one-way translation from Zod v4 schemas into FDPM PrimitiveTypeDefs, CEL constraints, validators, and approval-page descriptors.",
+  "version": "0.3.0",
+  "description": "Deterministic, one-way translation from Zod v4 schemas + a defineDomain() sidecar into FDPM artefacts (DomainProfile, validators, view/product pages, USL-NG Core companion). Realization of SPEC-FDPM-BRIDGE for Zod v4.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
