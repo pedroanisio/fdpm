@@ -92,30 +92,35 @@ function buildPitchDeckSidecar() {
       },
     },
     references: [
-      // DataPoint <-> Source (many-to-many).
+      // DataPoint -> Source (many-to-many; unidirectional in the
+      // schema — Source has no back-reference field).
       {
         from: "DataPoint",
         field: "sourceIds",
         to: "Source",
         cardinality: "many-to-many",
       },
-      // DataPoint <-> Slide (many-to-many; bidirectional invariant in
-      // schema's superRefine — host enforces via inverse pairing).
+      // Slide <-> DataPoint (bidirectional in the schema's
+      // superRefine: slide.evidenceUsed and dataPoint.usedOnSlides
+      // must agree). Declared once with inverse so the bridge emits
+      // ONE RelationTypeDef.
       {
-        from: "DataPoint",
-        field: "usedOnSlides",
-        to: "Slide",
+        from: "Slide",
+        field: "evidenceUsed",
+        to: "DataPoint",
         cardinality: "many-to-many",
+        inverse: { on: "DataPoint", field: "usedOnSlides" },
       },
-      // StrategicClaim -> DataPoint (many-to-many).
+      // StrategicClaim -> DataPoint (many-to-many; unidirectional —
+      // DataPoint does not list its claims).
       {
         from: "StrategicClaim",
         field: "supportedByDataPoints",
         to: "DataPoint",
         cardinality: "many-to-many",
       },
-      // StrategicClaim -> StrategicClaim (acyclic; cycle-detected by
-      // the schema's DFS, encoded in CEL via graph.acyclic).
+      // StrategicClaim -> StrategicClaim (self-referential; acyclic
+      // per the schema's DFS cycle detector).
       {
         from: "StrategicClaim",
         field: "supportedByClaims",
@@ -123,53 +128,39 @@ function buildPitchDeckSidecar() {
         cardinality: "many-to-many",
         acyclic: true,
       },
-      // StrategicClaim <-> Slide (many-to-many).
-      {
-        from: "StrategicClaim",
-        field: "appearsOnSlides",
-        to: "Slide",
-        cardinality: "many-to-many",
-      },
-      // Risk -> Slide (many-to-many).
-      {
-        from: "Risk",
-        field: "addressedOnSlides",
-        to: "Slide",
-        cardinality: "many-to-many",
-      },
-      // Slide -> DataPoint (evidenceUsed).
-      {
-        from: "Slide",
-        field: "evidenceUsed",
-        to: "DataPoint",
-        cardinality: "many-to-many",
-      },
-      // Slide -> StrategicClaim (claimsAdvanced).
+      // Slide <-> StrategicClaim (bidirectional in the schema:
+      // slide.claimsAdvanced and claim.appearsOnSlides agree).
+      // Declared once with inverse.
       {
         from: "Slide",
         field: "claimsAdvanced",
         to: "StrategicClaim",
         cardinality: "many-to-many",
+        inverse: { on: "StrategicClaim", field: "appearsOnSlides" },
       },
-      // Slide -> Competitor.
+      // Slide -> Risk (with inverse Risk.addressedOnSlides → Slide).
+      // Bidirectional consistency is NOT explicitly enforced by the
+      // schema's superRefine, but the relation is logically the same;
+      // declaring inverse keeps the relation graph clean.
+      {
+        from: "Slide",
+        field: "risksAddressed",
+        to: "Risk",
+        cardinality: "many-to-many",
+        inverse: { on: "Risk", field: "addressedOnSlides" },
+      },
+      // Slide -> Competitor (unidirectional in the schema).
       {
         from: "Slide",
         field: "competitorsCited",
         to: "Competitor",
         cardinality: "many-to-many",
       },
-      // Slide -> AntiPattern.
+      // Slide -> AntiPattern (unidirectional).
       {
         from: "Slide",
         field: "antiPatternsAvoided",
         to: "AntiPattern",
-        cardinality: "many-to-many",
-      },
-      // Slide -> Risk.
-      {
-        from: "Slide",
-        field: "risksAddressed",
-        to: "Risk",
         cardinality: "many-to-many",
       },
     ],
@@ -202,12 +193,15 @@ describe("pitch-deck v2 trial — sidecar v0.3.0 multi-primitive shape", () => {
     ]);
   });
 
-  it("emits one relation per declared cross-entity reference", () => {
+  it("emits one relation per declared cross-entity reference (inverse-collapsed)", () => {
     const r = assembleDomainProfileFromSidecar({
       domain: buildPitchDeckSidecar(),
       generatedAt: "1970-01-01T00:00:00.000Z",
     });
-    expect(r.profile.relation_types.length).toBe(11);
+    // 8 declared references (3 with inverse, 5 unidirectional) →
+    // 8 RelationTypeDefs. Inverse pairing collapses bidirectional
+    // logical relations into a single FDPM relation.
+    expect(r.profile.relation_types.length).toBe(8);
   });
 
   it("emits an acyclic CEL constraint for self-referential edges", () => {
@@ -302,6 +296,6 @@ describe("pitch-deck v2 trial — sidecar v0.3.0 multi-primitive shape", () => {
     // eslint-disable-next-line no-console
     console.log("[pitch-deck trial summary]", JSON.stringify(summary, null, 2));
     expect(summary.primitive_count).toBe(8);
-    expect(summary.relation_count).toBe(11);
+    expect(summary.relation_count).toBe(8);
   });
 });

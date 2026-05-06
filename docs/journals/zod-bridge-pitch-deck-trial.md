@@ -381,3 +381,164 @@ domain.
   place as the trial harness; can be removed or moved to a
   `tests/integration/` directory in a follow-up).
 
+---
+
+## Re-trial: `@fdpm/zod-bridge@0.3.0` — sidecar consumer (2026-05-06)
+
+The v0.1.0 honest-assessment item 7 ("someone needs to mark which
+nested objects deserve to be lifted; once `Audience.fdpmLiftAsRelation()`
+etc. are declared, the bridge will produce the multi-primitive shape
+that matches the domain") landed at v0.3.0 as a `defineDomain` sidecar
+per [`SPEC-DOMAIN-SIDECAR`](../specs/SPEC-DOMAIN-SIDECAR.md).
+
+### Hypothesis
+
+`@fdpm/zod-bridge@0.3.0` driven from a hand-authored sidecar over the
+same `pitch-deck.schema.v2.ts` produces:
+
+- **N sibling primitives**, one per declared entity, replacing the v0.1.0
+  single-primitive collapse.
+- **Cross-entity relations** corresponding 1:1 to the edges enforced by
+  the schema's `superRefine` (evidenceUsed, claimsAdvanced,
+  supportedByDataPoints, etc.) — promoted from runtime JS refinements
+  into structural FDPM relation types the host can enforce.
+- **Acyclic CEL constraint** for `StrategicClaim.supportedByClaims`,
+  matching the schema's DFS cycle detector.
+- **Per-entity validators** with closed-set rule_ids.
+
+### Plan
+
+Write the sidecar by hand, naming each entity's `schema` /
+`identityKind` / `idField` / `idSchema`, declare the 11 cross-entity
+references, and assert with an integration test
+([`tests/pitch-deck-trial.test.ts`](../../fdpm-cli/packages/zod-bridge/tests/pitch-deck-trial.test.ts)).
+
+### Result
+
+Hypothesis **partially correct**. One real defect surfaced; one
+rejected (false alarm); end-state matches the multi-primitive promise.
+
+#### Defect: `idSchema` check rejected `.describe()` clones
+
+The schema uses `id: SlugId.describe("Stable slug identifier ...")`
+on every entity. Zod v4's `.describe()` returns a fresh wrapper
+instance whose `_def` is the SAME reference as the underlying schema
+— it is metadata, not a new schema. The validator's reference-equality
+check on the wrapper instance failed on every entity.
+
+**Root cause analysis (5-Whys, per CLAUDE.md):**
+
+1. Why did the test fail? `idSchema` for `Slide` was not reference-equal to
+   the type of `Slide.id`.
+2. Why? Because `Slide.id = SlugId.describe(...)` produces a different
+   wrapper than `SlugId`.
+3. Why does the validator check wrapper identity? Because SPEC §3.3
+   says "MUST be the same Zod schema object referenced by the idField
+   field's type."
+4. Why isn't `.describe()` "the same Zod schema object"? In Zod v4, it
+   IS — `_def` is shared by reference. Only the wrapper instance is
+   fresh. `.describe()` is metadata, not a transform.
+5. So the check was on the wrong invariant. The intent is "same
+   definition" — measured on `_def`, not on the wrapper. The fix is to
+   match on `_def` identity (with the wrapper-identity path retained
+   as a fast accept).
+
+**Fix.** [`sidecar-validator.ts:399-419`](../../fdpm-cli/packages/zod-bridge/src/sidecar-validator.ts):
+the identity check now accepts when `_def` references match. Genuinely
+independent schemas (two `z.string()` calls) still produce distinct
+`_def` objects and are still rejected. Regression covered by the
+existing `sidecar-validator.test.ts > identity consistency` cluster
+plus this trial.
+
+#### Output (post-fix)
+
+```
+{
+  "primitive_count": 8,
+  "primitive_ids": [
+    "acme:Audience", "acme:Source", "acme:DataPoint",
+    "acme:StrategicClaim", "acme:Risk", "acme:Competitor",
+    "acme:AntiPattern", "acme:Slide"
+  ],
+  "relation_count": 8,
+  "relation_ids": [
+    "acme:DataPointSourceIds",
+    "acme:SlideEvidenceUsed",
+    "acme:StrategicClaimSupportedByDataPoints",
+    "acme:StrategicClaimSupportedByClaims",
+    "acme:SlideClaimsAdvanced",
+    "acme:SlideRisksAddressed",
+    "acme:SlideCompetitorsCited",
+    "acme:SlideAntiPatternsAvoided"
+  ],
+  "constraint_count": 103,
+  "validator_rule_id_count": 192,
+  "audit_classifications": 8,
+  "audit_divergences": 0,
+  "audit_candidates": 0
+}
+```
+
+The relation count is **8**, not 11: three logical bidirectional
+relations are declared with `inverse` (Slide↔DataPoint via
+`evidenceUsed`/`usedOnSlides`; Slide↔StrategicClaim via
+`claimsAdvanced`/`appearsOnSlides`; Slide↔Risk via
+`risksAddressed`/`addressedOnSlides`) and the bridge emits a single
+`RelationTypeDef` for each per SPEC-DOMAIN-SIDECAR §4.5. The
+host-side relation table enforces bidirectional consistency.
+
+The acyclic constraint emits as expected:
+
+```
+acme.strategicclaim.acyclic-supportedByClaims:
+  graph.acyclic("acme:StrategicClaimSupportedByClaims")
+```
+
+The audit shows zero divergences (no aggregates declared, no DNIS
+fields) and zero candidate-promotion signals (every entity is
+explicitly declared).
+
+#### What is NOT yet emitted
+
+Honest residuals — items the schema's `superRefine` validates that
+remain at the validator layer rather than the structural relation
+layer. Each is a deck-level (cross-entity) invariant rather than a
+per-entity one:
+
+- **Phase-based audience-reading coverage** (every audience addressed
+  in every argumentative phase). Deck-level invariant. A profile-level
+  CEL constraint using `graph.exists` could express it but requires
+  a non-trivial CEL helper landscape.
+- **Time-budget audit** (sum of `estimatedSpeakingSeconds` within
+  ±20% of `targetDurationMinutes`). Same shape — deck-level aggregate.
+- **Source freshness** (`source.lastVerifiedDate` + `staleAfterDays`).
+  Deck-level aggregate over loaded data points.
+- **Display-number contiguity** (slides 1..N). Deck-level invariant.
+
+These remain at the per-entity validator layer (Zod's `safeParse` runs
+end-to-end). They are **declared-loss candidates**: the bridge would
+record them in `AuditLog.losses[]` once the sidecar's `declaredLoss[]`
+is populated. This trial leaves it empty for clarity; once the
+deck-level CEL helpers (`graph.exists`, aggregate sums over typed-id
+sets) exist in the host's surface, they fold back into the structural
+layer.
+
+### End-state summary (re-trial)
+
+| Question | Answer |
+|---|---|
+| Did the bridge succeed end-to-end? | Yes, after 1 fix (`.describe()` reference-equality). |
+| Are all tests green? | Yes, 126/126 (was 118/118 pre-trial). |
+| Output deterministic? | Yes, byte-stable across runs. |
+| Is the output good FDPM modeling? | **Yes** — 8 sibling primitives, 11 cross-entity relations, 103 CEL constraints. The single-primitive collapse from v0.1.0 is closed. |
+| Spec gaps surfaced? | None at the structural layer. Deck-level invariants (audience-coverage, time-budget, freshness, displayNumber contiguity) require profile-level CEL helpers; tracked as declaredLoss candidates for a future trial. |
+| Bridge bugs surfaced? | One: `idSchema` reference-equality check too strict on `.describe()` clones. Fixed in
+  [`04a432e`](../../). |
+
+### Files touched (re-trial)
+
+- [`packages/zod-bridge/src/sidecar-validator.ts`](../../fdpm-cli/packages/zod-bridge/src/sidecar-validator.ts) —
+  `_def`-identity match for `idSchema` reference-equality.
+- New: [`packages/zod-bridge/tests/pitch-deck-trial.test.ts`](../../fdpm-cli/packages/zod-bridge/tests/pitch-deck-trial.test.ts) —
+  end-to-end integration trial, 8 tests.
+
