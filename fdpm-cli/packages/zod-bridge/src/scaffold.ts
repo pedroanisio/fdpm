@@ -146,7 +146,10 @@ function buildManifest(
   const capabilities: CapabilityEntry[] = [
     {
       capability_id: "cap:profile",
-      local_name: tailOf(profileId),
+      // Plugin-slug derived from pluginId, kebab-case. Profile id
+      // shape is `profile:<vendor>-<plugin>:<version>` so the tail
+      // is the version string — wrong for local_name.
+      local_name: pluginSlug(pluginId),
       entry: "profile",
     },
   ];
@@ -327,4 +330,14 @@ function defaultPluginName(pluginId: string): string {
     .filter((p) => p.length > 0)
     .map((p) => p[0]!.toUpperCase() + p.slice(1))
     .join(" ");
+}
+
+function pluginSlug(pluginId: string): string {
+  // "acme.customers" -> "acme-customers"
+  // "acme.pitch-deck" -> "acme-pitch-deck"
+  return pluginId
+    .split(/[.\-_]/)
+    .filter((p) => p.length > 0)
+    .join("-")
+    .toLowerCase();
 }

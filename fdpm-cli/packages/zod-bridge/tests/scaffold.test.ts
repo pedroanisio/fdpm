@@ -161,6 +161,26 @@ describe("writePluginScaffold — runnable plugin directory", () => {
     expect(ids).toContain("cap:validator");
   });
 
+  it("derives cap:profile.local_name from pluginId (NOT the profile id tail)", () => {
+    // Regression: pre-fix, local_name was set to tailOf(profileId)
+    // which yields the version string ("0.1") because profile ids are
+    // shaped `profile:<vendor>-<plugin>:<version>`. The intent is the
+    // plugin slug.
+    const result = assembleDomainProfileFromSidecar({
+      domain: minimalDomain(),
+      generatedAt: "1970-01-01T00:00:00.000Z",
+    });
+    writePluginScaffold(result, { outputDir: tempDir });
+    const manifest = JSON.parse(
+      readFileSync(join(tempDir, "fdpm-plugin.json"), "utf8"),
+    );
+    const profileCap = manifest.capabilities.find(
+      (c: { capability_id: string }) => c.capability_id === "cap:profile",
+    );
+    expect(profileCap.local_name).toBe("acme-customers");
+    expect(profileCap.local_name).not.toBe("0.1");
+  });
+
   it("populates manifest.capabilities[cap:validator].metadata.rule_ids with the closed set", () => {
     const result = assembleDomainProfileFromSidecar({
       domain: minimalDomain(),
