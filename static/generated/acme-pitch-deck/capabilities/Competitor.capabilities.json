@@ -1,0 +1,48 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "local_name": "acme-competitor",
+    "entry": "competitorMarkdownRenderer",
+    "metadata": {
+      "primitive_type_id": "acme:Competitor",
+      "target": "text/markdown"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "local_name": "competitor-json",
+    "entry": "competitorImporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ]
+    }
+  },
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "local_name": "competitor-json",
+    "entry": "competitorExporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "local_name": "is-valid-competitor",
+    "entry": "isValidCompetitor",
+    "metadata": {
+      "function_name": "acme.isValidCompetitor",
+      "arity": 1,
+      "arg_types": [
+        "object"
+      ],
+      "return_type": "boolean",
+      "pure": true
+    }
+  }
+}

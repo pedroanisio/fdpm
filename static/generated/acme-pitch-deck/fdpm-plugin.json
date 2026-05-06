@@ -1,0 +1,346 @@
+{
+  "authors": [
+    "acme"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "entry": "profile",
+      "local_name": "acme-pitch-deck"
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "antiPatternValidator",
+      "local_name": "antipattern-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.antipattern.invalid_format.id",
+          "acme.pitch-deck:zod.antipattern.invalid_type",
+          "acme.pitch-deck:zod.antipattern.invalid_type.description",
+          "acme.pitch-deck:zod.antipattern.invalid_type.detectionSignals",
+          "acme.pitch-deck:zod.antipattern.invalid_type.id",
+          "acme.pitch-deck:zod.antipattern.invalid_type.label",
+          "acme.pitch-deck:zod.antipattern.invalid_type.whyHarmful",
+          "acme.pitch-deck:zod.antipattern.too_big.id",
+          "acme.pitch-deck:zod.antipattern.too_small.description",
+          "acme.pitch-deck:zod.antipattern.too_small.detectionSignals",
+          "acme.pitch-deck:zod.antipattern.too_small.id",
+          "acme.pitch-deck:zod.antipattern.too_small.label",
+          "acme.pitch-deck:zod.antipattern.too_small.whyHarmful",
+          "acme.pitch-deck:zod.antipattern.unrecognized_keys"
+        ],
+        "target_type_id": "acme:AntiPattern",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "audienceValidator",
+      "local_name": "audience-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.audience.invalid_format.id",
+          "acme.pitch-deck:zod.audience.invalid_type",
+          "acme.pitch-deck:zod.audience.invalid_type.evaluationCriteria",
+          "acme.pitch-deck:zod.audience.invalid_type.failureMode",
+          "acme.pitch-deck:zod.audience.invalid_type.id",
+          "acme.pitch-deck:zod.audience.invalid_type.label",
+          "acme.pitch-deck:zod.audience.invalid_type.primaryQuestion",
+          "acme.pitch-deck:zod.audience.too_big.id",
+          "acme.pitch-deck:zod.audience.too_small.evaluationCriteria",
+          "acme.pitch-deck:zod.audience.too_small.failureMode",
+          "acme.pitch-deck:zod.audience.too_small.id",
+          "acme.pitch-deck:zod.audience.too_small.label",
+          "acme.pitch-deck:zod.audience.too_small.primaryQuestion",
+          "acme.pitch-deck:zod.audience.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Audience",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "competitorValidator",
+      "local_name": "competitor-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.competitor.invalid_format.id",
+          "acme.pitch-deck:zod.competitor.invalid_type",
+          "acme.pitch-deck:zod.competitor.invalid_type.axes.x",
+          "acme.pitch-deck:zod.competitor.invalid_type.axes.y",
+          "acme.pitch-deck:zod.competitor.invalid_type.axes.z",
+          "acme.pitch-deck:zod.competitor.invalid_type.id",
+          "acme.pitch-deck:zod.competitor.invalid_type.name",
+          "acme.pitch-deck:zod.competitor.invalid_type.notes",
+          "acme.pitch-deck:zod.competitor.invalid_value.citationKind",
+          "acme.pitch-deck:zod.competitor.invalid_value.threatLevel",
+          "acme.pitch-deck:zod.competitor.too_big.axes.x",
+          "acme.pitch-deck:zod.competitor.too_big.axes.y",
+          "acme.pitch-deck:zod.competitor.too_big.axes.z",
+          "acme.pitch-deck:zod.competitor.too_big.id",
+          "acme.pitch-deck:zod.competitor.too_small.axes.x",
+          "acme.pitch-deck:zod.competitor.too_small.axes.y",
+          "acme.pitch-deck:zod.competitor.too_small.axes.z",
+          "acme.pitch-deck:zod.competitor.too_small.id",
+          "acme.pitch-deck:zod.competitor.too_small.name",
+          "acme.pitch-deck:zod.competitor.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Competitor",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "dataPointValidator",
+      "local_name": "datapoint-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.datapoint.invalid_format.id",
+          "acme.pitch-deck:zod.datapoint.invalid_format.sourceIds",
+          "acme.pitch-deck:zod.datapoint.invalid_format.usedOnSlides",
+          "acme.pitch-deck:zod.datapoint.invalid_type",
+          "acme.pitch-deck:zod.datapoint.invalid_type.appendixEntry",
+          "acme.pitch-deck:zod.datapoint.invalid_type.id",
+          "acme.pitch-deck:zod.datapoint.invalid_type.label",
+          "acme.pitch-deck:zod.datapoint.invalid_type.notes",
+          "acme.pitch-deck:zod.datapoint.invalid_type.sourceIds",
+          "acme.pitch-deck:zod.datapoint.invalid_type.unit",
+          "acme.pitch-deck:zod.datapoint.invalid_type.usedOnSlides",
+          "acme.pitch-deck:zod.datapoint.invalid_value.verificationStatus",
+          "acme.pitch-deck:zod.datapoint.too_big.id",
+          "acme.pitch-deck:zod.datapoint.too_big.sourceIds",
+          "acme.pitch-deck:zod.datapoint.too_big.usedOnSlides",
+          "acme.pitch-deck:zod.datapoint.too_small.id",
+          "acme.pitch-deck:zod.datapoint.too_small.label",
+          "acme.pitch-deck:zod.datapoint.too_small.sourceIds",
+          "acme.pitch-deck:zod.datapoint.too_small.usedOnSlides",
+          "acme.pitch-deck:zod.datapoint.unrecognized_keys"
+        ],
+        "target_type_id": "acme:DataPoint",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "riskValidator",
+      "local_name": "risk-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.risk.invalid_format.addressedOnSlides",
+          "acme.pitch-deck:zod.risk.invalid_format.id",
+          "acme.pitch-deck:zod.risk.invalid_type",
+          "acme.pitch-deck:zod.risk.invalid_type.acceptedAsNotAddressed",
+          "acme.pitch-deck:zod.risk.invalid_type.addressedOnSlides",
+          "acme.pitch-deck:zod.risk.invalid_type.description",
+          "acme.pitch-deck:zod.risk.invalid_type.id",
+          "acme.pitch-deck:zod.risk.invalid_type.mitigation",
+          "acme.pitch-deck:zod.risk.invalid_type.notes",
+          "acme.pitch-deck:zod.risk.invalid_value.category",
+          "acme.pitch-deck:zod.risk.invalid_value.likelihood",
+          "acme.pitch-deck:zod.risk.invalid_value.severity",
+          "acme.pitch-deck:zod.risk.too_big.addressedOnSlides",
+          "acme.pitch-deck:zod.risk.too_big.id",
+          "acme.pitch-deck:zod.risk.too_small.addressedOnSlides",
+          "acme.pitch-deck:zod.risk.too_small.description",
+          "acme.pitch-deck:zod.risk.too_small.id",
+          "acme.pitch-deck:zod.risk.too_small.mitigation",
+          "acme.pitch-deck:zod.risk.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Risk",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "slideValidator",
+      "local_name": "slide-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.slide.invalid_format.antiPatternsAvoided",
+          "acme.pitch-deck:zod.slide.invalid_format.audienceReadings.audienceId",
+          "acme.pitch-deck:zod.slide.invalid_format.claimsAdvanced",
+          "acme.pitch-deck:zod.slide.invalid_format.competitorsCited",
+          "acme.pitch-deck:zod.slide.invalid_format.displayNumber",
+          "acme.pitch-deck:zod.slide.invalid_format.estimatedSpeakingSeconds",
+          "acme.pitch-deck:zod.slide.invalid_format.evidenceUsed",
+          "acme.pitch-deck:zod.slide.invalid_format.id",
+          "acme.pitch-deck:zod.slide.invalid_format.risksAddressed",
+          "acme.pitch-deck:zod.slide.invalid_type",
+          "acme.pitch-deck:zod.slide.invalid_type.antiPatternsAvoided",
+          "acme.pitch-deck:zod.slide.invalid_type.audienceReadings",
+          "acme.pitch-deck:zod.slide.invalid_type.audienceReadings.audienceId",
+          "acme.pitch-deck:zod.slide.invalid_type.audienceReadings.expectedTakeaway",
+          "acme.pitch-deck:zod.slide.invalid_type.buyerObjectionAddressed",
+          "acme.pitch-deck:zod.slide.invalid_type.claimsAdvanced",
+          "acme.pitch-deck:zod.slide.invalid_type.competitorsCited",
+          "acme.pitch-deck:zod.slide.invalid_type.displayNumber",
+          "acme.pitch-deck:zod.slide.invalid_type.estimatedSpeakingSeconds",
+          "acme.pitch-deck:zod.slide.invalid_type.evidenceUsed",
+          "acme.pitch-deck:zod.slide.invalid_type.eyebrow",
+          "acme.pitch-deck:zod.slide.invalid_type.headline",
+          "acme.pitch-deck:zod.slide.invalid_type.id",
+          "acme.pitch-deck:zod.slide.invalid_type.openQuestions",
+          "acme.pitch-deck:zod.slide.invalid_type.openQuestions.question",
+          "acme.pitch-deck:zod.slide.invalid_type.openQuestions.whyHere",
+          "acme.pitch-deck:zod.slide.invalid_type.rationaleForPosition",
+          "acme.pitch-deck:zod.slide.invalid_type.risksAddressed",
+          "acme.pitch-deck:zod.slide.invalid_type.strategicJob",
+          "acme.pitch-deck:zod.slide.invalid_value.background",
+          "acme.pitch-deck:zod.slide.invalid_value.phase",
+          "acme.pitch-deck:zod.slide.too_big.antiPatternsAvoided",
+          "acme.pitch-deck:zod.slide.too_big.audienceReadings.audienceId",
+          "acme.pitch-deck:zod.slide.too_big.claimsAdvanced",
+          "acme.pitch-deck:zod.slide.too_big.competitorsCited",
+          "acme.pitch-deck:zod.slide.too_big.displayNumber",
+          "acme.pitch-deck:zod.slide.too_big.estimatedSpeakingSeconds",
+          "acme.pitch-deck:zod.slide.too_big.evidenceUsed",
+          "acme.pitch-deck:zod.slide.too_big.id",
+          "acme.pitch-deck:zod.slide.too_big.risksAddressed",
+          "acme.pitch-deck:zod.slide.too_small.antiPatternsAvoided",
+          "acme.pitch-deck:zod.slide.too_small.audienceReadings",
+          "acme.pitch-deck:zod.slide.too_small.audienceReadings.audienceId",
+          "acme.pitch-deck:zod.slide.too_small.audienceReadings.expectedTakeaway",
+          "acme.pitch-deck:zod.slide.too_small.buyerObjectionAddressed",
+          "acme.pitch-deck:zod.slide.too_small.claimsAdvanced",
+          "acme.pitch-deck:zod.slide.too_small.competitorsCited",
+          "acme.pitch-deck:zod.slide.too_small.displayNumber",
+          "acme.pitch-deck:zod.slide.too_small.estimatedSpeakingSeconds",
+          "acme.pitch-deck:zod.slide.too_small.evidenceUsed",
+          "acme.pitch-deck:zod.slide.too_small.eyebrow",
+          "acme.pitch-deck:zod.slide.too_small.headline",
+          "acme.pitch-deck:zod.slide.too_small.id",
+          "acme.pitch-deck:zod.slide.too_small.openQuestions.question",
+          "acme.pitch-deck:zod.slide.too_small.openQuestions.whyHere",
+          "acme.pitch-deck:zod.slide.too_small.rationaleForPosition",
+          "acme.pitch-deck:zod.slide.too_small.risksAddressed",
+          "acme.pitch-deck:zod.slide.too_small.strategicJob",
+          "acme.pitch-deck:zod.slide.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Slide",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "sourceValidator",
+      "local_name": "source-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.source.custom",
+          "acme.pitch-deck:zod.source.invalid_format.date",
+          "acme.pitch-deck:zod.source.invalid_format.derivedFrom",
+          "acme.pitch-deck:zod.source.invalid_format.id",
+          "acme.pitch-deck:zod.source.invalid_format.lastVerifiedDate",
+          "acme.pitch-deck:zod.source.invalid_format.url",
+          "acme.pitch-deck:zod.source.invalid_type",
+          "acme.pitch-deck:zod.source.invalid_type.citation",
+          "acme.pitch-deck:zod.source.invalid_type.date",
+          "acme.pitch-deck:zod.source.invalid_type.derivedFrom",
+          "acme.pitch-deck:zod.source.invalid_type.id",
+          "acme.pitch-deck:zod.source.invalid_type.lastVerifiedDate",
+          "acme.pitch-deck:zod.source.invalid_type.notes",
+          "acme.pitch-deck:zod.source.invalid_type.url",
+          "acme.pitch-deck:zod.source.invalid_value.type",
+          "acme.pitch-deck:zod.source.too_big.derivedFrom",
+          "acme.pitch-deck:zod.source.too_big.id",
+          "acme.pitch-deck:zod.source.too_small.citation",
+          "acme.pitch-deck:zod.source.too_small.derivedFrom",
+          "acme.pitch-deck:zod.source.too_small.id",
+          "acme.pitch-deck:zod.source.unrecognized_keys"
+        ],
+        "target_type_id": "acme:Source",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "strategicClaimValidator",
+      "local_name": "strategicclaim-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "acme.pitch-deck:zod.strategicclaim.invalid_format.appearsOnSlides",
+          "acme.pitch-deck:zod.strategicclaim.invalid_format.id",
+          "acme.pitch-deck:zod.strategicclaim.invalid_format.supportedByClaims",
+          "acme.pitch-deck:zod.strategicclaim.invalid_format.supportedByDataPoints",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.antiDismissalEvidence",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.appearsOnSlides",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.id",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.loadBearing",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.potentialDismissals",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.statement",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.supportedByClaims",
+          "acme.pitch-deck:zod.strategicclaim.invalid_type.supportedByDataPoints",
+          "acme.pitch-deck:zod.strategicclaim.too_big.appearsOnSlides",
+          "acme.pitch-deck:zod.strategicclaim.too_big.id",
+          "acme.pitch-deck:zod.strategicclaim.too_big.supportedByClaims",
+          "acme.pitch-deck:zod.strategicclaim.too_big.supportedByDataPoints",
+          "acme.pitch-deck:zod.strategicclaim.too_small.antiDismissalEvidence",
+          "acme.pitch-deck:zod.strategicclaim.too_small.appearsOnSlides",
+          "acme.pitch-deck:zod.strategicclaim.too_small.id",
+          "acme.pitch-deck:zod.strategicclaim.too_small.potentialDismissals",
+          "acme.pitch-deck:zod.strategicclaim.too_small.statement",
+          "acme.pitch-deck:zod.strategicclaim.too_small.supportedByClaims",
+          "acme.pitch-deck:zod.strategicclaim.too_small.supportedByDataPoints",
+          "acme.pitch-deck:zod.strategicclaim.unrecognized_keys"
+        ],
+        "target_type_id": "acme:StrategicClaim",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    }
+  ],
+  "description": "Strategic pitch-deck plugin auto-generated from static/schemas/pitch-deck.schema.v2.ts via @fdpm/zod-bridge. Models 8 entities (Audience, Source, DataPoint, StrategicClaim, Risk, Competitor, AntiPattern, Slide) and 8 cross-entity relations. Cross-deck invariants (audience coverage, time budget, source freshness, displayNumber contiguity) remain in the schema's superRefine and require author-supplied cap:validator closures to lift them to the host.",
+  "host_compatibility": {
+    "fdpm": ">=0.5.0 <0.6.0"
+  },
+  "id": "acme.pitch-deck",
+  "kind": "server",
+  "license": "MIT",
+  "name": "Acme Pitch Deck",
+  "permissions": [
+    "register:profile",
+    "register:validator"
+  ],
+  "spec_version": "1",
+  "version": "0.1.0"
+}

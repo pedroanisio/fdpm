@@ -1,0 +1,48 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "local_name": "acme-risk",
+    "entry": "riskMarkdownRenderer",
+    "metadata": {
+      "primitive_type_id": "acme:Risk",
+      "target": "text/markdown"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "local_name": "risk-json",
+    "entry": "riskImporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ]
+    }
+  },
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "local_name": "risk-json",
+    "entry": "riskExporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "local_name": "is-valid-risk",
+    "entry": "isValidRisk",
+    "metadata": {
+      "function_name": "acme.isValidRisk",
+      "arity": 1,
+      "arg_types": [
+        "object"
+      ],
+      "return_type": "boolean",
+      "pure": true
+    }
+  }
+}

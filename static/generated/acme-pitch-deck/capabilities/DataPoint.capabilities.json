@@ -1,0 +1,48 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "local_name": "acme-data-point",
+    "entry": "dataPointMarkdownRenderer",
+    "metadata": {
+      "primitive_type_id": "acme:DataPoint",
+      "target": "text/markdown"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "local_name": "datapoint-json",
+    "entry": "dataPointImporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ]
+    }
+  },
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "local_name": "datapoint-json",
+    "entry": "dataPointExporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "local_name": "is-valid-data-point",
+    "entry": "isValidDataPoint",
+    "metadata": {
+      "function_name": "acme.isValidDataPoint",
+      "arity": 1,
+      "arg_types": [
+        "object"
+      ],
+      "return_type": "boolean",
+      "pure": true
+    }
+  }
+}

@@ -1,0 +1,1918 @@
+{
+  "constraints": [
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.audience.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.audience.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.audience.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 2",
+      "level": "error",
+      "name": "acme.audience.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.primaryQuestion) >= 10",
+      "level": "error",
+      "name": "acme.audience.primaryQuestion.min_length"
+    },
+    {
+      "expression": "size(self.field_values.evaluationCriteria) >= 2",
+      "level": "error",
+      "name": "acme.audience.evaluationCriteria.min_items"
+    },
+    {
+      "expression": "self.field_values.evaluationCriteria.all(t, size(t) >= 3)",
+      "level": "error",
+      "name": "acme.audience.evaluationCriteria.item.min_length"
+    },
+    {
+      "expression": "size(self.field_values.failureMode) >= 10",
+      "level": "error",
+      "name": "acme.audience.failureMode.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.source.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.source.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.source.id.regex"
+    },
+    {
+      "expression": "self.field_values.type in [\"internal-data\", \"vendor-disclosure\", \"regulator\", \"industry-publication\", \"community-source\", \"derived\"]",
+      "level": "error",
+      "name": "acme.source.type.enum"
+    },
+    {
+      "expression": "size(self.field_values.citation) >= 5",
+      "level": "error",
+      "name": "acme.source.citation.min_length"
+    },
+    {
+      "expression": "self.field_values.date.matches(\"^\\\\d{4}(-\\\\d{2}(-\\\\d{2})?)?$\")",
+      "level": "error",
+      "name": "acme.source.date.regex"
+    },
+    {
+      "expression": "self.field_values.lastVerifiedDate.matches(\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\")",
+      "level": "error",
+      "name": "acme.source.lastVerifiedDate.regex"
+    },
+    {
+      "expression": "self.field_values.derivedFrom.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.source.derivedFrom.item.min_length"
+    },
+    {
+      "expression": "self.field_values.derivedFrom.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.source.derivedFrom.item.max_length"
+    },
+    {
+      "expression": "self.field_values.derivedFrom.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.source.derivedFrom.item.regex"
+    },
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.datapoint.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.datapoint.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.datapoint.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 2",
+      "level": "error",
+      "name": "acme.datapoint.label.min_length"
+    },
+    {
+      "expression": "self.field_values.verificationStatus in [\"verified-multi-source\", \"verified-internal\", \"single-sourced-asterisked\", \"derived\", \"asserted-without-source\"]",
+      "level": "error",
+      "name": "acme.datapoint.verificationStatus.enum"
+    },
+    {
+      "expression": "self.field_values.sourceIds.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.datapoint.sourceIds.item.min_length"
+    },
+    {
+      "expression": "self.field_values.sourceIds.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.datapoint.sourceIds.item.max_length"
+    },
+    {
+      "expression": "self.field_values.sourceIds.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.datapoint.sourceIds.item.regex"
+    },
+    {
+      "expression": "self.field_values.usedOnSlides.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.datapoint.usedOnSlides.item.min_length"
+    },
+    {
+      "expression": "self.field_values.usedOnSlides.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.datapoint.usedOnSlides.item.max_length"
+    },
+    {
+      "expression": "self.field_values.usedOnSlides.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.datapoint.usedOnSlides.item.regex"
+    },
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.strategicclaim.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.strategicclaim.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.strategicclaim.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.statement) >= 10",
+      "level": "error",
+      "name": "acme.strategicclaim.statement.min_length"
+    },
+    {
+      "expression": "self.field_values.supportedByDataPoints.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.strategicclaim.supportedByDataPoints.item.min_length"
+    },
+    {
+      "expression": "self.field_values.supportedByDataPoints.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.strategicclaim.supportedByDataPoints.item.max_length"
+    },
+    {
+      "expression": "self.field_values.supportedByDataPoints.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.strategicclaim.supportedByDataPoints.item.regex"
+    },
+    {
+      "expression": "self.field_values.supportedByClaims.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.strategicclaim.supportedByClaims.item.min_length"
+    },
+    {
+      "expression": "self.field_values.supportedByClaims.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.strategicclaim.supportedByClaims.item.max_length"
+    },
+    {
+      "expression": "self.field_values.supportedByClaims.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.strategicclaim.supportedByClaims.item.regex"
+    },
+    {
+      "expression": "size(self.field_values.appearsOnSlides) >= 1",
+      "level": "error",
+      "name": "acme.strategicclaim.appearsOnSlides.min_items"
+    },
+    {
+      "expression": "self.field_values.appearsOnSlides.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.strategicclaim.appearsOnSlides.item.min_length"
+    },
+    {
+      "expression": "self.field_values.appearsOnSlides.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.strategicclaim.appearsOnSlides.item.max_length"
+    },
+    {
+      "expression": "self.field_values.appearsOnSlides.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.strategicclaim.appearsOnSlides.item.regex"
+    },
+    {
+      "expression": "self.field_values.potentialDismissals.all(t, size(t) >= 5)",
+      "level": "error",
+      "name": "acme.strategicclaim.potentialDismissals.item.min_length"
+    },
+    {
+      "expression": "self.field_values.antiDismissalEvidence.all(t, size(t) >= 5)",
+      "level": "error",
+      "name": "acme.strategicclaim.antiDismissalEvidence.item.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.risk.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.risk.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.risk.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.description) >= 20",
+      "level": "error",
+      "name": "acme.risk.description.min_length"
+    },
+    {
+      "expression": "self.field_values.severity in [\"low\", \"medium\", \"high\", \"critical\"]",
+      "level": "error",
+      "name": "acme.risk.severity.enum"
+    },
+    {
+      "expression": "self.field_values.likelihood in [\"unlikely\", \"possible\", \"likely\", \"near-certain\"]",
+      "level": "error",
+      "name": "acme.risk.likelihood.enum"
+    },
+    {
+      "expression": "self.field_values.category in [\"market\", \"execution\", \"regulatory\", \"technical\", \"financial\", \"team\", \"competitive\", \"macro\"]",
+      "level": "error",
+      "name": "acme.risk.category.enum"
+    },
+    {
+      "expression": "size(self.field_values.mitigation) >= 20",
+      "level": "error",
+      "name": "acme.risk.mitigation.min_length"
+    },
+    {
+      "expression": "self.field_values.addressedOnSlides.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.risk.addressedOnSlides.item.min_length"
+    },
+    {
+      "expression": "self.field_values.addressedOnSlides.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.risk.addressedOnSlides.item.max_length"
+    },
+    {
+      "expression": "self.field_values.addressedOnSlides.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.risk.addressedOnSlides.item.regex"
+    },
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.competitor.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.competitor.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.competitor.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 2",
+      "level": "error",
+      "name": "acme.competitor.name.min_length"
+    },
+    {
+      "expression": "self.field_values.threatLevel in [\"direct\", \"adjacent\", \"non-threat\", \"ourselves\"]",
+      "level": "error",
+      "name": "acme.competitor.threatLevel.enum"
+    },
+    {
+      "expression": "self.field_values.citationKind in [\"positioned-against\", \"benchmark\", \"inspiration\"]",
+      "level": "error",
+      "name": "acme.competitor.citationKind.enum"
+    },
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.antipattern.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.antipattern.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.antipattern.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 2",
+      "level": "error",
+      "name": "acme.antipattern.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.description) >= 10",
+      "level": "error",
+      "name": "acme.antipattern.description.min_length"
+    },
+    {
+      "expression": "size(self.field_values.whyHarmful) >= 10",
+      "level": "error",
+      "name": "acme.antipattern.whyHarmful.min_length"
+    },
+    {
+      "expression": "size(self.field_values.detectionSignals) >= 1",
+      "level": "error",
+      "name": "acme.antipattern.detectionSignals.min_items"
+    },
+    {
+      "expression": "self.field_values.detectionSignals.all(t, size(t) >= 5)",
+      "level": "error",
+      "name": "acme.antipattern.detectionSignals.item.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) >= 2",
+      "level": "error",
+      "name": "acme.slide.id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.id) <= 80",
+      "level": "error",
+      "name": "acme.slide.id.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "acme.slide.id.regex"
+    },
+    {
+      "expression": "self.field_values.displayNumber >= 1",
+      "level": "error",
+      "name": "acme.slide.displayNumber.gt"
+    },
+    {
+      "expression": "self.field_values.displayNumber <= 200",
+      "level": "error",
+      "name": "acme.slide.displayNumber.lt"
+    },
+    {
+      "expression": "int(self.field_values.displayNumber) == self.field_values.displayNumber",
+      "level": "error",
+      "name": "acme.slide.displayNumber.int"
+    },
+    {
+      "expression": "self.field_values.phase in [\"opening\", \"thesis\", \"evidence\", \"differentiation\", \"market\", \"timing\", \"positioning\", \"recommendation\", \"execution\", \"defense\", \"ask\", \"appendix\"]",
+      "level": "error",
+      "name": "acme.slide.phase.enum"
+    },
+    {
+      "expression": "size(self.field_values.eyebrow) >= 2",
+      "level": "error",
+      "name": "acme.slide.eyebrow.min_length"
+    },
+    {
+      "expression": "size(self.field_values.headline) >= 5",
+      "level": "error",
+      "name": "acme.slide.headline.min_length"
+    },
+    {
+      "expression": "size(self.field_values.strategicJob) >= 20",
+      "level": "error",
+      "name": "acme.slide.strategicJob.min_length"
+    },
+    {
+      "expression": "size(self.field_values.buyerObjectionAddressed) >= 10",
+      "level": "error",
+      "name": "acme.slide.buyerObjectionAddressed.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rationaleForPosition) >= 10",
+      "level": "error",
+      "name": "acme.slide.rationaleForPosition.min_length"
+    },
+    {
+      "expression": "self.field_values.evidenceUsed.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.slide.evidenceUsed.item.min_length"
+    },
+    {
+      "expression": "self.field_values.evidenceUsed.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.slide.evidenceUsed.item.max_length"
+    },
+    {
+      "expression": "self.field_values.evidenceUsed.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.slide.evidenceUsed.item.regex"
+    },
+    {
+      "expression": "self.field_values.claimsAdvanced.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.slide.claimsAdvanced.item.min_length"
+    },
+    {
+      "expression": "self.field_values.claimsAdvanced.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.slide.claimsAdvanced.item.max_length"
+    },
+    {
+      "expression": "self.field_values.claimsAdvanced.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.slide.claimsAdvanced.item.regex"
+    },
+    {
+      "expression": "self.field_values.competitorsCited.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.slide.competitorsCited.item.min_length"
+    },
+    {
+      "expression": "self.field_values.competitorsCited.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.slide.competitorsCited.item.max_length"
+    },
+    {
+      "expression": "self.field_values.competitorsCited.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.slide.competitorsCited.item.regex"
+    },
+    {
+      "expression": "self.field_values.risksAddressed.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.slide.risksAddressed.item.min_length"
+    },
+    {
+      "expression": "self.field_values.risksAddressed.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.slide.risksAddressed.item.max_length"
+    },
+    {
+      "expression": "self.field_values.risksAddressed.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.slide.risksAddressed.item.regex"
+    },
+    {
+      "expression": "self.field_values.antiPatternsAvoided.all(t, size(t) >= 2)",
+      "level": "error",
+      "name": "acme.slide.antiPatternsAvoided.item.min_length"
+    },
+    {
+      "expression": "self.field_values.antiPatternsAvoided.all(t, size(t) <= 80)",
+      "level": "error",
+      "name": "acme.slide.antiPatternsAvoided.item.max_length"
+    },
+    {
+      "expression": "self.field_values.antiPatternsAvoided.all(t, t.matches(\"^[a-z0-9][a-z0-9-]*$\"))",
+      "level": "error",
+      "name": "acme.slide.antiPatternsAvoided.item.regex"
+    },
+    {
+      "expression": "size(self.field_values.audienceReadings) >= 1",
+      "level": "error",
+      "name": "acme.slide.audienceReadings.min_items"
+    },
+    {
+      "expression": "self.field_values.estimatedSpeakingSeconds > 0",
+      "level": "error",
+      "name": "acme.slide.estimatedSpeakingSeconds.gt"
+    },
+    {
+      "expression": "self.field_values.estimatedSpeakingSeconds <= 1800",
+      "level": "error",
+      "name": "acme.slide.estimatedSpeakingSeconds.lt"
+    },
+    {
+      "expression": "int(self.field_values.estimatedSpeakingSeconds) == self.field_values.estimatedSpeakingSeconds",
+      "level": "error",
+      "name": "acme.slide.estimatedSpeakingSeconds.int"
+    },
+    {
+      "expression": "self.field_values.background in [\"light\", \"dark\"]",
+      "level": "error",
+      "name": "acme.slide.background.enum"
+    },
+    {
+      "expression": "graph.acyclic(\"acme:StrategicClaimSupportedByClaims\")",
+      "level": "error",
+      "name": "acme.strategicclaim.acyclic-supportedByClaims"
+    }
+  ],
+  "enum_defs": [
+    {
+      "description": "Enum derived from Competitor.citationKind",
+      "id": "enum:CompetitorCitationKind",
+      "name": "CompetitorCitationKind",
+      "values": [
+        "positioned-against",
+        "benchmark",
+        "inspiration"
+      ]
+    },
+    {
+      "description": "Enum derived from Competitor.threatLevel",
+      "id": "enum:CompetitorThreatLevel",
+      "name": "CompetitorThreatLevel",
+      "values": [
+        "direct",
+        "adjacent",
+        "non-threat",
+        "ourselves"
+      ]
+    },
+    {
+      "description": "Enum derived from DataPoint.verificationStatus",
+      "id": "enum:DataPointVerificationStatus",
+      "name": "DataPointVerificationStatus",
+      "values": [
+        "verified-multi-source",
+        "verified-internal",
+        "single-sourced-asterisked",
+        "derived",
+        "asserted-without-source"
+      ]
+    },
+    {
+      "description": "Enum derived from Risk.category",
+      "id": "enum:RiskCategory",
+      "name": "RiskCategory",
+      "values": [
+        "market",
+        "execution",
+        "regulatory",
+        "technical",
+        "financial",
+        "team",
+        "competitive",
+        "macro"
+      ]
+    },
+    {
+      "description": "Enum derived from Risk.likelihood",
+      "id": "enum:RiskLikelihood",
+      "name": "RiskLikelihood",
+      "values": [
+        "unlikely",
+        "possible",
+        "likely",
+        "near-certain"
+      ]
+    },
+    {
+      "description": "Enum derived from Risk.severity",
+      "id": "enum:RiskSeverity",
+      "name": "RiskSeverity",
+      "values": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    {
+      "description": "Enum derived from Slide.background",
+      "id": "enum:SlideBackground",
+      "name": "SlideBackground",
+      "values": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "description": "Enum derived from Slide.phase",
+      "id": "enum:SlidePhase",
+      "name": "SlidePhase",
+      "values": [
+        "opening",
+        "thesis",
+        "evidence",
+        "differentiation",
+        "market",
+        "timing",
+        "positioning",
+        "recommendation",
+        "execution",
+        "defense",
+        "ask",
+        "appendix"
+      ]
+    },
+    {
+      "description": "Enum derived from Source.type",
+      "id": "enum:SourceType",
+      "name": "SourceType",
+      "values": [
+        "internal-data",
+        "vendor-disclosure",
+        "regulator",
+        "industry-publication",
+        "community-source",
+        "derived"
+      ]
+    }
+  ],
+  "id": "profile:acme-pitch-deck:0.1",
+  "primitive_types": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "primaryQuestion",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "evaluationCriteriaItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 3
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "evaluationCriteria",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "failureMode",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        }
+      ],
+      "id": "acme:Audience"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "internal-data",
+            "vendor-disclosure",
+            "regulator",
+            "industry-publication",
+            "community-source",
+            "derived"
+          ],
+          "kind": "enum",
+          "name": "type",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citation",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "date",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d{4}(-\\d{2}(-\\d{2})?)?$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "lastVerifiedDate",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "derivedFromItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "derivedFrom",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "id": "acme:Source"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "format": "json-union",
+          "kind": "string",
+          "name": "value",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "unit",
+          "required": false
+        },
+        {
+          "enum_values": [
+            "verified-multi-source",
+            "verified-internal",
+            "single-sourced-asterisked",
+            "derived",
+            "asserted-without-source"
+          ],
+          "kind": "enum",
+          "name": "verificationStatus",
+          "required": true
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "sourceIdsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "sourceIds",
+          "required": false
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "usedOnSlidesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "usedOnSlides",
+          "required": false
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "appendixEntry",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "id": "acme:DataPoint"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "name": "loadBearing",
+          "required": true
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "supportedByDataPointsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "supportedByDataPoints",
+          "required": false
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "supportedByClaimsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "supportedByClaims",
+          "required": false
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "appearsOnSlidesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "appearsOnSlides",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "potentialDismissalsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 5
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "potentialDismissals",
+          "required": false
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "antiDismissalEvidenceItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 5
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "antiDismissalEvidence",
+          "required": false
+        }
+      ],
+      "id": "acme:StrategicClaim"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "kind": "enum",
+          "name": "severity",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "unlikely",
+            "possible",
+            "likely",
+            "near-certain"
+          ],
+          "kind": "enum",
+          "name": "likelihood",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "market",
+            "execution",
+            "regulatory",
+            "technical",
+            "financial",
+            "team",
+            "competitive",
+            "macro"
+          ],
+          "kind": "enum",
+          "name": "category",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "mitigation",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "addressedOnSlidesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "addressedOnSlides",
+          "required": false
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "acceptedAsNotAddressed",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "id": "acme:Risk"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "axes",
+          "required": true,
+          "struct_id": "CompetitorAxes"
+        },
+        {
+          "enum_values": [
+            "direct",
+            "adjacent",
+            "non-threat",
+            "ourselves"
+          ],
+          "kind": "enum",
+          "name": "threatLevel",
+          "required": true
+        },
+        {
+          "description": "default: \"positioned-against\"",
+          "enum_values": [
+            "positioned-against",
+            "benchmark",
+            "inspiration"
+          ],
+          "kind": "enum",
+          "name": "citationKind",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "notes",
+          "required": false
+        }
+      ],
+      "id": "acme:Competitor",
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "number",
+              "name": "x",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "y",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "z",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "CompetitorAxes"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "whyHarmful",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "detectionSignalsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 5
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "detectionSignals",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "id": "acme:AntiPattern"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "displayNumber",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_value",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "opening",
+            "thesis",
+            "evidence",
+            "differentiation",
+            "market",
+            "timing",
+            "positioning",
+            "recommendation",
+            "execution",
+            "defense",
+            "ask",
+            "appendix"
+          ],
+          "kind": "enum",
+          "name": "phase",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "eyebrow",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "headline",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "strategicJob",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "buyerObjectionAddressed",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "rationaleForPosition",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "format": "json-union",
+          "kind": "string",
+          "name": "visual",
+          "required": true
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "evidenceUsedItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "evidenceUsed",
+          "required": false
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "claimsAdvancedItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "claimsAdvanced",
+          "required": false
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "competitorsCitedItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "competitorsCited",
+          "required": false
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "risksAddressedItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "risksAddressed",
+          "required": false
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "antiPatternsAvoidedItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 2
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 80
+              },
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^[a-z0-9][a-z0-9-]*$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "antiPatternsAvoided",
+          "required": false
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "audienceReadingsItem",
+            "required": true,
+            "struct_id": "SlideAudienceReadingsItem"
+          },
+          "kind": "list",
+          "name": "audienceReadings",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "struct",
+            "name": "openQuestionsItem",
+            "required": true,
+            "struct_id": "SlideOpenQuestionsItem"
+          },
+          "kind": "list",
+          "name": "openQuestions",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "estimatedSpeakingSeconds",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_value",
+              "level": "error",
+              "value": 1800
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "light",
+            "dark"
+          ],
+          "kind": "enum",
+          "name": "background",
+          "required": true
+        }
+      ],
+      "id": "acme:Slide",
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "audienceId",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 2
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 80
+                },
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^[a-z0-9][a-z0-9-]*$"
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "expectedTakeaway",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "id": "SlideAudienceReadingsItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "question",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "whyHere",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "id": "SlideOpenQuestionsItem"
+        }
+      ]
+    }
+  ],
+  "relation_types": [
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:DataPointSourceIds",
+      "source_type_id": "acme:DataPoint",
+      "target_type_id": "acme:Source"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideEvidenceUsed",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:DataPoint"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:StrategicClaimSupportedByDataPoints",
+      "source_type_id": "acme:StrategicClaim",
+      "target_type_id": "acme:DataPoint"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:StrategicClaimSupportedByClaims",
+      "source_type_id": "acme:StrategicClaim",
+      "target_type_id": "acme:StrategicClaim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideClaimsAdvanced",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:StrategicClaim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideRisksAddressed",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Risk"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideCompetitorsCited",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:Competitor"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acme:SlideAntiPatternsAvoided",
+      "source_type_id": "acme:Slide",
+      "target_type_id": "acme:AntiPattern"
+    }
+  ]
+}

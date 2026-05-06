@@ -1,0 +1,48 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "local_name": "acme-slide",
+    "entry": "slideMarkdownRenderer",
+    "metadata": {
+      "primitive_type_id": "acme:Slide",
+      "target": "text/markdown"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "local_name": "slide-json",
+    "entry": "slideImporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ]
+    }
+  },
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "local_name": "slide-json",
+    "entry": "slideExporter",
+    "metadata": {
+      "format_id": "acme.pitch-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "local_name": "is-valid-slide",
+    "entry": "isValidSlide",
+    "metadata": {
+      "function_name": "acme.isValidSlide",
+      "arity": 1,
+      "arg_types": [
+        "object"
+      ],
+      "return_type": "boolean",
+      "pure": true
+    }
+  }
+}
