@@ -255,6 +255,7 @@ export function assembleDomainProfileFromSidecar(
         source_type_id: `${fdpm.vendor}:${v.from}`,
         target_type_id: `${fdpm.vendor}:${armName}`,
         cardinality: "many-to-one",
+        fields: [],
       });
     });
   }
@@ -283,6 +284,7 @@ export function assembleDomainProfileFromSidecar(
         source_type_id: `${fdpm.vendor}:${m.entity}`,
         target_type_id: sibId,
         cardinality: "one-to-one",
+        fields: [],
       });
       dnisDivergences.push({
         feature: "dnis.field-promoted",
@@ -307,6 +309,7 @@ export function assembleDomainProfileFromSidecar(
       source_type_id: `${fdpm.vendor}:${ref.from}`,
       target_type_id: `${fdpm.vendor}:${ref.to}`,
       cardinality,
+      fields: [],
     });
     // Effective cascade: explicit > aggregate-default > "set-null".
     const aggRoot = aggregateRoots.get(ref.from);

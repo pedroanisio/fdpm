@@ -172,18 +172,25 @@ function buildManifest(
     });
   }
 
-  // Permissions are the closed set the workbook documents in
-  // `example:bridge-manifest-skeleton`. The bridge derives the
-  // minimum set (register:profile, register:validator). Optional
-  // capabilities like renderer/importer/exporter/expr-helper are
-  // wired by the author when they call the corresponding
-  // zodSchemaTo* helpers, so we do not pre-add their permissions.
-  const permissions = ["register:profile", "register:validator"];
+  // Permissions are the closed set defined by the host's manifest
+  // schema (fdpm-cli/src/plugin/manifest.ts). The workbook
+  // example:bridge-manifest-skeleton uses `register:profile` /
+  // `register:validator` names that are NOT in the host enum — the
+  // workbook is stale relative to the running host. The bridge MUST
+  // emit names the host accepts. Minimum set for a Zod-derived
+  // plugin: read primitives/relations (so validators can introspect)
+  // and read workbooks (so renderers can address by id). Optional
+  // capabilities (render:server, import:workbook, export:workbook,
+  // network:outbound, filesystem:*) are author-added by overriding
+  // ScaffoldOptions.permissions when those caps are wired.
+  const permissions = ["read:primitives", "read:relations", "read:workbooks"];
 
   return {
     id: pluginId,
     version: pluginVersion,
-    spec_version: opts.specVersion ?? "1",
+    // Host's PluginManifest schema requires ^1\.\d+\.\d+$. Default
+    // to 1.0.0; consumers MAY override via opts.specVersion.
+    spec_version: opts.specVersion ?? "1.0.0",
     kind: "server",
     name: opts.pluginName ?? defaultPluginName(pluginId),
     description:

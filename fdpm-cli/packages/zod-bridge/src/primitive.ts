@@ -61,6 +61,7 @@ export function zodSchemaToPrimitiveType(
         source_type_id: primitiveTypeId,
         target_type_id: targetTypeId,
         cardinality: "one-to-one",
+        fields: [],
       });
       sub.field.relation_target_type_id = targetTypeId;
     }

@@ -1211,7 +1211,7 @@ function applyLogicalChecks(deck: z.infer<typeof PitchDeckBase>, ctx: z.Refineme
     const v = s.visual;
     const referencedDpIds: string[] = [];
     if (v.kind === "stat-tiles-plus-chart") {
-      v.tiles.forEach(t => referencedDpIds.push(t.dataPointId));
+      v.tiles.forEach((t: { dataPointId: string }) => referencedDpIds.push(t.dataPointId));
       referencedDpIds.push(...v.chartDataPointIds);
     } else if (v.kind === "chart-with-signal-rail") {
       referencedDpIds.push(...v.chartDataPointIds);

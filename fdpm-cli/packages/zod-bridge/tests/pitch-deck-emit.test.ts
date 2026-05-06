@@ -79,7 +79,7 @@ function buildPitchDeckSidecar() {
       vendor: "acme",
       profileId: "profile:acme-pitch-deck:0.1",
       pluginVersion: "0.1.0",
-      hostCompatibility: ">=0.5.0 <0.6.0",
+      hostCompatibility: ">=1.1,<2",
     },
   });
 }
@@ -104,7 +104,13 @@ function listTree(root: string): TreeEntry[] {
 }
 
 function emitTo(dir: string): void {
-  rmSync(dir, { recursive: true, force: true });
+  // Wipe ONLY the bridge-owned subtrees, not the whole dir — there
+  // are author-owned files at the top level (README.md) that the
+  // bridge does not produce and must not delete.
+  rmSync(join(dir, "generated"), { recursive: true, force: true });
+  rmSync(join(dir, "capabilities"), { recursive: true, force: true });
+  rmSync(join(dir, "fdpm-plugin.json"), { force: true });
+  rmSync(join(dir, "index.ts"), { force: true });
   mkdirSync(dir, { recursive: true });
 
   const sidecar = buildPitchDeckSidecar();

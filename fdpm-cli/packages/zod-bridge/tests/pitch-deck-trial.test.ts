@@ -169,7 +169,7 @@ function buildPitchDeckSidecar() {
       vendor: "acme",
       profileId: "profile:acme-pitch-deck:0.1",
       pluginVersion: "0.1.0",
-      hostCompatibility: ">=0.5.0 <0.6.0",
+      hostCompatibility: ">=1.1,<2",
     },
   });
 }

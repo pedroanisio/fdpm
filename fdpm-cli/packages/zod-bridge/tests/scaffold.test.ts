@@ -150,7 +150,7 @@ describe("writePluginScaffold — runnable plugin directory", () => {
     );
     expect(manifest.id).toBe("acme.customers");
     expect(manifest.version).toBe("0.1.0");
-    expect(manifest.spec_version).toBe("1");
+    expect(manifest.spec_version).toBe("1.0.0");
     expect(manifest.kind).toBe("server");
     expect(manifest.host_compatibility.fdpm).toBe(">=0.5.0 <0.6.0");
     expect(Array.isArray(manifest.capabilities)).toBe(true);
@@ -159,6 +159,35 @@ describe("writePluginScaffold — runnable plugin directory", () => {
     const ids = manifest.capabilities.map((c: { capability_id: string }) => c.capability_id);
     expect(ids).toContain("cap:profile");
     expect(ids).toContain("cap:validator");
+  });
+
+  it("emits a manifest that passes the host's runtime PluginManifest schema", async () => {
+    // The bridge MUST produce manifests that load on the running host.
+    // The host's schema is in fdpm-cli/src/plugin/manifest.ts. If any
+    // emitted shape diverges (permissions enum, spec_version pattern,
+    // local_name regex, strict-mode extras), the plugin fails discovery.
+    const result = assembleDomainProfileFromSidecar({
+      domain: minimalDomain(),
+      generatedAt: "1970-01-01T00:00:00.000Z",
+    });
+    writePluginScaffold(result, { outputDir: tempDir });
+    const manifestRaw = JSON.parse(
+      readFileSync(join(tempDir, "fdpm-plugin.json"), "utf8"),
+    );
+    // Pull in the host's actual schema. This test fails as soon as
+    // either side drifts — catches manifest-vs-runtime mismatch early.
+    const { PluginManifest } = await import(
+      "../../../src/plugin/manifest.js"
+    );
+    const parsed = PluginManifest.safeParse(manifestRaw);
+    if (!parsed.success) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "manifest validation failed:",
+        JSON.stringify(parsed.error.issues, null, 2),
+      );
+    }
+    expect(parsed.success).toBe(true);
   });
 
   it("derives cap:profile.local_name from pluginId (NOT the profile id tail)", () => {

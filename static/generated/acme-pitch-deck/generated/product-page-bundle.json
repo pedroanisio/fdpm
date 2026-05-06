@@ -54,7 +54,7 @@
       "state": "behind-flag"
     }
   ],
-  "host_compatibility": ">=0.5.0 <0.6.0",
+  "host_compatibility": ">=1.1,<2",
   "plugin_id": "acme.pitch-deck",
   "profile_id": "profile:acme-pitch-deck:0.1",
   "relation_types": [

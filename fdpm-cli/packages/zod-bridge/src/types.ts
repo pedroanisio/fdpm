@@ -94,6 +94,14 @@ export interface RelationTypeDef {
     | "one-to-many"
     | "many-to-one"
     | "many-to-many";
+  /**
+   * Per-edge metadata fields (alias for the host's `metadata_schema`).
+   * v0.4.0+ emits an empty array on every relation so the host's
+   * profile compiler does not crash on `.map()` of undefined. Host
+   * runtime accepts either shape; we choose `fields` because it is
+   * the CLI-native spelling per SPEC-CORE.
+   */
+  fields: ReadonlyArray<FieldDef>;
 }
 
 export interface Constraint {
