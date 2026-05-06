@@ -832,3 +832,273 @@ Spec workbooks (MCP):
 - `spec-fdpm-bridge` rev **0.2.3** — §11.8 added.
 - `spec-fdpm-bridge-zod` rev **0.2.4** — §5.5 added.
 - `spec-domain-sidecar` — unchanged.
+
+---
+
+## Re-trial: `@fdpm/zod-bridge@0.4.0` — second plugin from `business-deck.ts` (2026-05-06)
+
+The v0.4.0 trial closed the bridge-side conformance work and shipped
+one howto-conformant plugin (`acme.pitch-deck`). Question for this
+trial: does the conformance scaffolding port to a *different* schema
+without bridge changes? Specifically, can a second plugin be built
+end-to-end by copying the pitch-deck shape, swapping fixtures, and
+walking the same nine compliance gates?
+
+Source: [`static/schemas/business-deck.ts`](../../static/schemas/business-deck.ts)
+(6,811 lines — 5× the pitch-deck schema). Covers business presentation
+decks across pitch / exec update / board review / investment case /
+regulatory briefing / customer business review.
+
+### Hypothesis
+
+The bridge is feature-complete for v0.4.0; the test scaffolding is
+deterministic and schema-agnostic. The plugin should ship in ~5h
+single-iteration with:
+
+- **0 bridge changes** — kebab-case, sidecar orchestrator, validator
+  closures, CEL emitter, scaffold, all four optional capability
+  factories already cover the construct surface.
+- **0 spec patches** — the constructs in business-deck are a strict
+  subset of those exercised by pitch-deck (no discriminated unions,
+  no records, no recursive lazy).
+- **0 host changes** — the manifest parity work landed in the prior
+  trial.
+- The 9 test files port near-verbatim with fixture swaps; counts in
+  the assertions change but the assertion shapes don't.
+
+### Two-pass schema assessment
+
+Before authoring, ran a Pass-1 inventory (Explore subagent) and a
+Pass-2 verification (independent grep + targeted reads). Pass 2
+caught three claims to correct:
+
+| Pass 1 | Pass 2 verified | Correction |
+|---|---|---|
+| 16 brands | 12 entity ID brands | Pass 1 over-counted (included BuiltInPersuasionStrategyIdSchema, an `z.enum`, not a `.brand`). |
+| 0 `.optional()`, "implicit `?` syntax" | 141 `.optional()` calls | Pass 1 wrong on style. Doesn't change bridge behavior; corrects the schema-style observation. |
+| 12 entities auto-detected by convention | 11 by convention + 1 explicit override | The 12th — AudienceSegment — pairs with SegmentIdSchema (name mismatch); `{Name}IdSchema` convention requires identical prefix, so `entities[]` explicit list is required. |
+
+Plus one Pass-2-only finding the assessment relied on:
+
+- `SlideSchema` has no `id` field — uses `slide_number: z.number().int().positive()` as identity. Bridge accepts non-string identity via `idField: "slide_number"` without `idSchema` (skipping the optional reference-equality check).
+
+After Pass 2: assessment confidence high, projected effort ~5h, complexity S, no bridge changes.
+
+### Result
+
+Hypothesis **fully correct**. Bridge produced clean output; tests
+ported with fixture swaps; the only fixes required were inside the
+plugin's local copy of the schema (TypeScript `noUncheckedIndexedAccess`
+violations the schema's runtime helpers carry — same fix the
+pitch-deck schema needed in its plugin copy).
+
+#### What landed (delta against the empty plugin directory)
+
+```
+plugins/acme_business_deck/    (29 files including schema copy)
+├── fdpm-plugin.json             67 caps, 6 permissions, host-valid
+├── package.json                 peer-deps zod ^4 + @fdpm/zod-bridge ^0.4.0
+├── sidecar.ts                   13 entities + 12 references
+├── index.ts                     deck-coherence validator + 4 optional caps
+├── README.md                    Product Page from product-page-bundle.json
+├── schemas/business-deck.ts     local copy + 8 `!` assertions
+├── scripts/run-bridge.ts        21-file emission + --check drift gate
+├── generated/   (7 files)
+│   ├── profile.json             13 primitives, 12 relations, 38 CEL constraints
+│   ├── view-page.json
+│   ├── product-page-bundle.json 189 rule_ids, 13 flag states
+│   ├── audit.json
+│   ├── migration-hints.json
+│   ├── usl-ng-core.json
+│   └── schema-hash.json
+└── capabilities/   (13 files, one per Entity)
+    ├── AudienceSegment.capabilities.json
+    └── … etc.
+
+tests/plugins/acme_business_deck/   (9 files, 40 tests, all green first try)
+├── bridge-mapping.test.ts        6 tests
+├── cel-translation.test.ts       4 tests
+├── validator-equivalence.test.ts 4 tests
+├── roundtrip.test.ts             3 tests
+├── determinism.test.ts           3 tests (--check in fresh subprocess)
+├── expr-helper-purity.test.ts    4 tests
+├── failure-modes.test.ts         6 tests
+├── manifest-parity.test.ts       7 tests
+└── version-bump.test.ts          3 tests
+```
+
+Test counts: host suite **1,096 → 1,136** (+40 from this plugin); bridge package **151/151** (unchanged).
+
+#### Defects encountered (3 small, all in-session)
+
+1. **Schema noUncheckedIndexedAccess violations** — 8 errors in the
+   schema's runtime helpers (engagement_plan touch-spacing checks,
+   narrative-step contiguity scan). Fixed by adding `!` after array-index
+   reads inside bounded loops in the plugin's local copy. Same pattern
+   the pitch-deck schema required in its plugin copy.
+2. **Manifest description >500 chars** — host's `PluginManifest`
+   schema rejects descriptions over 500 chars. Trimmed from 587 to
+   254 chars in `scripts/run-bridge.ts`'s scaffold call.
+3. **Sidecar `variants?` typed as `never[]`** when explicitly empty.
+   The schema has zero `z.discriminatedUnion`, so the variant array is
+   empty — TypeScript narrows `variants?` to `never[]` and rejects
+   property access in the helper functions. Fixed with a focused widening
+   cast in `variantFieldsByEntity()`.
+
+None reached the bridge or host. All three fall under "every new
+schema has its own quirks" — the bridge contract held in every case.
+
+#### Bridge contract observations (zero falsifications)
+
+| Construct | Count in schema | Bridge behavior | Verified |
+|---|---|---|---|
+| z.discriminatedUnion | 0 | n/a | ✓ no variant-split exercised |
+| z.union | 0 | n/a | ✓ no payload-blob fallback |
+| z.lazy | 0 | n/a | ✓ depth=1 default holds |
+| z.transform / .pipe | 0 | n/a | ✓ no validate-pre-transform |
+| z.record | 0 | n/a | ✓ no opaque-blob fallback |
+| z.brand<>() | 12 | strip at translation | ✓ no `brand` metadata leaks into FieldDef |
+| .superRefine | 1 | validator fallback | ✓ lifted to deck-coherence cap:validator |
+| .regex (no flags) | 1 | CEL rule 4 (string.matches) | ✓ emitted directly |
+| .default(...) | 105 | document-not-fill | ✓ none change validation outcome |
+| .optional() / .nullable() | 141 / 0 | required:false / nullable:true | ✓ clean separation |
+| z.function / z.promise | 0 | hard reject | ✓ never reached |
+
+The schema-vs-bridge interaction is now well-understood enough that
+a second-pass author could project the construct profile in advance
+and predict zero fallbacks. That's the kind of confidence the v0.3.0
+trial was missing.
+
+#### Cross-deck invariants port (the deck-coherence validator)
+
+The schema's three top-level `superRefine` functions —
+`checkReferentialIntegrity`, `checkUniqueness`, `checkPostureAndDelivery`
+— operate on a deeply-nested `deck` object (the schema's container).
+The plugin's deck-coherence validator operates on the *flat workbook*
+the host exposes via `context.workbook.primitives`.
+
+Translation pattern that worked: enumerate the 12 declared references
+as a `REFERENCE_CHECKS` table; for each `<X>_ids[]` field, check that
+every referenced id exists as a primitive of type `<X>` in the
+workbook. The validator becomes a 200-line port covering:
+
+- 12 referential-integrity rules (one per declared reference).
+- Per-type slug uniqueness on `field_values.id` (host already enforces
+  primitive-id uniqueness; this catches semantic-id collisions on
+  distinct primitive ids — a soft layer).
+- Slide.slide_number contiguity 1..N with duplicate detection.
+- Claim parent-cycle DFS (white/gray/black) over the
+  `parent_claim_id` self-reference.
+
+17 deck-coherence rule_ids in total. All declared in the manifest's
+`deck-coherence` cap entry per the closed-set property the
+manifest-parity test asserts.
+
+#### Declared losses (per SPEC-FDPM-BRIDGE §8.2)
+
+Documented as soft-drop in the plugin's README + index.ts header:
+
+- `BuiltInBusinessConstraints` data-driven catalog (line 3046 of the
+  source schema). Structural in shape but rule evaluation is dynamic
+  (predicates over deck state); the bridge cannot represent as CEL.
+  Per-entity Zod constraints + the deck-coherence validator cover
+  the hard structural rules; the catalog's `should` and `nice_to_have`
+  severities are dropped at the plugin layer.
+- `validateBusinessDeck()` runtime function (line 6715). Returns
+  `ValidationReportWithSolidity` (severity-stratified report including
+  case solidity grading). Soft post-parse layer the host does not
+  consume.
+
+Both are sales-context-or-soft-warning paths; neither blocks any
+must-rule.
+
+#### `.gitignore` artefact (open question)
+
+Mid-build the user added a `.gitignore` line excluding
+`plugins/acme_business_deck/capabilities/PainPoint.capabilities.json`
+from version control. The file is bridge-generated, so the drift gate
+(`scripts/run-bridge.ts --check`) will fail on a fresh clone because
+the file is missing. Two clean resolutions:
+
+1. Drop the `.gitignore` line (commit the file).
+2. Extend `run-bridge.ts --check` to read `.gitignore` and skip ignored
+   paths in the comparison.
+
+Flagged in the commit message; not auto-resolved. (Visible to a
+reviewer; lets the operator pick.)
+
+### End-state summary (business-deck trial)
+
+| Question | Answer |
+|---|---|
+| Did the bridge succeed end-to-end? | Yes, on first build pass. |
+| Are all tests green? | Yes, **1,136/1,136** (40/40 plugin tests; 151/151 bridge tests; 945/945 host tests). |
+| Output deterministic? | Yes, byte-stable across runs and processes. |
+| Bridge bugs surfaced? | **None.** v0.4.0 contract held against a 5×-larger schema. |
+| Host bugs surfaced? | **None.** |
+| Spec patches required? | **None.** |
+| Plugin-side defects? | 3 small (TypeScript array-access asserts, manifest description trim, variants typing widening). |
+| Effort | ~5h, complexity S — matches the projection from the two-pass assessment. |
+| Conformance scaffolding portable? | **Yes.** Test files port verbatim with fixture swaps; CI workflow + drift gate + schema-hash + manifest-parity + version-bump gate transferred unchanged. |
+
+This trial validates that the v0.4.0 conformance shape is
+*reusable* — a second schema reaches contract-conformant plugin shape
+without retreading the bridge defects, scaffold variations, or spec
+gaps the pitch-deck trial uncovered. The next plugin should be
+faster still.
+
+### Files touched (business-deck trial)
+
+Plugin (new, 29 files):
+
+- [`plugins/acme_business_deck/sidecar.ts`](../../fdpm-cli/plugins/acme_business_deck/sidecar.ts)
+- [`plugins/acme_business_deck/index.ts`](../../fdpm-cli/plugins/acme_business_deck/index.ts)
+- [`plugins/acme_business_deck/scripts/run-bridge.ts`](../../fdpm-cli/plugins/acme_business_deck/scripts/run-bridge.ts)
+- [`plugins/acme_business_deck/package.json`](../../fdpm-cli/plugins/acme_business_deck/package.json)
+- [`plugins/acme_business_deck/README.md`](../../fdpm-cli/plugins/acme_business_deck/README.md)
+- [`plugins/acme_business_deck/schemas/business-deck.ts`](../../fdpm-cli/plugins/acme_business_deck/schemas/business-deck.ts) — local copy + 8 `!` asserts
+- [`plugins/acme_business_deck/fdpm-plugin.json`](../../fdpm-cli/plugins/acme_business_deck/fdpm-plugin.json) — generated
+- [`plugins/acme_business_deck/generated/`](../../fdpm-cli/plugins/acme_business_deck/generated/) — 7 bridge artefacts
+- [`plugins/acme_business_deck/capabilities/`](../../fdpm-cli/plugins/acme_business_deck/capabilities/) — 13 per-Entity descriptors
+
+CI:
+
+- [`.github/workflows/plugin-acme-business-deck.yml`](../../fdpm-cli/.github/workflows/plugin-acme-business-deck.yml)
+
+Plugin tests (new, 9 files):
+
+- [`tests/plugins/acme_business_deck/bridge-mapping.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/bridge-mapping.test.ts)
+- [`tests/plugins/acme_business_deck/cel-translation.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/cel-translation.test.ts)
+- [`tests/plugins/acme_business_deck/validator-equivalence.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/validator-equivalence.test.ts)
+- [`tests/plugins/acme_business_deck/roundtrip.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/roundtrip.test.ts)
+- [`tests/plugins/acme_business_deck/determinism.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/determinism.test.ts)
+- [`tests/plugins/acme_business_deck/expr-helper-purity.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/expr-helper-purity.test.ts)
+- [`tests/plugins/acme_business_deck/failure-modes.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/failure-modes.test.ts)
+- [`tests/plugins/acme_business_deck/manifest-parity.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/manifest-parity.test.ts)
+- [`tests/plugins/acme_business_deck/version-bump.test.ts`](../../fdpm-cli/tests/plugins/acme_business_deck/version-bump.test.ts)
+
+Bridge package: **no changes**. Spec workbooks: **no changes**. Host: **no changes**.
+
+### What this trial concludes about the bridge program
+
+After four trials (v0.1.0, v0.2.0/0.3.0, v0.4.0 conformance, v0.4.0 second-plugin):
+
+- The construct surface (`@fdpm/zod-bridge@0.4.0`) is **stable** —
+  zero bridge changes needed for a second real-world schema 5× the
+  size of the first.
+- The howto-conformance scaffolding is **portable** — six §8 testcases
+  + three closure tests + drift gate + CI workflow port verbatim
+  with fixture swaps.
+- The two specs (`SPEC-FDPM-BRIDGE`, `SPEC-FDPM-BRIDGE-ZOD`) cover
+  the cases real schemas exercise; the §11.8 + §5.5 patches from the
+  v0.4.0 trial were the last gaps.
+- The remaining work is **plugin-author convenience** (a scaffold
+  template / `fdpm scaffold-plugin` CLI) and **product-level outputs**
+  (workbook-level renderers that compose per-Entity Markdown into a
+  deck artefact), not bridge or spec work.
+
+Next plugin should ship in <2h. If it doesn't, that's signal that
+either the bridge or the scaffolding needs another iteration — but
+the v0.4.0 contract has now held against two production-grade schemas
+with very different shapes (variant-heavy pitch-deck vs.
+cross-reference-heavy business-deck).
