@@ -517,6 +517,24 @@ export const AudienceSegmentSchema = z.object({
   functional_jobs: z.array(z.string()).default([]),
   emotional_jobs: z.array(z.string()).default([]),
   social_jobs: z.array(z.string()).default([]),
+
+  // §3.2 — Regulatory focus theory (Higgins 1997, Am Psychol 52(12):1280–1300).
+  // Promotion focus optimizes for advancement and gain attainment;
+  // prevention focus optimizes for security and loss avoidance. Decks
+  // achieve regulatory fit (Cesario, Grant & Higgins 2004) when their
+  // framing polarity matches this segment's focus. Mismatched framings
+  // (e.g. promotion-focus segment + loss-framed pitch) measurably
+  // reduce persuasion. Optional; absence means "not declared".
+  regulatory_focus: z.enum(["promotion", "prevention", "balanced"]).optional(),
+
+  // §4.3 — Need for Cognition (Cacioppo & Petty 1982; Cacioppo et al.
+  // 1996, Psychol Bull 119(2):197–253). Stable individual difference;
+  // high-NFC segments enjoy and reward dense argument, low-NFC segments
+  // do not. Distinct from prior_knowledge (capability) and from
+  // complexity_tolerance (preference under load). Engineering, data
+  // science, and academic-research profiles skew high; some C-suite
+  // and creative-class profiles skew lower. Optional.
+  need_for_cognition: z.enum(["low", "medium", "high"]).optional(),
 });
 
 export const AudienceSchema = z.object({
@@ -542,6 +560,13 @@ export const AudienceSchema = z.object({
   // Named sub-audiences. IDs are cross-referenced by
   // DeckVariant.segment_ids and SlideVariant.segment_id.
   segments: z.array(AudienceSegmentSchema).default([]),
+
+  // §4.4 — Audience mood / context entering the room.
+  // Schwarz & Clore (1983, J Pers Soc Psychol 45(3):513–523):
+  // positive mood biases toward peripheral processing, negative mood
+  // biases toward analytical processing. Free text — soft signal only.
+  // Example: "meeting follows tense board discussion on layoffs".
+  audience_mood_context: z.string().optional(),
 });
 
 /* =====================================================
@@ -639,6 +664,49 @@ export const MessageStrategySchema = z.object({
       message: z.string(),
     })
     .optional(),
+
+  // §2.4 — Prospect-theory framing polarity (Kahneman & Tversky 1979,
+  // Econometrica 47(2):263–292; Tversky & Kahneman 1992, J Risk Uncertain
+  // 5(4):297–323). Distinct from the substantive framing_angle above:
+  // polarity is whether the deck frames its argument as a *gain* or a
+  // *loss* relative to a reference point. Outcome_probability informs
+  // the CPT fourfold pattern: high-prob gains favor risk-aversion (loss
+  // frame more persuasive); low-prob gains favor risk-seeking (gain
+  // frame more persuasive); inverse for losses. Empirical λ ≈ 1.31
+  // (Walasek, Mullett & Stewart 2024, J Econ Psychol 103:102740) —
+  // not the popular 2.25 from T&K 1992, which overestimates loss
+  // aversion in typical stake ranges. Optional.
+  prospect_theory_frame: z
+    .object({
+      polarity: z.enum(["gain", "loss", "mixed"]),
+      reference_point: z.string(),
+      outcome_probability: z
+        .enum([
+          "high_probability",
+          "moderate_probability",
+          "low_probability",
+          "deterministic",
+          "unknown",
+        ])
+        .optional(),
+    })
+    .optional(),
+
+  // §4.1 — Narrative protagonist (Van Laer, De Ruyter, Visconti & Wetzels
+  // 2014, J Consum Res 40(5):797–817). Identifiable characters are an
+  // antecedent of narrative transportation. In sales / VC contexts the
+  // research is unambiguous: the *customer* should be the protagonist,
+  // not the company. Soft warning fires when sales-context decks set
+  // protagonist to "presenter_company". Optional.
+  narrative_protagonist: z
+    .enum([
+      "buyer_organization",
+      "buyer_user",
+      "presenter_company",
+      "industry_at_large",
+      "abstract",
+    ])
+    .optional(),
 });
 
 /* =====================================================
@@ -691,6 +759,13 @@ export const NarrativeStepSchema = z.object({
   function: NarrativeFunctionSchema,
   message: z.string(),
   audience_question_answered: z.string().optional(),
+
+  // §3.8 — Explicit transition cue (Stephens, Silbert & Hasson 2010,
+  // PNAS 107(32):14425–14430). Speaker–listener neural coupling
+  // collapses when the listener loses the thread; explicit signposting
+  // ("now I'm going to argue X") raises coupling. Optional but
+  // recommended at posture/section boundaries.
+  transition_cue: z.string().optional(),
 });
 
 export const NarrativeModelSchema = z.object({
@@ -720,6 +795,23 @@ export const NarrativeModelSchema = z.object({
     "recommendation",
     "next_steps",
   ]),
+
+  // §3.3 — Warmth × competence first-impression target. Fiske, Cuddy &
+  // Glick 2007, Trends Cogn Sci 11(2):77–83 — universal two-dimensional
+  // structure of social cognition. Willis & Todorov 2006, Psychol Sci
+  // 17(7):592–598 — 100ms suffices for trustworthiness/competence
+  // judgments. The first ~30 seconds fix a hard-to-update prior; a
+  // high-competence-low-warmth opening (the classic "envied competitor"
+  // failure mode) is a known VC-pitch failure. Soft warning fires when
+  // opening_strategy is data-heavy ("data_first", "definition_first")
+  // AND warmth target is "high" — likely incoherent design. Optional.
+  opening_first_impression_target: z
+    .object({
+      warmth: z.enum(["high", "medium", "low"]),
+      competence: z.enum(["high", "medium", "low"]),
+      rationale: z.string().optional(),
+    })
+    .optional(),
 });
 
 /* =====================================================
@@ -982,6 +1074,14 @@ export const OptionSchema = z.object({
   // the recommended path from it.
   kind: OptionKindSchema.optional(),
   differentiation_claim_ids: z.array(ClaimIdSchema).default([]),
+
+  // §3.4 — Pre-selected default in comparison slides. Johnson & Goldstein
+  // 2003, Science 302(5649):1338–1339; compromise effect (Simonson 1989,
+  // J Mark Res 26(2):158–174). Defaults exploit status-quo bias and
+  // compromise effects. For SaaS pricing decks, the middle tier is the
+  // standard default. Soft warning fires when no option is pre-selected
+  // on a comparison slide for low-elaboration audiences. Default false.
+  is_pre_selected: z.boolean().default(false),
 });
 
 export const RecommendationSchema = z.object({
@@ -1071,6 +1171,23 @@ export const PersuasionStrategySchema = z.object({
   required_evidence_types: z.array(EvidenceTypeSchema).default([]),
   constraints: z.array(StrategyConstraintSchema).default([]),
   failure_modes: z.array(StrategyFailureModeSchema).default([]),
+
+  // §3.7 — Empirical evidence grading for the strategy itself.
+  // A — meta-analytic / multi-lab replicated. Examples in this catalog:
+  //     evidence-based logos_reasoning, social_proof (Goldstein, Cialdini
+  //     & Griskevicius 2008, J Consum Res 35(3):472–482).
+  // B — multiple independent direct replications at adequate power.
+  //     Examples: reciprocity, liking, authority (modulated effects).
+  // C — original finding plus mixed/partial replications. Loss aversion
+  //     belongs here once λ is recalibrated to ≈ 1.31 per Walasek et al.
+  //     2024 J Econ Psychol 103:102740 (down from T&K 1992's λ = 2.25,
+  //     an estimate from N = 25 graduate students).
+  // D — popular framework with weak academic support. Provocation as a
+  //     strategy belongs here — no specific replicated paradigm.
+  // Caveats array carries the recalibration / replication notes.
+  empirical_grade: z.enum(["A", "B", "C", "D"]).optional(),
+  empirical_grade_rationale: z.string().optional(),
+  empirical_grade_caveats: z.array(z.string()).default([]),
 });
 
 export const PersuasionSequenceStepSchema = z.object({
@@ -1143,6 +1260,12 @@ const _builtInPersuasionStrategiesSeed: z.input<
         correction: "Add premise-evidence-conclusion structure.",
       },
     ],
+    empirical_grade: "A",
+    empirical_grade_rationale:
+      "Argument-quality effects under high elaboration are meta-analytically supported (Carpenter 2015, Hum Commun Res 41(4):501–534, doi:10.1111/hcre.12054 — Elaboration Likelihood Model meta-analysis). The central-route prediction that argument quality dominates for motivated and able audiences replicates broadly.",
+    empirical_grade_caveats: [
+      "Some specific ELM paradigm replications (e.g., Petty, Cacioppo & Goldman 1981) have not held up cleanly; the macro-level central-vs-peripheral distinction is robust, the strict argument-quality × elaboration interaction is smaller and noisier than ELM rhetoric implies.",
+    ],
   },
   {
     id: "risk_avoidance",
@@ -1190,6 +1313,14 @@ const _builtInPersuasionStrategiesSeed: z.input<
         correction: "Add mitigation options and decision criteria.",
       },
     ],
+    empirical_grade: "C",
+    empirical_grade_rationale:
+      "Risk-avoidance argumentation overlaps with the loss-aversion mechanism in prospect theory (Kahneman & Tversky 1979, Econometrica 47; Tversky & Kahneman 1992). Loss-framed appeals do outperform gain-framed appeals on average for behaviors with already-clear personal benefits (Levin, Schneider & Gaeth 1998, OBHDP 76(2):149–188), but the effect is small-to-medium and context-dependent.",
+    empirical_grade_caveats: [
+      "Empirical λ ≈ 1.31 (Walasek, Mullett & Stewart 2024, J Econ Psychol 103:102740), not the popular 2.25 from T&K 1992. Risk-avoidance pitches over-leverage the canonical figure — calibrate expectations accordingly.",
+      "Effect strongest for medium-stakes / moderate-probability prevention-focus framings; near-null for low-stakes promotion-focus framings (regulatory-fit moderation, Cesario, Grant & Higgins 2004).",
+      "Excessive risk framing without a credible mitigation path triggers fear-without-action paralysis and reduces persuasion below baseline.",
+    ],
   },
   {
     id: "opportunity_capture",
@@ -1234,6 +1365,13 @@ const _builtInPersuasionStrategiesSeed: z.input<
           "Add operating model, milestones, feasibility proof, or next steps.",
       },
     ],
+    empirical_grade: "B",
+    empirical_grade_rationale:
+      "Promotion-focus framing of growth opportunities is grounded in regulatory-focus theory (Higgins 1997, Am Psychol 52(12):1280–1300) and aligns with the CPT fourfold pattern: low-probability gains are overweighted (γ < 1), making upside-emphasis pitches differentially persuasive for high-NFC, supportive, or curious audiences. Field evidence in VC-pitch and strategy-deck contexts is consistent.",
+    empirical_grade_caveats: [
+      "Effect inverts under regulatory mismatch: prevention-focus audiences (CFO, CISO, risk, compliance) discount opportunity narratives that lack downside containment.",
+      "Skeptical or hostile audiences process more analytically and require explicit feasibility proof; opportunity narrative without execution mechanism backfires.",
+    ],
   },
   {
     id: "tradeoff_transparency",
@@ -1274,6 +1412,13 @@ const _builtInPersuasionStrategiesSeed: z.input<
         symptom: "All options appear equal because decision criteria are unclear.",
         correction: "Rank dimensions by importance and show implications.",
       },
+    ],
+    empirical_grade: "B",
+    empirical_grade_rationale:
+      "Tradeoff-transparency strategies build trust through explicit criteria and acknowledged limitations. Aligns with Toulmin's qualifier element (Toulmin 1958/2003) and with research on two-sided messaging (Allen 1991, Communication Yearbook 14): two-sided messages outperform one-sided messages for high-elaboration audiences, especially when refutational. Effect size is medium and well-replicated.",
+    empirical_grade_caveats: [
+      "Effect inverts for low-elaboration / uninformed audiences who lack the framework to evaluate the tradeoffs and instead read the disclosure as weakness.",
+      "Requires explicit dimensions for comparison; unranked tradeoff slides produce false-balance failure where all options appear equal.",
     ],
   },
   {
@@ -1318,6 +1463,14 @@ const _builtInPersuasionStrategiesSeed: z.input<
         correction: "Add synthesis, implications, and next-step decision.",
       },
     ],
+    empirical_grade: "D",
+    empirical_grade_rationale:
+      "No specific replicated paradigm in the persuasion literature corresponds to 'provocation' as a strategy. The closest evidence is in priming research (which is the textbook example of the replication crisis: Doyen et al. 2012, PLoS ONE 7(1):e29081 failed Bargh elderly-walking; Kahneman 2012 open letter to priming researchers). Provocation can work — confident speakers reframe assumptions every day — but the effect is not measured or replicated as a generic strategy.",
+    empirical_grade_caveats: [
+      "Effect is highly speaker-dependent; without authority and warmth signals, provocation reads as combative rather than insightful (Fiske, Cuddy & Glick 2007, Trends Cogn Sci 11(2):77–83).",
+      "Hostile or uninformed audiences are predicted to react with hardened resistance rather than reconsideration; constraint already encoded in audience_fit.risky_when_audience_is.",
+      "Evidence in this catalog is intentionally graded D rather than C — the strategy is admitted because it captures real practitioner usage, not because the literature supports it.",
+    ],
   },
 ];
 
@@ -1344,6 +1497,16 @@ export const SlideRoleSchema = z.enum([
   "decision",
   "closing",
   "appendix",
+  // §2.2 — Knutson, Rick, Wimmer, Prelec & Loewenstein 2007, Neuron
+  // 53(1):147–156. NAcc activation during product/value viewing
+  // predicts purchase; anterior insula activation during price viewing
+  // predicts no-purchase. The two channels are dissociable, with
+  // independent timing. "value_proposition" is the affective-load slide
+  // (NAcc); "pricing" is the price-disclosure slide (insula/MPFC).
+  // Imperative validator enforces the ordering: pricing must follow
+  // at least one value_proposition, evidence, or recommendation slide.
+  "value_proposition",
+  "pricing",
 ]);
 
 export const ContentBlockTypeSchema = z.enum([
@@ -1431,6 +1594,24 @@ export const SlideSchema = z.object({
   // When present, segment_id must resolve and three soft coherence
   // checks fire (see AudienceResponseSchema docs).
   expected_audience_responses: z.array(AudienceResponseSchema).default([]),
+
+  // §2.1 — Cowan working-memory ceiling (Cowan 2001, Behav Brain Sci
+  // 24(1):87–114; 2010, Curr Dir Psychol Sci 19(1):51–57). Audiences
+  // cannot hold more than ~4 ± 1 unrehearsed chunks in working memory.
+  // Miller's (1956) 7±2 over-counted because participants chunked.
+  // chunk_count is the author's count of independently-trackable
+  // pieces of NEW information on this slide; chunk_rationale lets a
+  // reviewer challenge whether items are really chunks or really atoms.
+  // Imperative validator emits a soft warning when chunk_count > 4
+  // (>5 is a must-severity warning for low-complexity-tolerance
+  // audiences). Optional — slides without the field parse cleanly
+  // but receive a default "density-only" coarse check.
+  cognitive_load: z
+    .object({
+      chunk_count: z.number().int().nonnegative(),
+      chunk_rationale: z.string().optional(),
+    })
+    .optional(),
 });
 
 /* =====================================================
@@ -1781,6 +1962,27 @@ export const ConstraintRequirementSchema = z.object({
   discouraged_content_block_types: z
     .array(ContentBlockTypeSchema)
     .optional(),
+
+  // ----- Research-grounded structural requirements (added in the
+  // psychology/neuroscience expansion pass). -----
+  // §4.2 — Halo / typographic floor (Thorndike 1920; Kawabata & Zeki
+  // 2004). Below a typographic floor, content is discounted; for
+  // external-facing async-delivery decks, design_system is load-bearing.
+  must_include_design_system: z.boolean().optional(),
+  // §2.3 — Anchoring (Furnham & Boo 2011). When pricing is disclosed,
+  // require an explicit reference_anchor in commercial_model so the
+  // audience does not anchor on whatever number is incidentally salient.
+  must_provide_reference_anchor: z.boolean().optional(),
+  // §3.1 — Spacing effect (Cepeda et al. 2006/2008). Long-cycle B2B
+  // decks should declare their multi-touch engagement plan; a 90-day
+  // cycle pitched as a single comprehensive touch wastes the spacing
+  // dividend.
+  must_provide_engagement_plan: z.boolean().optional(),
+  // §2.4 — Prospect theory framing (Kahneman & Tversky 1979).
+  // When the deck declares a loss_aversion strategy, it should also
+  // declare its framing polarity and reference point so the strategy
+  // is auditable rather than rhetorical.
+  must_provide_prospect_theory_frame: z.boolean().optional(),
 });
 
 export const DeckConstraintSchema = z.object({
@@ -1986,6 +2188,92 @@ const _builtInBusinessConstraintsSeed: z.infer<
     validation_question:
       "When at least one named segment is hostile, has the deck taken its objections on directly?",
     severity: "must",
+  },
+  // ----- Research-grounded constraints from the psychology/neuroscience
+  // expansion. Numbered against the assessment document's section IDs. -----
+  {
+    // §2.2 — Knutson SHOP affective sequencing. NAcc value-loading
+    // before insula price-pain. The DSL can only enforce coexistence
+    // of value_proposition with pricing; the actual *ordering* check
+    // (value precedes price) is done imperatively in buildSoftWarnings.
+    id: "pricing_slide_should_have_value_predecessor",
+    category: "rhetorical",
+    condition: { required_slide_roles_present: ["pricing"] },
+    requirement: {
+      must_include_slide_roles: ["value_proposition"],
+    },
+    validation_question:
+      "Does the deck establish value (value_proposition slide) before disclosing price (pricing slide)?",
+    severity: "must",
+  },
+  {
+    // §2.3 — Anchoring on price. When the deck has a pricing slide,
+    // commercial_model.reference_anchor should be set so the audience
+    // is durably anchored against a credible reference rather than
+    // against whatever number is incidentally first-salient.
+    id: "pricing_slide_requires_reference_anchor",
+    category: "rhetorical",
+    condition: { required_slide_roles_present: ["pricing"] },
+    requirement: {
+      must_provide_reference_anchor: true,
+    },
+    validation_question:
+      "Has the pricing discussion been deliberately anchored against a credible reference price?",
+    severity: "should",
+  },
+  {
+    // §4.2 — Halo floor for external-facing async decks. When the deck
+    // ships as a self-contained document to executive / investor /
+    // customer / public audiences, design_system is load-bearing
+    // because the document is the deliverable.
+    id: "external_async_delivery_requires_design_system",
+    category: "visual",
+    condition: {
+      delivery_mode: ["shared_async"],
+      audience_type: ["executive", "investor", "customer", "public"],
+    },
+    requirement: {
+      must_include_design_system: true,
+    },
+    validation_question:
+      "For an external-facing read-alone deck, is the design system declared so production-value reaches a defensible floor?",
+    severity: "should",
+  },
+  {
+    // §2.4 — Calibration discipline for loss_aversion strategy.
+    // Empirical λ ≈ 1.31 (Walasek et al. 2024), not the popular 2.25.
+    // A deck claiming a loss-aversion strategy should declare its
+    // framing polarity, reference point, and probability domain so
+    // the strategy is auditable.
+    id: "loss_aversion_strategy_requires_prospect_theory_frame",
+    category: "persuasion_strategy",
+    condition: { persuasion_strategy_type: ["loss_aversion"] },
+    requirement: {
+      must_provide_prospect_theory_frame: true,
+    },
+    validation_question:
+      "When using a loss_aversion strategy, has the deck declared its prospect-theory frame (polarity, reference point, probability domain)?",
+    severity: "should",
+  },
+  {
+    // §1.7 — Skeptical-or-hostile audiences need rebuttal. The original
+    // skeptical_audience_requires_objection_handling rule is already
+    // present; this companion rule adds Toulmin-grade discipline:
+    // when objections are addressed, the rebuttal posture should be
+    // declared on the case (when posture === "case"). Soft-only;
+    // covered fully in the imperative posture-and-delivery checks.
+    id: "skeptical_audience_should_declare_rebuttal_posture",
+    category: "rhetorical",
+    condition: {
+      audience_attitude: ["skeptical", "hostile"],
+      presentation_posture: ["case"],
+    },
+    requirement: {
+      must_include_rhetorical_moves: ["address_objections"],
+    },
+    validation_question:
+      "For a skeptical/hostile case-posture deck, is the rebuttal posture declared?",
+    severity: "should",
   },
 ];
 
@@ -2311,6 +2599,14 @@ export const OrderOfProofStepSchema = z.object({
   time_allocation_minutes: z.number().nonnegative().optional(),
   // Reading-time allocation for shared_async / hybrid. Advisory only.
   expected_reading_minutes: z.number().nonnegative().optional(),
+
+  // §3.8 — Explicit transition cue between order-of-proof sections
+  // (Stephens, Silbert & Hasson 2010, PNAS 107(32):14425–14430).
+  // Speaker–listener neural coupling collapses across unsignposted
+  // posture shifts. The cue is the linguistic anchor ("having shown
+  // X, I now turn to Y"); soft warning when sections change purpose
+  // without one. Optional.
+  transition_cue: z.string().optional(),
 });
 
 export const RebuttalPostureItemSchema = z.object({
@@ -2342,6 +2638,14 @@ export const ClosingArcSchema = z.object({
   // Slide where the close lands. Required when delivery_mode is not
   // presented_live (the document needs a visual anchor for the close).
   anchored_in_slide_number: z.number().int().positive().optional(),
+
+  // §4.6 — Hippocampal retrieval cue for the buyer's internal selling
+  // (Eichenbaum 2017, Nat Rev Neurosci 18(9):547–558). The single
+  // phrase, number, or visual the buyer should be able to recall and
+  // re-pitch to a colleague three days later. Distinct from
+  // final_belief_target (which is the *content* of the belief) — this
+  // is the retrieval *handle*. Optional but recommended.
+  retrieval_cue_for_internal_selling: z.string().optional(),
 });
 
 export const RehearsalStateSchema = z.enum([
@@ -2511,6 +2815,33 @@ export const AccountContextSchema = z.object({
   // when the deck wants to anchor its value proposition to an
   // existing roadmap line item rather than introducing a new one.
   known_initiatives: z.array(z.string()).default([]),
+
+  // §3.6 — Goal-gradient framing (Kivetz, Urminsky & Zheng 2006,
+  // J Mark Res 43(1):39–58). Customers accelerate effort as they
+  // approach a reward; illusory head-start (12-stamp card with 2
+  // prefilled) measurably accelerates completion. For long B2B
+  // procurement cycles, framing the buyer as already-X%-through
+  // shortens close time. Lists the steps already accomplished and
+  // the steps remaining; consumed by deck slides that show progress
+  // bars, status-of-procurement summaries, or next-step plates.
+  procurement_progress: z
+    .object({
+      completed_steps: z.array(z.string()).default([]),
+      remaining_steps: z.array(z.string()).default([]),
+    })
+    .optional(),
+
+  // §4.5 — Mere-exposure prior (Zajonc 1968, J Pers Soc Psychol
+  // Monogr Suppl 9(2 Pt 2):1–27). Repeated incidental exposure
+  // raises liking; in long B2B cycles pre-pitch brand visibility
+  // (LinkedIn, podcasts, conferences, ABM impressions) shifts the
+  // receptivity prior. Affects which opening_strategy is well-fit:
+  // "none" → cold; warmth signals must be loaded explicitly.
+  // "warm_inbound" / "extensive" → opening_strategy can be
+  // direct_claim or data_first without a warmth deficit.
+  prior_exposure_to_seller: z
+    .enum(["none", "incidental", "warm_inbound", "extensive"])
+    .optional(),
 });
 export type AccountContext = z.infer<typeof AccountContextSchema>;
 
@@ -2557,8 +2888,125 @@ export const CommercialModelSchema = z.object({
   // Risks associated specifically with the commercial model
   // (price escalation, vendor lock-in, etc.). Resolved against risks[].
   commercial_risks: z.array(RiskIdSchema).default([]),
+
+  // §2.3 — Anchoring on price (Furnham & Boo 2011, J Socio-Econ
+  // 40(1):35–42; meta-analytic d ≈ 0.88 in real-world contexts).
+  // The first salient number in a pricing discussion durably shifts
+  // willingness-to-pay, even when the anchor is acknowledged as
+  // arbitrary. Without an explicit anchor, the audience anchors on
+  // whatever number happens to be salient — often the product's own
+  // discount, which under-anchors. anchor_value is free text
+  // ("$2.4M legacy spend", "€80K/yr in penalties avoided");
+  // anchor_source classifies what kind of reference it is.
+  // Soft warning when pricing_frame is set but reference_anchor is absent.
+  reference_anchor: z
+    .object({
+      anchor_value: z.string(),
+      anchor_source: z.enum([
+        "legacy_spend",
+        "list_price",
+        "competitor_price",
+        "in_house_build_cost",
+        "industry_benchmark",
+        "regulatory_penalty_avoided",
+        "other",
+      ]),
+      rationale: z.string().optional(),
+    })
+    .optional(),
+
+  // §3.5 — Pre-commitment offer / endowment effect (Kahneman, Knetsch
+  // & Thaler 1990, J Polit Econ 98(6):1325–1348; meta-analytic
+  // WTA/WTP gap 2.6–3.3, Horowitz & McConnell 2002). Free trials,
+  // pilots, and POCs are not just experience-creation — they are
+  // endowment-creation operations. Once the buyer has the thing,
+  // declining means *giving it back*, which the asymmetric value
+  // function of prospect theory weights more heavily than not
+  // acquiring it in the first place. reversion_cost names the
+  // endowment-loss frame to use in renewal/extension decks.
+  pre_commitment_offer: z
+    .object({
+      kind: z.enum([
+        "free_trial",
+        "paid_pilot",
+        "proof_of_concept",
+        "embedded_sandbox",
+      ]),
+      duration_days: z.number().int().positive().optional(),
+      reversion_cost: z.string().optional(),
+    })
+    .optional(),
 });
 export type CommercialModel = z.infer<typeof CommercialModelSchema>;
+
+/* =====================================================
+ * 16.9. Engagement plan (multi-touch / spacing effect)
+ *
+ * §3.1 — Cepeda, Pashler, Vul, Wixted & Rohrer (2006, Psychol Bull
+ * 132(3):354–380). Meta-analysis of 839 effects in 317 experiments.
+ * Distributed practice produces 10–30% better long-term retention
+ * than massed practice; optimal inter-study interval ≈ 10–20% of
+ * desired retention interval (Cepeda et al. 2008, Psychol Sci
+ * 19(11):1095–1102). For B2B sales cycles in the 30–180 day range,
+ * three or four shorter touches separated by spaced intervals
+ * outperform a single comprehensive pitch at equal total contact time.
+ *
+ * The schema models a *single deck* by default. EngagementPlanSchema
+ * is the optional multi-deck-instance plane: it represents the touch
+ * cadence over an expected sales cycle, with each touch potentially
+ * reusing a subset of the base deck's slides.
+ *
+ * Soft warnings emitted by validateBusinessDeck() when:
+ *   - scheduled_touches.length === 1 and expected_cycle_days >= 60
+ *     (single touch over a long cycle wastes the spacing dividend);
+ *   - inter-touch intervals are all < 5% of expected_cycle_days
+ *     (massed; loses the Cepeda effect);
+ *   - inter-touch intervals are all > 50% of expected_cycle_days
+ *     (over-spaced; recall decay between touches dominates).
+ *
+ * Referential integrity (enforced in checkReferentialIntegrity):
+ *   scheduled_touches[].reuses_slide_numbers -> slide_plan[].slide_number
+ * ===================================================== */
+
+export const EngagementTouchKindSchema = z.enum([
+  "pitch",
+  "follow_up",
+  "demo",
+  "exec_brief",
+  "doc_share",
+  "workshop",
+  "reference_call",
+  "renewal_review",
+]);
+export type EngagementTouchKind = z.infer<typeof EngagementTouchKindSchema>;
+
+export const EngagementTouchSchema = z.object({
+  // Days from cycle start (day_offset === 0 is the first touch).
+  day_offset: z.number().int().nonnegative(),
+  touch_type: EngagementTouchKindSchema,
+  // Slide numbers reused from the base deck for this touch. Resolved
+  // against deck.slide_plan[].slide_number by checkReferentialIntegrity.
+  // Empty array means "new content not in the base deck".
+  reuses_slide_numbers: z.array(z.number().int().positive()).default([]),
+  // Optional human-readable purpose of this touch.
+  purpose: z.string().optional(),
+});
+export type EngagementTouch = z.infer<typeof EngagementTouchSchema>;
+
+export const EngagementPlanSchema = z.object({
+  // Total expected length of the buying cycle in days. Drives the
+  // soft-warning interval calculations.
+  expected_cycle_days: z.number().int().positive(),
+  // The ordered touch schedule. day_offset values should be strictly
+  // increasing across the array; the validator emits a soft warning
+  // if not (out-of-order touches usually indicate planning error).
+  scheduled_touches: z.array(EngagementTouchSchema).default([]),
+  // Optional explicit retention-interval target for the spacing
+  // calculation (Cepeda et al. 2008 ridgeline). When absent,
+  // expected_cycle_days is used as the default retention interval.
+  retention_target_days: z.number().int().positive().optional(),
+});
+export type EngagementPlan = z.infer<typeof EngagementPlanSchema>;
 
 /* =====================================================
  * 17. Module-load validation of built-in catalogs
@@ -2696,6 +3144,14 @@ export const BusinessDeckSchema = z.object({
     pain_points: z.array(PainPointSchema).default([]),
     solution_mapping: z.array(CapabilityMappingSchema).default([]),
     commercial_model: CommercialModelSchema.optional(),
+
+    // §3.1 — Multi-touch engagement plan for long-cycle B2B sales.
+    // Optional: single-shot decks (board updates, regulatory
+    // briefings) leave it absent. When present, the validator runs
+    // spacing-effect coherence checks (massed-vs-spaced ratios,
+    // single-touch-over-long-cycle warning) and verifies that
+    // reused_slide_numbers resolve against slide_plan.
+    engagement_plan: EngagementPlanSchema.optional(),
 
     // validation_report is *output* of validateBusinessDeck(), not
     // user input. Earlier drafts allowed it on the deck so a deck
@@ -2951,6 +3407,51 @@ function evaluateRequirement(
         `discouraged content block types present: ${present.join(", ")}`
       );
     }
+  }
+
+  // ----- Research-grounded requirement checks. -----
+  // §4.2 — design_system must be present (and non-empty) for the halo
+  // floor. The schema marks design_system as optional at deck level;
+  // this requirement raises the bar in specific contexts (external
+  // async delivery).
+  if (
+    requirement.must_include_design_system === true &&
+    !deck.design_system
+  ) {
+    failures.push("design_system is required but missing");
+  }
+  // §2.3 — reference_anchor must be set on commercial_model when this
+  // requirement is active. If commercial_model itself is absent, the
+  // requirement is vacuously satisfied — the price-anchoring concern
+  // only applies once pricing exists.
+  if (
+    requirement.must_provide_reference_anchor === true &&
+    deck.commercial_model &&
+    !deck.commercial_model.reference_anchor
+  ) {
+    failures.push(
+      "commercial_model.reference_anchor is required but missing — without it the audience anchors on whatever number is incidentally salient"
+    );
+  }
+  // §3.1 — engagement_plan must be set when this requirement is active.
+  if (
+    requirement.must_provide_engagement_plan === true &&
+    !deck.engagement_plan
+  ) {
+    failures.push(
+      "engagement_plan is required but missing — long sales cycles should declare their multi-touch cadence"
+    );
+  }
+  // §2.4 — prospect_theory_frame must be set when a loss_aversion
+  // strategy is in play; otherwise the strategy is rhetorical, not
+  // structural.
+  if (
+    requirement.must_provide_prospect_theory_frame === true &&
+    !deck.message_strategy.prospect_theory_frame
+  ) {
+    failures.push(
+      "message_strategy.prospect_theory_frame is required but missing"
+    );
   }
 
   return failures;
@@ -5866,6 +6367,279 @@ function buildSoftWarnings(
         }
       }
     }
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // Research-grounded soft warnings (psychology/neuroscience pass).
+  // Numbered against the assessment-document section IDs. Each block
+  // is independent; safe to remove one without affecting others.
+  // ───────────────────────────────────────────────────────────────
+
+  // §2.1 — Cowan working-memory ceiling (Cowan 2001, Behav Brain Sci
+  // 24(1):87–114; 2010, Curr Dir Psychol Sci 19(1):51–57). cognitive_load
+  // is optional per-slide; when chunk_count is declared, warn at >4 and
+  // promote to must-severity at >5 for low-complexity-tolerance segments.
+  for (const slide of deck.slide_plan) {
+    const cl = slide.cognitive_load;
+    if (cl === undefined) continue;
+    if (cl.chunk_count > 5) {
+      warnWithSeverity(
+        `cowan_capacity_ceiling_exceeded:slide_${slide.slide_number}`,
+        `Slide ${slide.slide_number} declares ${cl.chunk_count} chunks; the Cowan ceiling is ~4±1 (Cowan 2001/2010). Audiences with low complexity_tolerance will not be able to track this slide.`,
+        deck.audience.complexity_tolerance === "low" ? "must" : "should"
+      );
+    } else if (cl.chunk_count > 4) {
+      warn(
+        `cowan_capacity_ceiling_warning:slide_${slide.slide_number}`,
+        `Slide ${slide.slide_number} declares ${cl.chunk_count} chunks; the Cowan ceiling is ~4±1. The slide is at the upper edge of working-memory capacity — consider chunking or splitting.`
+      );
+    }
+  }
+
+  // §2.2 — Knutson SHOP affective sequencing (Knutson, Rick, Wimmer,
+  // Prelec & Loewenstein 2007, Neuron 53(1):147–156). NAcc value-loading
+  // is dissociable from insula price-pain; the audience-experience
+  // sequence must load value before disclosing price. For each pricing
+  // slide, verify at least one value_proposition / evidence /
+  // recommendation slide precedes it in slide_number order.
+  const pricingSlideNumbers = deck.slide_plan
+    .filter((s) => s.role_in_deck === "pricing")
+    .map((s) => s.slide_number);
+  if (pricingSlideNumbers.length > 0) {
+    const valueLikeRoles: ReadonlySet<string> = new Set([
+      "value_proposition",
+      "evidence",
+      "recommendation",
+    ]);
+    const valueLikeSlideNumbers = deck.slide_plan
+      .filter((s) => valueLikeRoles.has(s.role_in_deck))
+      .map((s) => s.slide_number);
+    for (const pn of pricingSlideNumbers) {
+      const hasPredecessor = valueLikeSlideNumbers.some((vn) => vn < pn);
+      if (!hasPredecessor) {
+        warnWithSeverity(
+          `pricing_precedes_value:slide_${pn}`,
+          `Pricing slide ${pn} is not preceded by any value_proposition, evidence, or recommendation slide. Knutson et al. (2007, Neuron 53:147–156) show that NAcc value-loading and insula price-pain are dissociable neural channels; price disclosed without antecedent value loading activates insula without an offsetting reward signal.`,
+          "must"
+        );
+      }
+    }
+  }
+
+  // §2.3 — Pricing requires an explicit reference anchor (Furnham & Boo
+  // 2011, J Socio-Econ 40(1):35–42; meta-analytic d ≈ 0.88). When
+  // commercial_model is set with a pricing_frame but no reference_anchor,
+  // the audience anchors on whatever number is incidentally salient.
+  if (
+    deck.commercial_model &&
+    deck.commercial_model.pricing_frame &&
+    !deck.commercial_model.reference_anchor
+  ) {
+    warn(
+      "pricing_lacks_reference_anchor",
+      `commercial_model declares pricing_frame but no reference_anchor. Without an explicit anchor (legacy spend, list price, competitor price, in-house build cost), the audience anchors on whatever number is incidentally salient — often the product's own discount, which under-anchors.`
+    );
+  }
+
+  // §3.1 — Engagement-plan cadence checks (Cepeda, Pashler, Vul, Wixted
+  // & Rohrer 2006, Psychol Bull 132(3):354–380; Cepeda et al. 2008,
+  // Psychol Sci 19(11):1095–1102). Optimal inter-touch interval ≈ 10–20%
+  // of retention interval. Enforces:
+  //   (a) day_offset strictly increasing across scheduled_touches
+  //   (b) single-touch over a long cycle wastes spacing dividend
+  //   (c) all gaps < 5% of cycle is massed (loses spacing effect)
+  //   (d) all gaps > 50% of cycle is over-spaced (recall decay dominates)
+  //   (e) reuses_slide_numbers must resolve against slide_plan
+  if (deck.engagement_plan) {
+    const ep = deck.engagement_plan;
+    // (a) Strictly increasing.
+    for (let i = 1; i < ep.scheduled_touches.length; i++) {
+      if (
+        ep.scheduled_touches[i].day_offset <=
+        ep.scheduled_touches[i - 1].day_offset
+      ) {
+        warn(
+          "engagement_plan_touches_not_strictly_increasing",
+          `engagement_plan.scheduled_touches has non-increasing day_offset between index ${
+            i - 1
+          } (day ${ep.scheduled_touches[i - 1].day_offset}) and index ${i} (day ${
+            ep.scheduled_touches[i].day_offset
+          }). Reorder or merge.`
+        );
+        break;
+      }
+    }
+    const sortedTouches = [...ep.scheduled_touches].sort(
+      (a, b) => a.day_offset - b.day_offset
+    );
+    // (b) Single-touch on long cycle.
+    if (sortedTouches.length === 1 && ep.expected_cycle_days >= 60) {
+      warn(
+        "engagement_plan_single_touch_long_cycle",
+        `engagement_plan declares a single touch over a ${ep.expected_cycle_days}-day cycle. Cepeda et al. (2006) meta-analysis finds 10–30% retention gains from distributed practice; consider 3–4 spaced touches.`
+      );
+    }
+    // (c) and (d) require >= 2 touches.
+    if (sortedTouches.length >= 2) {
+      const gaps: number[] = [];
+      for (let i = 1; i < sortedTouches.length; i++) {
+        gaps.push(
+          sortedTouches[i].day_offset - sortedTouches[i - 1].day_offset
+        );
+      }
+      const maxGap = Math.max(...gaps);
+      const minGap = Math.min(...gaps);
+      const cycle = ep.expected_cycle_days;
+      if (maxGap < 0.05 * cycle && cycle >= 30) {
+        warn(
+          "engagement_plan_massed_touches",
+          `engagement_plan touches are clustered (max gap ${maxGap}d, ${(
+            (maxGap / cycle) *
+            100
+          ).toFixed(
+            1
+          )}% of cycle). Cepeda et al. (2008) ridgeline: optimal spacing ≈ 10–20% of cycle.`
+        );
+      }
+      if (minGap > 0.5 * cycle) {
+        warn(
+          "engagement_plan_overspaced_touches",
+          `engagement_plan touches are over-spaced (min gap ${minGap}d, ${(
+            (minGap / cycle) *
+            100
+          ).toFixed(
+            1
+          )}% of cycle). Recall decay between touches dominates above ~20–30% of cycle.`
+        );
+      }
+    }
+    // (e) Referential integrity of slide reuses.
+    const slideNumberSet = new Set(
+      deck.slide_plan.map((s) => s.slide_number)
+    );
+    for (let i = 0; i < ep.scheduled_touches.length; i++) {
+      const unresolved = ep.scheduled_touches[i].reuses_slide_numbers.filter(
+        (n) => !slideNumberSet.has(n)
+      );
+      if (unresolved.length > 0) {
+        warnWithSeverity(
+          `engagement_plan_unresolved_slide_reference:touch_${i}`,
+          `engagement_plan.scheduled_touches[${i}].reuses_slide_numbers includes ${unresolved.join(
+            ", "
+          )} which do not exist in slide_plan.`,
+          "must"
+        );
+      }
+    }
+  }
+
+  // §3.2 — Regulatory-focus mismatch (Higgins 1997, Am Psychol
+  // 52(12):1280–1300; Cesario, Grant & Higgins 2004, J Pers Soc Psychol
+  // 86(3):388–404). Loss-framed pitch to promotion-focus segment OR
+  // gain-framed pitch to prevention-focus segment reduces persuasion.
+  // Both directions checked; per-segment variants are the correction.
+  if (deck.message_strategy.prospect_theory_frame) {
+    const polarity = deck.message_strategy.prospect_theory_frame.polarity;
+    if (polarity === "loss") {
+      const promotionSegments = deck.audience.segments.filter(
+        (s) => s.regulatory_focus === "promotion"
+      );
+      if (promotionSegments.length > 0) {
+        warn(
+          "regulatory_focus_mismatch_loss_frame_promotion_segment",
+          `message_strategy.prospect_theory_frame.polarity is "loss" but ${promotionSegments
+            .map((s) => `'${s.label}'`)
+            .join(
+              ", "
+            )} are declared promotion-focus. Cesario et al. (2004) regulatory-fit research predicts reduced persuasion; correct via segment-level variants or by setting polarity to "mixed".`
+        );
+      }
+    }
+    if (polarity === "gain") {
+      const preventionSegments = deck.audience.segments.filter(
+        (s) => s.regulatory_focus === "prevention"
+      );
+      if (preventionSegments.length > 0) {
+        warn(
+          "regulatory_focus_mismatch_gain_frame_prevention_segment",
+          `message_strategy.prospect_theory_frame.polarity is "gain" but ${preventionSegments
+            .map((s) => `'${s.label}'`)
+            .join(
+              ", "
+            )} are declared prevention-focus. Same regulatory-fit penalty applies; consider segment-level variants.`
+        );
+      }
+    }
+  }
+
+  // §3.3 — Warmth × competence opening coherence. Fiske, Cuddy & Glick
+  // (2007, Trends Cogn Sci 11(2):77–83); Willis & Todorov (2006, Psychol
+  // Sci 17(7):592–598). High-warmth target with data-led opening is
+  // incoherent — the first ~100ms fix a hard-to-update prior, and a
+  // data dump in those seconds under-delivers warmth.
+  const fim = deck.narrative_model.opening_first_impression_target;
+  if (fim) {
+    const openStrat = deck.narrative_model.opening_strategy;
+    const dataLikeOpenings: ReadonlySet<string> = new Set([
+      "data_first",
+      "definition_first",
+    ]);
+    if (fim.warmth === "high" && dataLikeOpenings.has(openStrat)) {
+      warn(
+        "warmth_competence_opening_incoherent",
+        `opening_strategy is "${openStrat}" (data/definition-led) but opening_first_impression_target.warmth is "high". Data-first openings under-deliver on the warmth signal in the first ~100ms; either change opening_strategy to story_first/problem_first, or mark warmth target as medium/low.`
+      );
+    }
+  }
+
+  // §3.4 — Comparison slide default-tier pre-selection. Johnson &
+  // Goldstein (2003, Science 302(5649):1338–1339); compromise effect
+  // (Simonson 1989, J Mark Res 26(2):158–174). When a comparison slide
+  // is present and decision_frame has 2+ options, exactly one option
+  // should carry is_pre_selected: true.
+  const hasComparisonSlide = deck.slide_plan.some(
+    (s) => s.role_in_deck === "comparison"
+  );
+  if (
+    hasComparisonSlide &&
+    deck.decision_frame &&
+    deck.decision_frame.options.length >= 2
+  ) {
+    const preSelected = deck.decision_frame.options.filter(
+      (o) => o.is_pre_selected === true
+    );
+    if (preSelected.length === 0) {
+      warn(
+        "comparison_without_default_selection",
+        `Comparison slide present and decision_frame has ${deck.decision_frame.options.length} options, but none is pre-selected. Default effects (Johnson & Goldstein 2003) and the compromise effect (Simonson 1989) materially shift choice; for SaaS-tier-style comparisons, pre-select the middle tier.`
+      );
+    } else if (preSelected.length > 1) {
+      warn(
+        "comparison_multiple_preselected",
+        `decision_frame has ${preSelected.length} options marked is_pre_selected; the default-effect lever requires exactly one pre-selected option.`
+      );
+    }
+  }
+
+  // §4.1 — Sales-context decks should not cast the presenter company
+  // as protagonist. Van Laer, De Ruyter, Visconti & Wetzels (2014,
+  // J Consum Res 40(5):797–817) meta-analysis: narrative transportation
+  // is highest when the customer is the protagonist and the company
+  // is the guide. Triggers when any sales-context field is set AND
+  // narrative_protagonist === "presenter_company".
+  const hasSalesContext =
+    deck.commercial_model !== undefined ||
+    deck.account_context !== undefined ||
+    deck.pain_points.length > 0 ||
+    deck.solution_mapping.length > 0;
+  if (
+    hasSalesContext &&
+    deck.message_strategy.narrative_protagonist === "presenter_company"
+  ) {
+    warn(
+      "sales_context_protagonist_is_seller",
+      `Sales-context fields are present and message_strategy.narrative_protagonist is "presenter_company". Van Laer et al. (2014) meta-analysis: transportation is highest when the customer is the protagonist and the company is the guide. Reset to "buyer_organization" or "buyer_user".`
+    );
   }
 
   return out;

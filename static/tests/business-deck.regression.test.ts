@@ -894,12 +894,11 @@ test("Pass3-H4 stem matching: completely different decisions → warning", () =>
 
 test("Pass3-H5 secondary_model shape divergence is also flagged", () => {
   const input = clone(dos52RollbackDeckInput);
-  // DOS dominant_model is "comparison" (already trips dominant). We
-  // want to verify a secondary_models entry trips its own warning.
+  // We want to verify a secondary_models entry trips its own warning.
   // Set dominant_model to a non-shape word so the dominant scope
   // doesn't trigger; set secondary_models to ["matrix"]. No slide uses
-  // matrix layout in DOS (visual_strategy.layout values are mostly
-  // single_message, two_column, three_column, stack, table, flow).
+  // matrix layout in the DOS fixture (visual_strategy.layout values are
+  // mostly single_message, two_column, three_column, stack, comparison).
   input.deck.conceptual_structure.dominant_model = "system";
   input.deck.conceptual_structure.secondary_models = ["matrix"];
   // Ensure no slide layout is "matrix" — strip if any.
@@ -927,11 +926,12 @@ test("Pass3-M5 narrative contiguity warning names the missing step number", () =
     });
   }
   // Renumber other progression steps to keep them resolvable but with gap
-  for (let i = 2; i < input.deck.narrative_model.progression.length; i++) {
+  const progressionLength = input.deck.narrative_model.progression.length;
+  for (let i = 2; i < progressionLength; i++) {
     input.deck.narrative_model.progression[i].step = 99 + i;
   }
   // Update slide and order_of_proof references for those changes.
-  for (let oldStep = 3; oldStep <= 10; oldStep++) {
+  for (let oldStep = 3; oldStep <= progressionLength; oldStep++) {
     const newStep = 99 + (oldStep - 1);
     input.deck.slide_plan.forEach((s) => {
       if (s.narrative_steps?.includes(oldStep)) {
@@ -1532,18 +1532,23 @@ test("Pass5-S3 appendix slides are exempt from action_title_missing", () => {
 
 test("Pass5-S4 supporting_claims_count_high fires when 4+ kind=supporting", () => {
   const input = clone(dos52RollbackDeckInput);
-  // DOS fixture has 4 supporting claims, all kind="supporting".
-  // Should fire by default.
+  // The fixture intentionally keeps the 4th claim as kind="action"
+  // (claim_pilot is the recommendation-layer claim). To exercise the
+  // rule-of-three trigger, promote it back to kind="supporting" so
+  // the deck carries 4 peer architectural claims.
+  for (let i = 0; i < input.deck.message_strategy.supporting_claims.length; i++) {
+    if (input.deck.message_strategy.supporting_claims[i].id === "claim_pilot") {
+      input.deck.message_strategy.supporting_claims[i].kind = "supporting";
+    }
+  }
   assertWarningPresent(input, "supporting_claims_count_high");
 });
 
 test("Pass5-S4 supporting_claims_count_high does NOT fire when 4th is kind=action", () => {
   const input = clone(dos52RollbackDeckInput);
-  // Mark the last supporting claim as kind="action" — should
-  // exempt it from the rule-of-three counter.
-  input.deck.message_strategy.supporting_claims[
-    input.deck.message_strategy.supporting_claims.length - 1
-  ].kind = "action";
+  // Fixture already keeps claim_pilot as kind="action". The
+  // rule-of-three counter should ignore action-layer claims and
+  // therefore not fire.
   assertWarningAbsent(input, "supporting_claims_count_high");
 });
 
