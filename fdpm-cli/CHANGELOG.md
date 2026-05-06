@@ -21,6 +21,33 @@ upgrade.
 
 ## [Unreleased]
 
+### Added
+
+#### `@fdpm/zod-bridge@0.2.0` — Hybrid lift detection (Entity vs ValueObject)
+
+Closes the architectural gap surfaced by the v0.1.0 trial: identity
+must be declared, not inferred from shape. The new classifier
+([`src/classifier.ts`](packages/zod-bridge/src/classifier.ts))
+implements a three-pass detection borrowed from
+[`usl-ng-core`](https://github.com/pedroanisio/usl-ng-core)'s
+Zod ingester (Lean-verified upstream):
+
+  1. **Convention.** `{Name}` + `{Name}Id` companion → Entity.
+  2. **Explicit list.** `BridgeOptions.entities: string[]` promotes
+     additional schemas to Entity.
+  3. **Default.** Everything else is ValueObject.
+
+The bridge now emits one `PrimitiveTypeDef` per schema-map key
+(previously collapsed into one). Audit log surfaces candidate
+promotions but never auto-applies them.
+
+Trial re-run against `pitch-deck.schema.v2.ts`: **9 primitives**
+(was 1), **85 fields** (was 17), **115 constraints** (was 13).
+Workbook `howto-zod-to-fdpm-plugin@180` documents the convention
+and records Option A (USL-NG Core upstream) as the v1.x direction.
+
+72/72 tests passing.
+
 ### Fixed
 
 #### `@fdpm/zod-bridge@0.1.1` — six trial-surfaced correctness fixes

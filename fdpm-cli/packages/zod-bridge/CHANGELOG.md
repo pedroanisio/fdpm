@@ -18,6 +18,91 @@ emit the same JSON for the same input. Minor version bumps (`0.x.0`) MAY change
 emitted JSON; consumers should expect to regenerate `generated/profile.json`
 and bump their plugin version when upgrading.
 
+## [0.2.0] — 2026-05-06
+
+Minor release. Hybrid lift detection — the bridge now classifies
+schemas into Entity vs ValueObject and emits one `PrimitiveTypeDef`
+per Entity instead of collapsing nested objects into a single giant
+primitive.
+
+This addresses the architectural finding from the v0.1.0 trial against
+`pitch-deck.schema.v2.ts`: identity must be declared, not inferred
+from shape alone. The convention is borrowed from the
+[`usl-ng-core`](https://github.com/pedroanisio/usl-ng-core) project's
+Zod ingester (`crates/usl-ng-emit-zod/src/ingest/statements.rs:441`),
+which has been Lean-verified against ~222 theorems including the full
+Zod ↔ JSON Schema lens-pair.
+
+### Added
+
+- **Hybrid classifier** (`src/classifier.ts`) — three-pass detection:
+  1. **Convention.** A schema `{Name}` paired with `{Name}Id` in the
+     same `schemas` map → `Entity` with reason `id-schema-companion`.
+     The companion schema itself is treated as the entity's id type
+     and skipped at primitive emission.
+  2. **Explicit list.** `BridgeOptions.entities: string[]` promotes
+     additional schemas to `Entity`. Convention takes precedence on
+     names already detected; explicit names not in the schemas map
+     throw a clear error.
+  3. **Default.** Everything else is `ValueObject`.
+- **Audit log** in `AssembleResult.audit`. Records every
+  classification with its reason; lists `candidatePromotions` —
+  ValueObjects with Entity-like signals the heuristic detected
+  (`has-id-field`, `referenced-by-multiple`). Signals are advisory;
+  the bridge never auto-promotes.
+- **`renderAuditLog(audit)`** — human-readable formatter for CI logs.
+- **Public exports.** `classifySchemas`, `renderAuditLog`, plus types
+  `AuditLog`, `ClassificationEntry`, `ClassificationCandidate`,
+  `ClassificationReason`, `ShapeKind`.
+
+### Changed
+
+- **`assembleDomainProfile` now emits one PrimitiveTypeDef per
+  schema-map key.** Previously collapsed every key into one primitive
+  (the v0.1.x behavior); this was the root of the trial's
+  multi-primitive findings. Schemas listed in the map → primitives;
+  nested anonymous objects → inline structs (unchanged).
+- **`AssembleResult` gains an `audit` field.** Existing consumers that
+  destructure other fields are unaffected; consumers using strict
+  spread copy will see the new field.
+- **Id-companion schemas are skipped at primitive emission.** A
+  schema named `CustomerId` that classifies as the id-companion of
+  `Customer` is not emitted as its own primitive — its content is
+  the entity's id field type.
+
+### Determinism
+
+Audit log is sorted lexicographically; same input → byte-equal log
+across runs. `testcase:bridge-determinism` continues to pass against
+the new structure.
+
+### Tests
+
+72/72 passing (was 61/61). New `tests/classifier.test.ts` adds 11
+cases covering: convention detection, explicit list, precedence rules,
+candidate signals, audit-log rendering, and determinism.
+
+### Trial re-run
+
+Against `pitch-deck.schema.v2.ts` with the explicit entities list
+from the trial workbook (`PitchDeck`, `Audience`, `Source`,
+`DataPoint`, `Claim`, `AntiPattern`, `Risk`, `Competitor`, `Slide`):
+
+| Metric | v0.1.1 | v0.2.0 |
+|---|---|---|
+| Primitive types emitted | 1 | 9 |
+| Total fields across primitives | 17 | 85 |
+| Total constraints | 13 | 115 |
+| Audit log emitted | no | yes |
+
+### Reference
+
+- Workbook `howto-zod-to-fdpm-plugin@180` documents the convention
+  and cites `usl-ng-core` as the source. Option A (USL-NG Core
+  upstream) is recorded as the v1.x destination.
+- Workbook `trial-zod-bridge-pitch-deck` (rev 32+) carries the trial
+  artefacts and the failure-mode catalogue this release closes.
+
 ## [0.1.1] — 2026-05-06
 
 Patch release. Six correctness fixes surfaced by a real-schema trial

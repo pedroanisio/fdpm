@@ -19,6 +19,7 @@
  */
 
 export { zodSchemaToCelConstraints } from "./cel.js";
+export { classifySchemas, renderAuditLog } from "./classifier.js";
 export { mapField } from "./field-mapping.js";
 export { zodSchemaToPrimitiveType } from "./primitive.js";
 export { zodSchemaToValidator, enumerateRuleIds } from "./validator.js";
@@ -33,6 +34,13 @@ export {
 export { assembleDomainProfile } from "./orchestrator.js";
 export { stableStringify } from "./stable-stringify.js";
 export { BridgeError } from "./walker.js";
+export type {
+  AuditLog,
+  ClassificationCandidate,
+  ClassificationEntry,
+  ClassificationReason,
+  ShapeKind,
+} from "./classifier.js";
 export type {
   AssembleResult,
   BridgeOptions,

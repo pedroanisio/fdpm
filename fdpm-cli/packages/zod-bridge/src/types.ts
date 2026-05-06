@@ -10,6 +10,15 @@ export interface BridgeOptions {
   viewPageOverrides?: Record<string, Partial<ViewPagePanel>>;
   hostCompatibility?: string;
   pluginVersion?: string;
+  /**
+   * Schemas in the `schemas` map to force-classify as Entity, beyond
+   * those auto-detected via the `{Name}Id` companion convention.
+   * Empty/omitted = pure convention detection.
+   *
+   * Hybrid lift detection landed in v0.2.0 (workbook
+   * howto-zod-to-fdpm-plugin §4, Position 3).
+   */
+  entities?: ReadonlyArray<string>;
 }
 
 export interface CelSidecar {
@@ -172,4 +181,10 @@ export interface AssembleResult {
   productPage: ProductPageBundle;
   migrationHints: MigrationHints;
   ruleIdsByType: Record<string, readonly string[]>;
+  /**
+   * Per-schema classification (Entity vs ValueObject) and
+   * advisory candidate-promotion signals. Surfaced to authors so
+   * lift decisions are visible without being silent. v0.2.0+.
+   */
+  audit: import("./classifier.js").AuditLog;
 }
