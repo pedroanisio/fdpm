@@ -93,7 +93,7 @@ export const FieldValidation = z
   .strict();
 export type FieldValidation = z.infer<typeof FieldValidation>;
 
-export const FieldDef: z.ZodType<FieldDefT, z.ZodTypeDef, unknown> = z.lazy(() =>
+export const FieldDef: z.ZodType<FieldDefT> = z.lazy(() =>
   z
     .object({
       name: z.string().regex(/^[a-z][a-z0-9_]*$/),
@@ -386,7 +386,10 @@ export const TemplateDef = z
     id: NamespacedId,
     name: z.string().optional(),
     description: z.string().optional(),
-    rendering_rules: RenderingRules.default({}),
+    // v4: default() requires a value matching the schema's OUTPUT;
+    // prefault() supplies an INPUT that the schema parses to fill in
+    // the inner field defaults.
+    rendering_rules: RenderingRules.prefault({}),
     target_renderer: z.string().default("markdown"),
   })
   .strict();
@@ -411,7 +414,7 @@ export const DomainProfile = z
     renderers: z.array(RendererBinding).default([]),
     inline_structs: z.array(InlineStructDef).default([]),
     templates: z.array(TemplateDef).default([]),
-    scope_sets: z.record(z.array(NamespacedId)).default({}),
+    scope_sets: z.record(z.string(), z.array(NamespacedId)).default({}),
     default_scope_set: z.string().default(""),
   })
   .strict()

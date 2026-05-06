@@ -16,7 +16,7 @@ const InstanceId = z.string().min(1).max(256);
 const WorkbookId = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 const Uid = z.string().length(UID_LENGTH).regex(ULID_PATTERN);
 
-const FieldValuesPayload = z.record(z.unknown());
+const FieldValuesPayload = z.record(z.string(), z.unknown());
 
 const JsonPatchOp = z
   .object({

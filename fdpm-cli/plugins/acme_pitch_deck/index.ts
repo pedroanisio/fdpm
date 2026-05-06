@@ -30,12 +30,20 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { z } from "zod";
+import {
+  assembleDomainProfileFromSidecar,
+  defineDomain,
+  zodSchemaToValidator,
+} from "@fdpm/zod-bridge";
 import type { DomainProfile } from "../../src/core/models/meta.js";
 import type {
   PluginContext,
   PluginEntryModule,
+  ValidatorFn,
 } from "../../src/plugin/types.js";
 import type { PluginManifest } from "../../src/plugin/manifest.js";
+import { Schemas } from "./schemas/pitch-deck.schema.v2.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -46,39 +54,103 @@ export const PROFILE_ID = "profile:acme-pitch-deck:0.1" as const;
 export const PLUGIN_ID = "acme.pitch-deck" as const;
 
 // ───────────────────────────────────────────────────────────────────
+// Sidecar — declares which Zod schemas are FDPM Entities and the
+// cross-entity references the schema's superRefine validates.
+// Stays in sync with schemas/pitch-deck.schema.v2.ts (the plugin's
+// owned copy of static/schemas/pitch-deck.schema.v2.ts).
+// ───────────────────────────────────────────────────────────────────
+
+function buildSidecar() {
+  return defineDomain({
+    __sidecarSpec: "0.1",
+    entities: {
+      Audience: { schema: Schemas.Audience, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+      Source: { schema: Schemas.Source as unknown as z.ZodObject<z.ZodRawShape>, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+      DataPoint: { schema: Schemas.DataPoint, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+      StrategicClaim: { schema: Schemas.Claim, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+      Risk: { schema: Schemas.Risk, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+      Competitor: { schema: Schemas.Competitor, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+      AntiPattern: { schema: Schemas.AntiPattern, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+      Slide: { schema: Schemas.Slide, identityKind: "id-field", idField: "id", idSchema: Schemas.SlugId },
+    },
+    references: [
+      { from: "DataPoint", field: "sourceIds", to: "Source", cardinality: "many-to-many" },
+      { from: "Slide", field: "evidenceUsed", to: "DataPoint", cardinality: "many-to-many",
+        inverse: { on: "DataPoint", field: "usedOnSlides" } },
+      { from: "StrategicClaim", field: "supportedByDataPoints", to: "DataPoint", cardinality: "many-to-many" },
+      { from: "StrategicClaim", field: "supportedByClaims", to: "StrategicClaim", cardinality: "many-to-many", acyclic: true },
+      { from: "Slide", field: "claimsAdvanced", to: "StrategicClaim", cardinality: "many-to-many",
+        inverse: { on: "StrategicClaim", field: "appearsOnSlides" } },
+      { from: "Slide", field: "risksAddressed", to: "Risk", cardinality: "many-to-many",
+        inverse: { on: "Risk", field: "addressedOnSlides" } },
+      { from: "Slide", field: "competitorsCited", to: "Competitor", cardinality: "many-to-many" },
+      { from: "Slide", field: "antiPatternsAvoided", to: "AntiPattern", cardinality: "many-to-many" },
+    ],
+    fdpm: {
+      pluginId: PLUGIN_ID,
+      vendor: "acme",
+      profileId: PROFILE_ID,
+      pluginVersion: "0.1.0",
+      hostCompatibility: ">=1.1,<2",
+    },
+  });
+}
+
+// ───────────────────────────────────────────────────────────────────
 // activate(ctx) — host calls this once per session per plugin.
 //
-// IMPORTANT — runtime Zod version mismatch.
-//
-// The bridge (@fdpm/zod-bridge@0.4.0) was built against Zod v4; the
-// FDPM host (fdpm-cli@1.1.0) declares zod@^3.23.8. Zod v3 and v4 have
-// different `_def` shapes (v3 uses _def.typeName + shape() function;
-// v4 uses _def.type + shape object). Calling
-// assembleDomainProfileFromSidecar() at activate-time therefore fails
-// with sidecar:path-unresolved when the bridge walks the v3 _def.
-//
-// Workaround until the host upgrades to Zod v4: load the
-// pre-generated profile snapshot directly, register it, and skip the
-// activate-time re-assembly. The snapshot at
-// static/generated/acme-pitch-deck/generated/profile.json was
-// produced by the bridge under v4 (via the zod-bridge package's own
-// node_modules) and is the source of truth for the data model. The
-// CI drift gate (npm test -- pitch-deck-emit) keeps it current with
-// the schema.
-//
-// Per-entity validators are also disabled in this snapshot-only mode
-// — building them via zodSchemaToValidator() requires the same
-// runtime introspection that fails. Re-enable when the host upgrades.
+// We assemble the profile fresh at activate-time. Both the host and the
+// bridge run on Zod v4, so the bridge's `_def`-walker reads the live
+// schema correctly. The static snapshot at
+// static/generated/acme-pitch-deck/generated/profile.json remains the
+// human-reviewable artefact and the CI drift gate; this code does NOT
+// read it (the schema is the source of truth).
+// ───────────────────────────────────────────────────────────────────
+
 export async function activate(ctx: PluginContext): Promise<void> {
-  const profileJson = readFileSync(
-    join(__dirname, "generated", "profile.json"),
-    "utf8",
-  );
-  const profile = JSON.parse(profileJson) as DomainProfile;
+  const sidecar = buildSidecar();
+  const result = assembleDomainProfileFromSidecar({
+    domain: sidecar,
+    generatedAt: "1970-01-01T00:00:00.000Z", // determinism — not a real timestamp
+  });
+
+  // The bridge's DomainProfile has a slightly broader shape than the
+  // host's (the bridge tracks bridge-internal extras). A JSON round-trip
+  // strips those and gives the host the exact shape its compiler
+  // accepts.
+  const profile = JSON.parse(JSON.stringify(result.profile)) as DomainProfile;
   ctx.registerProfile(profile);
 
+  // Per-entity validators. The bridge returns one closure per schema;
+  // we register one (type_id, rule_id) entry per entity, keyed by the
+  // canonical `acme:val:<entity>-zod` rule_id.
+  for (const [entityName, entity] of Object.entries(sidecar.entities)) {
+    const typeId = `acme:${entityName}`;
+    const ruleId = `acme:val:${entityName.toLowerCase()}-zod`;
+    const { validator } = zodSchemaToValidator(entity.schema, {
+      pluginId: PLUGIN_ID,
+      typeName: entityName.toLowerCase(),
+    });
+    const adapted: ValidatorFn = (instance) => {
+      const findings = validator({
+        id: instance.id,
+        type_id: instance.type_id,
+        field_values:
+          (instance as { field_values?: Record<string, unknown> }).field_values ?? {},
+      });
+      return findings.map((f) => ({
+        rule_id: f.rule_id,
+        level: f.level === "warning" ? "warning" : "error",
+        target_id: instance.id,
+        message: f.message,
+        ...(f.path && f.path.length > 0 ? { field_path: f.path.join(".") } : {}),
+      })) as never;
+    };
+    ctx.registerValidator({ type_id: typeId, rule_id: ruleId, fn: adapted });
+  }
+
   ctx.logger.info(
-    `acme.pitch-deck activated (snapshot-only mode): ${profile.primitive_types.length} primitive types, ${profile.relation_types.length} relation types. Profile id: ${PROFILE_ID}. Per-entity validators DISABLED pending host Zod v4 upgrade.`,
+    `acme.pitch-deck activated: ${result.profile.primitive_types.length} primitive types, ${result.profile.relation_types.length} relation types, ${(result.profile.constraints ?? []).length} CEL rules + 8 cap:validator. Profile id: ${PROFILE_ID}.`,
   );
 }
 

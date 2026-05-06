@@ -49,7 +49,7 @@ const Input = z
           .object({
             id: z.string().min(1),
             type_id: z.string().min(1),
-            field_values: z.record(z.unknown()),
+            field_values: z.record(z.string(), z.unknown()),
             scope_id: z.string().optional(),
           })
           .strict(),

@@ -716,7 +716,12 @@
           ]
         }
       ],
-      "id": "acme:Audience"
+      "id": "acme:Audience",
+      "id_format": {
+        "pattern": "acme:Audience:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -753,7 +758,8 @@
           ],
           "kind": "enum",
           "name": "type",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
@@ -770,7 +776,8 @@
         {
           "kind": "string",
           "name": "url",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
@@ -821,15 +828,22 @@
           },
           "kind": "list",
           "name": "derivedFrom",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:Source"
+      "id": "acme:Source",
+      "id_format": {
+        "pattern": "acme:Source:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -871,12 +885,14 @@
           "format": "json-union",
           "kind": "string",
           "name": "value",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "unit",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "enum_values": [
@@ -888,7 +904,8 @@
           ],
           "kind": "enum",
           "name": "verificationStatus",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -916,7 +933,8 @@
           },
           "kind": "list",
           "name": "sourceIds",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -944,21 +962,29 @@
           },
           "kind": "list",
           "name": "usedOnSlides",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: false",
           "kind": "boolean",
           "name": "appendixEntry",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:DataPoint"
+      "id": "acme:DataPoint",
+      "id_format": {
+        "pattern": "acme:DataPoint:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -999,7 +1025,8 @@
         {
           "kind": "boolean",
           "name": "loadBearing",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1027,7 +1054,8 @@
           },
           "kind": "list",
           "name": "supportedByDataPoints",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1055,7 +1083,8 @@
           },
           "kind": "list",
           "name": "supportedByClaims",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "item_field": {
@@ -1107,7 +1136,8 @@
           },
           "kind": "list",
           "name": "potentialDismissals",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1125,10 +1155,16 @@
           },
           "kind": "list",
           "name": "antiDismissalEvidence",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:StrategicClaim"
+      "id": "acme:StrategicClaim",
+      "id_format": {
+        "pattern": "acme:StrategicClaim:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -1175,7 +1211,8 @@
           ],
           "kind": "enum",
           "name": "severity",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "enum_values": [
@@ -1186,7 +1223,8 @@
           ],
           "kind": "enum",
           "name": "likelihood",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "enum_values": [
@@ -1201,7 +1239,8 @@
           ],
           "kind": "enum",
           "name": "category",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
@@ -1241,21 +1280,29 @@
           },
           "kind": "list",
           "name": "addressedOnSlides",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: false",
           "kind": "boolean",
           "name": "acceptedAsNotAddressed",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
-      "id": "acme:Risk"
+      "id": "acme:Risk",
+      "id_format": {
+        "pattern": "acme:Risk:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -1297,7 +1344,8 @@
           "kind": "struct",
           "name": "axes",
           "required": true,
-          "struct_id": "CompetitorAxes"
+          "struct_id": "CompetitorAxes",
+          "validations": []
         },
         {
           "enum_values": [
@@ -1308,7 +1356,8 @@
           ],
           "kind": "enum",
           "name": "threatLevel",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "description": "default: \"positioned-against\"",
@@ -1319,15 +1368,22 @@
           ],
           "kind": "enum",
           "name": "citationKind",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "string",
           "name": "notes",
-          "required": false
+          "required": false,
+          "validations": []
         }
       ],
       "id": "acme:Competitor",
+      "id_format": {
+        "pattern": "acme:Competitor:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
       "inline_structs": [
         {
           "fields": [
@@ -1472,7 +1528,12 @@
           ]
         }
       ],
-      "id": "acme:AntiPattern"
+      "id": "acme:AntiPattern",
+      "id_format": {
+        "pattern": "acme:AntiPattern:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
     },
     {
       "fields": [
@@ -1532,7 +1593,8 @@
           ],
           "kind": "enum",
           "name": "phase",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "kind": "string",
@@ -1598,7 +1660,8 @@
           "format": "json-union",
           "kind": "string",
           "name": "visual",
-          "required": true
+          "required": true,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1626,7 +1689,8 @@
           },
           "kind": "list",
           "name": "evidenceUsed",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1654,7 +1718,8 @@
           },
           "kind": "list",
           "name": "claimsAdvanced",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1682,7 +1747,8 @@
           },
           "kind": "list",
           "name": "competitorsCited",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1710,7 +1776,8 @@
           },
           "kind": "list",
           "name": "risksAddressed",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "description": "default: []",
@@ -1738,14 +1805,16 @@
           },
           "kind": "list",
           "name": "antiPatternsAvoided",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "item_field": {
             "kind": "struct",
             "name": "audienceReadingsItem",
             "required": true,
-            "struct_id": "SlideAudienceReadingsItem"
+            "struct_id": "SlideAudienceReadingsItem",
+            "validations": []
           },
           "kind": "list",
           "name": "audienceReadings",
@@ -1764,11 +1833,13 @@
             "kind": "struct",
             "name": "openQuestionsItem",
             "required": true,
-            "struct_id": "SlideOpenQuestionsItem"
+            "struct_id": "SlideOpenQuestionsItem",
+            "validations": []
           },
           "kind": "list",
           "name": "openQuestions",
-          "required": false
+          "required": false,
+          "validations": []
         },
         {
           "kind": "number",
@@ -1789,10 +1860,16 @@
           ],
           "kind": "enum",
           "name": "background",
-          "required": true
+          "required": true,
+          "validations": []
         }
       ],
       "id": "acme:Slide",
+      "id_format": {
+        "pattern": "acme:Slide:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
       "inline_structs": [
         {
           "fields": [

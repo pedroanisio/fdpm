@@ -13,7 +13,7 @@ export const PrimitiveInstance = z
     id: InstanceId,
     uid: z.string().length(UID_LENGTH).regex(ULID_PATTERN),
     type_id: NamespacedId,
-    field_values: z.record(z.unknown()),
+    field_values: z.record(z.string(), z.unknown()),
     scope_id: NamespacedId.optional(),
     revision: z.number().int().nonnegative().default(0),
   })
@@ -27,7 +27,7 @@ export const RelationInstance = z
     type_id: NamespacedId,
     source_id: InstanceId,
     target_id: InstanceId,
-    field_values: z.record(z.unknown()).default({}),
+    field_values: z.record(z.string(), z.unknown()).default({}),
     revision: z.number().int().nonnegative().default(0),
   })
   .strict();
@@ -115,7 +115,7 @@ export const ValidationFinding = z
     target_id: z.string(),
     field_path: z.string().nullable().optional(),
     message: z.string(),
-    evidence: z.record(z.unknown()).nullable().optional(),
+    evidence: z.record(z.string(), z.unknown()).nullable().optional(),
   })
   .strict();
 export type ValidationFinding = z.infer<typeof ValidationFinding>;

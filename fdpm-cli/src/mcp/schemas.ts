@@ -14,8 +14,7 @@
  *    type, or changing a response shape backward-incompatibly → major.
  */
 
-import type { ZodType } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { z, type ZodType } from "zod";
 
 /** Public manifest version advertised in MCP `serverInfo`. */
 export const MCP_TOOL_MANIFEST_VERSION = "0.1.0";
@@ -28,13 +27,15 @@ export const MCP_TOOL_MANIFEST_VERSION = "0.1.0";
  * the output flat and compatible with the broadest set of MCP clients.
  */
 export function toJsonSchema(zod: ZodType): Record<string, unknown> {
-  const schema = zodToJsonSchema(zod, {
-    target: "jsonSchema7",
-    $refStrategy: "none",
+  // Zod v4 ships its own JSON Schema converter. The `target: "draft-7"`
+  // option matches the previous behavior (zod-to-json-schema's
+  // `target: "jsonSchema7"`); inlining replaces $ref usage so the
+  // output stays flat for the broadest set of MCP clients.
+  const schema = z.toJSONSchema(zod, {
+    target: "draft-7",
+    reused: "inline",
   });
-  // zod-to-json-schema returns a typed object; we type-erase to the
-  // generic shape MCP advertises. The `$schema` key is harmless but
-  // not useful in the manifest payload.
+  // The `$schema` key is harmless but not useful in the manifest payload.
   const out = { ...(schema as Record<string, unknown>) };
   delete out["$schema"];
   return out;

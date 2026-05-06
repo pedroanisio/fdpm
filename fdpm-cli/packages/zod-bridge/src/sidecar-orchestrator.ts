@@ -275,9 +275,14 @@ export function assembleDomainProfileFromSidecar(
       primitives.push({
         id: sibId,
         fields: [
-          { name: "kind", kind: "string", required: true },
-          { name: "content", kind: "string", required: true },
+          { name: "kind", kind: "string", required: true, validations: [] },
+          { name: "content", kind: "string", required: true, validations: [] },
         ],
+        id_format: {
+          pattern: `${sibId}:{slug}`,
+          uniqueness: "global",
+          pattern_kind: "template",
+        },
       });
       dnisRelations.push({
         id: `${fdpm.vendor}:${m.entity}Has${capitalize(m.field)}`,

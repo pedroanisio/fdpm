@@ -32,8 +32,8 @@ export const Capability = z
     ]),
     local_name: z.string().regex(/^[a-z0-9-]+$/),
     entry: z.string().optional(),
-    config_schema: z.record(z.unknown()).optional(),
-    metadata: z.record(z.unknown()).optional(),
+    config_schema: z.record(z.string(), z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 export type Capability = z.infer<typeof Capability>;

@@ -69,6 +69,7 @@ export function mapField(
       kind: "string",
       required: !u.optional && !u.defaulted,
       format: "json-union",
+      validations: [],
       ...(u.nullable ? { nullable: true } : {}),
     };
     return { field, enums: [], inlineStructs: [] };
@@ -218,12 +219,16 @@ export function mapField(
     name: ctx.fieldName,
     kind,
     required,
+    // SPEC-CORE FieldDef requires `validations: FieldValidation[]`
+    // (defaults to []); always emitting the array — even when empty —
+    // matches the host's compileField expectation and prevents
+    // "f.validations is not iterable" at validation time.
+    validations,
     ...(nullable !== undefined ? { nullable } : {}),
     ...(enum_values ? { enum_values } : {}),
     ...(item_field ? { item_field } : {}),
     ...(struct_id ? { struct_id } : {}),
     ...(format ? { format } : {}),
-    ...(validations.length ? { validations } : {}),
     ...(u.defaulted ? { description: `default: ${JSON.stringify(u.defaultValue)}` } : {}),
   };
 

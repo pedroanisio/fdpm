@@ -92,6 +92,11 @@ export function zodSchemaToPrimitiveType(
     id: primitiveTypeId,
     fields,
     ...(inlineStructs.length ? { inline_structs: inlineStructs } : {}),
+    id_format: {
+      pattern: `${primitiveTypeId}:{slug}`,
+      uniqueness: "global",
+      pattern_kind: "template",
+    },
   };
 
   return { primitive, enums, relations, constraints };

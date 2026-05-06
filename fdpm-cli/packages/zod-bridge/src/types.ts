@@ -65,6 +65,18 @@ export interface PrimitiveTypeDef {
   fields: readonly FieldDef[];
   inline_structs?: readonly StructDef[];
   constraints?: readonly Constraint[];
+  /**
+   * SPEC-CORE id-format rule. Required by the host's compileProfile.
+   * v0.4.0+: bridge emits a default `<vendor>:<entity>:{slug}`
+   * template that uses the canonical SlugId shape.
+   */
+  id_format: IdFormatRule;
+}
+
+export interface IdFormatRule {
+  pattern: string;
+  uniqueness: "global" | "workbook" | "per_scope" | "per_parent";
+  pattern_kind: "regex" | "template";
 }
 
 export interface StructDef {

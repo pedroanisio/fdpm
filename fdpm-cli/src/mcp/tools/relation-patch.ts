@@ -12,7 +12,7 @@ const Input = z
     patch: z
       .object({
         id: z.string().min(1),
-        field_values: z.record(z.unknown()),
+        field_values: z.record(z.string(), z.unknown()),
         expected_revision: z.number().int().nonnegative().optional(),
       })
       .strict(),

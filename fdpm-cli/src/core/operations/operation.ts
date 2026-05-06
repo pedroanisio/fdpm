@@ -11,7 +11,7 @@ export const Operation = z
     parent_op_id: z.string().length(26).nullable().optional(),
     kind: OperationKind,
     workbook_id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
-    payload: z.record(z.unknown()),
+    payload: z.record(z.string(), z.unknown()),
     actor: z.string(),
     plugin_id: z.string().nullable().optional(),
     timestamp: z.string().datetime(),

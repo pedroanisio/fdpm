@@ -38,11 +38,14 @@ export function verifyOperationPayload(op: Pick<Operation, "kind" | "payload">):
  * structured form.
  */
 function summarizeZodIssues(
-  issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string; code: string }>,
+  issues: ReadonlyArray<{ path: ReadonlyArray<PropertyKey>; message: string; code: string }>,
 ): string {
   const max = 3;
   const parts = issues.slice(0, max).map((i) => {
-    const path = i.path.length > 0 ? i.path.join(".") : "<root>";
+    const path =
+      i.path.length > 0
+        ? i.path.map((seg) => String(seg)).join(".")
+        : "<root>";
     return `${path}: ${i.message}`;
   });
   if (issues.length > max) parts.push(`(+${issues.length - max} more)`);

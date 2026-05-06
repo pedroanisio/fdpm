@@ -15,7 +15,7 @@ const Input = z
         type_id: z.string().min(1),
         source_id: z.string().min(1),
         target_id: z.string().min(1),
-        field_values: z.record(z.unknown()).optional(),
+        field_values: z.record(z.string(), z.unknown()).optional(),
       })
       .strict(),
   })
