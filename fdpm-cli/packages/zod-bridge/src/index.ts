@@ -82,6 +82,42 @@ export type {
   OverrideEntry,
   LossEntry,
 } from "./sidecar-audit.js";
+
+// File-emission and capability-derivation surfaces
+// (workbook howto-zod-to-fdpm-plugin §2 + §7).
+export { writeArtefactsToDir, writePluginScaffold } from "./scaffold.js";
+export type {
+  WriteArtefactsOptions,
+  ScaffoldOptions,
+  ScaffoldResult,
+} from "./scaffold.js";
+export { zodSchemaToMarkdownRenderer } from "./renderers.js";
+export type {
+  RenderTarget,
+  FieldOrder,
+  MarkdownRendererOptions,
+  MarkdownRendererCapability,
+  MarkdownRendererResult,
+} from "./renderers.js";
+export { zodSchemaToImporter, zodSchemaToExporter } from "./io.js";
+export type {
+  PrimitiveCreateIntent,
+  ImporterOptions,
+  ImporterCapability,
+  ImporterResult,
+  ImporterEmission,
+  WorkbookView,
+  ExporterOptions,
+  ExporterCapability,
+  ExporterEmission,
+} from "./io.js";
+export { zodSchemaToExprHelper } from "./expr-helper.js";
+export type {
+  ExprHelperOptions,
+  ExprHelperCapability,
+  ExprHelperResult,
+} from "./expr-helper.js";
+
 export { stableStringify } from "./stable-stringify.js";
 export { BridgeError } from "./walker.js";
 export type {

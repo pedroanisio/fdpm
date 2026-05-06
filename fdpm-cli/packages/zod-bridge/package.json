@@ -1,7 +1,7 @@
 {
   "name": "@fdpm/zod-bridge",
-  "version": "0.3.0",
-  "description": "Deterministic, one-way translation from Zod v4 schemas + a defineDomain() sidecar into FDPM artefacts (DomainProfile, validators, view/product pages, USL-NG Core companion). Realization of SPEC-FDPM-BRIDGE for Zod v4.",
+  "version": "0.4.0",
+  "description": "Deterministic, one-way translation from Zod v4 schemas + a defineDomain() sidecar into a runnable FDPM plugin: DomainProfile, validators, view/product pages, USL-NG Core companion, plus the cap:renderer / cap:importer / cap:exporter / cap:expr-helper derivations and an fdpm-plugin.json + index.ts file emitter. Realization of SPEC-FDPM-BRIDGE for Zod v4.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,6 +9,22 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./renderers": {
+      "import": "./dist/renderers.js",
+      "types": "./dist/renderers.d.ts"
+    },
+    "./io": {
+      "import": "./dist/io.js",
+      "types": "./dist/io.d.ts"
+    },
+    "./cel": {
+      "import": "./dist/expr-helper.js",
+      "types": "./dist/expr-helper.d.ts"
+    },
+    "./scaffold": {
+      "import": "./dist/scaffold.js",
+      "types": "./dist/scaffold.d.ts"
     }
   },
   "files": [

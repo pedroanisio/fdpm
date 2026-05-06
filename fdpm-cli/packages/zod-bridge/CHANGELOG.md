@@ -18,6 +18,104 @@ emit the same JSON for the same input. Minor version bumps (`0.x.0`) MAY change
 emitted JSON; consumers should expect to regenerate `generated/profile.json`
 and bump their plugin version when upgrading.
 
+## [0.4.0] — 2026-05-06
+
+Minor release. **Closes the mechanical gap to a runnable plugin.**
+Adds the file-emission and capability-derivation surfaces the
+[howto-zod-to-fdpm-plugin](fdpm://workbook/howto-zod-to-fdpm-plugin)
+workbook (rev 195) promised but the v0.3.0 package did not ship.
+
+Before 0.4.0, `assembleDomainProfileFromSidecar` returned in-memory
+artefacts; the caller had to write them to disk by hand and the
+optional capabilities (renderer / importer / exporter / expr-helper)
+existed only as workbook examples. After 0.4.0, the bridge writes
+`fdpm-plugin.json` + `index.ts` + `generated/*.json` deterministically
+and the four schema-driven capability emitters are first-class.
+
+### Added
+
+- **`writeArtefactsToDir(result, { outputDir })`** (subpath
+  `@fdpm/zod-bridge/scaffold`) — writes
+  `<outputDir>/generated/{profile,view-page,product-page-bundle,audit,migration-hints,usl-ng-core}.json`
+  using `stableStringify`. Two runs with identical inputs produce
+  byte-equal files. The CI drift gate documented in
+  `example:bridge-entry-module` now has its file substrate.
+- **`writePluginScaffold(result, { outputDir })`** — writes
+  `<outputDir>/fdpm-plugin.json` and `<outputDir>/index.ts`. The
+  manifest is assembled from `fdpm.*` and `ruleIdsByType`:
+  - `cap:profile` capability is always emitted (entry `profile`).
+  - One `cap:validator` capability per emitted Entity, with
+    `metadata.target_type_id`, `metadata.applies_to: 'primitive'`,
+    `metadata.triggers: ['create','patch','replace']`, and the closed
+    `metadata.rule_ids` set per the workbook's `example:worked-generated-manifest`.
+  - Permission set: `register:profile`, `register:validator`. Optional
+    capabilities require the author to add their own permission entry
+    after wiring `zodSchemaTo*` helpers.
+  The generated `index.ts` imports the manifest from
+  `fdpm-plugin.json`, the profile from `generated/profile.json`,
+  exposes `activate(ctx)` with `ctx.registerProfile(profile)` and a
+  per-entity `ctx.registerValidator(...)` template, and ships the CI
+  drift gate.
+- **`zodSchemaToMarkdownRenderer`** (subpath
+  `@fdpm/zod-bridge/renderers`) — schema-driven `cap:renderer`
+  emitter. Emits the markdown table shape locked by the workbook's
+  `example:bridge-renderer`. Supports `fieldOrder: 'schema' |
+  'alphabetical' | string[]`. Pure function of (schema, options,
+  target).
+- **`zodSchemaToImporter` + `zodSchemaToExporter`** (subpath
+  `@fdpm/zod-bridge/io`) — `cap:importer` parses an array of JSON
+  elements, runs `schema.safeParse` per element, emits
+  `PrimitiveCreate` intents on success and halts the whole batch on
+  the first failure (atomic, matches `fdpm.primitive.create_batch`
+  semantics). `cap:exporter` filters by `primitive_type_id`, sorts by
+  primitive id, and stable-stringifies — `exporter(W)` is byte-equal
+  for the same primitive set regardless of input order. The
+  `importer(exporter(W))` round-trip property is covered.
+- **`zodSchemaToExprHelper`** (subpath `@fdpm/zod-bridge/cel`) —
+  `cap:expr-helper` wrapping `schema.safeParse(arg).success`. Pure,
+  referentially transparent. Manifest entry includes `arity`,
+  `arg_types`, `return_type: 'boolean'`, `pure: true` per the
+  workbook's `example:bridge-expr-helper`.
+- **`bridge:write-violation`** failure code: every file emitter
+  resolves output paths relative to `outputDir` and refuses to write
+  when an absolute, traversal (`..`), or post-normalize escape is
+  detected. Honors SPEC-FDPM-BRIDGE §1.3 invariant 2 (bridge writes
+  ONLY under `outputDir`).
+- 21 new regression tests (`tests/scaffold.test.ts`) covering every
+  emitter — file presence, JSON shape, determinism, path safety, and
+  the importer/exporter round-trip.
+
+### Changed
+
+- **Subpath exports** — `package.json` `exports` map adds
+  `./renderers`, `./io`, `./cel`, `./scaffold` aliases per the
+  workbook's import lines (`@fdpm/zod-bridge/renderers`, etc.).
+  Top-level `index.ts` re-exports every new symbol so existing
+  callers can keep using `import { ... } from '@fdpm/zod-bridge'`.
+
+### Out of scope (still author-written)
+
+These remain unchanged from v0.3.0; the workbook does not claim the
+bridge derives them:
+
+- MCP verbs (per-entity domain operation kinds + replay handlers).
+- MCP prompts (workflow templates).
+- Custom MCP resources beyond the host's standard
+  `fdpm://workbook/{id}/render/{target}`.
+- Lifecycle hooks (`cap:lifecycle-hook`).
+- Plugin-version migration handlers.
+- Cross-entity validators that escape the 23-rule CEL table (the
+  pitch-deck schema's audience-coverage / time-budget / source
+  freshness / displayNumber-contiguity items remain `cap:validator`
+  closures that the author wires in).
+- `README.md` / Product Page prose (the "why" of the plugin).
+
+### Test count
+
+118 (0.3.0) → **147** (0.4.0). +29 new tests across `scaffold.test.ts`
+and the existing pitch-deck trial that exercises the now-runnable
+emission path.
+
 ## [0.3.0] — 2026-05-06
 
 Minor release. **Sidecar consumer.** Adds the
