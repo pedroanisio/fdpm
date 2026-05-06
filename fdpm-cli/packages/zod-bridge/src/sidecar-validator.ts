@@ -35,6 +35,7 @@ export type SidecarErrorCode =
   | "sidecar:missing-fdpm"
   | "sidecar:hash-manifest-malformed"
   | "sidecar:hash-algorithm-unsupported"
+  | "sidecar:hash-drift"
   | "sidecar:unknown-entity"
   | "sidecar:path-unresolved"
   | "sidecar:cross-aggregate-ownership"

@@ -83,7 +83,17 @@ export interface RelationTypeDef {
   id: string;
   source_type_id: string;
   target_type_id: string;
-  cardinality: "one-to-one" | "one-to-many" | "many-to-many";
+  /**
+   * One of the four cardinality values per SPEC-FDPM-BRIDGE §8.2.
+   * v0.2.0 only emitted "one-to-one"; sidecar emission (v0.3.0+) may
+   * emit "many-to-one" for foreign-key references where each source
+   * has exactly one target.
+   */
+  cardinality:
+    | "one-to-one"
+    | "one-to-many"
+    | "many-to-one"
+    | "many-to-many";
 }
 
 export interface Constraint {
