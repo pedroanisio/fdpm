@@ -719,12 +719,32 @@ export const CustomerSegmentSchema = z
     companySize: ShortTextSchema.optional(),
     painPoints: z.array(LongTextSchema).default([]),
     jobsToBeDone: z.array(LongTextSchema).default([]),
-    // anyOf: Money | MoneyRange — willingness to pay can be a point or a range.
-    willingnessToPay: z.union([MoneySchema, MoneyRangeSchema]).optional(),
+    // willingness to pay can be a point or a range. Split into two optional
+    // fields with an XOR refinement so the bridge can map each as a plain
+    // struct field (kind: "struct"). The pre-bridge form was
+    //   willingnessToPay: z.union([MoneySchema, MoneyRangeSchema]).optional()
+    // which lacks a discriminator key the bridge can lift.
+    willingnessToPayPoint: MoneySchema.optional(),
+    willingnessToPayRange: MoneyRangeSchema.optional(),
     priority: z.number().int().min(1).max(10).optional(),
     annotation: ClaimAnnotationSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (s: {
+      willingnessToPayPoint?: Money | undefined;
+      willingnessToPayRange?: MoneyRange | undefined;
+    }) =>
+      !(
+        s.willingnessToPayPoint !== undefined &&
+        s.willingnessToPayRange !== undefined
+      ),
+    {
+      message:
+        "CustomerSegment: at most one of `willingnessToPayPoint` / `willingnessToPayRange` may be set.",
+      path: ["willingnessToPayPoint"],
+    },
+  );
 export type CustomerSegment = z.infer<typeof CustomerSegmentSchema>;
 
 export const MarketSizingSchema = z
@@ -855,14 +875,29 @@ export const RevenueStreamSchema = z
     type: RevenueStreamTypeSchema,
     description: LongTextSchema,
     pricingMechanism: LongTextSchema.optional(),
-    // anyOf: Money | Range — point price or numeric range (no currency).
-    pricePoint: z.union([MoneySchema, RangeSchema]).optional(),
+    // pricePoint can be a point price (Money) or a numeric range (Range, no
+    // currency). Split into two optional fields with an XOR refinement; same
+    // motivation as CustomerSegment.willingnessToPay above.
+    pricePointMoney: MoneySchema.optional(),
+    pricePointRange: RangeSchema.optional(),
     grossMarginPercent: PercentageSchema.optional(),
     grossMarginPercentNote: LongTextSchema.optional(),
     assumptions: z.array(AssumptionSchema).default([]),
     annotation: ClaimAnnotationSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (s: {
+      pricePointMoney?: Money | undefined;
+      pricePointRange?: Range | undefined;
+    }) =>
+      !(s.pricePointMoney !== undefined && s.pricePointRange !== undefined),
+    {
+      message:
+        "RevenueStream: at most one of `pricePointMoney` / `pricePointRange` may be set.",
+      path: ["pricePointMoney"],
+    },
+  );
 export type RevenueStream = z.infer<typeof RevenueStreamSchema>;
 
 export const CostItemTypeSchema = z.enum([
@@ -1597,26 +1632,25 @@ export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
 
     /* ── 1. MoneyRange / Range / TimeHorizon invariants ── */
     deck.marketAnalysis.customerSegments.forEach((s, i) => {
-      // willingnessToPay can be Money OR MoneyRange. Only the latter has min/max.
-      const w = s.willingnessToPay;
-      if (w && "min" in w) {
+      // willingnessToPay was z.union([Money, MoneyRange]).optional(); now
+      // split into two optional fields (XOR-refined on the entity itself).
+      // Only the range form carries min/max ordering.
+      if (s.willingnessToPayRange) {
         checkMoneyRange(
-          w,
-          ["marketAnalysis", "customerSegments", i, "willingnessToPay"],
+          s.willingnessToPayRange,
+          ["marketAnalysis", "customerSegments", i, "willingnessToPayRange"],
           ctx,
         );
       }
     });
     deck.businessModel.revenueStreams.forEach((rs, i) => {
-      // `pricePoint` is `Money | Range`. Money has `amount`/`currency`;
-      // Range has `min`/`max`. Presence of `min` is a sufficient
-      // discriminator (Money has no `min` field), so a single `"min" in p`
-      // check is enough.
-      const p = rs.pricePoint;
-      if (p && "min" in p) {
+      // pricePoint was z.union([Money, Range]).optional(); now split into
+      // pricePointMoney + pricePointRange (XOR-refined on the entity).
+      // Only the range form carries min/max ordering.
+      if (rs.pricePointRange) {
         checkRange(
-          p,
-          ["businessModel", "revenueStreams", i, "pricePoint"],
+          rs.pricePointRange,
+          ["businessModel", "revenueStreams", i, "pricePointRange"],
           ctx,
         );
       }
