@@ -55,8 +55,18 @@
  *         `grossProfit ≈ revenue − cogs`, `som ≤ sam ≤ tam`,
  *         `MoneyRange.min ≤ max`, `Range.min ≤ max`,
  *         `TimeHorizon.startDate ≤ endDate`,
- *         `CurrencyCode` consistency inside `MoneyRange`);
- *       * `Confidence` requires at least one of `level` / `score`.
+ *         `CurrencyCode` consistency inside `MoneyRange`).
+ *
+ * The `Confidence` presence-coupling rule (at least one of
+ * `level` / `score`) lives directly on `ConfidenceSchema` via a single
+ * `.refine()`, so every annotation site picks it up — covered or not —
+ * without a per-site walk in the root refinement.
+ *
+ * The per-cluster `_meta` defaults (`META_*_VALUE`) are exported so
+ * external authors / fixtures / bridge code can reuse the literal
+ * triples without hand-typing them. Each named entity already calls
+ * `.default(...)` on its `_meta` field, so authors normally omit
+ * `_meta` entirely and let Zod inject the default at parse time.
  *
  * The numeric tolerances (±0.01 for ratios, ±1 month for payback) match
  * the descriptions on the source JSON Schema; tightening them belongs
@@ -90,87 +100,173 @@ function metaSchema<
 }
 
 // Per-cluster meta presets — each surfaces as the `_meta` default for
-// every entity in that cluster.
+// every entity in that cluster. Constants and their literal values are
+// exported so external authors / fixtures / bridge code can reuse them
+// without hand-typing the triple.
+
+export const META_PRIMITIVES_VALUE = {
+  domainPath: "business/business-plan/primitives",
+  register: "hypothetical",
+  authority: "IFRS/GAAP, ISO 4217, business planning conventions",
+} as const;
+export const META_IDENTITY_VALUE = {
+  domainPath: "business/business-plan/identity",
+  register: "empirical",
+  authority: "Company registration authorities, ISO 8601",
+} as const;
+export const META_IDENTITY_HYPO_VALUE = {
+  domainPath: "business/business-plan/identity",
+  register: "hypothetical",
+  authority: "Business planning conventions, Lean Canvas",
+} as const;
+export const META_PROBLEM_SOLUTION_VALUE = {
+  domainPath: "business/business-plan/problem-solution",
+  register: "hypothetical",
+  authority: "Lean Startup methodology, Jobs-to-be-Done framework",
+} as const;
+export const META_MARKET_VALUE = {
+  domainPath: "business/business-plan/market",
+  register: "hypothetical",
+  authority:
+    "Industry classification standards (NAICS, SIC), market research conventions",
+} as const;
+export const META_BUSINESS_MODEL_VALUE = {
+  domainPath: "business/business-plan/business-model",
+  register: "hypothetical",
+  authority: "Business Model Canvas, IFRS/GAAP, SaaS metrics conventions",
+} as const;
+export const META_GTM_VALUE = {
+  domainPath: "business/business-plan/go-to-market",
+  register: "hypothetical",
+  authority: "Marketing and sales strategy frameworks (STP, AIDA, MEDDIC)",
+} as const;
+export const META_OPERATIONS_VALUE = {
+  domainPath: "business/business-plan/operations",
+  register: "hypothetical",
+  authority:
+    "Operations management frameworks, ISO 27001, SOC 2, GDPR",
+} as const;
+export const META_TEAM_VALUE = {
+  domainPath: "business/business-plan/team",
+  register: "empirical",
+  authority: "HR and organizational design conventions",
+} as const;
+export const META_MILESTONES_VALUE = {
+  domainPath: "business/business-plan/milestones",
+  register: "hypothetical",
+  authority: "Project management conventions, OKR frameworks",
+} as const;
+export const META_FINANCIALS_VALUE = {
+  domainPath: "business/business-plan/financials",
+  register: "hypothetical",
+  authority: "IFRS/GAAP, financial modeling conventions",
+} as const;
+export const META_FUNDING_ASK_VALUE = {
+  domainPath: "business/business-plan/funding-ask",
+  register: "hypothetical",
+  authority: "Venture capital and fundraising conventions",
+} as const;
+export const META_RISKS_VALUE = {
+  domainPath: "business/business-plan/risks",
+  register: "hypothetical",
+  authority: "ISO 31000, COSO ERM, risk management frameworks",
+} as const;
+export const META_EXIT_VALUE = {
+  domainPath: "business/business-plan/exit-strategy",
+  register: "speculative",
+  authority: "M&A conventions, venture capital exit frameworks",
+} as const;
+export const META_APPENDIX_VALUE = {
+  domainPath: "business/business-plan/appendix",
+  register: "empirical",
+  authority: "Document management conventions",
+} as const;
+export const META_ROOT_VALUE = {
+  domainPath: "business/business-plan",
+  register: "hypothetical",
+  authority: "Lean Startup methodology, SBA, IFRS/GAAP",
+} as const;
+
 const META_PRIMITIVES = metaSchema(
-  "business/business-plan/primitives",
-  "hypothetical",
-  "IFRS/GAAP, ISO 4217, business planning conventions",
-);
+  META_PRIMITIVES_VALUE.domainPath,
+  META_PRIMITIVES_VALUE.register,
+  META_PRIMITIVES_VALUE.authority,
+).default(META_PRIMITIVES_VALUE);
 const META_IDENTITY = metaSchema(
-  "business/business-plan/identity",
-  "empirical",
-  "Company registration authorities, ISO 8601",
-);
+  META_IDENTITY_VALUE.domainPath,
+  META_IDENTITY_VALUE.register,
+  META_IDENTITY_VALUE.authority,
+).default(META_IDENTITY_VALUE);
 const META_IDENTITY_HYPO = metaSchema(
-  "business/business-plan/identity",
-  "hypothetical",
-  "Business planning conventions, Lean Canvas",
-);
+  META_IDENTITY_HYPO_VALUE.domainPath,
+  META_IDENTITY_HYPO_VALUE.register,
+  META_IDENTITY_HYPO_VALUE.authority,
+).default(META_IDENTITY_HYPO_VALUE);
 const META_PROBLEM_SOLUTION = metaSchema(
-  "business/business-plan/problem-solution",
-  "hypothetical",
-  "Lean Startup methodology, Jobs-to-be-Done framework",
-);
+  META_PROBLEM_SOLUTION_VALUE.domainPath,
+  META_PROBLEM_SOLUTION_VALUE.register,
+  META_PROBLEM_SOLUTION_VALUE.authority,
+).default(META_PROBLEM_SOLUTION_VALUE);
 const META_MARKET = metaSchema(
-  "business/business-plan/market",
-  "hypothetical",
-  "Industry classification standards (NAICS, SIC), market research conventions",
-);
+  META_MARKET_VALUE.domainPath,
+  META_MARKET_VALUE.register,
+  META_MARKET_VALUE.authority,
+).default(META_MARKET_VALUE);
 const META_BUSINESS_MODEL = metaSchema(
-  "business/business-plan/business-model",
-  "hypothetical",
-  "Business Model Canvas, IFRS/GAAP, SaaS metrics conventions",
-);
+  META_BUSINESS_MODEL_VALUE.domainPath,
+  META_BUSINESS_MODEL_VALUE.register,
+  META_BUSINESS_MODEL_VALUE.authority,
+).default(META_BUSINESS_MODEL_VALUE);
 const META_GTM = metaSchema(
-  "business/business-plan/go-to-market",
-  "hypothetical",
-  "Marketing and sales strategy frameworks (STP, AIDA, MEDDIC)",
-);
+  META_GTM_VALUE.domainPath,
+  META_GTM_VALUE.register,
+  META_GTM_VALUE.authority,
+).default(META_GTM_VALUE);
 const META_OPERATIONS = metaSchema(
-  "business/business-plan/operations",
-  "hypothetical",
-  "Operations management frameworks, ISO 27001, SOC 2, GDPR",
-);
+  META_OPERATIONS_VALUE.domainPath,
+  META_OPERATIONS_VALUE.register,
+  META_OPERATIONS_VALUE.authority,
+).default(META_OPERATIONS_VALUE);
 const META_TEAM = metaSchema(
-  "business/business-plan/team",
-  "empirical",
-  "HR and organizational design conventions",
-);
+  META_TEAM_VALUE.domainPath,
+  META_TEAM_VALUE.register,
+  META_TEAM_VALUE.authority,
+).default(META_TEAM_VALUE);
 const META_MILESTONES = metaSchema(
-  "business/business-plan/milestones",
-  "hypothetical",
-  "Project management conventions, OKR frameworks",
-);
+  META_MILESTONES_VALUE.domainPath,
+  META_MILESTONES_VALUE.register,
+  META_MILESTONES_VALUE.authority,
+).default(META_MILESTONES_VALUE);
 const META_FINANCIALS = metaSchema(
-  "business/business-plan/financials",
-  "hypothetical",
-  "IFRS/GAAP, financial modeling conventions",
-);
+  META_FINANCIALS_VALUE.domainPath,
+  META_FINANCIALS_VALUE.register,
+  META_FINANCIALS_VALUE.authority,
+).default(META_FINANCIALS_VALUE);
 const META_FUNDING_ASK = metaSchema(
-  "business/business-plan/funding-ask",
-  "hypothetical",
-  "Venture capital and fundraising conventions",
-);
+  META_FUNDING_ASK_VALUE.domainPath,
+  META_FUNDING_ASK_VALUE.register,
+  META_FUNDING_ASK_VALUE.authority,
+).default(META_FUNDING_ASK_VALUE);
 const META_RISKS = metaSchema(
-  "business/business-plan/risks",
-  "hypothetical",
-  "ISO 31000, COSO ERM, risk management frameworks",
-);
+  META_RISKS_VALUE.domainPath,
+  META_RISKS_VALUE.register,
+  META_RISKS_VALUE.authority,
+).default(META_RISKS_VALUE);
 const META_EXIT = metaSchema(
-  "business/business-plan/exit-strategy",
-  "speculative",
-  "M&A conventions, venture capital exit frameworks",
-);
+  META_EXIT_VALUE.domainPath,
+  META_EXIT_VALUE.register,
+  META_EXIT_VALUE.authority,
+).default(META_EXIT_VALUE);
 const META_APPENDIX = metaSchema(
-  "business/business-plan/appendix",
-  "empirical",
-  "Document management conventions",
-);
+  META_APPENDIX_VALUE.domainPath,
+  META_APPENDIX_VALUE.register,
+  META_APPENDIX_VALUE.authority,
+).default(META_APPENDIX_VALUE);
 const META_ROOT = metaSchema(
-  "business/business-plan",
-  "hypothetical",
-  "Lean Startup methodology, SBA, IFRS/GAAP",
-);
+  META_ROOT_VALUE.domainPath,
+  META_ROOT_VALUE.register,
+  META_ROOT_VALUE.authority,
+).default(META_ROOT_VALUE);
 
 /* =====================================================
  * 2. Shared primitives
@@ -229,14 +325,23 @@ export const ConfidenceLevelSchema = z.enum([
 ]);
 
 // Confidence has no required fields *structurally*, but at least one of
-// `level` / `score` MUST be present. Enforced in RefinedBusinessPlanSchema
-// — keeping the structural form unrefined keeps it bridge-clean.
+// `level` / `score` MUST be present. Enforced via a single `.refine()` on
+// the Confidence shape itself — centralizing the rule eliminates the
+// per-site walk that used to live in RefinedBusinessPlanSchema and made
+// adding new annotation sites a silent-drift hazard. The refinement is
+// pure (no transform / pipe / superRefine), so the bridge sees a plain
+// ZodObject — `Confidence` is also intentionally not registered in the
+// `Schemas` map.
 export const ConfidenceSchema = z
   .object({
     level: ConfidenceLevelSchema.optional(),
     score: ProbabilitySchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine((c) => c.level !== undefined || c.score !== undefined, {
+    message:
+      "Confidence requires at least one of `level` or `score` to be present.",
+  });
 export type Confidence = z.infer<typeof ConfidenceSchema>;
 
 export const ProvenanceSourceTypeSchema = z.enum([
@@ -1257,8 +1362,11 @@ export const RiskSchema = z
     contingencyPlan: LongTextSchema.optional(),
     owner: ShortTextSchema.optional(),
     likelihoodScore: ProbabilitySchema.optional(),
-    impactScore: z.number().min(0).optional(),
-    riskScore: z.number().min(0).optional(),
+    // Bounded to [0,1] so `riskScore = likelihoodScore × impactScore`
+    // produces a meaningful product (also in [0,1]) rather than an
+    // unbounded numeric coincidence.
+    impactScore: ProbabilitySchema.optional(),
+    riskScore: ProbabilitySchema.optional(),
     annotation: ClaimAnnotationSchema.optional(),
   })
   .strict();
@@ -1371,7 +1479,7 @@ export type Appendix = z.infer<typeof AppendixSchema>;
 const ChangelogEntrySchema = z
   .object({
     version: z.string().min(1),
-    date: z.string().min(1),
+    date: ISODateSchema,
     changes: z.array(z.string().min(1)).min(1),
   })
   .strict();
@@ -1397,11 +1505,7 @@ export const BusinessPlanSchema = z
     roadmap: RoadmapSchema.optional(),
     financialPlan: FinancialPlanSchema,
     risks: RiskRegistrySchema.default({
-      _meta: {
-        domainPath: "business/business-plan/risks",
-        register: "hypothetical",
-        authority: "ISO 31000, COSO ERM, risk management frameworks",
-      },
+      _meta: META_RISKS_VALUE,
       risks: [],
     }),
     fundingAsk: FundingAskSchema.optional(),
@@ -1431,31 +1535,6 @@ function approxEq(a: number, b: number, tol: number): boolean {
 function isoLessOrEqual(a?: string, b?: string): boolean {
   if (!a || !b) return true;
   return a <= b;
-}
-
-function checkConfidence(
-  c: Confidence | undefined,
-  path: (string | number)[],
-  ctx: z.RefinementCtx,
-): void {
-  if (!c) return;
-  if (c.level === undefined && c.score === undefined) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message:
-        "Confidence requires at least one of `level` or `score` to be present.",
-      path,
-    });
-  }
-}
-
-function checkAnnotation(
-  a: ClaimAnnotation | undefined,
-  path: (string | number)[],
-  ctx: z.RefinementCtx,
-): void {
-  if (!a) return;
-  checkConfidence(a.confidence, [...path, "confidence"], ctx);
 }
 
 function checkMoneyRange(
@@ -1511,111 +1590,12 @@ function checkTimeHorizon(
 }
 
 export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
-  (deck, ctx) => {
-    /* ── 1. Confidence presence-coupling ── */
-    // Visit every annotation site we know about. Missed sites still parse;
-    // the constraint is "wherever a Confidence appears, it must carry at
-    // least one dimension".
-    checkAnnotation(deck.problem.annotation, ["problem", "annotation"], ctx);
-    checkAnnotation(
-      deck.solution.valueProposition.annotation,
-      ["solution", "valueProposition", "annotation"],
-      ctx,
-    );
-    deck.marketAnalysis.competitors.forEach((c, i) => {
-      checkAnnotation(
-        c.annotation,
-        ["marketAnalysis", "competitors", i, "annotation"],
-        ctx,
-      );
-    });
-    deck.marketAnalysis.competitiveAdvantages.forEach((c, i) => {
-      checkAnnotation(
-        c.annotation,
-        ["marketAnalysis", "competitiveAdvantages", i, "annotation"],
-        ctx,
-      );
-    });
-    deck.marketAnalysis.trends.forEach((t, i) => {
-      checkAnnotation(
-        t.annotation,
-        ["marketAnalysis", "trends", i, "annotation"],
-        ctx,
-      );
-    });
-    deck.marketAnalysis.customerSegments.forEach((s, i) => {
-      checkAnnotation(
-        s.annotation,
-        ["marketAnalysis", "customerSegments", i, "annotation"],
-        ctx,
-      );
-    });
-    if (deck.marketAnalysis.marketSizing) {
-      checkAnnotation(
-        deck.marketAnalysis.marketSizing.annotation,
-        ["marketAnalysis", "marketSizing", "annotation"],
-        ctx,
-      );
-    }
-    deck.businessModel.revenueStreams.forEach((rs, i) => {
-      checkAnnotation(
-        rs.annotation,
-        ["businessModel", "revenueStreams", i, "annotation"],
-        ctx,
-      );
-    });
-    deck.businessModel.costStructure.forEach((c, i) => {
-      checkAnnotation(
-        c.annotation,
-        ["businessModel", "costStructure", i, "annotation"],
-        ctx,
-      );
-    });
-    if (deck.businessModel.unitEconomics) {
-      checkAnnotation(
-        deck.businessModel.unitEconomics.annotation,
-        ["businessModel", "unitEconomics", "annotation"],
-        ctx,
-      );
-    }
-    deck.financialPlan.assumptions.forEach((a, i) => {
-      checkAnnotation(
-        a.annotation,
-        ["financialPlan", "assumptions", i, "annotation"],
-        ctx,
-      );
-    });
-    deck.financialPlan.projections.forEach((p, i) => {
-      checkAnnotation(
-        p.annotation,
-        ["financialPlan", "projections", i, "annotation"],
-        ctx,
-      );
-    });
-    checkAnnotation(
-      deck.financialPlan.annotation,
-      ["financialPlan", "annotation"],
-      ctx,
-    );
-    deck.risks.risks.forEach((r, i) => {
-      checkAnnotation(r.annotation, ["risks", "risks", i, "annotation"], ctx);
-    });
-    if (deck.exitStrategy) {
-      checkAnnotation(
-        deck.exitStrategy.annotation,
-        ["exitStrategy", "annotation"],
-        ctx,
-      );
-      deck.exitStrategy.comparableTransactions.forEach((t, i) => {
-        checkAnnotation(
-          t.annotation,
-          ["exitStrategy", "comparableTransactions", i, "annotation"],
-          ctx,
-        );
-      });
-    }
+  (deck: BusinessPlan, ctx: z.RefinementCtx) => {
+    // Confidence presence-coupling is now enforced inside ConfidenceSchema
+    // itself, so every annotation site (covered or not) gets the rule for
+    // free. Don't reintroduce a per-site walk here.
 
-    /* ── 2. MoneyRange / Range / TimeHorizon invariants ── */
+    /* ── 1. MoneyRange / Range / TimeHorizon invariants ── */
     deck.marketAnalysis.customerSegments.forEach((s, i) => {
       // willingnessToPay can be Money OR MoneyRange. Only the latter has min/max.
       const w = s.willingnessToPay;
@@ -1628,8 +1608,12 @@ export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
       }
     });
     deck.businessModel.revenueStreams.forEach((rs, i) => {
+      // `pricePoint` is `Money | Range`. Money has `amount`/`currency`;
+      // Range has `min`/`max`. Presence of `min` is a sufficient
+      // discriminator (Money has no `min` field), so a single `"min" in p`
+      // check is enough.
       const p = rs.pricePoint;
-      if (p && "min" in p && typeof p.min === "number") {
+      if (p && "min" in p) {
         checkRange(
           p,
           ["businessModel", "revenueStreams", i, "pricePoint"],
@@ -1652,7 +1636,7 @@ export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
       );
     }
 
-    /* ── 3. MarketSizing ordering: som ≤ sam ≤ tam (when same currency) ── */
+    /* ── 2. MarketSizing ordering: som ≤ sam ≤ tam (when same currency) ── */
     const sizing = deck.marketAnalysis.marketSizing;
     if (sizing) {
       const tam = sizing.tam?.value;
@@ -1681,7 +1665,7 @@ export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
       }
     }
 
-    /* ── 4. Risk arithmetic: riskScore ≈ likelihoodScore × impactScore ── */
+    /* ── 3. Risk arithmetic: riskScore ≈ likelihoodScore × impactScore ── */
     deck.risks.risks.forEach((r, i) => {
       if (
         r.riskScore !== undefined &&
@@ -1699,7 +1683,7 @@ export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
       }
     });
 
-    /* ── 5. UnitEconomics arithmetic ── */
+    /* ── 4. UnitEconomics arithmetic ── */
     function checkUnitEconomicsBlock(
       cac: AnnotatedMoney | undefined,
       ltv: AnnotatedMoney | undefined,
@@ -1772,7 +1756,7 @@ export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
       });
     }
 
-    /* ── 6. FinancialMetricProjection: grossProfit ≈ revenue − cogs ── */
+    /* ── 5. FinancialMetricProjection: grossProfit ≈ revenue − cogs ── */
     deck.financialPlan.projections.forEach((p, i) => {
       if (
         p.grossProfit !== undefined &&
@@ -1790,12 +1774,12 @@ export const RefinedBusinessPlanSchema = BusinessPlanSchema.superRefine(
       }
     });
 
-    /* ── 7. Referential integrity ──
-     * 7a. FinancialMetricProjection.assumptionIds /
+    /* ── 6. Referential integrity ──
+     * 6a. FinancialMetricProjection.assumptionIds /
      *     variedAssumptionIds ⊆ financialPlan.assumptions[*].id.
-     * 7b. UnitEconomics.perSegment[].segmentId ⊆
+     * 6b. UnitEconomics.perSegment[].segmentId ⊆
      *     marketAnalysis.customerSegments[*].id.
-     * 7c. Milestone.dependsOn ⊆ all known milestone IDs (roadmap +
+     * 6c. Milestone.dependsOn ⊆ all known milestone IDs (roadmap +
      *     traction.milestonesAchieved).
      */
     const knownAssumptionIds = new Set(
