@@ -122,6 +122,15 @@ export function makeContext(args: {
       host.pipeline.registerValidator({
         type_id: wrapped.type_id,
         rule_id: wrapped.rule_id,
+        // Lazy getter: resolves at dispatch time, so registerValidator()
+        // before registerProfile() during activate() still works — by
+        // the time a write occurs, the plugin's profileIds are populated.
+        // Scopes this validator to writes against profiles contributed
+        // by THIS plugin, preventing cross-plugin leakage when two
+        // plugins share a primitive-type-id namespace (e.g. `acme:Risk`
+        // declared by both acme.pitch-deck and acme.business-deck with
+        // incompatible field schemas).
+        originating_profile_ids: () => contributions.profileIds,
         fn: (instance, type, profile, context) => {
           // Synchronous adapter — Core's pipeline is sync. Forward all
           // four args; plugin validators that took only `(instance)`

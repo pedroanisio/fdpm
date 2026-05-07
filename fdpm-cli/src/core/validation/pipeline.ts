@@ -75,6 +75,20 @@ export interface ValidatorRegistration {
   type_id: string;
   rule_id: string;
   fn: CustomValidator;
+  /**
+   * Profile-ids contributed by the plugin that registered this validator.
+   * When set, the validator fires only if the workbook's profile id is in
+   * this list OR is reachable via the workbook profile's `extends` chain.
+   *
+   * Resolved lazily by callers (the plugin context registers a getter so
+   * activate() ordering — registerValidator() before registerProfile() —
+   * still works).
+   *
+   * Absent / empty array → unscoped (legacy behaviour, fires on every
+   * matching type_id). Core-host registrations leave this unset; plugin
+   * registrations set it via the plugin context.
+   */
+  originating_profile_ids?: () => readonly string[];
 }
 
 function findPrimitiveType(
@@ -302,6 +316,46 @@ function detectExtraFields(
   return findings;
 }
 
+/**
+ * Decide whether a validator registered by some plugin should fire on a
+ * write whose target profile is `profile`.
+ *
+ * Rule: a validator fires iff
+ *   (a) it has no originating_profile_ids (legacy/unscoped — typically a
+ *       core-host registration), OR
+ *   (b) the workbook profile's id is in the originating set, OR
+ *   (c) the workbook profile's `extends` chain reaches a profile that is
+ *       in the originating set.
+ *
+ * This stops cross-plugin leakage where two plugins contribute different
+ * profiles that share a `cap:profile` namespace prefix (e.g. `acme:`)
+ * and therefore declare the same primitive type ids with conflicting
+ * Zod-bridge schemas. Without this scoping, every plugin's validators
+ * fire on every primitive whose type_id happens to match — producing
+ * mutually-incompatible findings on a single write.
+ *
+ * Note: "extends chain" is read off the resolved DomainProfile that the
+ * caller passes in. ProfileRegistry.getResolved() flattens parents into
+ * the same object but keeps `extends: [parentIds]` on the resolved
+ * profile, so we can walk the chain shallowly. Deeper transitive checks
+ * are unnecessary because the resolved profile already carries the full
+ * flattened type set; the validator only needs to confirm SOMEONE in
+ * the chain owns the type — which is true exactly when an originating
+ * profile-id appears in `[profile.id, ...profile.extends]`.
+ */
+function validatorAppliesToProfile(
+  reg: ValidatorRegistration,
+  profile: DomainProfile,
+): boolean {
+  const owners = reg.originating_profile_ids?.();
+  if (!owners || owners.length === 0) return true;
+  if (owners.includes(profile.id)) return true;
+  for (const parentId of profile.extends) {
+    if (owners.includes(parentId)) return true;
+  }
+  return false;
+}
+
 export class ValidationPipeline {
   private validators: ValidatorRegistration[] = [];
 
@@ -377,7 +431,9 @@ export class ValidationPipeline {
     // duplicate findings (an info + an error for the same logical
     // check).
     const ruleIdsCoveredByValidators = new Set(
-      this.validators.filter((r) => r.type_id === type.id).map((r) => r.rule_id),
+      this.validators
+        .filter((r) => r.type_id === type.id && validatorAppliesToProfile(r, profile))
+        .map((r) => r.rule_id),
     );
     for (const rule of profile.validation_rules) {
       const targets = rule.targets ?? rule.applies_to ?? [];
@@ -457,7 +513,12 @@ export class ValidationPipeline {
       }
     }
     // Step 6: custom validators (exception barrier).
-    for (const v of this.validators.filter((r) => r.type_id === type.id)) {
+    // Profile-scoped: validators registered by plugin P only fire on
+    // primitives belonging to a profile P contributes (or one that
+    // extends such a profile). See validatorAppliesToProfile().
+    for (const v of this.validators.filter(
+      (r) => r.type_id === type.id && validatorAppliesToProfile(r, profile),
+    )) {
       try {
         findings.push(...v.fn(instance, type, profile, context));
       } catch (err) {
@@ -563,7 +624,12 @@ export class ValidationPipeline {
     // gating effect; skipping keeps the report focused on what the
     // patch actually changed).
     // Step 6: custom validators (exception barrier).
-    for (const v of this.validators.filter((r) => r.type_id === type.id)) {
+    // Profile-scoped (see validatorAppliesToProfile). The field-patch
+    // pathway uses the same scope rule as runPrimitive: a validator
+    // contributed by another plugin's profile must not see this write.
+    for (const v of this.validators.filter(
+      (r) => r.type_id === type.id && validatorAppliesToProfile(r, profile),
+    )) {
       try {
         findings.push(...v.fn(instance, type, profile, context));
       } catch (err) {
