@@ -1,7 +1,7 @@
 /**
  * academic-paper.ts
  *
- * Academic paper schema — v0.1.0
+ * Academic paper schema — v0.2.0
  *
  * Source of truth for the future `fdpm.academic-paper` plugin. Each named
  * `z.object(...).strict()` below maps one-to-one onto an FDPM
@@ -15,9 +15,11 @@
  * (Equation/Postulate/internal-refs heavy) without forcing either genre
  * into the other's primitives.
  *
- * Out of scope (v0.1): peer-review records, dataset metadata, edition
+ * Out of scope (v0.2): peer-review records, dataset metadata, edition
  * lineage for multi-printing monographs (deferred to a sibling
- * `fdpm.monograph` profile).
+ * `fdpm.monograph` profile). Note: minimal edition/translation linkage
+ * (`Work.translationOf`, `Work.editionOf`) is now supported as a flat
+ * sibling-link rather than a full FRBR Work/Expression split.
  *
  * ─────────────────────────────────────────────────────────────────────
  * DISCLAIMER
@@ -31,26 +33,74 @@
  * invalid, erroneous, or a hallucination. See @DISCLAIMER.md.
  * ─────────────────────────────────────────────────────────────────────
  *
- * BRIDGE-CLEAN CONVENTIONS (matches business-plan.ts precedent)
- *   - every primitive is a plain `z.object(...).strict()` — no
- *     `.transform`, no `.pipe`, no top-level `.superRefine`;
- *   - cross-axis invariants colocate on `RefinedAcademicPaperSchema`;
- *   - kind-conditional required-ness rules (postulate-of-`theoretical`,
- *     data-evidence-of-`empirical`, etc.) live on the Refined root and
- *     are lifted to CEL as `paper.kind == X implies <expr>`;
- *   - IDs are plain `z.string().regex(...)` with kebab-case prefixes;
- *   - no `z.discriminatedUnion` (the `kind` enums on Claim, Evidence,
- *     Paper drive conditional rules at the root, not at the field).
+ * CHANGELOG (v0.1.0 → v0.2.0)
+ *   P0:
+ *   - NEW primitive `Citation`: typed citation links from Claim/Finding
+ *     (or paper-level) to a cited Work, with a CiTO-2.7-aligned `kind`
+ *     enum (extends, refutes, uses-method-of, ...). Closes the
+ *     "counterReads only spans within-paper Claims" gap.
+ *   - SPLIT `PaperKind` into `PaperEpistemicMethod` (empirical /
+ *     theoretical / methodological / literary-critical / review /
+ *     historical) and `PaperFormat` (article / essay / monograph /
+ *     thesis / chapter / letter / editorial / commentary). Old `kind`
+ *     conflated method with format and let a "historical monograph"
+ *     bypass the historical CEL check.
  *
- * KIND-CONDITIONAL CEL (locked v0.1)
- *   - paper.kind == 'theoretical'      ⇒ count(equations) > 0
- *   - paper.kind == 'empirical'        ⇒ ∃ claim of kind 'empirical' with
- *                                        ∃ supporting evidence of kind
- *                                        'data'
- *   - paper.kind == 'literary-critical' ⇒ count(quotations) > 0
- *   - paper.kind == 'review'           ⇒ count(citations) >= 10
- *   - paper.kind == 'historical'       ⇒ ∃ evidence of kind
- *                                        'observation' or 'data'
+ *   P1:
+ *   - NEW primitive `Funding`: paper-to-funder link with Crossref Funder
+ *     Registry DOI or ROR ID, award ID, and CRediT-eligible recipients.
+ *   - NEW field `Author.contributions: CreditRole[]` (NISO CRediT 1.0).
+ *   - NEW fields `Work.translationOf`, `Work.editionOf` (flat
+ *     FRBR-Expression linkage; full FRBR layering deferred).
+ *   - NEW value `'hypothesis'` in `ClaimKind`; the `epistemicMethod ==
+ *     'empirical'` CEL rule now requires both a hypothesis Claim and a
+ *     data-supported empirical Claim.
+ *   - REFINEMENT on `Equation`: requires at least one of {tex, mathml}.
+ *
+ *   P2:
+ *   - RENAMED `Quotation.grifo` → `Quotation.emphasis`; values changed
+ *     from {none, original, ours} to {none, original,
+ *     added-by-citing-author}. Less locale-dependent than the
+ *     Lusophone "grifo nosso" convention.
+ *   - RENAMED `Limitation.scope` value `"scope"` → `"applicability"`
+ *     (the field is named `scope`; the tautological value is gone).
+ *   - NEW fields `Theorist.wikidataId`, `Theorist.viafId`,
+ *     `Concept.wikidataId` for cross-paper consolidation.
+ *   - LOWERED `Paper.year` lower bound from 1400 to 0 (matches
+ *     `Work.year`; allows ancient papers/treatises modeled as Paper).
+ *
+ *   P3:
+ *   - NEW fields `Figure.doi`, `Equation.doi` (DataCite asset DOIs).
+ *
+ * KIND-CONDITIONAL CEL (locked v0.2)
+ *   - paper.epistemicMethod == 'theoretical'      ⇒ count(equations) > 0
+ *   - paper.epistemicMethod == 'empirical'        ⇒ (∃ claim of kind
+ *                                                    'hypothesis') AND
+ *                                                   (∃ claim of kind
+ *                                                    'empirical' with ∃
+ *                                                    supporting
+ *                                                    evidence of kind
+ *                                                    'data')
+ *   - paper.epistemicMethod == 'literary-critical' ⇒ count(quotations) > 0
+ *   - paper.epistemicMethod == 'review'           ⇒ ≥10 distinct
+ *                                                   citedWork IDs across
+ *                                                   Citations of kind ∈
+ *                                                   {reviews, critiques,
+ *                                                    agrees-with,
+ *                                                    disagrees-with,
+ *                                                    qualifies, extends,
+ *                                                    confirms, refutes}
+ *   - paper.epistemicMethod == 'historical'       ⇒ ∃ evidence of kind
+ *                                                   'observation' or 'data'
+ *
+ * BRIDGE-CLEAN CONVENTIONS (unchanged from v0.1)
+ *   - every primitive is a plain `z.object(...).strict()` — no
+ *     `.transform`, no `.pipe`, no primitive-level `.superRefine`;
+ *   - cross-axis invariants colocate on `RefinedAcademicPaperSchema`;
+ *   - kind-conditional required-ness rules live on the Refined root and
+ *     are lifted to CEL as `paper.epistemicMethod == X implies <expr>`;
+ *   - IDs are plain `z.string().regex(...)` with kebab-case prefixes;
+ *   - no `z.discriminatedUnion`.
  *
  * Generated by: Claude Opus 4.7 (1M context) via Claude Code
  * Date: 2026-05-10
@@ -64,8 +114,9 @@ import { z } from "zod";
  * Every primitive carries the FDPM ontological _meta triple. Authority
  * strings reference real-world conventions (ISO 639-1, DOI Handbook,
  * CSL 1.0.2, BibTeX, JATS-XML, ISBN ISO 2108, MathML 3.0, ORCID,
- * Crossref REST API). Authors normally omit _meta and let the default
- * inject at parse time.
+ * Crossref REST API, CiTO 2.7, NISO CRediT 1.0, Crossref Funder
+ * Registry, Wikidata, VIAF). Authors normally omit _meta and let the
+ * default inject at parse time.
  * ===================================================== */
 
 function metaSchema<
@@ -91,7 +142,8 @@ export const META_BIBLIO_VALUE = {
 export const META_AUTHORSHIP_VALUE = {
   domainPath: "academia/paper/authorship",
   register: "empirical",
-  authority: "ORCID, ROR, Crossref REST API, CRediT taxonomy",
+  authority:
+    "ORCID, ROR, Crossref REST API, NISO CRediT 1.0, VIAF, Wikidata",
 } as const;
 export const META_STRUCTURE_VALUE = {
   domainPath: "academia/paper/structure",
@@ -102,22 +154,24 @@ export const META_ARGUMENT_VALUE = {
   domainPath: "academia/paper/argument",
   register: "interpretive",
   authority:
-    "Toulmin argument model, academic rhetoric conventions, IMRAD",
+    "Toulmin argument model, academic rhetoric conventions, IMRAD, SPAR DEO",
 } as const;
 export const META_EVIDENCE_VALUE = {
   domainPath: "academia/paper/evidence",
   register: "empirical",
-  authority: "FAIR principles, replication-package conventions",
+  authority: "FAIR principles, replication-package conventions, SPAR DEO",
 } as const;
 export const META_CITATION_VALUE = {
   domainPath: "academia/paper/citation",
   register: "empirical",
-  authority: "CSL 1.0.2, BibTeX, ISO 690, APA 7, MLA 9, Chicago 17",
+  authority:
+    "CSL 1.0.2, BibTeX, ISO 690, APA 7, MLA 9, Chicago 17, SPAR CiTO 2.7",
 } as const;
 export const META_CONCEPT_VALUE = {
   domainPath: "academia/paper/concept",
   register: "interpretive",
-  authority: "philosophy-of-science conventions, lexicographic practice",
+  authority:
+    "philosophy-of-science conventions, lexicographic practice, SKOS, Wikidata",
 } as const;
 export const META_METHOD_VALUE = {
   domainPath: "academia/paper/methodology",
@@ -132,7 +186,12 @@ export const META_MATH_VALUE = {
 export const META_FIGURE_VALUE = {
   domainPath: "academia/paper/illustration",
   register: "empirical",
-  authority: "JATS-XML <fig>, accessibility (alt-text) conventions",
+  authority: "JATS-XML <fig>, accessibility (alt-text) conventions, DataCite",
+} as const;
+export const META_FUNDING_VALUE = {
+  domainPath: "academia/paper/funding",
+  register: "empirical",
+  authority: "Crossref Funder Registry, ROR, JATS <funding-group>",
 } as const;
 export const META_PROVENANCE_VALUE = {
   domainPath: "academia/paper/provenance",
@@ -195,6 +254,11 @@ const META_FIGURE = metaSchema(
   META_FIGURE_VALUE.register,
   META_FIGURE_VALUE.authority,
 ).default(META_FIGURE_VALUE);
+const META_FUNDING = metaSchema(
+  META_FUNDING_VALUE.domainPath,
+  META_FUNDING_VALUE.register,
+  META_FUNDING_VALUE.authority,
+).default(META_FUNDING_VALUE);
 
 /* =====================================================
  * 2. Shared primitive value-types (NOT registered as
@@ -240,6 +304,33 @@ const Locator = z.string().min(1).max(120);
 // a cap:expr-helper).
 const Spdx = z.string().min(1).max(80);
 
+// Wikidata QID, e.g. "Q42". Permissive: forbids leading zeros but not
+// rare malformed inputs; cap:expr-helper `wikidata(x)` does the live
+// dereference check.
+const WikidataQid = z.string().regex(/^Q[1-9]\d*$/, {
+  message: "wikidataId must match Wikidata QID syntax (e.g. Q42)",
+});
+
+// VIAF ID: numeric string. Length is variable in practice (VIAF
+// publishes 8-22 digit IDs); cap:expr-helper `viaf(x)` does length and
+// dereference check.
+const ViafId = z.string().regex(/^\d+$/, {
+  message: "viafId must be a numeric VIAF identifier",
+});
+
+// Funder identifier: accepts either a Crossref Funder Registry DOI
+// (10.13039/<digits>) or a ROR URL. The Crossref Funder Registry has
+// been migrating to ROR, so OpenAlex unifies these; we accept both.
+const FunderId = z
+  .string()
+  .regex(
+    /^(?:https:\/\/ror\.org\/0[a-z0-9]{6}\d{2}|10\.13039\/[0-9]+)$/,
+    {
+      message:
+        "funderId must be either a ROR URL (https://ror.org/...) or a Crossref Funder Registry DOI (10.13039/...)",
+    },
+  );
+
 /* ID schemas — bridge uses these for entity resolution. Kebab-prefixed
  * by primitive type. Exported (and used by-reference both inside each
  * entity's `id:` field AND by the plugin sidecar's `idSchema:` slot)
@@ -265,6 +356,8 @@ export const LimitationIdSchema = z.string().regex(/^limit-[a-z0-9-]+$/);
 export const FootnoteIdSchema = z.string().regex(/^note-[a-z0-9-]+$/);
 export const EquationIdSchema = z.string().regex(/^eq-[a-z0-9-]+$/);
 export const FigureIdSchema = z.string().regex(/^fig-[a-z0-9-]+$/);
+export const CitationIdSchema = z.string().regex(/^citation-[a-z0-9-]+$/);
+export const FundingIdSchema = z.string().regex(/^funding-[a-z0-9-]+$/);
 
 /* =====================================================
  * 3. Provenance / Confidence (shared annotations,
@@ -315,18 +408,35 @@ export const ProvenanceSchema = z
  * 4. Top-level enums (drive kind-conditional CEL)
  * ===================================================== */
 
-export const PaperKindSchema = z.enum([
+// SPLIT in v0.2: epistemic method (how the paper produces knowledge)
+// is now separate from format (length / genre). Kind-conditional CEL
+// rules apply to `epistemicMethod`.
+export const PaperEpistemicMethodSchema = z.enum([
   "empirical",
   "theoretical",
   "methodological",
   "literary-critical",
   "review",
   "historical",
+]);
+export type PaperEpistemicMethod = z.infer<
+  typeof PaperEpistemicMethodSchema
+>;
+
+export const PaperFormatSchema = z.enum([
+  "article",
   "essay",
   "monograph",
+  "thesis",
+  "chapter",
+  "letter",
+  "editorial",
+  "commentary",
 ]);
-export type PaperKind = z.infer<typeof PaperKindSchema>;
+export type PaperFormat = z.infer<typeof PaperFormatSchema>;
 
+// `hypothesis` added in v0.2 — DEO/IMRAD-aligned distinction between a
+// falsifiable conjecture and an empirically-licensed claim.
 export const ClaimKindSchema = z.enum([
   "descriptive",
   "interpretive",
@@ -335,6 +445,7 @@ export const ClaimKindSchema = z.enum([
   "empirical",
   "definitional",
   "postulate",
+  "hypothesis",
 ]);
 export type ClaimKind = z.infer<typeof ClaimKindSchema>;
 
@@ -377,11 +488,61 @@ export const EquationRoleSchema = z.enum([
   "identity",
 ]);
 
+// CiTO 2.7-aligned subset (SPAR Citation Typing Ontology). Covers the
+// most common 19 of CiTO's ~40 predicates; further values can be added
+// without breaking change. The "review-relevant" subset used by the
+// review CEL rule is documented in the RefinedAcademicPaperSchema.
+export const CitationKindSchema = z.enum([
+  "extends",
+  "disagrees-with",
+  "agrees-with",
+  "confirms",
+  "refutes",
+  "uses-method-of",
+  "uses-data-of",
+  "obtains-background-from",
+  "qualifies",
+  "reviews",
+  "critiques",
+  "compiles",
+  "supports",
+  "cites-as-authority",
+  "cites-as-related",
+  "cites-for-information",
+  "replies-to",
+  "updates",
+  "retracts",
+]);
+export type CitationKind = z.infer<typeof CitationKindSchema>;
+
+// NISO CRediT 1.0 contribution roles (Contributor Roles Taxonomy).
+// Authors may have ≥0 of these; an Author with no `contributions`
+// declares only authorship-position via `Author.role`.
+export const CreditRoleSchema = z.enum([
+  "conceptualization",
+  "methodology",
+  "software",
+  "validation",
+  "formal-analysis",
+  "investigation",
+  "resources",
+  "data-curation",
+  "writing-original-draft",
+  "writing-review-editing",
+  "visualization",
+  "supervision",
+  "project-administration",
+  "funding-acquisition",
+]);
+export type CreditRole = z.infer<typeof CreditRoleSchema>;
+
 /* =====================================================
- * 5. Primitives (18 total)
+ * 5. Primitives (20 total in v0.2; +Citation, +Funding)
  * ===================================================== */
 
 // --- 5.1 Paper ----------------------------------------------------------
+// CHANGE v0.2: `kind` removed; replaced by `epistemicMethod` + `format`.
+// `year` lower bound lowered from 1400 to 0 (matches Work.year).
 export const PaperSchema = z
   .object({
     _meta: META_BIBLIO,
@@ -390,10 +551,11 @@ export const PaperSchema = z
     subtitle: ShortText.optional(),
     abstract: LongText.optional(),
     language: Iso639,
-    kind: PaperKindSchema,
+    epistemicMethod: PaperEpistemicMethodSchema,
+    format: PaperFormatSchema,
     venue: ShortText.optional(),
     publisher: ShortText.optional(),
-    year: z.number().int().gte(1400).lte(2100),
+    year: z.number().int().gte(0).lte(2100),
     doi: Doi.optional(),
     isbn: Isbn.optional(),
     license: Spdx.optional(),
@@ -405,6 +567,7 @@ export const PaperSchema = z
 export type Paper = z.infer<typeof PaperSchema>;
 
 // --- 5.2 Author --------------------------------------------------------
+// CHANGE v0.2: `contributions: CreditRole[]` added (NISO CRediT 1.0).
 export const AuthorSchema = z
   .object({
     _meta: META_AUTHORSHIP,
@@ -425,6 +588,7 @@ export const AuthorSchema = z
       ])
       .default("co-author"),
     affiliations: z.array(AffiliationIdSchema).default([]),
+    contributions: z.array(CreditRoleSchema).default([]),
   })
   .strict();
 export type Author = z.infer<typeof AuthorSchema>;
@@ -476,6 +640,7 @@ export const SectionSchema = z
 export type Section = z.infer<typeof SectionSchema>;
 
 // --- 5.5 Claim ---------------------------------------------------------
+// CHANGE v0.2: `kind` enum picks up 'hypothesis' (see ClaimKindSchema).
 export const ClaimSchema = z
   .object({
     _meta: META_ARGUMENT,
@@ -485,7 +650,7 @@ export const ClaimSchema = z
     kind: ClaimKindSchema,
     statement: MediumText,
     derivesFrom: z.array(ClaimIdSchema).default([]), // for kind='postulate' chains
-    counterReads: z.array(ClaimIdSchema).default([]), // dialogic / oppositional
+    counterReads: z.array(ClaimIdSchema).default([]), // dialogic / oppositional (within-paper)
     confidence: ConfidenceSchema.optional(),
   })
   .strict();
@@ -509,6 +674,9 @@ export const EvidenceSchema = z
 export type Evidence = z.infer<typeof EvidenceSchema>;
 
 // --- 5.7 Quotation -----------------------------------------------------
+// CHANGE v0.2: `grifo` renamed to `emphasis`; values from
+// {none, original, ours} → {none, original, added-by-citing-author}.
+// PALS's LAW (omissions invariant) preserved unchanged.
 export const QuotationSchema = z
   .object({
     _meta: META_CITATION,
@@ -519,7 +687,9 @@ export const QuotationSchema = z
     locator: Locator,
     body: MediumText,
     bodyLanguage: Iso639,
-    grifo: z.enum(["none", "original", "ours"]).default("none"),
+    emphasis: z
+      .enum(["none", "original", "added-by-citing-author"])
+      .default("none"),
     omissionsPresent: z.boolean().default(false),
     translatedFrom: QuotationIdSchema.optional(),
   })
@@ -534,6 +704,9 @@ export const QuotationSchema = z
 export type Quotation = z.infer<typeof QuotationSchema>;
 
 // --- 5.8 Work ----------------------------------------------------------
+// CHANGE v0.2: `translationOf` and `editionOf` added (flat
+// FRBR-Expression linkage). Self-reference cycles (Work → translationOf
+// → ... → Work) are forbidden by the Refined root.
 export const WorkSchema = z
   .object({
     _meta: META_CITATION,
@@ -548,11 +721,14 @@ export const WorkSchema = z
     isbn: Isbn.optional(),
     url: z.string().url().optional(),
     language: Iso639.optional(),
+    translationOf: WorkIdSchema.optional(),
+    editionOf: WorkIdSchema.optional(),
   })
   .strict();
 export type Work = z.infer<typeof WorkSchema>;
 
 // --- 5.9 Concept -------------------------------------------------------
+// CHANGE v0.2: `wikidataId` added for cross-paper concept consolidation.
 export const ConceptSchema = z
   .object({
     _meta: META_CONCEPT,
@@ -560,6 +736,7 @@ export const ConceptSchema = z
     label: ShortText, // "rasura", "Lorentz transformation", "counter-gaze"
     canonicalForm: ShortText.optional(), // disambiguation key
     domain: ShortText.optional(), // "literary criticism", "physics", ...
+    wikidataId: WikidataQid.optional(),
     borrowsFrom: z.array(TheoristIdSchema).default([]),
     extends: z.array(ConceptIdSchema).default([]),
   })
@@ -590,6 +767,7 @@ export const DefinitionSchema = z
 export type Definition = z.infer<typeof DefinitionSchema>;
 
 // --- 5.11 Theorist -----------------------------------------------------
+// CHANGE v0.2: `wikidataId` and `viafId` added.
 export const TheoristSchema = z
   .object({
     _meta: META_AUTHORSHIP,
@@ -599,6 +777,8 @@ export const TheoristSchema = z
     birthYear: z.number().int().gte(0).lte(2100).optional(),
     deathYear: z.number().int().gte(0).lte(2100).optional(),
     primaryAffiliation: ShortText.optional(),
+    wikidataId: WikidataQid.optional(),
+    viafId: ViafId.optional(),
     notableTheories: z.array(TheoryIdSchema).default([]),
   })
   .strict()
@@ -664,6 +844,8 @@ export const FindingSchema = z
 export type Finding = z.infer<typeof FindingSchema>;
 
 // --- 5.15 Limitation ---------------------------------------------------
+// CHANGE v0.2: `scope` value renamed from "scope" → "applicability"
+// (the field is named `scope`; the tautological value is gone).
 export const LimitationSchema = z
   .object({
     _meta: META_ARGUMENT,
@@ -671,8 +853,8 @@ export const LimitationSchema = z
     paper: PaperIdSchema,
     statement: MediumText,
     scope: z
-      .enum(["methodological", "empirical", "interpretive", "scope"])
-      .default("scope"),
+      .enum(["methodological", "empirical", "interpretive", "applicability"])
+      .default("applicability"),
   })
   .strict();
 export type Limitation = z.infer<typeof LimitationSchema>;
@@ -691,6 +873,8 @@ export const FootnoteSchema = z
 export type Footnote = z.infer<typeof FootnoteSchema>;
 
 // --- 5.17 Equation -----------------------------------------------------
+// CHANGE v0.2: `doi` added (DataCite asset DOI). Refinement: at least
+// one of {tex, mathml} must be present.
 export const EquationSchema = z
   .object({
     _meta: META_MATH,
@@ -698,16 +882,24 @@ export const EquationSchema = z
     paper: PaperIdSchema,
     section: SectionIdSchema.optional(),
     label: ShortText.optional(), // "(4.2)", "Eq. 17", "Lorentz"
-    tex: MediumText,
+    tex: MediumText.optional(),
     mathml: LongText.optional(),
     role: EquationRoleSchema,
     derivesFrom: z.array(EquationIdSchema).default([]), // chain
     fromPostulates: z.array(ClaimIdSchema).default([]), // postulate-driven derivations
+    doi: Doi.optional(),
   })
-  .strict();
+  .strict()
+  // Bridge-clean: single .refine() on the entity, no .superRefine.
+  .refine((eq) => eq.tex !== undefined || eq.mathml !== undefined, {
+    message:
+      "Equation must have at least one of `tex` or `mathml`. JATS canonicalizes math as MathML; LaTeX is supported as alternate.",
+    path: ["tex"],
+  });
 export type Equation = z.infer<typeof EquationSchema>;
 
 // --- 5.18 Figure -------------------------------------------------------
+// CHANGE v0.2: `doi` added (DataCite asset DOI).
 export const FigureSchema = z
   .object({
     _meta: META_FIGURE,
@@ -719,9 +911,62 @@ export const FigureSchema = z
     page: z.number().int().positive().optional(),
     altText: MediumText.optional(), // accessibility
     imageRef: z.string().min(1).optional(), // dnis:Document or asset path
+    doi: Doi.optional(),
   })
   .strict();
 export type Figure = z.infer<typeof FigureSchema>;
+
+// --- 5.19 Citation (NEW v0.2) -----------------------------------------
+// Typed citation link from this paper (or a Claim/Finding within it) to
+// a cited Work. Closes the gap that v0.1 had no way to encode oppositional
+// or methodological citation relations across paper boundaries.
+//
+// Cardinality:
+//   - At minimum, every Citation has `citedWork`.
+//   - `citingClaim` and `citingFinding` are both optional. A Citation with
+//     neither is "paper-level" — the paper as a whole cites Work W with
+//     kind K. Useful for review/historical kinds.
+//   - Both may be set if a Finding licensed by a Claim co-cites the same
+//     Work; this is permitted (no mutual exclusion).
+//   - `citedQuotation`, when present, refers to a Quotation drawn from
+//     `citedWork`.
+//
+// CiTO 2.7 alignment: see CitationKindSchema. The "review-relevant"
+// subset enforced by the review CEL rule is documented inline in
+// RefinedAcademicPaperSchema.
+export const CitationSchema = z
+  .object({
+    _meta: META_CITATION,
+    id: CitationIdSchema,
+    paper: PaperIdSchema,
+    citingClaim: ClaimIdSchema.optional(),
+    citingFinding: FindingIdSchema.optional(),
+    citedWork: WorkIdSchema,
+    citedQuotation: QuotationIdSchema.optional(),
+    kind: CitationKindSchema,
+    rationale: MediumText.optional(),
+  })
+  .strict();
+export type Citation = z.infer<typeof CitationSchema>;
+
+// --- 5.20 Funding (NEW v0.2) ------------------------------------------
+// Paper-to-funder link. Aligns with JATS <funding-group>, Crossref
+// `funder`, and DataCite `fundingReference`. CRediT
+// `funding-acquisition` may be declared on contributing Authors via
+// `Author.contributions`.
+export const FundingSchema = z
+  .object({
+    _meta: META_FUNDING,
+    id: FundingIdSchema,
+    paper: PaperIdSchema,
+    funderId: FunderId,
+    funderName: ShortText,
+    awardId: ShortText.optional(),
+    awardTitle: ShortText.optional(),
+    recipients: z.array(AuthorIdSchema).default([]),
+  })
+  .strict();
+export type Funding = z.infer<typeof FundingSchema>;
 
 /* =====================================================
  * 6. Bridge Schemas map
@@ -751,6 +996,8 @@ export const Schemas = {
   Footnote: FootnoteSchema,
   Equation: EquationSchema,
   Figure: FigureSchema,
+  Citation: CitationSchema,
+  Funding: FundingSchema,
 } as const;
 
 /* =====================================================
@@ -784,6 +1031,8 @@ export const AcademicPaperSchema = z
     footnotes: z.array(FootnoteSchema).default([]),
     equations: z.array(EquationSchema).default([]),
     figures: z.array(FigureSchema).default([]),
+    citations: z.array(CitationSchema).default([]),
+    fundings: z.array(FundingSchema).default([]),
   })
   .strict();
 export type AcademicPaper = z.infer<typeof AcademicPaperSchema>;
@@ -795,10 +1044,25 @@ export type AcademicPaper = z.infer<typeof AcademicPaperSchema>;
  *
  *  (A) referential integrity — every cross-primitive ID resolves
  *      inside the workbook;
- *  (B) kind-conditional required-ness — paper.kind drives which
- *      collections must be non-empty (lifted to CEL by the bridge as
- *      `paper.kind == X implies <expr>`).
+ *  (B) kind-conditional required-ness — paper.epistemicMethod drives
+ *      which collections must be non-empty (lifted to CEL by the bridge
+ *      as `paper.epistemicMethod == X implies <expr>`).
  * ===================================================== */
+
+// Citation kinds counted as "review-relevant" for the
+// epistemicMethod=='review' invariant. A review paper must engage
+// substantively with the works it cites — bare 'cites-for-information'
+// or 'cites-as-related' do not count toward the breadth threshold.
+const REVIEW_RELEVANT_CITATION_KINDS = new Set<CitationKind>([
+  "reviews",
+  "critiques",
+  "agrees-with",
+  "disagrees-with",
+  "qualifies",
+  "extends",
+  "confirms",
+  "refutes",
+]);
 
 export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
   (root, ctx) => {
@@ -813,6 +1077,7 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
     const conceptIds = new Set(root.concepts.map((c) => c.id));
     const theoristIds = new Set(root.theorists.map((t) => t.id));
     const theoryIds = new Set(root.theories.map((t) => t.id));
+    const findingIds = new Set(root.findings.map((f) => f.id));
 
     // -- (A) referential integrity ----------------------------------
     const reportMissing = (
@@ -895,6 +1160,37 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
           "quotation",
           q.translatedFrom,
         );
+    });
+
+    // Works: validate translationOf / editionOf and forbid self-loops.
+    // Cycle detection across the whole graph is left to a cap:expr
+    // helper (`acyclic(works, "translationOf")`); here we only catch
+    // self-references and dangling refs.
+    root.works.forEach((w, i) => {
+      if (w.translationOf) {
+        if (w.translationOf === w.id)
+          ctx.addIssue({
+            code: "custom",
+            path: ["works", i, "translationOf"],
+            message: "Work cannot be a translation of itself",
+          });
+        else if (!workIds.has(w.translationOf))
+          reportMissing(
+            ["works", i, "translationOf"],
+            "work",
+            w.translationOf,
+          );
+      }
+      if (w.editionOf) {
+        if (w.editionOf === w.id)
+          ctx.addIssue({
+            code: "custom",
+            path: ["works", i, "editionOf"],
+            message: "Work cannot be an edition of itself",
+          });
+        else if (!workIds.has(w.editionOf))
+          reportMissing(["works", i, "editionOf"], "work", w.editionOf);
+      }
     });
 
     root.concepts.forEach((c, i) => {
@@ -990,6 +1286,50 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
         reportMissing(["figures", i, "section"], "section", fg.section);
     });
 
+    // Citation ref-integrity (NEW v0.2)
+    root.citations.forEach((ci, i) => {
+      if (ci.paper !== paperId)
+        reportMissing(["citations", i, "paper"], "paper", ci.paper);
+      if (ci.citingClaim && !claimIds.has(ci.citingClaim))
+        reportMissing(
+          ["citations", i, "citingClaim"],
+          "claim",
+          ci.citingClaim,
+        );
+      if (ci.citingFinding && !findingIds.has(ci.citingFinding))
+        reportMissing(
+          ["citations", i, "citingFinding"],
+          "finding",
+          ci.citingFinding,
+        );
+      if (!workIds.has(ci.citedWork))
+        reportMissing(
+          ["citations", i, "citedWork"],
+          "work",
+          ci.citedWork,
+        );
+      if (ci.citedQuotation && !quotationIds.has(ci.citedQuotation))
+        reportMissing(
+          ["citations", i, "citedQuotation"],
+          "quotation",
+          ci.citedQuotation,
+        );
+    });
+
+    // Funding ref-integrity (NEW v0.2)
+    root.fundings.forEach((fu, i) => {
+      if (fu.paper !== paperId)
+        reportMissing(["fundings", i, "paper"], "paper", fu.paper);
+      fu.recipients.forEach((a, j) => {
+        if (!authorIds.has(a))
+          reportMissing(
+            ["fundings", i, "recipients", j],
+            "author",
+            a,
+          );
+      });
+    });
+
     // Author count must be ≥ 1 (paper-level invariant).
     if (root.authors.length === 0)
       ctx.addIssue({
@@ -1026,18 +1366,32 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
     });
 
     // -- (B) kind-conditional required-ness --------------------------
-    const kind = root.paper.kind;
+    // CHANGE v0.2: rules are gated on `paper.epistemicMethod`, not the
+    // old `paper.kind` (which mixed method with format).
+    const method = root.paper.epistemicMethod;
 
-    if (kind === "theoretical" && root.equations.length === 0) {
+    if (method === "theoretical" && root.equations.length === 0) {
       ctx.addIssue({
         code: "custom",
         path: ["equations"],
         message:
-          "paper.kind == 'theoretical' requires at least one Equation",
+          "paper.epistemicMethod == 'theoretical' requires at least one Equation",
       });
     }
 
-    if (kind === "empirical") {
+    if (method === "empirical") {
+      // Strengthened in v0.2: require both a hypothesis Claim AND an
+      // empirical Claim supported by data Evidence.
+      const hasHypothesis = root.claims.some(
+        (c) => c.kind === "hypothesis",
+      );
+      if (!hasHypothesis)
+        ctx.addIssue({
+          code: "custom",
+          path: ["claims"],
+          message:
+            "paper.epistemicMethod == 'empirical' requires ≥1 Claim of kind 'hypothesis'",
+        });
       const empiricalClaims = root.claims.filter(
         (c) => c.kind === "empirical",
       );
@@ -1051,41 +1405,40 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
           code: "custom",
           path: ["claims"],
           message:
-            "paper.kind == 'empirical' requires ≥1 empirical Claim supported by Evidence of kind 'data'",
+            "paper.epistemicMethod == 'empirical' requires ≥1 empirical Claim supported by Evidence of kind 'data'",
         });
     }
 
-    if (kind === "literary-critical" && root.quotations.length === 0) {
+    if (method === "literary-critical" && root.quotations.length === 0) {
       ctx.addIssue({
         code: "custom",
         path: ["quotations"],
         message:
-          "paper.kind == 'literary-critical' requires at least one Quotation",
+          "paper.epistemicMethod == 'literary-critical' requires at least one Quotation",
       });
     }
 
-    if (kind === "review") {
-      // Citation count = quotations + works referenced via evidence + works
-      // referenced via definitions.citedFrom. Use distinct work refs as
-      // proxy for the review's citation breadth.
-      const citedWorkIds = new Set<string>();
-      root.quotations.forEach((q) => citedWorkIds.add(q.quotesFrom));
-      root.evidence.forEach((e) => {
-        if (e.work) citedWorkIds.add(e.work);
+    if (method === "review") {
+      // CHANGE v0.2: count distinct Citations of "review-relevant"
+      // kinds, not the old proxy of (quotations ∪ evidence.work ∪
+      // definitions.citedFrom). A review must engage substantively
+      // with the works it cites; bare 'cites-for-information' or
+      // 'cites-as-related' do not count toward breadth.
+      const reviewedWorkIds = new Set<string>();
+      root.citations.forEach((ci) => {
+        if (REVIEW_RELEVANT_CITATION_KINDS.has(ci.kind))
+          reviewedWorkIds.add(ci.citedWork);
       });
-      root.definitions.forEach((d) => {
-        if (d.citedFrom) citedWorkIds.add(d.citedFrom);
-      });
-      if (citedWorkIds.size < 10)
+      if (reviewedWorkIds.size < 10)
         ctx.addIssue({
           code: "custom",
-          path: ["works"],
+          path: ["citations"],
           message:
-            "paper.kind == 'review' requires ≥10 distinct cited Works",
+            "paper.epistemicMethod == 'review' requires ≥10 distinct cited Works across Citations of kind ∈ {reviews, critiques, agrees-with, disagrees-with, qualifies, extends, confirms, refutes}",
         });
     }
 
-    if (kind === "historical") {
+    if (method === "historical") {
       const hasObservationOrData = root.evidence.some(
         (e) => e.kind === "observation" || e.kind === "data",
       );
@@ -1094,7 +1447,7 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
           code: "custom",
           path: ["evidence"],
           message:
-            "paper.kind == 'historical' requires ≥1 Evidence of kind 'observation' or 'data'",
+            "paper.epistemicMethod == 'historical' requires ≥1 Evidence of kind 'observation' or 'data'",
         });
     }
   },
