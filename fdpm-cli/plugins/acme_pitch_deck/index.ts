@@ -632,8 +632,12 @@ export async function activate(ctx: PluginContext): Promise<void> {
       // target is the rendererId's job. The MCP resource layer (see
       // tests/mcp/resources-render.test.ts) requires Resource.mimeType
       // to be a parseable mime, not a fragment URI.
+      // Namespace by PLUGIN_ID: pitch-deck and business-deck both
+      // export Risk and Slide entities, so a bare `acme:` prefix would
+      // collide on (target, rendererId) and quarantine whichever
+      // activates second (SPEC-PLUGGABLE §7.4).
       target: "text/markdown",
-      rendererId: `acme:${entityName}MarkdownRenderer`,
+      rendererId: `${PLUGIN_ID}:${entityName}MarkdownRenderer`,
       fn: rendererFn,
     });
 
