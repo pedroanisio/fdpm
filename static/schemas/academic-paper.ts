@@ -1,7 +1,7 @@
 /**
  * academic-paper.ts
  *
- * Academic paper schema — v0.3.0
+ * Academic paper schema — v0.3.1
  *
  * Source of truth for the future `fdpm.academic-paper` plugin. Each named
  * `z.object(...).strict()` below maps one-to-one onto an FDPM
@@ -93,7 +93,38 @@
  *   - Full SPAR PRO Publishing Roles (role-in-time semantics).
  *   - Full FRBR Work/Expression/Manifestation/Item split.
  *
- * KIND-CONDITIONAL CEL (locked v0.3 — unchanged from v0.2)
+ * CHANGELOG (v0.3.0 → v0.3.1) — review-pass cleanup, no new primitives:
+ *   - RESTORED: `descriptive` value in `PaperEpistemicMethodSchema`
+ *     (originally added v0.2 review-pass; silently dropped during the
+ *     v0.3 rewrite). Covers exploratory/observational empirical work
+ *     without a pre-registered hypothesis. Empirical CEL rule remains
+ *     strict; descriptive papers bypass it intentionally.
+ *   - FIXED stale `CiTO 2.7` in the _meta envelope's introductory
+ *     comment (META_CITATION_VALUE.authority was already correctly
+ *     `CiTO 2.8.1` in v0.3.0; only the §1 comment lagged).
+ *   - FIXED Section 5 header comment count: 20 → 23 to reflect
+ *     Funder + Table + PaperRelation additions.
+ *   - MERGED two fragmented `root.citations.forEach` blocks in the
+ *     Refined root into a single pass (v0.3.0 added a separate walk
+ *     just to check citingSection).
+ *   - DROPPED misleading `path: ["tex"]` from the Equation
+ *     `tex|mathml` refine — either field satisfies, so anchoring to
+ *     `tex` was confusing when only `mathml` was the intended path.
+ *   - CLARIFIED in PaperRelation docstring the relationship between
+ *     `PaperRelation{kind:"translation-of"}` (paper-level Crossmark
+ *     metadata) and `Work.translationOf` (bibliographic spine). Both
+ *     may be populated when the workbook is comprehensive; prefer
+ *     `Work.translationOf` for the catalogue facet.
+ *   - ADDED Refined-root cross-check
+ *     `paper.publicationDate.year == paper.year` (when both are set).
+ *     Disagreement is almost always a copy-paste hallucination.
+ *   - RELAXED `Funder.registryId` from required to optional, paired
+ *     with a paper-coherence WARNING (not error) when the field is
+ *     absent. Lets niche funders (university seed grants, family
+ *     foundations) be modeled while preserving PALS's LAW posture:
+ *     gaps are declared, never hidden.
+ *
+ * KIND-CONDITIONAL CEL (locked v0.3.1)
  *   - paper.epistemicMethod == 'theoretical'      ⇒ count(equations) > 0
  *   - paper.epistemicMethod == 'empirical'        ⇒ (∃ claim of kind
  *                                                    'hypothesis') AND
@@ -102,6 +133,16 @@
  *                                                    supporting
  *                                                    evidence of kind
  *                                                    'data')
+ *   - paper.epistemicMethod == 'descriptive'      ⇒ NO required-ness
+ *                                                   (intentional —
+ *                                                    descriptive papers
+ *                                                    observe and describe
+ *                                                    rather than test;
+ *                                                    a `descriptive`
+ *                                                    epistemic method
+ *                                                    relaxes the
+ *                                                    hypothesis gate that
+ *                                                    `empirical` enforces)
  *   - paper.epistemicMethod == 'literary-critical' ⇒ count(quotations) > 0
  *   - paper.epistemicMethod == 'review'           ⇒ ≥10 distinct
  *                                                   citedWork IDs across
@@ -135,9 +176,9 @@ import { z } from "zod";
  * Every primitive carries the FDPM ontological _meta triple. Authority
  * strings reference real-world conventions (ISO 639-1, DOI Handbook,
  * CSL 1.0.2, BibTeX, JATS-XML, ISBN ISO 2108, MathML 3.0, ORCID,
- * Crossref REST API, CiTO 2.7, NISO CRediT 1.0, Crossref Funder
- * Registry, Wikidata, VIAF). Authors normally omit _meta and let the
- * default inject at parse time.
+ * Crossref REST API, SPAR CiTO 2.8.1, NISO CRediT 1.0, NISO RP-8-2008
+ * JAV, Crossref Funder Registry, ROR, Wikidata, VIAF, SKOS, DataCite).
+ * Authors normally omit _meta and let the default inject at parse time.
  * ===================================================== */
 
 function metaSchema<
@@ -439,8 +480,19 @@ export const ProvenanceSchema = z
 // SPLIT in v0.2: epistemic method (how the paper produces knowledge)
 // is now separate from format (length / genre). Kind-conditional CEL
 // rules apply to `epistemicMethod`.
+//
+// `descriptive` (v0.2 review-pass, restored in v0.3.1) covers
+// exploratory / observational empirical work that does not pre-register
+// a hypothesis: ethnographies, cross-sectional surveys, corpus studies,
+// descriptive cohort studies, replication papers without
+// hypothesis-pre-registration. The empirical CEL rule does NOT apply
+// to descriptive — it imposes no required-ness, on purpose.
+// Use `descriptive` when the paper observes-and-describes rather than
+// tests-a-hypothesis; use `empirical` when there is a falsifiable
+// hypothesis the paper licenses with data.
 export const PaperEpistemicMethodSchema = z.enum([
   "empirical",
+  "descriptive",
   "theoretical",
   "methodological",
   "literary-critical",
@@ -646,7 +698,8 @@ export const CreditRoleSchema = z.enum([
 export type CreditRole = z.infer<typeof CreditRoleSchema>;
 
 /* =====================================================
- * 5. Primitives (20 total in v0.2; +Citation, +Funding)
+ * 5. Primitives (23 total in v0.3; v0.2 added Citation+Funding to the
+ *    v0.1 set of 18; v0.3 added Funder+Table+PaperRelation.)
  * ===================================================== */
 
 // --- 5.1 Paper ----------------------------------------------------------
@@ -1018,10 +1071,12 @@ export const EquationSchema = z
   })
   .strict()
   // Bridge-clean: single .refine() on the entity, no .superRefine.
+  // No `path` — either `tex` or `mathml` would satisfy; anchoring to
+  // one of the two would misleadingly suggest that field specifically
+  // is required.
   .refine((eq) => eq.tex !== undefined || eq.mathml !== undefined, {
     message:
       "Equation must have at least one of `tex` or `mathml`. JATS canonicalizes math as MathML; LaTeX is supported as alternate.",
-    path: ["tex"],
   });
 export type Equation = z.infer<typeof EquationSchema>;
 
@@ -1114,12 +1169,21 @@ export type Funding = z.infer<typeof FundingSchema>;
 // real-world identifier (ROR or Crossref Funder Registry DOI) lives in
 // `registryId`. Two Funding rows pointing to the same Funder share that
 // real-world identifier without duplicating it inline.
+//
+// CHANGE v0.3.1: `registryId` relaxed from required to optional. Some
+// niche funders (university internal seed grants, family foundations,
+// private donors) lack ROR or Crossref Funder Registry entries. Making
+// the field optional lets those funders be modeled; the paper-coherence
+// validator emits a warning (level='warning', not 'error') when the
+// field is absent, so the PALS's LAW "declare gaps, never hide them"
+// posture is preserved. Authors and importers are encouraged to set
+// `registryId` whenever possible.
 export const FunderSchema = z
   .object({
     _meta: META_FUNDING,
     id: FunderIdSchema,
     name: ShortText,
-    registryId: FunderRegistryId,
+    registryId: FunderRegistryId.optional(),
   })
   .strict();
 export type Funder = z.infer<typeof FunderSchema>;
@@ -1164,6 +1228,20 @@ export type Table = z.infer<typeof TableSchema>;
 // for Crossmark / Crossref linking), whereas Citations are
 // rhetorical/factual relations between this paper's claims and a cited
 // Work's content.
+//
+// On the overlap with `Work.translationOf` / `Work.editionOf`:
+//   `Work.translationOf` is the **bibliographic spine** — the
+//   relationship between two Works in this workbook's Work catalogue,
+//   used by anyone resolving bibliographic identity (e.g., authoring
+//   a quotation, looking up the cited work's original-language form).
+//   `PaperRelation{kind: "translation-of"}` is **paper-level
+//   metadata** — used to surface "this paper translates Work W" at the
+//   Crossmark / Crossref / publication-record layer.
+//   When both are appropriate (this paper IS a translation of another
+//   Work AND that Work has its own entry), populate both: they encode
+//   complementary facets. When in doubt, prefer `Work.translationOf`
+//   for the catalogue facet and add a `PaperRelation` only when the
+//   publication record itself needs to surface the relationship.
 export const PaperRelationSchema = z
   .object({
     _meta: META_CITATION,
@@ -1550,7 +1628,8 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
         reportMissing(["figures", i, "section"], "section", fg.section);
     });
 
-    // Citation ref-integrity (NEW v0.2)
+    // Citation ref-integrity (v0.2 + v0.3 citingSection merged into one
+    // pass per the v0.3.1 cleanup).
     root.citations.forEach((ci, i) => {
       if (ci.paper !== paperId)
         reportMissing(["citations", i, "paper"], "paper", ci.paper);
@@ -1565,6 +1644,12 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
           ["citations", i, "citingFinding"],
           "finding",
           ci.citingFinding,
+        );
+      if (ci.citingSection && !sectionIds.has(ci.citingSection))
+        reportMissing(
+          ["citations", i, "citingSection"],
+          "section",
+          ci.citingSection,
         );
       if (!workIds.has(ci.citedWork))
         reportMissing(
@@ -1621,20 +1706,6 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
         );
     });
 
-    // Citation ref-integrity (CHANGED v0.3: now also checks
-    // citingSection FK).
-    // (Note: the Citation block above already checks
-    // citingClaim/citingFinding/citedWork/citedQuotation; we add
-    // citingSection here in v0.3.)
-    root.citations.forEach((ci, i) => {
-      if (ci.citingSection && !sectionIds.has(ci.citingSection))
-        reportMissing(
-          ["citations", i, "citingSection"],
-          "section",
-          ci.citingSection,
-        );
-    });
-
     // Author count must be ≥ 1 (paper-level invariant).
     if (root.authors.length === 0)
       ctx.addIssue({
@@ -1669,6 +1740,23 @@ export const RefinedAcademicPaperSchema = AcademicPaperSchema.superRefine(
             "Concept must either have a Definition in this paper or a borrowsFrom→Theorist link",
         });
     });
+
+    // Paper.publicationDate.year must agree with Paper.year when both
+    // are present (NEW v0.3.1). Soft-couples two optional precisions of
+    // the publication date. Disagreement is almost always a
+    // copy-paste hallucination; surfacing it at the schema level
+    // prevents drift downstream.
+    if (root.paper.publicationDate) {
+      const pubYearStr = root.paper.publicationDate.slice(0, 4);
+      const pubYear = Number(pubYearStr);
+      if (Number.isFinite(pubYear) && pubYear !== root.paper.year) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["paper", "publicationDate"],
+          message: `paper.publicationDate's year (${pubYear}) disagrees with paper.year (${root.paper.year}); the two MUST match.`,
+        });
+      }
+    }
 
     // Author position invariant (NEW v0.3): at most one Author per
     // paper has position='first', and at most one has position='last'.
