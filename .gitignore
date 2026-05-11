@@ -2,5 +2,4 @@ fdpm-cli/dist/
 node_modules/
 .agent-tasks/
 dist/
-fdpm-cli/plugins/acme_business_deck/capabilities/PainPoint.capabilities.json
 static/node_modules
