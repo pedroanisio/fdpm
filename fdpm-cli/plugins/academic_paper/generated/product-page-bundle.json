@@ -1,0 +1,2345 @@
+{
+  "expr_helpers": [],
+  "feature_flag_states": [
+    {
+      "flag": "flag:scope-server-only",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-v3-support",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:auto-migration",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-cross-field-refine",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-async-refine",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-discriminated-union",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-intersection",
+      "state": "enabled"
+    },
+    {
+      "flag": "flag:zod-recursive-lazy",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-function-promise",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-brand",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-regex-flags",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-pipe-transform",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-default",
+      "state": "behind-flag"
+    }
+  ],
+  "host_compatibility": ">=1.1,<2",
+  "plugin_id": "fdpm.academic-paper",
+  "profile_id": "profile:academic-paper:0.3",
+  "relation_types": [
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:AuthorPaper",
+      "source": "acad:Author",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:AuthorAffiliations",
+      "source": "acad:Author",
+      "target": "acad:Affiliation"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:SectionPaper",
+      "source": "acad:Section",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:SectionParent",
+      "source": "acad:Section",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ClaimPaper",
+      "source": "acad:Claim",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ClaimSection",
+      "source": "acad:Claim",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:ClaimDerivesFrom",
+      "source": "acad:Claim",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:ClaimCounterReads",
+      "source": "acad:Claim",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:EvidencePaper",
+      "source": "acad:Evidence",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:EvidenceSupports",
+      "source": "acad:Evidence",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:EvidenceQuotation",
+      "source": "acad:Evidence",
+      "target": "acad:Quotation"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:EvidenceWork",
+      "source": "acad:Evidence",
+      "target": "acad:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:QuotationPaper",
+      "source": "acad:Quotation",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:QuotationSection",
+      "source": "acad:Quotation",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:QuotationQuotesFrom",
+      "source": "acad:Quotation",
+      "target": "acad:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:QuotationTranslatedFrom",
+      "source": "acad:Quotation",
+      "target": "acad:Quotation"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:ConceptBorrowsFrom",
+      "source": "acad:Concept",
+      "target": "acad:Theorist"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:ConceptExtends",
+      "source": "acad:Concept",
+      "target": "acad:Concept"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:DefinitionPaper",
+      "source": "acad:Definition",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:DefinitionConcept",
+      "source": "acad:Definition",
+      "target": "acad:Concept"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:DefinitionSection",
+      "source": "acad:Definition",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:DefinitionCitedFrom",
+      "source": "acad:Definition",
+      "target": "acad:Work"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:TheoristNotableTheories",
+      "source": "acad:Theorist",
+      "target": "acad:Theory"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:TheoryPrimaryTheorist",
+      "source": "acad:Theory",
+      "target": "acad:Theorist"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:TheoryExtendsTheory",
+      "source": "acad:Theory",
+      "target": "acad:Theory"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:TheoryRespondsTo",
+      "source": "acad:Theory",
+      "target": "acad:Theory"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:MethodPaper",
+      "source": "acad:Method",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FindingPaper",
+      "source": "acad:Finding",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FindingSection",
+      "source": "acad:Finding",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:FindingSupportedBy",
+      "source": "acad:Finding",
+      "target": "acad:Evidence"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:LimitationPaper",
+      "source": "acad:Limitation",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FootnotePaper",
+      "source": "acad:Footnote",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FootnoteSection",
+      "source": "acad:Footnote",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:EquationPaper",
+      "source": "acad:Equation",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:EquationSection",
+      "source": "acad:Equation",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:EquationDerivesFrom",
+      "source": "acad:Equation",
+      "target": "acad:Equation"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:EquationFromPostulates",
+      "source": "acad:Equation",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FigurePaper",
+      "source": "acad:Figure",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FigureSection",
+      "source": "acad:Figure",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:WorkTranslationOf",
+      "source": "acad:Work",
+      "target": "acad:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:WorkEditionOf",
+      "source": "acad:Work",
+      "target": "acad:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:CitationPaper",
+      "source": "acad:Citation",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:CitationCitingClaim",
+      "source": "acad:Citation",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:CitationCitingFinding",
+      "source": "acad:Citation",
+      "target": "acad:Finding"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:CitationCitingSection",
+      "source": "acad:Citation",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:CitationCitedWork",
+      "source": "acad:Citation",
+      "target": "acad:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:CitationCitedQuotation",
+      "source": "acad:Citation",
+      "target": "acad:Quotation"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FundingPaper",
+      "source": "acad:Funding",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FundingFunder",
+      "source": "acad:Funding",
+      "target": "acad:Funder"
+    },
+    {
+      "cardinality": "many-to-many",
+      "id": "acad:FundingRecipients",
+      "source": "acad:Funding",
+      "target": "acad:Author"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:TablePaper",
+      "source": "acad:Table",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:TableSection",
+      "source": "acad:Table",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:PaperRelationPaper",
+      "source": "acad:PaperRelation",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:PaperRelationRelatedWork",
+      "source": "acad:PaperRelation",
+      "target": "acad:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ClaimSupersededBy",
+      "source": "acad:Claim",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:FindingTestsHypothesis",
+      "source": "acad:Finding",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ErratumPaper",
+      "source": "acad:Erratum",
+      "target": "acad:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ErratumCorrectsSection",
+      "source": "acad:Erratum",
+      "target": "acad:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ErratumCorrectsClaim",
+      "source": "acad:Erratum",
+      "target": "acad:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ErratumCorrectsFinding",
+      "source": "acad:Erratum",
+      "target": "acad:Finding"
+    },
+    {
+      "cardinality": "many-to-one",
+      "id": "acad:ErratumCorrectsEquation",
+      "source": "acad:Erratum",
+      "target": "acad:Equation"
+    }
+  ],
+  "schemas": [
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "subtitle",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "abstract",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "epistemicMethod",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "format",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "venue",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "publicationDate",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "version",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "isbn",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "license",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "pageCount",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "sourceDocument",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "keywords",
+          "required": false
+        }
+      ],
+      "name": "Paper",
+      "primitive_type_id": "acad:Paper",
+      "source_path": "domain.entities.Paper.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "fullName",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "familyName",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "givenNames",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "orcid",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "email",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "role",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "position",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "affiliations",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "contributions",
+          "required": false
+        }
+      ],
+      "name": "Author",
+      "primitive_type_id": "acad:Author",
+      "source_path": "domain.entities.Author.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "institution",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "department",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "country",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "rorId",
+          "required": false
+        }
+      ],
+      "name": "Affiliation",
+      "primitive_type_id": "acad:Affiliation",
+      "source_path": "domain.entities.Affiliation.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "parent",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "order",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "role",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "bodyText",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false
+        }
+      ],
+      "name": "Section",
+      "primitive_type_id": "acad:Section",
+      "source_path": "domain.entities.Section.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "derivesFrom",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "counterReads",
+          "required": false
+        },
+        {
+          "kind": "struct",
+          "name": "confidence",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "lifecycleStatus",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "supersededBy",
+          "required": false
+        }
+      ],
+      "name": "Claim",
+      "primitive_type_id": "acad:Claim",
+      "source_path": "domain.entities.Claim.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "supports",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "quotation",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "work",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "locator",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "provenance",
+          "required": false
+        }
+      ],
+      "name": "Evidence",
+      "primitive_type_id": "acad:Evidence",
+      "source_path": "domain.entities.Evidence.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "quotesFrom",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "locator",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "bodyLanguage",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "emphasis",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "omissionsPresent",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "translatedFrom",
+          "required": false
+        }
+      ],
+      "name": "Quotation",
+      "primitive_type_id": "acad:Quotation",
+      "source_path": "domain.entities.Quotation.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "authorsFreeText",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "venue",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "isbn",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "translationOf",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "editionOf",
+          "required": false
+        }
+      ],
+      "name": "Work",
+      "primitive_type_id": "acad:Work",
+      "source_path": "domain.entities.Work.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "canonicalForm",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "domain",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "wikidataId",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "closeMatch",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "borrowsFrom",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "extends",
+          "required": false
+        }
+      ],
+      "name": "Concept",
+      "primitive_type_id": "acad:Concept",
+      "source_path": "domain.entities.Concept.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "concept",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "provenance",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citedFrom",
+          "required": false
+        }
+      ],
+      "name": "Definition",
+      "primitive_type_id": "acad:Definition",
+      "source_path": "domain.entities.Definition.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "fullName",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "familyName",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "birthYear",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "deathYear",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "primaryAffiliation",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "wikidataId",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "viafId",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "notableTheories",
+          "required": false
+        }
+      ],
+      "name": "Theorist",
+      "primitive_type_id": "acad:Theorist",
+      "source_path": "domain.entities.Theorist.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "primaryTheorist",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "extendsTheory",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "respondsTo",
+          "required": false
+        }
+      ],
+      "name": "Theory",
+      "primitive_type_id": "acad:Theory",
+      "source_path": "domain.entities.Theory.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "procedure",
+          "required": false
+        }
+      ],
+      "name": "Method",
+      "primitive_type_id": "acad:Method",
+      "source_path": "domain.entities.Method.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "supportedBy",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "testsHypothesis",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "outcome",
+          "required": false
+        }
+      ],
+      "name": "Finding",
+      "primitive_type_id": "acad:Finding",
+      "source_path": "domain.entities.Finding.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "scope",
+          "required": false
+        }
+      ],
+      "name": "Limitation",
+      "primitive_type_id": "acad:Limitation",
+      "source_path": "domain.entities.Limitation.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false
+        }
+      ],
+      "name": "Footnote",
+      "primitive_type_id": "acad:Footnote",
+      "source_path": "domain.entities.Footnote.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "tex",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "mathml",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "role",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "derivesFrom",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "fromPostulates",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false
+        }
+      ],
+      "name": "Equation",
+      "primitive_type_id": "acad:Equation",
+      "source_path": "domain.entities.Equation.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "captionLanguage",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "page",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "altText",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "imageRef",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false
+        }
+      ],
+      "name": "Figure",
+      "primitive_type_id": "acad:Figure",
+      "source_path": "domain.entities.Figure.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citingClaim",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "citingFinding",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "citingSection",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "citingLocator",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "citedWork",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citedQuotation",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rationale",
+          "required": false
+        }
+      ],
+      "name": "Citation",
+      "primitive_type_id": "acad:Citation",
+      "source_path": "domain.entities.Citation.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "funder",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "awardId",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "awardTitle",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "recipients",
+          "required": false
+        }
+      ],
+      "name": "Funding",
+      "primitive_type_id": "acad:Funding",
+      "source_path": "domain.entities.Funding.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "registryId",
+          "required": false
+        }
+      ],
+      "name": "Funder",
+      "primitive_type_id": "acad:Funder",
+      "source_path": "domain.entities.Funder.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "captionLanguage",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "page",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "altText",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "contentRef",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "rowCount",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "columnCount",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "headerRows",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false
+        }
+      ],
+      "name": "Table",
+      "primitive_type_id": "acad:Table",
+      "source_path": "domain.entities.Table.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "relatedWork",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "rationale",
+          "required": false
+        }
+      ],
+      "name": "PaperRelation",
+      "primitive_type_id": "acad:PaperRelation",
+      "source_path": "domain.entities.PaperRelation.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "issuedDate",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "noticeDoi",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "correctsSection",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "correctsClaim",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "correctsFinding",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "correctsEquation",
+          "required": false
+        }
+      ],
+      "name": "Erratum",
+      "primitive_type_id": "acad:Erratum",
+      "source_path": "domain.entities.Erratum.schema"
+    }
+  ],
+  "validator_rule_ids": [
+    "fdpm.academic-paper:zod.affiliation.invalid_format.country",
+    "fdpm.academic-paper:zod.affiliation.invalid_format.id",
+    "fdpm.academic-paper:zod.affiliation.invalid_format.rorId",
+    "fdpm.academic-paper:zod.affiliation.invalid_type",
+    "fdpm.academic-paper:zod.affiliation.invalid_type.country",
+    "fdpm.academic-paper:zod.affiliation.invalid_type.department",
+    "fdpm.academic-paper:zod.affiliation.invalid_type.id",
+    "fdpm.academic-paper:zod.affiliation.invalid_type.institution",
+    "fdpm.academic-paper:zod.affiliation.invalid_type.rorId",
+    "fdpm.academic-paper:zod.affiliation.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.affiliation.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.affiliation.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.affiliation.too_big.department",
+    "fdpm.academic-paper:zod.affiliation.too_big.institution",
+    "fdpm.academic-paper:zod.affiliation.too_small.department",
+    "fdpm.academic-paper:zod.affiliation.too_small.institution",
+    "fdpm.academic-paper:zod.affiliation.unrecognized_keys",
+    "fdpm.academic-paper:zod.author.invalid_format.affiliations",
+    "fdpm.academic-paper:zod.author.invalid_format.email",
+    "fdpm.academic-paper:zod.author.invalid_format.id",
+    "fdpm.academic-paper:zod.author.invalid_format.orcid",
+    "fdpm.academic-paper:zod.author.invalid_format.paper",
+    "fdpm.academic-paper:zod.author.invalid_type",
+    "fdpm.academic-paper:zod.author.invalid_type.affiliations",
+    "fdpm.academic-paper:zod.author.invalid_type.contributions",
+    "fdpm.academic-paper:zod.author.invalid_type.email",
+    "fdpm.academic-paper:zod.author.invalid_type.familyName",
+    "fdpm.academic-paper:zod.author.invalid_type.fullName",
+    "fdpm.academic-paper:zod.author.invalid_type.givenNames",
+    "fdpm.academic-paper:zod.author.invalid_type.id",
+    "fdpm.academic-paper:zod.author.invalid_type.orcid",
+    "fdpm.academic-paper:zod.author.invalid_type.paper",
+    "fdpm.academic-paper:zod.author.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.author.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.author.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.author.invalid_value.contributions",
+    "fdpm.academic-paper:zod.author.invalid_value.position",
+    "fdpm.academic-paper:zod.author.invalid_value.role",
+    "fdpm.academic-paper:zod.author.too_big.familyName",
+    "fdpm.academic-paper:zod.author.too_big.fullName",
+    "fdpm.academic-paper:zod.author.too_big.givenNames",
+    "fdpm.academic-paper:zod.author.too_small.familyName",
+    "fdpm.academic-paper:zod.author.too_small.fullName",
+    "fdpm.academic-paper:zod.author.too_small.givenNames",
+    "fdpm.academic-paper:zod.author.unrecognized_keys",
+    "fdpm.academic-paper:zod.citation.invalid_format.citedQuotation",
+    "fdpm.academic-paper:zod.citation.invalid_format.citedWork",
+    "fdpm.academic-paper:zod.citation.invalid_format.citingClaim",
+    "fdpm.academic-paper:zod.citation.invalid_format.citingFinding",
+    "fdpm.academic-paper:zod.citation.invalid_format.citingSection",
+    "fdpm.academic-paper:zod.citation.invalid_format.id",
+    "fdpm.academic-paper:zod.citation.invalid_format.paper",
+    "fdpm.academic-paper:zod.citation.invalid_type",
+    "fdpm.academic-paper:zod.citation.invalid_type.citedQuotation",
+    "fdpm.academic-paper:zod.citation.invalid_type.citedWork",
+    "fdpm.academic-paper:zod.citation.invalid_type.citingClaim",
+    "fdpm.academic-paper:zod.citation.invalid_type.citingFinding",
+    "fdpm.academic-paper:zod.citation.invalid_type.citingLocator",
+    "fdpm.academic-paper:zod.citation.invalid_type.citingSection",
+    "fdpm.academic-paper:zod.citation.invalid_type.id",
+    "fdpm.academic-paper:zod.citation.invalid_type.paper",
+    "fdpm.academic-paper:zod.citation.invalid_type.rationale",
+    "fdpm.academic-paper:zod.citation.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.citation.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.citation.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.citation.invalid_value.kind",
+    "fdpm.academic-paper:zod.citation.too_big.citingLocator",
+    "fdpm.academic-paper:zod.citation.too_big.rationale",
+    "fdpm.academic-paper:zod.citation.too_small.citingLocator",
+    "fdpm.academic-paper:zod.citation.too_small.rationale",
+    "fdpm.academic-paper:zod.citation.unrecognized_keys",
+    "fdpm.academic-paper:zod.claim.custom",
+    "fdpm.academic-paper:zod.claim.custom.confidence",
+    "fdpm.academic-paper:zod.claim.invalid_format.counterReads",
+    "fdpm.academic-paper:zod.claim.invalid_format.derivesFrom",
+    "fdpm.academic-paper:zod.claim.invalid_format.id",
+    "fdpm.academic-paper:zod.claim.invalid_format.paper",
+    "fdpm.academic-paper:zod.claim.invalid_format.section",
+    "fdpm.academic-paper:zod.claim.invalid_format.supersededBy",
+    "fdpm.academic-paper:zod.claim.invalid_type",
+    "fdpm.academic-paper:zod.claim.invalid_type.confidence.score",
+    "fdpm.academic-paper:zod.claim.invalid_type.counterReads",
+    "fdpm.academic-paper:zod.claim.invalid_type.derivesFrom",
+    "fdpm.academic-paper:zod.claim.invalid_type.id",
+    "fdpm.academic-paper:zod.claim.invalid_type.paper",
+    "fdpm.academic-paper:zod.claim.invalid_type.section",
+    "fdpm.academic-paper:zod.claim.invalid_type.statement",
+    "fdpm.academic-paper:zod.claim.invalid_type.supersededBy",
+    "fdpm.academic-paper:zod.claim.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.claim.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.claim.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.claim.invalid_value.confidence.level",
+    "fdpm.academic-paper:zod.claim.invalid_value.kind",
+    "fdpm.academic-paper:zod.claim.invalid_value.lifecycleStatus",
+    "fdpm.academic-paper:zod.claim.too_big.confidence.score",
+    "fdpm.academic-paper:zod.claim.too_big.statement",
+    "fdpm.academic-paper:zod.claim.too_small.confidence.score",
+    "fdpm.academic-paper:zod.claim.too_small.statement",
+    "fdpm.academic-paper:zod.claim.unrecognized_keys",
+    "fdpm.academic-paper:zod.concept.invalid_format.borrowsFrom",
+    "fdpm.academic-paper:zod.concept.invalid_format.closeMatch",
+    "fdpm.academic-paper:zod.concept.invalid_format.extends",
+    "fdpm.academic-paper:zod.concept.invalid_format.id",
+    "fdpm.academic-paper:zod.concept.invalid_format.wikidataId",
+    "fdpm.academic-paper:zod.concept.invalid_type",
+    "fdpm.academic-paper:zod.concept.invalid_type.borrowsFrom",
+    "fdpm.academic-paper:zod.concept.invalid_type.canonicalForm",
+    "fdpm.academic-paper:zod.concept.invalid_type.closeMatch",
+    "fdpm.academic-paper:zod.concept.invalid_type.domain",
+    "fdpm.academic-paper:zod.concept.invalid_type.extends",
+    "fdpm.academic-paper:zod.concept.invalid_type.id",
+    "fdpm.academic-paper:zod.concept.invalid_type.label",
+    "fdpm.academic-paper:zod.concept.invalid_type.wikidataId",
+    "fdpm.academic-paper:zod.concept.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.concept.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.concept.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.concept.too_big.canonicalForm",
+    "fdpm.academic-paper:zod.concept.too_big.domain",
+    "fdpm.academic-paper:zod.concept.too_big.label",
+    "fdpm.academic-paper:zod.concept.too_small.canonicalForm",
+    "fdpm.academic-paper:zod.concept.too_small.domain",
+    "fdpm.academic-paper:zod.concept.too_small.label",
+    "fdpm.academic-paper:zod.concept.unrecognized_keys",
+    "fdpm.academic-paper:zod.definition.custom",
+    "fdpm.academic-paper:zod.definition.invalid_format.citedFrom",
+    "fdpm.academic-paper:zod.definition.invalid_format.concept",
+    "fdpm.academic-paper:zod.definition.invalid_format.id",
+    "fdpm.academic-paper:zod.definition.invalid_format.paper",
+    "fdpm.academic-paper:zod.definition.invalid_format.section",
+    "fdpm.academic-paper:zod.definition.invalid_type",
+    "fdpm.academic-paper:zod.definition.invalid_type.body",
+    "fdpm.academic-paper:zod.definition.invalid_type.citedFrom",
+    "fdpm.academic-paper:zod.definition.invalid_type.concept",
+    "fdpm.academic-paper:zod.definition.invalid_type.id",
+    "fdpm.academic-paper:zod.definition.invalid_type.paper",
+    "fdpm.academic-paper:zod.definition.invalid_type.section",
+    "fdpm.academic-paper:zod.definition.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.definition.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.definition.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.definition.invalid_value.provenance",
+    "fdpm.academic-paper:zod.definition.too_big.body",
+    "fdpm.academic-paper:zod.definition.too_small.body",
+    "fdpm.academic-paper:zod.definition.unrecognized_keys",
+    "fdpm.academic-paper:zod.equation.custom",
+    "fdpm.academic-paper:zod.equation.invalid_format.derivesFrom",
+    "fdpm.academic-paper:zod.equation.invalid_format.doi",
+    "fdpm.academic-paper:zod.equation.invalid_format.fromPostulates",
+    "fdpm.academic-paper:zod.equation.invalid_format.id",
+    "fdpm.academic-paper:zod.equation.invalid_format.paper",
+    "fdpm.academic-paper:zod.equation.invalid_format.section",
+    "fdpm.academic-paper:zod.equation.invalid_type",
+    "fdpm.academic-paper:zod.equation.invalid_type.derivesFrom",
+    "fdpm.academic-paper:zod.equation.invalid_type.doi",
+    "fdpm.academic-paper:zod.equation.invalid_type.fromPostulates",
+    "fdpm.academic-paper:zod.equation.invalid_type.id",
+    "fdpm.academic-paper:zod.equation.invalid_type.label",
+    "fdpm.academic-paper:zod.equation.invalid_type.mathml",
+    "fdpm.academic-paper:zod.equation.invalid_type.paper",
+    "fdpm.academic-paper:zod.equation.invalid_type.section",
+    "fdpm.academic-paper:zod.equation.invalid_type.tex",
+    "fdpm.academic-paper:zod.equation.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.equation.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.equation.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.equation.invalid_value.role",
+    "fdpm.academic-paper:zod.equation.too_big.label",
+    "fdpm.academic-paper:zod.equation.too_big.mathml",
+    "fdpm.academic-paper:zod.equation.too_big.tex",
+    "fdpm.academic-paper:zod.equation.too_small.label",
+    "fdpm.academic-paper:zod.equation.too_small.mathml",
+    "fdpm.academic-paper:zod.equation.too_small.tex",
+    "fdpm.academic-paper:zod.equation.unrecognized_keys",
+    "fdpm.academic-paper:zod.erratum.custom",
+    "fdpm.academic-paper:zod.erratum.invalid_format.correctsClaim",
+    "fdpm.academic-paper:zod.erratum.invalid_format.correctsEquation",
+    "fdpm.academic-paper:zod.erratum.invalid_format.correctsFinding",
+    "fdpm.academic-paper:zod.erratum.invalid_format.correctsSection",
+    "fdpm.academic-paper:zod.erratum.invalid_format.id",
+    "fdpm.academic-paper:zod.erratum.invalid_format.issuedDate",
+    "fdpm.academic-paper:zod.erratum.invalid_format.noticeDoi",
+    "fdpm.academic-paper:zod.erratum.invalid_format.paper",
+    "fdpm.academic-paper:zod.erratum.invalid_type",
+    "fdpm.academic-paper:zod.erratum.invalid_type.body",
+    "fdpm.academic-paper:zod.erratum.invalid_type.correctsClaim",
+    "fdpm.academic-paper:zod.erratum.invalid_type.correctsEquation",
+    "fdpm.academic-paper:zod.erratum.invalid_type.correctsFinding",
+    "fdpm.academic-paper:zod.erratum.invalid_type.correctsSection",
+    "fdpm.academic-paper:zod.erratum.invalid_type.id",
+    "fdpm.academic-paper:zod.erratum.invalid_type.issuedDate",
+    "fdpm.academic-paper:zod.erratum.invalid_type.noticeDoi",
+    "fdpm.academic-paper:zod.erratum.invalid_type.paper",
+    "fdpm.academic-paper:zod.erratum.invalid_type.title",
+    "fdpm.academic-paper:zod.erratum.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.erratum.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.erratum.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.erratum.invalid_value.kind",
+    "fdpm.academic-paper:zod.erratum.too_big.body",
+    "fdpm.academic-paper:zod.erratum.too_big.title",
+    "fdpm.academic-paper:zod.erratum.too_small.body",
+    "fdpm.academic-paper:zod.erratum.too_small.title",
+    "fdpm.academic-paper:zod.erratum.unrecognized_keys",
+    "fdpm.academic-paper:zod.evidence.invalid_format.id",
+    "fdpm.academic-paper:zod.evidence.invalid_format.paper",
+    "fdpm.academic-paper:zod.evidence.invalid_format.provenance.retrievedAt",
+    "fdpm.academic-paper:zod.evidence.invalid_format.provenance.sourceUrl",
+    "fdpm.academic-paper:zod.evidence.invalid_format.quotation",
+    "fdpm.academic-paper:zod.evidence.invalid_format.supports",
+    "fdpm.academic-paper:zod.evidence.invalid_format.work",
+    "fdpm.academic-paper:zod.evidence.invalid_type",
+    "fdpm.academic-paper:zod.evidence.invalid_type.id",
+    "fdpm.academic-paper:zod.evidence.invalid_type.locator",
+    "fdpm.academic-paper:zod.evidence.invalid_type.paper",
+    "fdpm.academic-paper:zod.evidence.invalid_type.provenance",
+    "fdpm.academic-paper:zod.evidence.invalid_type.provenance.retrievedAt",
+    "fdpm.academic-paper:zod.evidence.invalid_type.provenance.sourceLabel",
+    "fdpm.academic-paper:zod.evidence.invalid_type.provenance.sourceUrl",
+    "fdpm.academic-paper:zod.evidence.invalid_type.quotation",
+    "fdpm.academic-paper:zod.evidence.invalid_type.summary",
+    "fdpm.academic-paper:zod.evidence.invalid_type.supports",
+    "fdpm.academic-paper:zod.evidence.invalid_type.work",
+    "fdpm.academic-paper:zod.evidence.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.evidence.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.evidence.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.evidence.invalid_value.kind",
+    "fdpm.academic-paper:zod.evidence.invalid_value.provenance.sourceType",
+    "fdpm.academic-paper:zod.evidence.too_big.locator",
+    "fdpm.academic-paper:zod.evidence.too_big.provenance.sourceLabel",
+    "fdpm.academic-paper:zod.evidence.too_big.summary",
+    "fdpm.academic-paper:zod.evidence.too_small.locator",
+    "fdpm.academic-paper:zod.evidence.too_small.provenance.sourceLabel",
+    "fdpm.academic-paper:zod.evidence.too_small.summary",
+    "fdpm.academic-paper:zod.evidence.too_small.supports",
+    "fdpm.academic-paper:zod.evidence.unrecognized_keys",
+    "fdpm.academic-paper:zod.figure.invalid_format.captionLanguage",
+    "fdpm.academic-paper:zod.figure.invalid_format.doi",
+    "fdpm.academic-paper:zod.figure.invalid_format.id",
+    "fdpm.academic-paper:zod.figure.invalid_format.page",
+    "fdpm.academic-paper:zod.figure.invalid_format.paper",
+    "fdpm.academic-paper:zod.figure.invalid_format.section",
+    "fdpm.academic-paper:zod.figure.invalid_type",
+    "fdpm.academic-paper:zod.figure.invalid_type.altText",
+    "fdpm.academic-paper:zod.figure.invalid_type.caption",
+    "fdpm.academic-paper:zod.figure.invalid_type.captionLanguage",
+    "fdpm.academic-paper:zod.figure.invalid_type.doi",
+    "fdpm.academic-paper:zod.figure.invalid_type.id",
+    "fdpm.academic-paper:zod.figure.invalid_type.imageRef",
+    "fdpm.academic-paper:zod.figure.invalid_type.label",
+    "fdpm.academic-paper:zod.figure.invalid_type.page",
+    "fdpm.academic-paper:zod.figure.invalid_type.paper",
+    "fdpm.academic-paper:zod.figure.invalid_type.section",
+    "fdpm.academic-paper:zod.figure.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.figure.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.figure.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.figure.too_big.altText",
+    "fdpm.academic-paper:zod.figure.too_big.caption",
+    "fdpm.academic-paper:zod.figure.too_big.label",
+    "fdpm.academic-paper:zod.figure.too_small.altText",
+    "fdpm.academic-paper:zod.figure.too_small.caption",
+    "fdpm.academic-paper:zod.figure.too_small.imageRef",
+    "fdpm.academic-paper:zod.figure.too_small.label",
+    "fdpm.academic-paper:zod.figure.too_small.page",
+    "fdpm.academic-paper:zod.figure.unrecognized_keys",
+    "fdpm.academic-paper:zod.finding.custom",
+    "fdpm.academic-paper:zod.finding.invalid_format.id",
+    "fdpm.academic-paper:zod.finding.invalid_format.paper",
+    "fdpm.academic-paper:zod.finding.invalid_format.section",
+    "fdpm.academic-paper:zod.finding.invalid_format.supportedBy",
+    "fdpm.academic-paper:zod.finding.invalid_format.testsHypothesis",
+    "fdpm.academic-paper:zod.finding.invalid_type",
+    "fdpm.academic-paper:zod.finding.invalid_type.id",
+    "fdpm.academic-paper:zod.finding.invalid_type.paper",
+    "fdpm.academic-paper:zod.finding.invalid_type.section",
+    "fdpm.academic-paper:zod.finding.invalid_type.statement",
+    "fdpm.academic-paper:zod.finding.invalid_type.supportedBy",
+    "fdpm.academic-paper:zod.finding.invalid_type.testsHypothesis",
+    "fdpm.academic-paper:zod.finding.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.finding.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.finding.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.finding.invalid_value.outcome",
+    "fdpm.academic-paper:zod.finding.too_big.statement",
+    "fdpm.academic-paper:zod.finding.too_small.statement",
+    "fdpm.academic-paper:zod.finding.unrecognized_keys",
+    "fdpm.academic-paper:zod.footnote.invalid_format.id",
+    "fdpm.academic-paper:zod.footnote.invalid_format.language",
+    "fdpm.academic-paper:zod.footnote.invalid_format.paper",
+    "fdpm.academic-paper:zod.footnote.invalid_format.section",
+    "fdpm.academic-paper:zod.footnote.invalid_type",
+    "fdpm.academic-paper:zod.footnote.invalid_type.body",
+    "fdpm.academic-paper:zod.footnote.invalid_type.id",
+    "fdpm.academic-paper:zod.footnote.invalid_type.label",
+    "fdpm.academic-paper:zod.footnote.invalid_type.language",
+    "fdpm.academic-paper:zod.footnote.invalid_type.paper",
+    "fdpm.academic-paper:zod.footnote.invalid_type.section",
+    "fdpm.academic-paper:zod.footnote.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.footnote.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.footnote.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.footnote.too_big.body",
+    "fdpm.academic-paper:zod.footnote.too_big.label",
+    "fdpm.academic-paper:zod.footnote.too_small.body",
+    "fdpm.academic-paper:zod.footnote.too_small.label",
+    "fdpm.academic-paper:zod.footnote.unrecognized_keys",
+    "fdpm.academic-paper:zod.funder.invalid_format.id",
+    "fdpm.academic-paper:zod.funder.invalid_format.registryId",
+    "fdpm.academic-paper:zod.funder.invalid_type",
+    "fdpm.academic-paper:zod.funder.invalid_type.id",
+    "fdpm.academic-paper:zod.funder.invalid_type.name",
+    "fdpm.academic-paper:zod.funder.invalid_type.registryId",
+    "fdpm.academic-paper:zod.funder.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.funder.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.funder.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.funder.too_big.name",
+    "fdpm.academic-paper:zod.funder.too_small.name",
+    "fdpm.academic-paper:zod.funder.unrecognized_keys",
+    "fdpm.academic-paper:zod.funding.invalid_format.funder",
+    "fdpm.academic-paper:zod.funding.invalid_format.id",
+    "fdpm.academic-paper:zod.funding.invalid_format.paper",
+    "fdpm.academic-paper:zod.funding.invalid_format.recipients",
+    "fdpm.academic-paper:zod.funding.invalid_type",
+    "fdpm.academic-paper:zod.funding.invalid_type.awardId",
+    "fdpm.academic-paper:zod.funding.invalid_type.awardTitle",
+    "fdpm.academic-paper:zod.funding.invalid_type.funder",
+    "fdpm.academic-paper:zod.funding.invalid_type.id",
+    "fdpm.academic-paper:zod.funding.invalid_type.paper",
+    "fdpm.academic-paper:zod.funding.invalid_type.recipients",
+    "fdpm.academic-paper:zod.funding.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.funding.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.funding.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.funding.too_big.awardId",
+    "fdpm.academic-paper:zod.funding.too_big.awardTitle",
+    "fdpm.academic-paper:zod.funding.too_small.awardId",
+    "fdpm.academic-paper:zod.funding.too_small.awardTitle",
+    "fdpm.academic-paper:zod.funding.unrecognized_keys",
+    "fdpm.academic-paper:zod.limitation.invalid_format.id",
+    "fdpm.academic-paper:zod.limitation.invalid_format.paper",
+    "fdpm.academic-paper:zod.limitation.invalid_type",
+    "fdpm.academic-paper:zod.limitation.invalid_type.id",
+    "fdpm.academic-paper:zod.limitation.invalid_type.paper",
+    "fdpm.academic-paper:zod.limitation.invalid_type.statement",
+    "fdpm.academic-paper:zod.limitation.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.limitation.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.limitation.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.limitation.invalid_value.scope",
+    "fdpm.academic-paper:zod.limitation.too_big.statement",
+    "fdpm.academic-paper:zod.limitation.too_small.statement",
+    "fdpm.academic-paper:zod.limitation.unrecognized_keys",
+    "fdpm.academic-paper:zod.method.invalid_format.id",
+    "fdpm.academic-paper:zod.method.invalid_format.paper",
+    "fdpm.academic-paper:zod.method.invalid_type",
+    "fdpm.academic-paper:zod.method.invalid_type.id",
+    "fdpm.academic-paper:zod.method.invalid_type.name",
+    "fdpm.academic-paper:zod.method.invalid_type.paper",
+    "fdpm.academic-paper:zod.method.invalid_type.procedure",
+    "fdpm.academic-paper:zod.method.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.method.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.method.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.method.invalid_value.kind",
+    "fdpm.academic-paper:zod.method.too_big.name",
+    "fdpm.academic-paper:zod.method.too_big.procedure",
+    "fdpm.academic-paper:zod.method.too_small.name",
+    "fdpm.academic-paper:zod.method.too_small.procedure",
+    "fdpm.academic-paper:zod.method.unrecognized_keys",
+    "fdpm.academic-paper:zod.paper.invalid_format.doi",
+    "fdpm.academic-paper:zod.paper.invalid_format.id",
+    "fdpm.academic-paper:zod.paper.invalid_format.isbn",
+    "fdpm.academic-paper:zod.paper.invalid_format.language",
+    "fdpm.academic-paper:zod.paper.invalid_format.pageCount",
+    "fdpm.academic-paper:zod.paper.invalid_format.publicationDate",
+    "fdpm.academic-paper:zod.paper.invalid_format.year",
+    "fdpm.academic-paper:zod.paper.invalid_type",
+    "fdpm.academic-paper:zod.paper.invalid_type.abstract",
+    "fdpm.academic-paper:zod.paper.invalid_type.doi",
+    "fdpm.academic-paper:zod.paper.invalid_type.id",
+    "fdpm.academic-paper:zod.paper.invalid_type.isbn",
+    "fdpm.academic-paper:zod.paper.invalid_type.keywords",
+    "fdpm.academic-paper:zod.paper.invalid_type.language",
+    "fdpm.academic-paper:zod.paper.invalid_type.license",
+    "fdpm.academic-paper:zod.paper.invalid_type.pageCount",
+    "fdpm.academic-paper:zod.paper.invalid_type.publicationDate",
+    "fdpm.academic-paper:zod.paper.invalid_type.publisher",
+    "fdpm.academic-paper:zod.paper.invalid_type.sourceDocument",
+    "fdpm.academic-paper:zod.paper.invalid_type.subtitle",
+    "fdpm.academic-paper:zod.paper.invalid_type.title",
+    "fdpm.academic-paper:zod.paper.invalid_type.venue",
+    "fdpm.academic-paper:zod.paper.invalid_type.year",
+    "fdpm.academic-paper:zod.paper.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.paper.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.paper.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.paper.invalid_value.epistemicMethod",
+    "fdpm.academic-paper:zod.paper.invalid_value.format",
+    "fdpm.academic-paper:zod.paper.invalid_value.version",
+    "fdpm.academic-paper:zod.paper.too_big.abstract",
+    "fdpm.academic-paper:zod.paper.too_big.keywords",
+    "fdpm.academic-paper:zod.paper.too_big.license",
+    "fdpm.academic-paper:zod.paper.too_big.publisher",
+    "fdpm.academic-paper:zod.paper.too_big.subtitle",
+    "fdpm.academic-paper:zod.paper.too_big.title",
+    "fdpm.academic-paper:zod.paper.too_big.venue",
+    "fdpm.academic-paper:zod.paper.too_big.year",
+    "fdpm.academic-paper:zod.paper.too_small.abstract",
+    "fdpm.academic-paper:zod.paper.too_small.keywords",
+    "fdpm.academic-paper:zod.paper.too_small.license",
+    "fdpm.academic-paper:zod.paper.too_small.pageCount",
+    "fdpm.academic-paper:zod.paper.too_small.publisher",
+    "fdpm.academic-paper:zod.paper.too_small.sourceDocument",
+    "fdpm.academic-paper:zod.paper.too_small.subtitle",
+    "fdpm.academic-paper:zod.paper.too_small.title",
+    "fdpm.academic-paper:zod.paper.too_small.venue",
+    "fdpm.academic-paper:zod.paper.too_small.year",
+    "fdpm.academic-paper:zod.paper.unrecognized_keys",
+    "fdpm.academic-paper:zod.paperrelation.invalid_format.id",
+    "fdpm.academic-paper:zod.paperrelation.invalid_format.paper",
+    "fdpm.academic-paper:zod.paperrelation.invalid_format.relatedWork",
+    "fdpm.academic-paper:zod.paperrelation.invalid_type",
+    "fdpm.academic-paper:zod.paperrelation.invalid_type.id",
+    "fdpm.academic-paper:zod.paperrelation.invalid_type.paper",
+    "fdpm.academic-paper:zod.paperrelation.invalid_type.rationale",
+    "fdpm.academic-paper:zod.paperrelation.invalid_type.relatedWork",
+    "fdpm.academic-paper:zod.paperrelation.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.paperrelation.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.paperrelation.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.paperrelation.invalid_value.kind",
+    "fdpm.academic-paper:zod.paperrelation.too_big.rationale",
+    "fdpm.academic-paper:zod.paperrelation.too_small.rationale",
+    "fdpm.academic-paper:zod.paperrelation.unrecognized_keys",
+    "fdpm.academic-paper:zod.quotation.custom",
+    "fdpm.academic-paper:zod.quotation.invalid_format.bodyLanguage",
+    "fdpm.academic-paper:zod.quotation.invalid_format.id",
+    "fdpm.academic-paper:zod.quotation.invalid_format.paper",
+    "fdpm.academic-paper:zod.quotation.invalid_format.quotesFrom",
+    "fdpm.academic-paper:zod.quotation.invalid_format.section",
+    "fdpm.academic-paper:zod.quotation.invalid_format.translatedFrom",
+    "fdpm.academic-paper:zod.quotation.invalid_type",
+    "fdpm.academic-paper:zod.quotation.invalid_type.body",
+    "fdpm.academic-paper:zod.quotation.invalid_type.bodyLanguage",
+    "fdpm.academic-paper:zod.quotation.invalid_type.id",
+    "fdpm.academic-paper:zod.quotation.invalid_type.locator",
+    "fdpm.academic-paper:zod.quotation.invalid_type.omissionsPresent",
+    "fdpm.academic-paper:zod.quotation.invalid_type.paper",
+    "fdpm.academic-paper:zod.quotation.invalid_type.quotesFrom",
+    "fdpm.academic-paper:zod.quotation.invalid_type.section",
+    "fdpm.academic-paper:zod.quotation.invalid_type.translatedFrom",
+    "fdpm.academic-paper:zod.quotation.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.quotation.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.quotation.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.quotation.invalid_value.emphasis",
+    "fdpm.academic-paper:zod.quotation.too_big.body",
+    "fdpm.academic-paper:zod.quotation.too_big.locator",
+    "fdpm.academic-paper:zod.quotation.too_small.body",
+    "fdpm.academic-paper:zod.quotation.too_small.locator",
+    "fdpm.academic-paper:zod.quotation.unrecognized_keys",
+    "fdpm.academic-paper:zod.section.invalid_format.id",
+    "fdpm.academic-paper:zod.section.invalid_format.language",
+    "fdpm.academic-paper:zod.section.invalid_format.order",
+    "fdpm.academic-paper:zod.section.invalid_format.paper",
+    "fdpm.academic-paper:zod.section.invalid_format.parent",
+    "fdpm.academic-paper:zod.section.invalid_type",
+    "fdpm.academic-paper:zod.section.invalid_type.bodyText",
+    "fdpm.academic-paper:zod.section.invalid_type.id",
+    "fdpm.academic-paper:zod.section.invalid_type.label",
+    "fdpm.academic-paper:zod.section.invalid_type.language",
+    "fdpm.academic-paper:zod.section.invalid_type.order",
+    "fdpm.academic-paper:zod.section.invalid_type.paper",
+    "fdpm.academic-paper:zod.section.invalid_type.parent",
+    "fdpm.academic-paper:zod.section.invalid_type.title",
+    "fdpm.academic-paper:zod.section.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.section.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.section.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.section.invalid_value.role",
+    "fdpm.academic-paper:zod.section.too_big.bodyText",
+    "fdpm.academic-paper:zod.section.too_big.label",
+    "fdpm.academic-paper:zod.section.too_big.title",
+    "fdpm.academic-paper:zod.section.too_small.bodyText",
+    "fdpm.academic-paper:zod.section.too_small.label",
+    "fdpm.academic-paper:zod.section.too_small.order",
+    "fdpm.academic-paper:zod.section.too_small.title",
+    "fdpm.academic-paper:zod.section.unrecognized_keys",
+    "fdpm.academic-paper:zod.table.invalid_format.captionLanguage",
+    "fdpm.academic-paper:zod.table.invalid_format.columnCount",
+    "fdpm.academic-paper:zod.table.invalid_format.doi",
+    "fdpm.academic-paper:zod.table.invalid_format.headerRows",
+    "fdpm.academic-paper:zod.table.invalid_format.id",
+    "fdpm.academic-paper:zod.table.invalid_format.page",
+    "fdpm.academic-paper:zod.table.invalid_format.paper",
+    "fdpm.academic-paper:zod.table.invalid_format.rowCount",
+    "fdpm.academic-paper:zod.table.invalid_format.section",
+    "fdpm.academic-paper:zod.table.invalid_type",
+    "fdpm.academic-paper:zod.table.invalid_type.altText",
+    "fdpm.academic-paper:zod.table.invalid_type.caption",
+    "fdpm.academic-paper:zod.table.invalid_type.captionLanguage",
+    "fdpm.academic-paper:zod.table.invalid_type.columnCount",
+    "fdpm.academic-paper:zod.table.invalid_type.contentRef",
+    "fdpm.academic-paper:zod.table.invalid_type.doi",
+    "fdpm.academic-paper:zod.table.invalid_type.headerRows",
+    "fdpm.academic-paper:zod.table.invalid_type.id",
+    "fdpm.academic-paper:zod.table.invalid_type.label",
+    "fdpm.academic-paper:zod.table.invalid_type.page",
+    "fdpm.academic-paper:zod.table.invalid_type.paper",
+    "fdpm.academic-paper:zod.table.invalid_type.rowCount",
+    "fdpm.academic-paper:zod.table.invalid_type.section",
+    "fdpm.academic-paper:zod.table.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.table.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.table.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.table.too_big.altText",
+    "fdpm.academic-paper:zod.table.too_big.caption",
+    "fdpm.academic-paper:zod.table.too_big.label",
+    "fdpm.academic-paper:zod.table.too_small.altText",
+    "fdpm.academic-paper:zod.table.too_small.caption",
+    "fdpm.academic-paper:zod.table.too_small.columnCount",
+    "fdpm.academic-paper:zod.table.too_small.contentRef",
+    "fdpm.academic-paper:zod.table.too_small.headerRows",
+    "fdpm.academic-paper:zod.table.too_small.label",
+    "fdpm.academic-paper:zod.table.too_small.page",
+    "fdpm.academic-paper:zod.table.too_small.rowCount",
+    "fdpm.academic-paper:zod.table.unrecognized_keys",
+    "fdpm.academic-paper:zod.theorist.custom",
+    "fdpm.academic-paper:zod.theorist.invalid_format.birthYear",
+    "fdpm.academic-paper:zod.theorist.invalid_format.deathYear",
+    "fdpm.academic-paper:zod.theorist.invalid_format.id",
+    "fdpm.academic-paper:zod.theorist.invalid_format.notableTheories",
+    "fdpm.academic-paper:zod.theorist.invalid_format.viafId",
+    "fdpm.academic-paper:zod.theorist.invalid_format.wikidataId",
+    "fdpm.academic-paper:zod.theorist.invalid_type",
+    "fdpm.academic-paper:zod.theorist.invalid_type.birthYear",
+    "fdpm.academic-paper:zod.theorist.invalid_type.deathYear",
+    "fdpm.academic-paper:zod.theorist.invalid_type.familyName",
+    "fdpm.academic-paper:zod.theorist.invalid_type.fullName",
+    "fdpm.academic-paper:zod.theorist.invalid_type.id",
+    "fdpm.academic-paper:zod.theorist.invalid_type.notableTheories",
+    "fdpm.academic-paper:zod.theorist.invalid_type.primaryAffiliation",
+    "fdpm.academic-paper:zod.theorist.invalid_type.viafId",
+    "fdpm.academic-paper:zod.theorist.invalid_type.wikidataId",
+    "fdpm.academic-paper:zod.theorist.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.theorist.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.theorist.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.theorist.too_big.birthYear",
+    "fdpm.academic-paper:zod.theorist.too_big.deathYear",
+    "fdpm.academic-paper:zod.theorist.too_big.familyName",
+    "fdpm.academic-paper:zod.theorist.too_big.fullName",
+    "fdpm.academic-paper:zod.theorist.too_big.primaryAffiliation",
+    "fdpm.academic-paper:zod.theorist.too_small.birthYear",
+    "fdpm.academic-paper:zod.theorist.too_small.deathYear",
+    "fdpm.academic-paper:zod.theorist.too_small.familyName",
+    "fdpm.academic-paper:zod.theorist.too_small.fullName",
+    "fdpm.academic-paper:zod.theorist.too_small.primaryAffiliation",
+    "fdpm.academic-paper:zod.theorist.unrecognized_keys",
+    "fdpm.academic-paper:zod.theory.invalid_format.extendsTheory",
+    "fdpm.academic-paper:zod.theory.invalid_format.id",
+    "fdpm.academic-paper:zod.theory.invalid_format.primaryTheorist",
+    "fdpm.academic-paper:zod.theory.invalid_format.respondsTo",
+    "fdpm.academic-paper:zod.theory.invalid_type",
+    "fdpm.academic-paper:zod.theory.invalid_type.extendsTheory",
+    "fdpm.academic-paper:zod.theory.invalid_type.id",
+    "fdpm.academic-paper:zod.theory.invalid_type.name",
+    "fdpm.academic-paper:zod.theory.invalid_type.primaryTheorist",
+    "fdpm.academic-paper:zod.theory.invalid_type.respondsTo",
+    "fdpm.academic-paper:zod.theory.invalid_type.summary",
+    "fdpm.academic-paper:zod.theory.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.theory.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.theory.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.theory.too_big.name",
+    "fdpm.academic-paper:zod.theory.too_big.summary",
+    "fdpm.academic-paper:zod.theory.too_small.name",
+    "fdpm.academic-paper:zod.theory.too_small.summary",
+    "fdpm.academic-paper:zod.theory.unrecognized_keys",
+    "fdpm.academic-paper:zod.work.invalid_format.doi",
+    "fdpm.academic-paper:zod.work.invalid_format.editionOf",
+    "fdpm.academic-paper:zod.work.invalid_format.id",
+    "fdpm.academic-paper:zod.work.invalid_format.isbn",
+    "fdpm.academic-paper:zod.work.invalid_format.language",
+    "fdpm.academic-paper:zod.work.invalid_format.translationOf",
+    "fdpm.academic-paper:zod.work.invalid_format.url",
+    "fdpm.academic-paper:zod.work.invalid_format.year",
+    "fdpm.academic-paper:zod.work.invalid_type",
+    "fdpm.academic-paper:zod.work.invalid_type.authorsFreeText",
+    "fdpm.academic-paper:zod.work.invalid_type.doi",
+    "fdpm.academic-paper:zod.work.invalid_type.editionOf",
+    "fdpm.academic-paper:zod.work.invalid_type.id",
+    "fdpm.academic-paper:zod.work.invalid_type.isbn",
+    "fdpm.academic-paper:zod.work.invalid_type.language",
+    "fdpm.academic-paper:zod.work.invalid_type.publisher",
+    "fdpm.academic-paper:zod.work.invalid_type.title",
+    "fdpm.academic-paper:zod.work.invalid_type.translationOf",
+    "fdpm.academic-paper:zod.work.invalid_type.url",
+    "fdpm.academic-paper:zod.work.invalid_type.venue",
+    "fdpm.academic-paper:zod.work.invalid_type.year",
+    "fdpm.academic-paper:zod.work.invalid_value._meta.authority",
+    "fdpm.academic-paper:zod.work.invalid_value._meta.domainPath",
+    "fdpm.academic-paper:zod.work.invalid_value._meta.register",
+    "fdpm.academic-paper:zod.work.invalid_value.kind",
+    "fdpm.academic-paper:zod.work.too_big.authorsFreeText",
+    "fdpm.academic-paper:zod.work.too_big.publisher",
+    "fdpm.academic-paper:zod.work.too_big.title",
+    "fdpm.academic-paper:zod.work.too_big.venue",
+    "fdpm.academic-paper:zod.work.too_big.year",
+    "fdpm.academic-paper:zod.work.too_small.authorsFreeText",
+    "fdpm.academic-paper:zod.work.too_small.publisher",
+    "fdpm.academic-paper:zod.work.too_small.title",
+    "fdpm.academic-paper:zod.work.too_small.venue",
+    "fdpm.academic-paper:zod.work.too_small.year",
+    "fdpm.academic-paper:zod.work.unrecognized_keys"
+  ],
+  "version": "0.4.0"
+}

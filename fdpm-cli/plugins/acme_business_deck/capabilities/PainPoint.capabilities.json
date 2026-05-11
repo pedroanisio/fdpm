@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "painPointExporter",
+    "local_name": "painpoint-json",
+    "metadata": {
+      "format_id": "acme.business-deck:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidPainPoint",
+    "local_name": "is-valid-pain-point",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acme.isValidPainPoint",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "painPointImporter",
+    "local_name": "painpoint-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "acme.business-deck:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "painPointMarkdownRenderer",
+    "local_name": "acme-pain-point",
+    "metadata": {
+      "primitive_type_id": "acme:PainPoint",
+      "target": "text/markdown"
+    }
+  }
+}

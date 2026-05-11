@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "quotationExporter",
+    "local_name": "quotation-json",
+    "metadata": {
+      "format_id": "fdpm.academic-paper:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidQuotation",
+    "local_name": "is-valid-quotation",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acad.isValidQuotation",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "quotationImporter",
+    "local_name": "quotation-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "fdpm.academic-paper:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "quotationMarkdownRenderer",
+    "local_name": "acad-quotation",
+    "metadata": {
+      "primitive_type_id": "acad:Quotation",
+      "target": "text/markdown"
+    }
+  }
+}
