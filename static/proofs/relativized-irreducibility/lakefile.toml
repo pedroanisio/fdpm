@@ -1,0 +1,5 @@
+name = "RIProofs"
+defaultTargets = ["RIProofs"]
+
+[[lean_lib]]
+name = "RIProofs"

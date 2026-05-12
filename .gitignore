@@ -3,3 +3,5 @@ node_modules/
 .agent-tasks/
 dist/
 static/node_modules
+.lake/
+*.pyc

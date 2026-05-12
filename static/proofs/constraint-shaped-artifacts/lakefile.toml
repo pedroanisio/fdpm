@@ -1,0 +1,10 @@
+name = "CSAProofs"
+defaultTargets = ["CSAProofs"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+version = "git#v4.15.0"
+
+[[lean_lib]]
+name = "CSAProofs"
