@@ -39,7 +39,11 @@ d:paper-relativity-1920 a ap:Paper ;
     ap:format          "monograph" ;
     ap:publisher       "Methuen & Co Ltd" ;
     ap:year            1920 ;
-    ap:license         <https://www.gnu.org/licenses/fdl.txt> ;
+    # Rev3 v0.4.0+ requires ap:license to be an SPDX-style literal
+    # (no IRI branch). The 1920 Lawson translation is now in the public
+    # domain; SPDX identifier CC0-1.0 is the conventional way to record
+    # "no rights reserved" without inventing a license.
+    ap:license         "CC0-1.0" ;
     ap:pageCount       115 ;
     ap:keywords        "relativity", "special relativity", "general relativity",
                        "Lorentz transformation", "space-time", "gravitation",
