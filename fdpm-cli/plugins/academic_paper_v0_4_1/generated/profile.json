@@ -1,0 +1,6210 @@
+{
+  "constraints": [
+    {
+      "expression": "self.field_values.id.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.paper.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.title) >= 1",
+      "level": "error",
+      "name": "acad041.paper.title.min_length"
+    },
+    {
+      "expression": "size(self.field_values.title) <= 280",
+      "level": "error",
+      "name": "acad041.paper.title.max_length"
+    },
+    {
+      "expression": "size(self.field_values.subtitle) >= 1",
+      "level": "error",
+      "name": "acad041.paper.subtitle.min_length"
+    },
+    {
+      "expression": "size(self.field_values.subtitle) <= 280",
+      "level": "error",
+      "name": "acad041.paper.subtitle.max_length"
+    },
+    {
+      "expression": "size(self.field_values.abstract) >= 1",
+      "level": "error",
+      "name": "acad041.paper.abstract.min_length"
+    },
+    {
+      "expression": "size(self.field_values.abstract) <= 20000",
+      "level": "error",
+      "name": "acad041.paper.abstract.max_length"
+    },
+    {
+      "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
+      "level": "error",
+      "name": "acad041.paper.language.regex"
+    },
+    {
+      "expression": "self.field_values.epistemicMethod in [\"empirical\", \"descriptive\", \"theoretical\", \"methodological\", \"literary-critical\", \"review\", \"historical\"]",
+      "level": "error",
+      "name": "acad041.paper.epistemicMethod.enum"
+    },
+    {
+      "expression": "self.field_values.format in [\"article\", \"essay\", \"monograph\", \"thesis\", \"chapter\", \"letter\", \"editorial\", \"commentary\"]",
+      "level": "error",
+      "name": "acad041.paper.format.enum"
+    },
+    {
+      "expression": "size(self.field_values.venue) >= 1",
+      "level": "error",
+      "name": "acad041.paper.venue.min_length"
+    },
+    {
+      "expression": "size(self.field_values.venue) <= 280",
+      "level": "error",
+      "name": "acad041.paper.venue.max_length"
+    },
+    {
+      "expression": "size(self.field_values.publisher) >= 1",
+      "level": "error",
+      "name": "acad041.paper.publisher.min_length"
+    },
+    {
+      "expression": "size(self.field_values.publisher) <= 280",
+      "level": "error",
+      "name": "acad041.paper.publisher.max_length"
+    },
+    {
+      "expression": "self.field_values.year >= 0",
+      "level": "error",
+      "name": "acad041.paper.year.gt"
+    },
+    {
+      "expression": "self.field_values.year <= 2100",
+      "level": "error",
+      "name": "acad041.paper.year.lt"
+    },
+    {
+      "expression": "int(self.field_values.year) == self.field_values.year",
+      "level": "error",
+      "name": "acad041.paper.year.int"
+    },
+    {
+      "expression": "self.field_values.publicationDate.matches(\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\")",
+      "level": "error",
+      "name": "acad041.paper.publicationDate.regex"
+    },
+    {
+      "expression": "self.field_values.version in [\"author-original\", \"submitted-manuscript-under-review\", \"accepted-manuscript\", \"proof\", \"version-of-record\", \"corrected-version-of-record\", \"enhanced-version-of-record\"]",
+      "level": "error",
+      "name": "acad041.paper.version.enum"
+    },
+    {
+      "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
+      "level": "error",
+      "name": "acad041.paper.doi.regex"
+    },
+    {
+      "expression": "self.field_values.isbn.matches(\"^(?:\\\\d[- ]?){9}[\\\\dX]$|^(?:\\\\d[- ]?){13}$\")",
+      "level": "error",
+      "name": "acad041.paper.isbn.regex"
+    },
+    {
+      "expression": "size(self.field_values.license) >= 1",
+      "level": "error",
+      "name": "acad041.paper.license.min_length"
+    },
+    {
+      "expression": "size(self.field_values.license) <= 80",
+      "level": "error",
+      "name": "acad041.paper.license.max_length"
+    },
+    {
+      "expression": "self.field_values.pageCount > 0",
+      "level": "error",
+      "name": "acad041.paper.pageCount.gt"
+    },
+    {
+      "expression": "int(self.field_values.pageCount) == self.field_values.pageCount",
+      "level": "error",
+      "name": "acad041.paper.pageCount.int"
+    },
+    {
+      "expression": "size(self.field_values.sourceDocument) >= 1",
+      "level": "error",
+      "name": "acad041.paper.sourceDocument.min_length"
+    },
+    {
+      "expression": "size(self.field_values.keywords) <= 20",
+      "level": "error",
+      "name": "acad041.paper.keywords.max_items"
+    },
+    {
+      "expression": "self.field_values.keywords.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "acad041.paper.keywords.item.min_length"
+    },
+    {
+      "expression": "self.field_values.keywords.all(t, size(t) <= 280)",
+      "level": "error",
+      "name": "acad041.paper.keywords.item.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^author-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.author.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.author.paper.regex"
+    },
+    {
+      "expression": "size(self.field_values.fullName) >= 1",
+      "level": "error",
+      "name": "acad041.author.fullName.min_length"
+    },
+    {
+      "expression": "size(self.field_values.fullName) <= 280",
+      "level": "error",
+      "name": "acad041.author.fullName.max_length"
+    },
+    {
+      "expression": "size(self.field_values.familyName) >= 1",
+      "level": "error",
+      "name": "acad041.author.familyName.min_length"
+    },
+    {
+      "expression": "size(self.field_values.familyName) <= 280",
+      "level": "error",
+      "name": "acad041.author.familyName.max_length"
+    },
+    {
+      "expression": "size(self.field_values.givenNames) >= 1",
+      "level": "error",
+      "name": "acad041.author.givenNames.min_length"
+    },
+    {
+      "expression": "size(self.field_values.givenNames) <= 280",
+      "level": "error",
+      "name": "acad041.author.givenNames.max_length"
+    },
+    {
+      "expression": "self.field_values.orcid.matches(\"^\\\\d{4}-\\\\d{4}-\\\\d{4}-\\\\d{3}[\\\\dX]$\")",
+      "level": "error",
+      "name": "acad041.author.orcid.regex"
+    },
+    {
+      "expression": "self.field_values.role in [\"lead\", \"co-author\", \"corresponding\", \"supervisor\", \"translator\"]",
+      "level": "error",
+      "name": "acad041.author.role.enum"
+    },
+    {
+      "expression": "self.field_values.position in [\"first\", \"middle\", \"last\"]",
+      "level": "error",
+      "name": "acad041.author.position.enum"
+    },
+    {
+      "expression": "self.field_values.affiliations.all(t, t.matches(\"^affil-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.author.affiliations.item.regex"
+    },
+    {
+      "expression": "self.field_values.contributions.all(t, t in [\"conceptualization\", \"methodology\", \"software\", \"validation\", \"formal-analysis\", \"investigation\", \"resources\", \"data-curation\", \"writing-original-draft\", \"writing-review-editing\", \"visualization\", \"supervision\", \"project-administration\", \"funding-acquisition\"])",
+      "level": "error",
+      "name": "acad041.author.contributions.item.enum"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^affil-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.affiliation.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.institution) >= 1",
+      "level": "error",
+      "name": "acad041.affiliation.institution.min_length"
+    },
+    {
+      "expression": "size(self.field_values.institution) <= 280",
+      "level": "error",
+      "name": "acad041.affiliation.institution.max_length"
+    },
+    {
+      "expression": "size(self.field_values.department) >= 1",
+      "level": "error",
+      "name": "acad041.affiliation.department.min_length"
+    },
+    {
+      "expression": "size(self.field_values.department) <= 280",
+      "level": "error",
+      "name": "acad041.affiliation.department.max_length"
+    },
+    {
+      "expression": "self.field_values.country.matches(\"^[A-Z]{2}$\")",
+      "level": "error",
+      "name": "acad041.affiliation.country.regex"
+    },
+    {
+      "expression": "self.field_values.rorId.matches(\"^https:\\\\/\\\\/ror\\\\.org\\\\/0[a-z0-9]{6}\\\\d{2}$\")",
+      "level": "error",
+      "name": "acad041.affiliation.rorId.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.section.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.section.paper.regex"
+    },
+    {
+      "expression": "self.field_values.parent.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.section.parent.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 1",
+      "level": "error",
+      "name": "acad041.section.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.label) <= 280",
+      "level": "error",
+      "name": "acad041.section.label.max_length"
+    },
+    {
+      "expression": "size(self.field_values.title) >= 1",
+      "level": "error",
+      "name": "acad041.section.title.min_length"
+    },
+    {
+      "expression": "size(self.field_values.title) <= 280",
+      "level": "error",
+      "name": "acad041.section.title.max_length"
+    },
+    {
+      "expression": "self.field_values.order >= 0",
+      "level": "error",
+      "name": "acad041.section.order.gt"
+    },
+    {
+      "expression": "int(self.field_values.order) == self.field_values.order",
+      "level": "error",
+      "name": "acad041.section.order.int"
+    },
+    {
+      "expression": "self.field_values.role in [\"preface\", \"introduction\", \"body\", \"methods\", \"results\", \"discussion\", \"conclusion\", \"appendix\", \"footnotes\", \"bibliography\", \"other\"]",
+      "level": "error",
+      "name": "acad041.section.role.enum"
+    },
+    {
+      "expression": "size(self.field_values.bodyText) >= 1",
+      "level": "error",
+      "name": "acad041.section.bodyText.min_length"
+    },
+    {
+      "expression": "size(self.field_values.bodyText) <= 20000",
+      "level": "error",
+      "name": "acad041.section.bodyText.max_length"
+    },
+    {
+      "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
+      "level": "error",
+      "name": "acad041.section.language.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^claim-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.claim.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.claim.paper.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.claim.section.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"descriptive\", \"interpretive\", \"normative\", \"methodological\", \"empirical\", \"definitional\", \"postulate\", \"hypothesis\"]",
+      "level": "error",
+      "name": "acad041.claim.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.statement) >= 1",
+      "level": "error",
+      "name": "acad041.claim.statement.min_length"
+    },
+    {
+      "expression": "size(self.field_values.statement) <= 2000",
+      "level": "error",
+      "name": "acad041.claim.statement.max_length"
+    },
+    {
+      "expression": "self.field_values.derivesFrom.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.claim.derivesFrom.item.regex"
+    },
+    {
+      "expression": "self.field_values.counterReads.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.claim.counterReads.item.regex"
+    },
+    {
+      "expression": "self.field_values.lifecycleStatus in [\"asserted\", \"assumed\", \"proven\", \"refuted\", \"superseded\"]",
+      "level": "error",
+      "name": "acad041.claim.lifecycleStatus.enum"
+    },
+    {
+      "expression": "self.field_values.supersededBy.matches(\"^claim-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.claim.supersededBy.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^evidence-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.evidence.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.evidence.paper.regex"
+    },
+    {
+      "expression": "size(self.field_values.supports) >= 1",
+      "level": "error",
+      "name": "acad041.evidence.supports.min_items"
+    },
+    {
+      "expression": "self.field_values.supports.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.evidence.supports.item.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"data\", \"derivation\", \"citation\", \"observation\", \"exemplar\", \"textual-passage\", \"thought-experiment\"]",
+      "level": "error",
+      "name": "acad041.evidence.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.summary) >= 1",
+      "level": "error",
+      "name": "acad041.evidence.summary.min_length"
+    },
+    {
+      "expression": "size(self.field_values.summary) <= 2000",
+      "level": "error",
+      "name": "acad041.evidence.summary.max_length"
+    },
+    {
+      "expression": "self.field_values.quotation.matches(\"^quote-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.evidence.quotation.regex"
+    },
+    {
+      "expression": "self.field_values.work.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.evidence.work.regex"
+    },
+    {
+      "expression": "size(self.field_values.locator) >= 1",
+      "level": "error",
+      "name": "acad041.evidence.locator.min_length"
+    },
+    {
+      "expression": "size(self.field_values.locator) <= 120",
+      "level": "error",
+      "name": "acad041.evidence.locator.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^quote-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.quotation.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.quotation.paper.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.quotation.section.regex"
+    },
+    {
+      "expression": "self.field_values.quotesFrom.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.quotation.quotesFrom.regex"
+    },
+    {
+      "expression": "size(self.field_values.locator) >= 1",
+      "level": "error",
+      "name": "acad041.quotation.locator.min_length"
+    },
+    {
+      "expression": "size(self.field_values.locator) <= 120",
+      "level": "error",
+      "name": "acad041.quotation.locator.max_length"
+    },
+    {
+      "expression": "size(self.field_values.body) >= 1",
+      "level": "error",
+      "name": "acad041.quotation.body.min_length"
+    },
+    {
+      "expression": "size(self.field_values.body) <= 2000",
+      "level": "error",
+      "name": "acad041.quotation.body.max_length"
+    },
+    {
+      "expression": "self.field_values.bodyLanguage.matches(\"^[a-z]{2}$\")",
+      "level": "error",
+      "name": "acad041.quotation.bodyLanguage.regex"
+    },
+    {
+      "expression": "self.field_values.emphasis in [\"none\", \"original\", \"added-by-citing-author\"]",
+      "level": "error",
+      "name": "acad041.quotation.emphasis.enum"
+    },
+    {
+      "expression": "self.field_values.translatedFrom.matches(\"^quote-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.quotation.translatedFrom.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.work.id.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"journal-article\", \"book\", \"book-chapter\", \"thesis\", \"report\", \"preprint\", \"conference-paper\", \"newspaper-article\", \"archival-document\", \"film\", \"audio-recording\", \"website\", \"dataset\", \"software\", \"other\"]",
+      "level": "error",
+      "name": "acad041.work.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.title) >= 1",
+      "level": "error",
+      "name": "acad041.work.title.min_length"
+    },
+    {
+      "expression": "size(self.field_values.title) <= 280",
+      "level": "error",
+      "name": "acad041.work.title.max_length"
+    },
+    {
+      "expression": "self.field_values.authorsFreeText.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "acad041.work.authorsFreeText.item.min_length"
+    },
+    {
+      "expression": "self.field_values.authorsFreeText.all(t, size(t) <= 280)",
+      "level": "error",
+      "name": "acad041.work.authorsFreeText.item.max_length"
+    },
+    {
+      "expression": "self.field_values.year >= 0",
+      "level": "error",
+      "name": "acad041.work.year.gt"
+    },
+    {
+      "expression": "self.field_values.year <= 2100",
+      "level": "error",
+      "name": "acad041.work.year.lt"
+    },
+    {
+      "expression": "int(self.field_values.year) == self.field_values.year",
+      "level": "error",
+      "name": "acad041.work.year.int"
+    },
+    {
+      "expression": "size(self.field_values.venue) >= 1",
+      "level": "error",
+      "name": "acad041.work.venue.min_length"
+    },
+    {
+      "expression": "size(self.field_values.venue) <= 280",
+      "level": "error",
+      "name": "acad041.work.venue.max_length"
+    },
+    {
+      "expression": "size(self.field_values.publisher) >= 1",
+      "level": "error",
+      "name": "acad041.work.publisher.min_length"
+    },
+    {
+      "expression": "size(self.field_values.publisher) <= 280",
+      "level": "error",
+      "name": "acad041.work.publisher.max_length"
+    },
+    {
+      "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
+      "level": "error",
+      "name": "acad041.work.doi.regex"
+    },
+    {
+      "expression": "self.field_values.isbn.matches(\"^(?:\\\\d[- ]?){9}[\\\\dX]$|^(?:\\\\d[- ]?){13}$\")",
+      "level": "error",
+      "name": "acad041.work.isbn.regex"
+    },
+    {
+      "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
+      "level": "error",
+      "name": "acad041.work.language.regex"
+    },
+    {
+      "expression": "self.field_values.translationOf.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.work.translationOf.regex"
+    },
+    {
+      "expression": "self.field_values.editionOf.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.work.editionOf.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^concept-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.concept.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 1",
+      "level": "error",
+      "name": "acad041.concept.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.label) <= 280",
+      "level": "error",
+      "name": "acad041.concept.label.max_length"
+    },
+    {
+      "expression": "size(self.field_values.canonicalForm) >= 1",
+      "level": "error",
+      "name": "acad041.concept.canonicalForm.min_length"
+    },
+    {
+      "expression": "size(self.field_values.canonicalForm) <= 280",
+      "level": "error",
+      "name": "acad041.concept.canonicalForm.max_length"
+    },
+    {
+      "expression": "size(self.field_values.domain) >= 1",
+      "level": "error",
+      "name": "acad041.concept.domain.min_length"
+    },
+    {
+      "expression": "size(self.field_values.domain) <= 280",
+      "level": "error",
+      "name": "acad041.concept.domain.max_length"
+    },
+    {
+      "expression": "self.field_values.wikidataId.matches(\"^Q[1-9]\\\\d*$\")",
+      "level": "error",
+      "name": "acad041.concept.wikidataId.regex"
+    },
+    {
+      "expression": "self.field_values.borrowsFrom.all(t, t.matches(\"^theorist-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.concept.borrowsFrom.item.regex"
+    },
+    {
+      "expression": "self.field_values.extends.all(t, t.matches(\"^concept-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.concept.extends.item.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^defn-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.definition.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.definition.paper.regex"
+    },
+    {
+      "expression": "self.field_values.concept.matches(\"^concept-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.definition.concept.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.definition.section.regex"
+    },
+    {
+      "expression": "size(self.field_values.body) >= 1",
+      "level": "error",
+      "name": "acad041.definition.body.min_length"
+    },
+    {
+      "expression": "size(self.field_values.body) <= 2000",
+      "level": "error",
+      "name": "acad041.definition.body.max_length"
+    },
+    {
+      "expression": "self.field_values.provenance in [\"stipulated\", \"derived\", \"borrowed\"]",
+      "level": "error",
+      "name": "acad041.definition.provenance.enum"
+    },
+    {
+      "expression": "self.field_values.citedFrom.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.definition.citedFrom.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^theorist-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.theorist.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.fullName) >= 1",
+      "level": "error",
+      "name": "acad041.theorist.fullName.min_length"
+    },
+    {
+      "expression": "size(self.field_values.fullName) <= 280",
+      "level": "error",
+      "name": "acad041.theorist.fullName.max_length"
+    },
+    {
+      "expression": "size(self.field_values.familyName) >= 1",
+      "level": "error",
+      "name": "acad041.theorist.familyName.min_length"
+    },
+    {
+      "expression": "size(self.field_values.familyName) <= 280",
+      "level": "error",
+      "name": "acad041.theorist.familyName.max_length"
+    },
+    {
+      "expression": "self.field_values.birthYear >= 0",
+      "level": "error",
+      "name": "acad041.theorist.birthYear.gt"
+    },
+    {
+      "expression": "self.field_values.birthYear <= 2100",
+      "level": "error",
+      "name": "acad041.theorist.birthYear.lt"
+    },
+    {
+      "expression": "int(self.field_values.birthYear) == self.field_values.birthYear",
+      "level": "error",
+      "name": "acad041.theorist.birthYear.int"
+    },
+    {
+      "expression": "self.field_values.deathYear >= 0",
+      "level": "error",
+      "name": "acad041.theorist.deathYear.gt"
+    },
+    {
+      "expression": "self.field_values.deathYear <= 2100",
+      "level": "error",
+      "name": "acad041.theorist.deathYear.lt"
+    },
+    {
+      "expression": "int(self.field_values.deathYear) == self.field_values.deathYear",
+      "level": "error",
+      "name": "acad041.theorist.deathYear.int"
+    },
+    {
+      "expression": "size(self.field_values.primaryAffiliation) >= 1",
+      "level": "error",
+      "name": "acad041.theorist.primaryAffiliation.min_length"
+    },
+    {
+      "expression": "size(self.field_values.primaryAffiliation) <= 280",
+      "level": "error",
+      "name": "acad041.theorist.primaryAffiliation.max_length"
+    },
+    {
+      "expression": "self.field_values.wikidataId.matches(\"^Q[1-9]\\\\d*$\")",
+      "level": "error",
+      "name": "acad041.theorist.wikidataId.regex"
+    },
+    {
+      "expression": "self.field_values.viafId.matches(\"^\\\\d+$\")",
+      "level": "error",
+      "name": "acad041.theorist.viafId.regex"
+    },
+    {
+      "expression": "self.field_values.notableTheories.all(t, t.matches(\"^theory-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.theorist.notableTheories.item.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^theory-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.theory.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "acad041.theory.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 280",
+      "level": "error",
+      "name": "acad041.theory.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.summary) >= 1",
+      "level": "error",
+      "name": "acad041.theory.summary.min_length"
+    },
+    {
+      "expression": "size(self.field_values.summary) <= 2000",
+      "level": "error",
+      "name": "acad041.theory.summary.max_length"
+    },
+    {
+      "expression": "self.field_values.primaryTheorist.matches(\"^theorist-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.theory.primaryTheorist.regex"
+    },
+    {
+      "expression": "self.field_values.extendsTheory.all(t, t.matches(\"^theory-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.theory.extendsTheory.item.regex"
+    },
+    {
+      "expression": "self.field_values.respondsTo.all(t, t.matches(\"^theory-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.theory.respondsTo.item.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^method-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.method.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.method.paper.regex"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "acad041.method.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 280",
+      "level": "error",
+      "name": "acad041.method.name.max_length"
+    },
+    {
+      "expression": "self.field_values.kind in [\"qualitative\", \"quantitative\", \"mixed\", \"theoretical\", \"literary\", \"historical\", \"computational\", \"experimental\"]",
+      "level": "error",
+      "name": "acad041.method.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.procedure) >= 1",
+      "level": "error",
+      "name": "acad041.method.procedure.min_length"
+    },
+    {
+      "expression": "size(self.field_values.procedure) <= 20000",
+      "level": "error",
+      "name": "acad041.method.procedure.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^finding-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.finding.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.finding.paper.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.finding.section.regex"
+    },
+    {
+      "expression": "size(self.field_values.statement) >= 1",
+      "level": "error",
+      "name": "acad041.finding.statement.min_length"
+    },
+    {
+      "expression": "size(self.field_values.statement) <= 2000",
+      "level": "error",
+      "name": "acad041.finding.statement.max_length"
+    },
+    {
+      "expression": "self.field_values.supportedBy.all(t, t.matches(\"^evidence-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.finding.supportedBy.item.regex"
+    },
+    {
+      "expression": "self.field_values.testsHypothesis.matches(\"^claim-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.finding.testsHypothesis.regex"
+    },
+    {
+      "expression": "self.field_values.outcome in [\"supports\", \"refutes\", \"inconclusive\", \"partial\"]",
+      "level": "error",
+      "name": "acad041.finding.outcome.enum"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^limit-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.limitation.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.limitation.paper.regex"
+    },
+    {
+      "expression": "size(self.field_values.statement) >= 1",
+      "level": "error",
+      "name": "acad041.limitation.statement.min_length"
+    },
+    {
+      "expression": "size(self.field_values.statement) <= 2000",
+      "level": "error",
+      "name": "acad041.limitation.statement.max_length"
+    },
+    {
+      "expression": "self.field_values.scope in [\"methodological\", \"empirical\", \"interpretive\", \"applicability\"]",
+      "level": "error",
+      "name": "acad041.limitation.scope.enum"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^note-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.footnote.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.footnote.paper.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.footnote.section.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 1",
+      "level": "error",
+      "name": "acad041.footnote.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.label) <= 280",
+      "level": "error",
+      "name": "acad041.footnote.label.max_length"
+    },
+    {
+      "expression": "size(self.field_values.body) >= 1",
+      "level": "error",
+      "name": "acad041.footnote.body.min_length"
+    },
+    {
+      "expression": "size(self.field_values.body) <= 2000",
+      "level": "error",
+      "name": "acad041.footnote.body.max_length"
+    },
+    {
+      "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
+      "level": "error",
+      "name": "acad041.footnote.language.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^eq-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.equation.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.equation.paper.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.equation.section.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 1",
+      "level": "error",
+      "name": "acad041.equation.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.label) <= 280",
+      "level": "error",
+      "name": "acad041.equation.label.max_length"
+    },
+    {
+      "expression": "size(self.field_values.tex) >= 1",
+      "level": "error",
+      "name": "acad041.equation.tex.min_length"
+    },
+    {
+      "expression": "size(self.field_values.tex) <= 2000",
+      "level": "error",
+      "name": "acad041.equation.tex.max_length"
+    },
+    {
+      "expression": "size(self.field_values.mathml) >= 1",
+      "level": "error",
+      "name": "acad041.equation.mathml.min_length"
+    },
+    {
+      "expression": "size(self.field_values.mathml) <= 20000",
+      "level": "error",
+      "name": "acad041.equation.mathml.max_length"
+    },
+    {
+      "expression": "self.field_values.role in [\"axiom\", \"postulate\", \"definition\", \"derived\", \"empirical-law\", \"transformation\", \"identity\"]",
+      "level": "error",
+      "name": "acad041.equation.role.enum"
+    },
+    {
+      "expression": "self.field_values.derivesFrom.all(t, t.matches(\"^eq-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.equation.derivesFrom.item.regex"
+    },
+    {
+      "expression": "self.field_values.fromPostulates.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.equation.fromPostulates.item.regex"
+    },
+    {
+      "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
+      "level": "error",
+      "name": "acad041.equation.doi.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^fig-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.figure.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.figure.paper.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.figure.section.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 1",
+      "level": "error",
+      "name": "acad041.figure.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.label) <= 280",
+      "level": "error",
+      "name": "acad041.figure.label.max_length"
+    },
+    {
+      "expression": "size(self.field_values.caption) >= 1",
+      "level": "error",
+      "name": "acad041.figure.caption.min_length"
+    },
+    {
+      "expression": "size(self.field_values.caption) <= 2000",
+      "level": "error",
+      "name": "acad041.figure.caption.max_length"
+    },
+    {
+      "expression": "self.field_values.captionLanguage.matches(\"^[a-z]{2}$\")",
+      "level": "error",
+      "name": "acad041.figure.captionLanguage.regex"
+    },
+    {
+      "expression": "self.field_values.page > 0",
+      "level": "error",
+      "name": "acad041.figure.page.gt"
+    },
+    {
+      "expression": "int(self.field_values.page) == self.field_values.page",
+      "level": "error",
+      "name": "acad041.figure.page.int"
+    },
+    {
+      "expression": "size(self.field_values.altText) >= 1",
+      "level": "error",
+      "name": "acad041.figure.altText.min_length"
+    },
+    {
+      "expression": "size(self.field_values.altText) <= 2000",
+      "level": "error",
+      "name": "acad041.figure.altText.max_length"
+    },
+    {
+      "expression": "size(self.field_values.imageRef) >= 1",
+      "level": "error",
+      "name": "acad041.figure.imageRef.min_length"
+    },
+    {
+      "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
+      "level": "error",
+      "name": "acad041.figure.doi.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^citation-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.citation.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.citation.paper.regex"
+    },
+    {
+      "expression": "self.field_values.citingClaim.matches(\"^claim-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.citation.citingClaim.regex"
+    },
+    {
+      "expression": "self.field_values.citingFinding.matches(\"^finding-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.citation.citingFinding.regex"
+    },
+    {
+      "expression": "self.field_values.citingSection.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.citation.citingSection.regex"
+    },
+    {
+      "expression": "size(self.field_values.citingLocator) >= 1",
+      "level": "error",
+      "name": "acad041.citation.citingLocator.min_length"
+    },
+    {
+      "expression": "size(self.field_values.citingLocator) <= 120",
+      "level": "error",
+      "name": "acad041.citation.citingLocator.max_length"
+    },
+    {
+      "expression": "self.field_values.citedWork.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.citation.citedWork.regex"
+    },
+    {
+      "expression": "self.field_values.citedQuotation.matches(\"^quote-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.citation.citedQuotation.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"extends\", \"disagrees-with\", \"agrees-with\", \"confirms\", \"refutes\", \"uses-method-of\", \"uses-data-of\", \"obtains-background-from\", \"obtains-support-from\", \"uses-conclusions-from\", \"qualifies\", \"reviews\", \"critiques\", \"compiles\", \"supports\", \"cites-as-authority\", \"cites-as-data-source\", \"cites-as-evidence\", \"cites-as-related\", \"cites-for-information\", \"replies-to\", \"updates\", \"retracts\"]",
+      "level": "error",
+      "name": "acad041.citation.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.rationale) >= 1",
+      "level": "error",
+      "name": "acad041.citation.rationale.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rationale) <= 2000",
+      "level": "error",
+      "name": "acad041.citation.rationale.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^funding-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.funding.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.funding.paper.regex"
+    },
+    {
+      "expression": "self.field_values.funder.matches(\"^funder-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.funding.funder.regex"
+    },
+    {
+      "expression": "size(self.field_values.awardId) >= 1",
+      "level": "error",
+      "name": "acad041.funding.awardId.min_length"
+    },
+    {
+      "expression": "size(self.field_values.awardId) <= 280",
+      "level": "error",
+      "name": "acad041.funding.awardId.max_length"
+    },
+    {
+      "expression": "size(self.field_values.awardTitle) >= 1",
+      "level": "error",
+      "name": "acad041.funding.awardTitle.min_length"
+    },
+    {
+      "expression": "size(self.field_values.awardTitle) <= 280",
+      "level": "error",
+      "name": "acad041.funding.awardTitle.max_length"
+    },
+    {
+      "expression": "self.field_values.recipients.all(t, t.matches(\"^author-[a-z0-9-]+$\"))",
+      "level": "error",
+      "name": "acad041.funding.recipients.item.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^funder-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.funder.id.regex"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "acad041.funder.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 280",
+      "level": "error",
+      "name": "acad041.funder.name.max_length"
+    },
+    {
+      "expression": "self.field_values.registryId.matches(\"^(?:https:\\\\/\\\\/ror\\\\.org\\\\/0[a-z0-9]{6}\\\\d{2}|10\\\\.13039\\\\/[0-9]+)$\")",
+      "level": "error",
+      "name": "acad041.funder.registryId.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^table-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.table.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.table.paper.regex"
+    },
+    {
+      "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.table.section.regex"
+    },
+    {
+      "expression": "size(self.field_values.label) >= 1",
+      "level": "error",
+      "name": "acad041.table.label.min_length"
+    },
+    {
+      "expression": "size(self.field_values.label) <= 280",
+      "level": "error",
+      "name": "acad041.table.label.max_length"
+    },
+    {
+      "expression": "size(self.field_values.caption) >= 1",
+      "level": "error",
+      "name": "acad041.table.caption.min_length"
+    },
+    {
+      "expression": "size(self.field_values.caption) <= 2000",
+      "level": "error",
+      "name": "acad041.table.caption.max_length"
+    },
+    {
+      "expression": "self.field_values.captionLanguage.matches(\"^[a-z]{2}$\")",
+      "level": "error",
+      "name": "acad041.table.captionLanguage.regex"
+    },
+    {
+      "expression": "self.field_values.page > 0",
+      "level": "error",
+      "name": "acad041.table.page.gt"
+    },
+    {
+      "expression": "int(self.field_values.page) == self.field_values.page",
+      "level": "error",
+      "name": "acad041.table.page.int"
+    },
+    {
+      "expression": "size(self.field_values.altText) >= 1",
+      "level": "error",
+      "name": "acad041.table.altText.min_length"
+    },
+    {
+      "expression": "size(self.field_values.altText) <= 2000",
+      "level": "error",
+      "name": "acad041.table.altText.max_length"
+    },
+    {
+      "expression": "size(self.field_values.contentRef) >= 1",
+      "level": "error",
+      "name": "acad041.table.contentRef.min_length"
+    },
+    {
+      "expression": "self.field_values.rowCount >= 0",
+      "level": "error",
+      "name": "acad041.table.rowCount.gt"
+    },
+    {
+      "expression": "int(self.field_values.rowCount) == self.field_values.rowCount",
+      "level": "error",
+      "name": "acad041.table.rowCount.int"
+    },
+    {
+      "expression": "self.field_values.columnCount >= 0",
+      "level": "error",
+      "name": "acad041.table.columnCount.gt"
+    },
+    {
+      "expression": "int(self.field_values.columnCount) == self.field_values.columnCount",
+      "level": "error",
+      "name": "acad041.table.columnCount.int"
+    },
+    {
+      "expression": "self.field_values.headerRows >= 0",
+      "level": "error",
+      "name": "acad041.table.headerRows.gt"
+    },
+    {
+      "expression": "int(self.field_values.headerRows) == self.field_values.headerRows",
+      "level": "error",
+      "name": "acad041.table.headerRows.int"
+    },
+    {
+      "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
+      "level": "error",
+      "name": "acad041.table.doi.regex"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^prel-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.paperrelation.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.paperrelation.paper.regex"
+    },
+    {
+      "expression": "self.field_values.relatedWork.matches(\"^work-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.paperrelation.relatedWork.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"companion-of\", \"commentary-on\", \"correction-of\", \"response-to\", \"reply-to-letter\", \"retraction-of\", \"republication-of\", \"translation-of\", \"addendum-to\"]",
+      "level": "error",
+      "name": "acad041.paperrelation.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.rationale) >= 1",
+      "level": "error",
+      "name": "acad041.paperrelation.rationale.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rationale) <= 2000",
+      "level": "error",
+      "name": "acad041.paperrelation.rationale.max_length"
+    },
+    {
+      "expression": "self.field_values.id.matches(\"^erratum-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.erratum.id.regex"
+    },
+    {
+      "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.erratum.paper.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"correction\", \"erratum\", \"retraction\", \"expression-of-concern\", \"addendum\"]",
+      "level": "error",
+      "name": "acad041.erratum.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.title) >= 1",
+      "level": "error",
+      "name": "acad041.erratum.title.min_length"
+    },
+    {
+      "expression": "size(self.field_values.title) <= 280",
+      "level": "error",
+      "name": "acad041.erratum.title.max_length"
+    },
+    {
+      "expression": "size(self.field_values.body) >= 1",
+      "level": "error",
+      "name": "acad041.erratum.body.min_length"
+    },
+    {
+      "expression": "size(self.field_values.body) <= 2000",
+      "level": "error",
+      "name": "acad041.erratum.body.max_length"
+    },
+    {
+      "expression": "self.field_values.issuedDate.matches(\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\")",
+      "level": "error",
+      "name": "acad041.erratum.issuedDate.regex"
+    },
+    {
+      "expression": "self.field_values.noticeDoi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
+      "level": "error",
+      "name": "acad041.erratum.noticeDoi.regex"
+    },
+    {
+      "expression": "self.field_values.correctsSection.matches(\"^section-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.erratum.correctsSection.regex"
+    },
+    {
+      "expression": "self.field_values.correctsClaim.matches(\"^claim-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.erratum.correctsClaim.regex"
+    },
+    {
+      "expression": "self.field_values.correctsFinding.matches(\"^finding-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.erratum.correctsFinding.regex"
+    },
+    {
+      "expression": "self.field_values.correctsEquation.matches(\"^eq-[a-z0-9-]+$\")",
+      "level": "error",
+      "name": "acad041.erratum.correctsEquation.regex"
+    },
+    {
+      "expression": "graph.acyclic(\"acad041:SectionParent\")",
+      "level": "error",
+      "name": "acad041.section.acyclic-parent"
+    },
+    {
+      "expression": "graph.acyclic(\"acad041:ClaimDerivesFrom\")",
+      "level": "error",
+      "name": "acad041.claim.acyclic-derivesFrom"
+    },
+    {
+      "expression": "graph.acyclic(\"acad041:ConceptExtends\")",
+      "level": "error",
+      "name": "acad041.concept.acyclic-extends"
+    },
+    {
+      "expression": "graph.acyclic(\"acad041:TheoryExtendsTheory\")",
+      "level": "error",
+      "name": "acad041.theory.acyclic-extendsTheory"
+    },
+    {
+      "expression": "graph.acyclic(\"acad041:EquationDerivesFrom\")",
+      "level": "error",
+      "name": "acad041.equation.acyclic-derivesFrom"
+    },
+    {
+      "expression": "graph.acyclic(\"acad041:WorkTranslationOf\")",
+      "level": "error",
+      "name": "acad041.work.acyclic-translationOf"
+    },
+    {
+      "expression": "graph.acyclic(\"acad041:WorkEditionOf\")",
+      "level": "error",
+      "name": "acad041.work.acyclic-editionOf"
+    }
+  ],
+  "enum_defs": [
+    {
+      "description": "Enum derived from Author.contributionsItem",
+      "id": "enum:AuthorContributionsItem",
+      "name": "AuthorContributionsItem",
+      "values": [
+        "conceptualization",
+        "methodology",
+        "software",
+        "validation",
+        "formal-analysis",
+        "investigation",
+        "resources",
+        "data-curation",
+        "writing-original-draft",
+        "writing-review-editing",
+        "visualization",
+        "supervision",
+        "project-administration",
+        "funding-acquisition"
+      ]
+    },
+    {
+      "description": "Enum derived from Author.position",
+      "id": "enum:AuthorPosition",
+      "name": "AuthorPosition",
+      "values": [
+        "first",
+        "middle",
+        "last"
+      ]
+    },
+    {
+      "description": "Enum derived from Author.role",
+      "id": "enum:AuthorRole",
+      "name": "AuthorRole",
+      "values": [
+        "lead",
+        "co-author",
+        "corresponding",
+        "supervisor",
+        "translator"
+      ]
+    },
+    {
+      "description": "Enum derived from Citation.kind",
+      "id": "enum:CitationKind",
+      "name": "CitationKind",
+      "values": [
+        "extends",
+        "disagrees-with",
+        "agrees-with",
+        "confirms",
+        "refutes",
+        "uses-method-of",
+        "uses-data-of",
+        "obtains-background-from",
+        "obtains-support-from",
+        "uses-conclusions-from",
+        "qualifies",
+        "reviews",
+        "critiques",
+        "compiles",
+        "supports",
+        "cites-as-authority",
+        "cites-as-data-source",
+        "cites-as-evidence",
+        "cites-as-related",
+        "cites-for-information",
+        "replies-to",
+        "updates",
+        "retracts"
+      ]
+    },
+    {
+      "description": "Enum derived from Claim.Confidence.level",
+      "id": "enum:ClaimConfidenceLevel",
+      "name": "ClaimConfidenceLevel",
+      "values": [
+        "speculative",
+        "low",
+        "moderate",
+        "high",
+        "verified"
+      ]
+    },
+    {
+      "description": "Enum derived from Claim.kind",
+      "id": "enum:ClaimKind",
+      "name": "ClaimKind",
+      "values": [
+        "descriptive",
+        "interpretive",
+        "normative",
+        "methodological",
+        "empirical",
+        "definitional",
+        "postulate",
+        "hypothesis"
+      ]
+    },
+    {
+      "description": "Enum derived from Claim.lifecycleStatus",
+      "id": "enum:ClaimLifecycleStatus",
+      "name": "ClaimLifecycleStatus",
+      "values": [
+        "asserted",
+        "assumed",
+        "proven",
+        "refuted",
+        "superseded"
+      ]
+    },
+    {
+      "description": "Enum derived from Definition.provenance",
+      "id": "enum:DefinitionProvenance",
+      "name": "DefinitionProvenance",
+      "values": [
+        "stipulated",
+        "derived",
+        "borrowed"
+      ]
+    },
+    {
+      "description": "Enum derived from Equation.role",
+      "id": "enum:EquationRole",
+      "name": "EquationRole",
+      "values": [
+        "axiom",
+        "postulate",
+        "definition",
+        "derived",
+        "empirical-law",
+        "transformation",
+        "identity"
+      ]
+    },
+    {
+      "description": "Enum derived from Erratum.kind",
+      "id": "enum:ErratumKind",
+      "name": "ErratumKind",
+      "values": [
+        "correction",
+        "erratum",
+        "retraction",
+        "expression-of-concern",
+        "addendum"
+      ]
+    },
+    {
+      "description": "Enum derived from Evidence.kind",
+      "id": "enum:EvidenceKind",
+      "name": "EvidenceKind",
+      "values": [
+        "data",
+        "derivation",
+        "citation",
+        "observation",
+        "exemplar",
+        "textual-passage",
+        "thought-experiment"
+      ]
+    },
+    {
+      "description": "Enum derived from Evidence.ProvenanceItem.sourceType",
+      "id": "enum:EvidenceProvenanceItemSourceType",
+      "name": "EvidenceProvenanceItemSourceType",
+      "values": [
+        "primary_text",
+        "secondary_literature",
+        "archival_record",
+        "dataset",
+        "interview",
+        "observation",
+        "derivation",
+        "model_output",
+        "personal_communication",
+        "unknown"
+      ]
+    },
+    {
+      "description": "Enum derived from Finding.outcome",
+      "id": "enum:FindingOutcome",
+      "name": "FindingOutcome",
+      "values": [
+        "supports",
+        "refutes",
+        "inconclusive",
+        "partial"
+      ]
+    },
+    {
+      "description": "Enum derived from Limitation.scope",
+      "id": "enum:LimitationScope",
+      "name": "LimitationScope",
+      "values": [
+        "methodological",
+        "empirical",
+        "interpretive",
+        "applicability"
+      ]
+    },
+    {
+      "description": "Enum derived from Method.kind",
+      "id": "enum:MethodKind",
+      "name": "MethodKind",
+      "values": [
+        "qualitative",
+        "quantitative",
+        "mixed",
+        "theoretical",
+        "literary",
+        "historical",
+        "computational",
+        "experimental"
+      ]
+    },
+    {
+      "description": "Enum derived from Paper.epistemicMethod",
+      "id": "enum:PaperEpistemicMethod",
+      "name": "PaperEpistemicMethod",
+      "values": [
+        "empirical",
+        "descriptive",
+        "theoretical",
+        "methodological",
+        "literary-critical",
+        "review",
+        "historical"
+      ]
+    },
+    {
+      "description": "Enum derived from Paper.format",
+      "id": "enum:PaperFormat",
+      "name": "PaperFormat",
+      "values": [
+        "article",
+        "essay",
+        "monograph",
+        "thesis",
+        "chapter",
+        "letter",
+        "editorial",
+        "commentary"
+      ]
+    },
+    {
+      "description": "Enum derived from PaperRelation.kind",
+      "id": "enum:PaperRelationKind",
+      "name": "PaperRelationKind",
+      "values": [
+        "companion-of",
+        "commentary-on",
+        "correction-of",
+        "response-to",
+        "reply-to-letter",
+        "retraction-of",
+        "republication-of",
+        "translation-of",
+        "addendum-to"
+      ]
+    },
+    {
+      "description": "Enum derived from Paper.version",
+      "id": "enum:PaperVersion",
+      "name": "PaperVersion",
+      "values": [
+        "author-original",
+        "submitted-manuscript-under-review",
+        "accepted-manuscript",
+        "proof",
+        "version-of-record",
+        "corrected-version-of-record",
+        "enhanced-version-of-record"
+      ]
+    },
+    {
+      "description": "Enum derived from Quotation.emphasis",
+      "id": "enum:QuotationEmphasis",
+      "name": "QuotationEmphasis",
+      "values": [
+        "none",
+        "original",
+        "added-by-citing-author"
+      ]
+    },
+    {
+      "description": "Enum derived from Section.role",
+      "id": "enum:SectionRole",
+      "name": "SectionRole",
+      "values": [
+        "preface",
+        "introduction",
+        "body",
+        "methods",
+        "results",
+        "discussion",
+        "conclusion",
+        "appendix",
+        "footnotes",
+        "bibliography",
+        "other"
+      ]
+    },
+    {
+      "description": "Enum derived from Work.kind",
+      "id": "enum:WorkKind",
+      "name": "WorkKind",
+      "values": [
+        "journal-article",
+        "book",
+        "book-chapter",
+        "thesis",
+        "report",
+        "preprint",
+        "conference-paper",
+        "newspaper-article",
+        "archival-document",
+        "film",
+        "audio-recording",
+        "website",
+        "dataset",
+        "software",
+        "other"
+      ]
+    }
+  ],
+  "id": "profile:academic-paper:0.4.1",
+  "primitive_types": [
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/bibliographic\",\"register\":\"empirical\",\"authority\":\"CSL 1.0.2, BibTeX, JATS-XML, ISO 639-1, DOI Handbook, ISBN ISO 2108, ORCID\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "PaperMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "subtitle",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "abstract",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 20000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2}$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "empirical",
+            "descriptive",
+            "theoretical",
+            "methodological",
+            "literary-critical",
+            "review",
+            "historical"
+          ],
+          "kind": "enum",
+          "name": "epistemicMethod",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "article",
+            "essay",
+            "monograph",
+            "thesis",
+            "chapter",
+            "letter",
+            "editorial",
+            "commentary"
+          ],
+          "kind": "enum",
+          "name": "format",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "venue",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            },
+            {
+              "kind": "max_value",
+              "level": "error",
+              "value": 2100
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "publicationDate",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "author-original",
+            "submitted-manuscript-under-review",
+            "accepted-manuscript",
+            "proof",
+            "version-of-record",
+            "corrected-version-of-record",
+            "enhanced-version-of-record"
+          ],
+          "kind": "enum",
+          "name": "version",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^10\\.\\d{4,9}\\/[-._;()/:A-Za-z0-9]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "isbn",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^(?:\\d[- ]?){9}[\\dX]$|^(?:\\d[- ]?){13}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "license",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 80
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "pageCount",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "sourceDocument",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "keywordsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 280
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "keywords",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 20
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Paper",
+      "id_format": {
+        "pattern": "acad041:Paper:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "PaperMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/authorship\",\"register\":\"empirical\",\"authority\":\"ORCID, ROR, Crossref REST API, NISO CRediT 1.0, VIAF, Wikidata\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "AuthorMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^author-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "fullName",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "familyName",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "givenNames",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "orcid",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "email",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: \"co-author\"",
+          "enum_values": [
+            "lead",
+            "co-author",
+            "corresponding",
+            "supervisor",
+            "translator"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "first",
+            "middle",
+            "last"
+          ],
+          "kind": "enum",
+          "name": "position",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "affiliationsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^affil-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "affiliations",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "enum_values": [
+              "conceptualization",
+              "methodology",
+              "software",
+              "validation",
+              "formal-analysis",
+              "investigation",
+              "resources",
+              "data-curation",
+              "writing-original-draft",
+              "writing-review-editing",
+              "visualization",
+              "supervision",
+              "project-administration",
+              "funding-acquisition"
+            ],
+            "kind": "enum",
+            "name": "contributionsItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "contributions",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Author",
+      "id_format": {
+        "pattern": "acad041:Author:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "AuthorMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/authorship\",\"register\":\"empirical\",\"authority\":\"ORCID, ROR, Crossref REST API, NISO CRediT 1.0, VIAF, Wikidata\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "AffiliationMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^affil-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "institution",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "department",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "country",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[A-Z]{2}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "rorId",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^https:\\/\\/ror\\.org\\/0[a-z0-9]{6}\\d{2}$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Affiliation",
+      "id_format": {
+        "pattern": "acad041:Affiliation:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "AffiliationMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/structure\",\"register\":\"empirical\",\"authority\":\"JATS-XML §body conventions, IMRAD\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "SectionMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "parent",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "order",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "description": "default: \"body\"",
+          "enum_values": [
+            "preface",
+            "introduction",
+            "body",
+            "methods",
+            "results",
+            "discussion",
+            "conclusion",
+            "appendix",
+            "footnotes",
+            "bibliography",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "bodyText",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 20000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2}$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Section",
+      "id_format": {
+        "pattern": "acad041:Section:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "SectionMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/argument\",\"register\":\"interpretive\",\"authority\":\"Toulmin argument model, academic rhetoric conventions, IMRAD, SPAR DEO\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "ClaimMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^claim-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "descriptive",
+            "interpretive",
+            "normative",
+            "methodological",
+            "empirical",
+            "definitional",
+            "postulate",
+            "hypothesis"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "derivesFromItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^claim-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "derivesFrom",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "counterReadsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^claim-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "counterReads",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "confidence",
+          "required": false,
+          "struct_id": "ClaimConfidence",
+          "validations": []
+        },
+        {
+          "description": "default: \"asserted\"",
+          "enum_values": [
+            "asserted",
+            "assumed",
+            "proven",
+            "refuted",
+            "superseded"
+          ],
+          "kind": "enum",
+          "name": "lifecycleStatus",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "supersededBy",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^claim-[a-z0-9-]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Claim",
+      "id_format": {
+        "pattern": "acad041:Claim:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "ClaimMeta"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "speculative",
+                "low",
+                "moderate",
+                "high",
+                "verified"
+              ],
+              "kind": "enum",
+              "name": "level",
+              "required": false,
+              "validations": []
+            },
+            {
+              "kind": "number",
+              "name": "score",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "ClaimConfidence"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/evidence\",\"register\":\"empirical\",\"authority\":\"FAIR principles, replication-package conventions, SPAR DEO\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "EvidenceMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^evidence-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "supportsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^claim-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "supports",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "data",
+            "derivation",
+            "citation",
+            "observation",
+            "exemplar",
+            "textual-passage",
+            "thought-experiment"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "quotation",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^quote-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "work",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "locator",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "struct",
+            "name": "provenanceItem",
+            "required": true,
+            "struct_id": "EvidenceProvenanceItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "provenance",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Evidence",
+      "id_format": {
+        "pattern": "acad041:Evidence:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "EvidenceMeta"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "primary_text",
+                "secondary_literature",
+                "archival_record",
+                "dataset",
+                "interview",
+                "observation",
+                "derivation",
+                "model_output",
+                "personal_communication",
+                "unknown"
+              ],
+              "kind": "enum",
+              "name": "sourceType",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "sourceLabel",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 280
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "sourceUrl",
+              "required": false,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "retrievedAt",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              ]
+            }
+          ],
+          "id": "EvidenceProvenanceItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/citation\",\"register\":\"empirical\",\"authority\":\"CSL 1.0.2, BibTeX, ISO 690, APA 7, MLA 9, Chicago 17, SPAR CiTO 2.8.1\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "QuotationMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^quote-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "quotesFrom",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "locator",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "bodyLanguage",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2}$"
+            }
+          ]
+        },
+        {
+          "description": "default: \"none\"",
+          "enum_values": [
+            "none",
+            "original",
+            "added-by-citing-author"
+          ],
+          "kind": "enum",
+          "name": "emphasis",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "omissionsPresent",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "translatedFrom",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^quote-[a-z0-9-]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Quotation",
+      "id_format": {
+        "pattern": "acad041:Quotation:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "QuotationMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/citation\",\"register\":\"empirical\",\"authority\":\"CSL 1.0.2, BibTeX, ISO 690, APA 7, MLA 9, Chicago 17, SPAR CiTO 2.8.1\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "WorkMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "journal-article",
+            "book",
+            "book-chapter",
+            "thesis",
+            "report",
+            "preprint",
+            "conference-paper",
+            "newspaper-article",
+            "archival-document",
+            "film",
+            "audio-recording",
+            "website",
+            "dataset",
+            "software",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "authorsFreeTextItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 280
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "authorsFreeText",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            },
+            {
+              "kind": "max_value",
+              "level": "error",
+              "value": 2100
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "venue",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^10\\.\\d{4,9}\\/[-._;()/:A-Za-z0-9]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "isbn",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^(?:\\d[- ]?){9}[\\dX]$|^(?:\\d[- ]?){13}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "translationOf",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "editionOf",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Work",
+      "id_format": {
+        "pattern": "acad041:Work:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "WorkMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/concept\",\"register\":\"interpretive\",\"authority\":\"philosophy-of-science conventions, lexicographic practice, SKOS, Wikidata\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "ConceptMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^concept-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "canonicalForm",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "domain",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "wikidataId",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^Q[1-9]\\d*$"
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "closeMatchItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "closeMatch",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "borrowsFromItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^theorist-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "borrowsFrom",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "extendsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^concept-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "extends",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Concept",
+      "id_format": {
+        "pattern": "acad041:Concept:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "ConceptMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/concept\",\"register\":\"interpretive\",\"authority\":\"philosophy-of-science conventions, lexicographic practice, SKOS, Wikidata\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "DefinitionMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^defn-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "concept",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^concept-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "stipulated",
+            "derived",
+            "borrowed"
+          ],
+          "kind": "enum",
+          "name": "provenance",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "citedFrom",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Definition",
+      "id_format": {
+        "pattern": "acad041:Definition:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "DefinitionMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/authorship\",\"register\":\"empirical\",\"authority\":\"ORCID, ROR, Crossref REST API, NISO CRediT 1.0, VIAF, Wikidata\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "TheoristMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^theorist-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "fullName",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "familyName",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "birthYear",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            },
+            {
+              "kind": "max_value",
+              "level": "error",
+              "value": 2100
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "deathYear",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            },
+            {
+              "kind": "max_value",
+              "level": "error",
+              "value": 2100
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "primaryAffiliation",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "wikidataId",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^Q[1-9]\\d*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "viafId",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d+$"
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "notableTheoriesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^theory-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "notableTheories",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Theorist",
+      "id_format": {
+        "pattern": "acad041:Theorist:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "TheoristMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/concept\",\"register\":\"interpretive\",\"authority\":\"philosophy-of-science conventions, lexicographic practice, SKOS, Wikidata\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "TheoryMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^theory-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "primaryTheorist",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^theorist-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "extendsTheoryItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^theory-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "extendsTheory",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "respondsToItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^theory-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "respondsTo",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Theory",
+      "id_format": {
+        "pattern": "acad041:Theory:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "TheoryMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/methodology\",\"register\":\"empirical\",\"authority\":\"PRISMA, EQUATOR network, methodological reporting standards\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "MethodMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^method-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "qualitative",
+            "quantitative",
+            "mixed",
+            "theoretical",
+            "literary",
+            "historical",
+            "computational",
+            "experimental"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "procedure",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 20000
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Method",
+      "id_format": {
+        "pattern": "acad041:Method:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "MethodMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/argument\",\"register\":\"interpretive\",\"authority\":\"Toulmin argument model, academic rhetoric conventions, IMRAD, SPAR DEO\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "FindingMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^finding-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "supportedByItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^evidence-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "supportedBy",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "testsHypothesis",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^claim-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "supports",
+            "refutes",
+            "inconclusive",
+            "partial"
+          ],
+          "kind": "enum",
+          "name": "outcome",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Finding",
+      "id_format": {
+        "pattern": "acad041:Finding:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "FindingMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/argument\",\"register\":\"interpretive\",\"authority\":\"Toulmin argument model, academic rhetoric conventions, IMRAD, SPAR DEO\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "LimitationMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^limit-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "description": "default: \"applicability\"",
+          "enum_values": [
+            "methodological",
+            "empirical",
+            "interpretive",
+            "applicability"
+          ],
+          "kind": "enum",
+          "name": "scope",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Limitation",
+      "id_format": {
+        "pattern": "acad041:Limitation:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "LimitationMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/structure\",\"register\":\"empirical\",\"authority\":\"JATS-XML §body conventions, IMRAD\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "FootnoteMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^note-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2}$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Footnote",
+      "id_format": {
+        "pattern": "acad041:Footnote:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "FootnoteMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/mathematics\",\"register\":\"formal\",\"authority\":\"LaTeX, MathML 3.0, MathJax, AMS conventions\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "EquationMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^eq-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "tex",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "mathml",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 20000
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "axiom",
+            "postulate",
+            "definition",
+            "derived",
+            "empirical-law",
+            "transformation",
+            "identity"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": true,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "derivesFromItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^eq-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "derivesFrom",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "fromPostulatesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^claim-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "fromPostulates",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^10\\.\\d{4,9}\\/[-._;()/:A-Za-z0-9]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Equation",
+      "id_format": {
+        "pattern": "acad041:Equation:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "EquationMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/illustration\",\"register\":\"empirical\",\"authority\":\"JATS-XML <fig>, accessibility (alt-text) conventions, DataCite\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "FigureMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^fig-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "captionLanguage",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2}$"
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "page",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "altText",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "imageRef",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^10\\.\\d{4,9}\\/[-._;()/:A-Za-z0-9]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Figure",
+      "id_format": {
+        "pattern": "acad041:Figure:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "FigureMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/citation\",\"register\":\"empirical\",\"authority\":\"CSL 1.0.2, BibTeX, ISO 690, APA 7, MLA 9, Chicago 17, SPAR CiTO 2.8.1\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "CitationMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^citation-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "citingClaim",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^claim-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "citingFinding",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^finding-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "citingSection",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "citingLocator",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "citedWork",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "citedQuotation",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^quote-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "extends",
+            "disagrees-with",
+            "agrees-with",
+            "confirms",
+            "refutes",
+            "uses-method-of",
+            "uses-data-of",
+            "obtains-background-from",
+            "obtains-support-from",
+            "uses-conclusions-from",
+            "qualifies",
+            "reviews",
+            "critiques",
+            "compiles",
+            "supports",
+            "cites-as-authority",
+            "cites-as-data-source",
+            "cites-as-evidence",
+            "cites-as-related",
+            "cites-for-information",
+            "replies-to",
+            "updates",
+            "retracts"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "rationale",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Citation",
+      "id_format": {
+        "pattern": "acad041:Citation:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "CitationMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/funding\",\"register\":\"empirical\",\"authority\":\"Crossref Funder Registry, ROR, JATS <funding-group>\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "FundingMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^funding-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "funder",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^funder-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "awardId",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "awardTitle",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "description": "default: []",
+          "item_field": {
+            "kind": "string",
+            "name": "recipientsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "regex",
+                "level": "error",
+                "value": "^author-[a-z0-9-]+$"
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "recipients",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "acad041:Funding",
+      "id_format": {
+        "pattern": "acad041:Funding:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "FundingMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/funding\",\"register\":\"empirical\",\"authority\":\"Crossref Funder Registry, ROR, JATS <funding-group>\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "FunderMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^funder-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "registryId",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^(?:https:\\/\\/ror\\.org\\/0[a-z0-9]{6}\\d{2}|10\\.13039\\/[0-9]+)$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Funder",
+      "id_format": {
+        "pattern": "acad041:Funder:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "FunderMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/illustration\",\"register\":\"empirical\",\"authority\":\"JATS-XML <fig>, accessibility (alt-text) conventions, DataCite\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "TableMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^table-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "captionLanguage",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2}$"
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "page",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "altText",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "contentRef",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "rowCount",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "columnCount",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "headerRows",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^10\\.\\d{4,9}\\/[-._;()/:A-Za-z0-9]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Table",
+      "id_format": {
+        "pattern": "acad041:Table:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "TableMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/citation\",\"register\":\"empirical\",\"authority\":\"CSL 1.0.2, BibTeX, ISO 690, APA 7, MLA 9, Chicago 17, SPAR CiTO 2.8.1\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "PaperRelationMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^prel-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "relatedWork",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^work-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "companion-of",
+            "commentary-on",
+            "correction-of",
+            "response-to",
+            "reply-to-letter",
+            "retraction-of",
+            "republication-of",
+            "translation-of",
+            "addendum-to"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "rationale",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        }
+      ],
+      "id": "acad041:PaperRelation",
+      "id_format": {
+        "pattern": "acad041:PaperRelation:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "PaperRelationMeta"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "description": "default: {\"domainPath\":\"academia/paper/structure\",\"register\":\"empirical\",\"authority\":\"JATS-XML §body conventions, IMRAD\"}",
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "struct_id": "ErratumMeta",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^erratum-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^paper-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "correction",
+            "erratum",
+            "retraction",
+            "expression-of-concern",
+            "addendum"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 280
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "issuedDate",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "noticeDoi",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^10\\.\\d{4,9}\\/[-._;()/:A-Za-z0-9]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "correctsSection",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^section-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "correctsClaim",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^claim-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "correctsFinding",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^finding-[a-z0-9-]+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "correctsEquation",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^eq-[a-z0-9-]+$"
+            }
+          ]
+        }
+      ],
+      "id": "acad041:Erratum",
+      "id_format": {
+        "pattern": "acad041:Erratum:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "domainPath",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "register",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "authority",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "ErratumMeta"
+        }
+      ]
+    }
+  ],
+  "relation_types": [
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:AuthorPaper",
+      "source_type_id": "acad041:Author",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:AuthorAffiliations",
+      "source_type_id": "acad041:Author",
+      "target_type_id": "acad041:Affiliation"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:SectionPaper",
+      "source_type_id": "acad041:Section",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:SectionParent",
+      "source_type_id": "acad041:Section",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ClaimPaper",
+      "source_type_id": "acad041:Claim",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ClaimSection",
+      "source_type_id": "acad041:Claim",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:ClaimDerivesFrom",
+      "source_type_id": "acad041:Claim",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:ClaimCounterReads",
+      "source_type_id": "acad041:Claim",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:EvidencePaper",
+      "source_type_id": "acad041:Evidence",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:EvidenceSupports",
+      "source_type_id": "acad041:Evidence",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:EvidenceQuotation",
+      "source_type_id": "acad041:Evidence",
+      "target_type_id": "acad041:Quotation"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:EvidenceWork",
+      "source_type_id": "acad041:Evidence",
+      "target_type_id": "acad041:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:QuotationPaper",
+      "source_type_id": "acad041:Quotation",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:QuotationSection",
+      "source_type_id": "acad041:Quotation",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:QuotationQuotesFrom",
+      "source_type_id": "acad041:Quotation",
+      "target_type_id": "acad041:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:QuotationTranslatedFrom",
+      "source_type_id": "acad041:Quotation",
+      "target_type_id": "acad041:Quotation"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:ConceptBorrowsFrom",
+      "source_type_id": "acad041:Concept",
+      "target_type_id": "acad041:Theorist"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:ConceptExtends",
+      "source_type_id": "acad041:Concept",
+      "target_type_id": "acad041:Concept"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:DefinitionPaper",
+      "source_type_id": "acad041:Definition",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:DefinitionConcept",
+      "source_type_id": "acad041:Definition",
+      "target_type_id": "acad041:Concept"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:DefinitionSection",
+      "source_type_id": "acad041:Definition",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:DefinitionCitedFrom",
+      "source_type_id": "acad041:Definition",
+      "target_type_id": "acad041:Work"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:TheoristNotableTheories",
+      "source_type_id": "acad041:Theorist",
+      "target_type_id": "acad041:Theory"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:TheoryPrimaryTheorist",
+      "source_type_id": "acad041:Theory",
+      "target_type_id": "acad041:Theorist"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:TheoryExtendsTheory",
+      "source_type_id": "acad041:Theory",
+      "target_type_id": "acad041:Theory"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:TheoryRespondsTo",
+      "source_type_id": "acad041:Theory",
+      "target_type_id": "acad041:Theory"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:MethodPaper",
+      "source_type_id": "acad041:Method",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FindingPaper",
+      "source_type_id": "acad041:Finding",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FindingSection",
+      "source_type_id": "acad041:Finding",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:FindingSupportedBy",
+      "source_type_id": "acad041:Finding",
+      "target_type_id": "acad041:Evidence"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:LimitationPaper",
+      "source_type_id": "acad041:Limitation",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FootnotePaper",
+      "source_type_id": "acad041:Footnote",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FootnoteSection",
+      "source_type_id": "acad041:Footnote",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:EquationPaper",
+      "source_type_id": "acad041:Equation",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:EquationSection",
+      "source_type_id": "acad041:Equation",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:EquationDerivesFrom",
+      "source_type_id": "acad041:Equation",
+      "target_type_id": "acad041:Equation"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:EquationFromPostulates",
+      "source_type_id": "acad041:Equation",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FigurePaper",
+      "source_type_id": "acad041:Figure",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FigureSection",
+      "source_type_id": "acad041:Figure",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:WorkTranslationOf",
+      "source_type_id": "acad041:Work",
+      "target_type_id": "acad041:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:WorkEditionOf",
+      "source_type_id": "acad041:Work",
+      "target_type_id": "acad041:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:CitationPaper",
+      "source_type_id": "acad041:Citation",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:CitationCitingClaim",
+      "source_type_id": "acad041:Citation",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:CitationCitingFinding",
+      "source_type_id": "acad041:Citation",
+      "target_type_id": "acad041:Finding"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:CitationCitingSection",
+      "source_type_id": "acad041:Citation",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:CitationCitedWork",
+      "source_type_id": "acad041:Citation",
+      "target_type_id": "acad041:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:CitationCitedQuotation",
+      "source_type_id": "acad041:Citation",
+      "target_type_id": "acad041:Quotation"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FundingPaper",
+      "source_type_id": "acad041:Funding",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FundingFunder",
+      "source_type_id": "acad041:Funding",
+      "target_type_id": "acad041:Funder"
+    },
+    {
+      "cardinality": "many-to-many",
+      "fields": [],
+      "id": "acad041:FundingRecipients",
+      "source_type_id": "acad041:Funding",
+      "target_type_id": "acad041:Author"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:TablePaper",
+      "source_type_id": "acad041:Table",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:TableSection",
+      "source_type_id": "acad041:Table",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:PaperRelationPaper",
+      "source_type_id": "acad041:PaperRelation",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:PaperRelationRelatedWork",
+      "source_type_id": "acad041:PaperRelation",
+      "target_type_id": "acad041:Work"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ClaimSupersededBy",
+      "source_type_id": "acad041:Claim",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:FindingTestsHypothesis",
+      "source_type_id": "acad041:Finding",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ErratumPaper",
+      "source_type_id": "acad041:Erratum",
+      "target_type_id": "acad041:Paper"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ErratumCorrectsSection",
+      "source_type_id": "acad041:Erratum",
+      "target_type_id": "acad041:Section"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ErratumCorrectsClaim",
+      "source_type_id": "acad041:Erratum",
+      "target_type_id": "acad041:Claim"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ErratumCorrectsFinding",
+      "source_type_id": "acad041:Erratum",
+      "target_type_id": "acad041:Finding"
+    },
+    {
+      "cardinality": "many-to-one",
+      "fields": [],
+      "id": "acad041:ErratumCorrectsEquation",
+      "source_type_id": "acad041:Erratum",
+      "target_type_id": "acad041:Equation"
+    }
+  ]
+}

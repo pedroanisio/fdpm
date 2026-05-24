@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "conceptExporter",
+    "local_name": "concept-json",
+    "metadata": {
+      "format_id": "fdpm.academic-paper-v0-4-1:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidConcept",
+    "local_name": "is-valid-concept",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acad041.isValidConcept",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "conceptImporter",
+    "local_name": "concept-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "fdpm.academic-paper-v0-4-1:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "conceptMarkdownRenderer",
+    "local_name": "acad041-concept",
+    "metadata": {
+      "primitive_type_id": "acad041:Concept",
+      "target": "text/markdown"
+    }
+  }
+}

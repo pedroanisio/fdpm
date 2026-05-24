@@ -1,0 +1,1639 @@
+{
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "panels": [
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "subtitle",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "abstract",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "empirical",
+            "descriptive",
+            "theoretical",
+            "methodological",
+            "literary-critical",
+            "review",
+            "historical"
+          ],
+          "kind": "enum",
+          "name": "epistemicMethod",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "article",
+            "essay",
+            "monograph",
+            "thesis",
+            "chapter",
+            "letter",
+            "editorial",
+            "commentary"
+          ],
+          "kind": "enum",
+          "name": "format",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "venue",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "publicationDate",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "author-original",
+            "submitted-manuscript-under-review",
+            "accepted-manuscript",
+            "proof",
+            "version-of-record",
+            "corrected-version-of-record",
+            "enhanced-version-of-record"
+          ],
+          "kind": "enum",
+          "name": "version",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "isbn",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "license",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "pageCount",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "sourceDocument",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "keywords",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Paper",
+      "title": "Paper"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "fullName",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "familyName",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "givenNames",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "orcid",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "email",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "lead",
+            "co-author",
+            "corresponding",
+            "supervisor",
+            "translator"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "first",
+            "middle",
+            "last"
+          ],
+          "kind": "enum",
+          "name": "position",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "affiliations",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "contributions",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Author",
+      "title": "Author"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "institution",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "department",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "country",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "rorId",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Affiliation",
+      "title": "Affiliation"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "parent",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "order",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "preface",
+            "introduction",
+            "body",
+            "methods",
+            "results",
+            "discussion",
+            "conclusion",
+            "appendix",
+            "footnotes",
+            "bibliography",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "bodyText",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Section",
+      "title": "Section"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "descriptive",
+            "interpretive",
+            "normative",
+            "methodological",
+            "empirical",
+            "definitional",
+            "postulate",
+            "hypothesis"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "derivesFrom",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "counterReads",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "confidence",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "asserted",
+            "assumed",
+            "proven",
+            "refuted",
+            "superseded"
+          ],
+          "kind": "enum",
+          "name": "lifecycleStatus",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "supersededBy",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Claim",
+      "title": "Claim"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "supports",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "data",
+            "derivation",
+            "citation",
+            "observation",
+            "exemplar",
+            "textual-passage",
+            "thought-experiment"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "quotation",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "work",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "locator",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "provenance",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Evidence",
+      "title": "Evidence"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "quotesFrom",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "locator",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "bodyLanguage",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "none",
+            "original",
+            "added-by-citing-author"
+          ],
+          "kind": "enum",
+          "name": "emphasis",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "omissionsPresent",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "translatedFrom",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Quotation",
+      "title": "Quotation"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "journal-article",
+            "book",
+            "book-chapter",
+            "thesis",
+            "report",
+            "preprint",
+            "conference-paper",
+            "newspaper-article",
+            "archival-document",
+            "film",
+            "audio-recording",
+            "website",
+            "dataset",
+            "software",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "authorsFreeText",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "venue",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "isbn",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "translationOf",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "editionOf",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Work",
+      "title": "Work"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "canonicalForm",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "domain",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "wikidataId",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "closeMatch",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "borrowsFrom",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "extends",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Concept",
+      "title": "Concept"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "concept",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "stipulated",
+            "derived",
+            "borrowed"
+          ],
+          "kind": "enum",
+          "name": "provenance",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "citedFrom",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Definition",
+      "title": "Definition"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "fullName",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "familyName",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "birthYear",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "deathYear",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "primaryAffiliation",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "wikidataId",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "viafId",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "notableTheories",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Theorist",
+      "title": "Theorist"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "summary",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "primaryTheorist",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "extendsTheory",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "respondsTo",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Theory",
+      "title": "Theory"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "qualitative",
+            "quantitative",
+            "mixed",
+            "theoretical",
+            "literary",
+            "historical",
+            "computational",
+            "experimental"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "procedure",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Method",
+      "title": "Method"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "supportedBy",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "testsHypothesis",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "supports",
+            "refutes",
+            "inconclusive",
+            "partial"
+          ],
+          "kind": "enum",
+          "name": "outcome",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "acad041:Finding",
+      "title": "Finding"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "methodological",
+            "empirical",
+            "interpretive",
+            "applicability"
+          ],
+          "kind": "enum",
+          "name": "scope",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "acad041:Limitation",
+      "title": "Limitation"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Footnote",
+      "title": "Footnote"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "tex",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "mathml",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "axiom",
+            "postulate",
+            "definition",
+            "derived",
+            "empirical-law",
+            "transformation",
+            "identity"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "derivesFrom",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "fromPostulates",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Equation",
+      "title": "Equation"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "captionLanguage",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "page",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "altText",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "imageRef",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Figure",
+      "title": "Figure"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citingClaim",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "citingFinding",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "citingSection",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "citingLocator",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "citedWork",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citedQuotation",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "extends",
+            "disagrees-with",
+            "agrees-with",
+            "confirms",
+            "refutes",
+            "uses-method-of",
+            "uses-data-of",
+            "obtains-background-from",
+            "obtains-support-from",
+            "uses-conclusions-from",
+            "qualifies",
+            "reviews",
+            "critiques",
+            "compiles",
+            "supports",
+            "cites-as-authority",
+            "cites-as-data-source",
+            "cites-as-evidence",
+            "cites-as-related",
+            "cites-for-information",
+            "replies-to",
+            "updates",
+            "retracts"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "rationale",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Citation",
+      "title": "Citation"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "funder",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "awardId",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "awardTitle",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "recipients",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Funding",
+      "title": "Funding"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "registryId",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Funder",
+      "title": "Funder"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "section",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "label",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "captionLanguage",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "page",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "altText",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "contentRef",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "rowCount",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "columnCount",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "headerRows",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "doi",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Table",
+      "title": "Table"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "relatedWork",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "companion-of",
+            "commentary-on",
+            "correction-of",
+            "response-to",
+            "reply-to-letter",
+            "retraction-of",
+            "republication-of",
+            "translation-of",
+            "addendum-to"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "rationale",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:PaperRelation",
+      "title": "PaperRelation"
+    },
+    {
+      "fields": [
+        {
+          "kind": "struct",
+          "name": "_meta",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "paper",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "correction",
+            "erratum",
+            "retraction",
+            "expression-of-concern",
+            "addendum"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "issuedDate",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "noticeDoi",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "correctsSection",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "correctsClaim",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "correctsFinding",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "correctsEquation",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "acad041:Erratum",
+      "title": "Erratum"
+    }
+  ],
+  "plugin_id": "fdpm.academic-paper-v0-4-1"
+}

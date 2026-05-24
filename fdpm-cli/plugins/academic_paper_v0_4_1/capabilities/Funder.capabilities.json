@@ -1,0 +1,48 @@
+{
+  "exporter": {
+    "capability_id": "cap:exporter",
+    "entry": "funderExporter",
+    "local_name": "funder-json",
+    "metadata": {
+      "format_id": "fdpm.academic-paper-v0-4-1:json",
+      "produces_mime": "application/json"
+    }
+  },
+  "exprHelper": {
+    "capability_id": "cap:expr-helper",
+    "entry": "isValidFunder",
+    "local_name": "is-valid-funder",
+    "metadata": {
+      "arg_types": [
+        "object"
+      ],
+      "arity": 1,
+      "function_name": "acad041.isValidFunder",
+      "pure": true,
+      "return_type": "boolean"
+    }
+  },
+  "importer": {
+    "capability_id": "cap:importer",
+    "entry": "funderImporter",
+    "local_name": "funder-json",
+    "metadata": {
+      "accepts_mime": [
+        "application/json"
+      ],
+      "file_extensions": [
+        ".json"
+      ],
+      "format_id": "fdpm.academic-paper-v0-4-1:json"
+    }
+  },
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "funderMarkdownRenderer",
+    "local_name": "acad041-funder",
+    "metadata": {
+      "primitive_type_id": "acad041:Funder",
+      "target": "text/markdown"
+    }
+  }
+}
