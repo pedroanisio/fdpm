@@ -18,7 +18,7 @@ machines, decisions, and operational behavior.
 | Field             | Value                                                                      |
 | ----------------- | -------------------------------------------------------------------------- |
 | Plugin id         | `fdpm.software-architecture`                                               |
-| Plugin version    | `1.0.0`                                                                    |
+| Plugin version    | `1.1.0`                                                                    |
 | Spec version      | `1.1.0` (FDPM plugin manifest spec)                                        |
 | Profile id        | `profile:software-architecture:1.0`                                        |
 | Kind              | `server`                                                                   |
@@ -26,7 +26,7 @@ machines, decisions, and operational behavior.
 | License           | MIT                                                                        |
 | Entry point       | [`index.ts`](./index.ts)                                                   |
 | Manifest          | [`fdpm-plugin.json`](./fdpm-plugin.json)                                   |
-| Source provenance | Port of `src/fdpm/plugins/software_architecture.py`                        |
+| Source provenance | Port lineage from the legacy Python software-architecture plugin           |
 
 ## Disclaimer
 
@@ -425,8 +425,8 @@ this plugin's `activate` is intentionally minimal:
 - **No scope sets.** `SCOPE_SETS = {}`, `DEFAULT_SCOPE_SET = ""`.
 - **No partition unit.** No primitive sets `is_partition_unit: true`.
 
-The 15 Python-source primitive types remain byte-faithful with
-`src/fdpm/plugins/software_architecture.py`. The 8 pass-2 primitive types
+The 15 legacy-source primitive types remain byte-faithful with the source
+model that was ported into this TypeScript plugin. The 8 pass-2 primitive types
 (`sw:Capability`, `sw:Actor`, `sw:Stakeholder`, `sw:Node`,
 `sw:QualityAttribute`, `sw:Risk`, `sw:Viewpoint`, `sw:View`), the 8 pass-2
 relation types, and the 5 pass-2 validation rules are TypeScript-side
@@ -456,7 +456,7 @@ No host configuration beyond standard plugin enablement is required.
 
 Once active, the FDPM CLI exposes the profile, primitives, and relations
 as first-class citizens. Example invocations (consult the top-level CLI
-[`README.md`](../../README.md) and [`MANUAL.md`](../../MANUAL.md) for
+[`README.md`](../../../README.md) and [`MANUAL.md`](../../MANUAL.md) for
 authoritative flag reference):
 
 ```bash
@@ -571,18 +571,17 @@ in underscore-prefixed modules.
 ## Versioning
 
 The **profile id** is held stable at `profile:software-architecture:1.0`;
-the **manifest version** (`1.0.0`, in [`fdpm-plugin.json`](./fdpm-plugin.json))
+the **manifest version** (`1.1.0`, in [`fdpm-plugin.json`](./fdpm-plugin.json))
 increments under semantic versioning when the contributed profile is
 extended in a backwards-compatible way. Breaking changes will bump the
 profile id (e.g. `:1.0` → `:2.0`).
 
-The initial port (1.0.0) was byte-faithful to the Python source dump at
-`src/fdpm/plugins/software_architecture.py`. Subsequent revisions are
-additive only — the 15 source primitive types, 15 source relation types,
-and 7 source validation rules retain their original shape. The pass-2 gap
-audit added 8 primitive types, 8 relation types, 5 validation rules, and
-2 templates; SPEC-CEL-VALIDATOR migrated all 12 rules to CEL canonical
-form.
+The initial port (1.0.0) preserved the legacy Python plugin's source
+model. Subsequent revisions are additive only — the 15 source primitive
+types, 15 source relation types, and 7 source validation rules retain their
+original shape. The pass-2 gap audit added 8 primitive types, 8 relation
+types, 5 validation rules, and 2 templates; SPEC-CEL-VALIDATOR migrated all
+12 rules to CEL canonical form.
 
 ---
 
@@ -623,10 +622,9 @@ omission, not a workflow shortcut.
 
 ## See also
 
-- Top-level CLI: [`../../README.md`](../../README.md), [`../../MANUAL.md`](../../MANUAL.md)
+- Top-level CLI: [`../../../README.md`](../../../README.md), [`../../MANUAL.md`](../../MANUAL.md)
 - Sibling plugins:
   - [`../formal_specification/`](../formal_specification/) — formal-specification profile (full executable validators + Markdown / HTML / PDF renderers)
-  - [`../fs_v3_importer/`](../fs_v3_importer/) — importer for legacy v3 documents
 - Workbook root: [`../../../README.md`](../../../README.md), [`../../../PURPOSE.md`](../../../PURPOSE.md), [`../../../DISCLAIMER.md`](../../../DISCLAIMER.md)
 
 ---

@@ -9,6 +9,7 @@ function read(path: string): string {
 const ROOT_README = read("../README.md");
 const ROOT_PURPOSE = read("../PURPOSE.md");
 const MANUAL = read("MANUAL.md");
+const ZOD_BRIDGE_README = read("packages/zod-bridge/README.md");
 const FORMAL_SPEC_README = read("plugins/formal_specification/README.md");
 const PLANNING_README = read("plugins/planning/README.md");
 const SOFTWARE_ARCH_README = read("plugins/software_architecture/README.md");
@@ -28,10 +29,12 @@ describe("documentation drift regressions", () => {
     expect(MANUAL).toContain("npm --prefix fdpm-cli install");
     expect(MANUAL).toContain("FDPM_DATA_DIR=$HOME/.fdpm-cli");
     expect(MANUAL).toContain('"host": "fdpm-cli"');
+    expect(MANUAL).toContain("[`README.md`](../README.md)");
     expect(MANUAL).not.toContain("npm --prefix cli");
     expect(MANUAL).not.toContain("/path/to/repo/cli");
     expect(MANUAL).not.toContain("$HOME/.fdpm/data");
     expect(MANUAL).not.toContain("fdpm-fdpm-cli");
+    expect(MANUAL).not.toContain("[`README.md`](README.md)");
   });
 
   it("plugin READMEs keep current CLI verbs", () => {
@@ -44,6 +47,8 @@ describe("documentation drift regressions", () => {
   });
 
   it("software architecture README documents the shipped renderers", () => {
+    expect(SOFTWARE_ARCH_README).toContain("| Plugin version    | `1.1.0`");
+    expect(SOFTWARE_ARCH_README).toContain("the **manifest version** (`1.1.0`");
     expect(SOFTWARE_ARCH_README).toContain("sw:OpenAPIRenderer");
     expect(SOFTWARE_ARCH_README).toContain("sw:ADRRenderer");
     expect(SOFTWARE_ARCH_README).not.toContain("ships no executable renderers");
@@ -54,5 +59,25 @@ describe("documentation drift regressions", () => {
       "fdpm render my-spec text/markdown --renderer-id fs:SpecRenderer -o spec.md",
     );
     expect(FORMAL_SPEC_README).not.toContain("fdpm render --target text/markdown");
+  });
+
+  it("plugin README links stay inside existing nested package boundaries", () => {
+    for (const text of [FORMAL_SPEC_README, SOFTWARE_ARCH_README]) {
+      expect(text).toContain("[`../../../README.md`](../../../README.md)");
+      expect(text).not.toContain("[`../../README.md`](../../README.md)");
+      expect(text).not.toContain("../fs_v3_importer/");
+    }
+  });
+
+  it("zod-bridge README describes the current package surface", () => {
+    expect(ZOD_BRIDGE_README).toContain("`v0.4.0`");
+    expect(ZOD_BRIDGE_README).toContain("writePluginScaffold");
+    expect(ZOD_BRIDGE_README).toContain("zodSchemaToMarkdownRenderer");
+    expect(ZOD_BRIDGE_README).toContain("zodSchemaToImporter");
+    expect(ZOD_BRIDGE_README).toContain("zodSchemaToExporter");
+    expect(ZOD_BRIDGE_README).toContain("zodSchemaToExprHelper");
+    expect(ZOD_BRIDGE_README).not.toContain("All 49 tests pass");
+    expect(ZOD_BRIDGE_README).not.toContain("deferred to `v0.2.0`");
+    expect(ZOD_BRIDGE_README).not.toContain("../../../docs/howto-zod-to-fdpm-plugin");
   });
 });

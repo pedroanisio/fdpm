@@ -10,9 +10,8 @@ disclaimer:
 
 # `@fdpm/zod-bridge`
 
-> Deterministic, one-way translation from **Zod v4** schemas into FDPM
-> `PrimitiveTypeDef`s, CEL constraints, validators, and approval-page
-> descriptors.
+> Deterministic, one-way translation from **Zod v4** schemas plus a
+> `defineDomain()` sidecar into runnable FDPM plugin artefacts.
 
 ## Disclaimer
 
@@ -21,18 +20,18 @@ This work is subject to the methodological caveats and commitments described in 
 
 ## Status
 
-`v0.1.0` — core bridge functions implemented and tested. Optional-cap factories
-(`zodSchemaToMarkdownRenderer`, `zodSchemaToImporter`, `zodSchemaToExporter`,
-`zodSchemaToExprHelper`) are deferred to `v0.2.0`; the workbook §7 examples
-show how to hand-author them in the meantime.
+`v0.4.0` — sidecar-driven plugin emission is implemented and tested. The bridge
+now writes deterministic `generated/*.json` artefacts, `fdpm-plugin.json`, and
+`index.ts`, and derives the optional `cap:renderer`, `cap:importer`,
+`cap:exporter`, and `cap:expr-helper` surfaces from schemas.
 
 ## Specification
 
 This package is the reference implementation of the workbook
-[`howto-zod-to-fdpm-plugin`](fdpm://workbook/howto-zod-to-fdpm-plugin)
-(revision 179). Every claim the package makes — soundness, determinism,
-validator-Zod equivalence — is encoded as an `fs:FormalProperty` and verified
-by an `fs:TestCase` in the `tests/` directory.
+[`howto-zod-to-fdpm-plugin`](fdpm://workbook/howto-zod-to-fdpm-plugin).
+Every claim the package makes — sidecar validation, soundness, determinism,
+validator-Zod equivalence, round-trip I/O, and scaffold path safety — is
+covered by tests in the `tests/` directory.
 
 ## Install
 
@@ -47,7 +46,14 @@ npm install @fdpm/zod-bridge zod@^4
 
 ```ts
 import { z } from 'zod';
-import { assembleDomainProfile, stableStringify } from '@fdpm/zod-bridge';
+import {
+  assembleDomainProfile,
+  stableStringify,
+  zodSchemaToMarkdownRenderer,
+  zodSchemaToImporter,
+  zodSchemaToExporter,
+  zodSchemaToExprHelper,
+} from '@fdpm/zod-bridge';
 
 const Customer = z.object({
   id: z.string().regex(/^cust-[a-z0-9]+$/),
@@ -75,6 +81,28 @@ writeFileSync('generated/profile.json', stableStringify(result.profile));
 writeFileSync('generated/view-page.json', stableStringify(result.viewPage));
 writeFileSync('generated/product-page-bundle.json', stableStringify(result.productPage));
 writeFileSync('generated/migration-hints.json', stableStringify(result.migrationHints));
+
+// Optional capabilities can be derived from the same schema.
+const renderer = zodSchemaToMarkdownRenderer(Customer, {
+  primitive_type_id: 'acme:Customer',
+});
+const importer = zodSchemaToImporter(Customer, {
+  primitive_type_id: 'acme:Customer',
+  idFrom: (customer) => customer.id,
+  pluginId: 'acme.customers',
+  typeName: 'customer',
+});
+const exporter = zodSchemaToExporter(Customer, {
+  primitive_type_id: 'acme:Customer',
+  filename: () => 'customers.json',
+  pluginId: 'acme.customers',
+});
+const helper = zodSchemaToExprHelper(Customer, {
+  function_name: 'acme.isValidCustomer',
+  arity: 1,
+  arg_types: ['dyn'],
+  return_type: 'boolean',
+});
 ```
 
 ## What gets emitted
@@ -84,7 +112,9 @@ writeFileSync('generated/migration-hints.json', stableStringify(result.migration
 | `result.profile` | `DomainProfile` | Argument to `ctx.registerProfile()` at activation |
 | `result.viewPage` | `ViewPageDescriptor` | Served at `fdpm://plugin/<id>/view-page`; consumed by the web frontend |
 | `result.productPage` | `ProductPageBundle` | Structured facts for the README; drift-protected |
-| `result.migrationHints` | `MigrationHints` | Future `fdpm migrate` input ([`flag:auto-migration`](../../../docs/howto-zod-to-fdpm-plugin)) |
+| `result.migrationHints` | `MigrationHints` | Future migration input for `flag:auto-migration` |
+| `result.audit` | `SidecarAuditLog` | Classifications, overrides, divergences, and declared losses |
+| `result.uslNgCompanion` | `UslNgCompanion` | USL-NG Core companion sections from the sidecar |
 | `result.ruleIdsByType` | `Record<id, string[]>` | Closed set of rule_ids the validator may emit; goes verbatim into `manifest.capabilities[].metadata.rule_ids` |
 
 ## The 23 CEL translation rules
@@ -109,9 +139,9 @@ Refinements outside the table fall back to validator findings via `safeParse`.
 
 ## Feature flags
 
-Twelve `fs:Limitation` × `fs:DesignDecision` pairs in the workbook record
+Thirteen feature-flag states in the bridge output record
 *every* construct the bridge does not auto-translate, with a documented
-implementation path. Snapshot at `v0.1.0`:
+implementation path:
 
 | State | Flags |
 |---|---|
@@ -129,17 +159,20 @@ trigger_event`. Read those before opening an issue to lift a limitation.
 npm test
 ```
 
-Runs five suites mapping 1:1 to the workbook's `fs:TestCase` set:
+Runs the package regression suite:
 
-| Test file | Workbook TestCase | Property verified |
-|---|---|---|
-| `mapping.test.ts` | `testcase:bridge-mapping-table` | Field-mapping coverage |
-| `cel-translation.test.ts` | `testcase:cel-translation-table` | `property:cel-translation-soundness` |
-| `validator-equiv.test.ts` | `testcase:bridge-validator-equivalence` | `property:validator-zod-equivalence` |
-| `roundtrip.test.ts` | `testcase:bridge-roundtrip` | Importer/exporter round-trip |
-| `determinism.test.ts` | `testcase:bridge-determinism` | Byte-stable output for the CI gate |
-
-All 49 tests pass against `zod@4.4.3` + `@marcbachmann/cel-js@7.6.1`.
+| Test file | Property verified |
+|---|---|
+| `mapping.test.ts` | Field-mapping coverage |
+| `cel-translation.test.ts` | CEL translation soundness |
+| `validator-equiv.test.ts` | Validator/Zod equivalence |
+| `roundtrip.test.ts` | Importer/exporter round-trip |
+| `determinism.test.ts` | Byte-stable output for the CI gate |
+| `sidecar-validator.test.ts` | Sidecar parse-time validation |
+| `sidecar-orchestrator.test.ts` | Sidecar-driven artefact assembly |
+| `scaffold.test.ts` | File emission, path safety, and runnable plugin scaffold |
+| `pitch-deck-emit.test.ts`, `pitch-deck-trial.test.ts` | Production-schema emission path |
+| `classifier.test.ts`, `regressions.test.ts` | Lift classification and trial-surfaced bug fixes |
 
 ## Public API
 
@@ -153,6 +186,20 @@ function zodSchemaToValidator(schema, opts);
 function zodSchemaToCelConstraints(schema, ctx);
 function buildViewPageDescriptor(pluginId, primitives, opts, generatedAt);
 function buildProductPageBundle(args);
+
+// Sidecar input and full artefact assembly
+function defineDomain(domain);
+function assembleDomainProfileFromSidecar(args);
+
+// Optional capability derivation
+function zodSchemaToMarkdownRenderer(schema, opts);
+function zodSchemaToImporter(schema, opts);
+function zodSchemaToExporter(schema, opts);
+function zodSchemaToExprHelper(schema, opts);
+
+// File emission
+function writeArtefactsToDir(result, opts);
+function writePluginScaffold(result, opts);
 
 // Utility
 function stableStringify(value): string;
@@ -170,7 +217,7 @@ upgrading.
 
 ## Related
 
-- Workbook (spec): `howto-zod-to-fdpm-plugin` (revision 179)
+- Workbook (spec): `howto-zod-to-fdpm-plugin`
 - Plugin contract: `spec-plugin-authoring-howto`
 - Host CEL evaluator: `@marcbachmann/cel-js@^7`
 - Zod: `^4.0.0` (peer dep)

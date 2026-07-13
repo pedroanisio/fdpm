@@ -236,7 +236,7 @@ implemented.
   backup / restore / verify). Phase 1 of the R2 remote-server
   roadmap — the interface boundary a future `RemoteWorkspace` slots
   into without breaking local consumers.
-- **986 tests passing across 109 test files**. Coverage spans:
+- **Regression-tested implementation surface**. Coverage spans:
   - Core: meta-model, profile resolution (incl. `extends` chains for
     composition profiles), validation pipeline, verification gate,
     event-sourced replay, time-travel, undo (per kind), atomic batch
@@ -932,18 +932,18 @@ Everything listed in SPEC §20 (Out of Scope) plus:
 ## Adjacent packages
 
 - [`fdpm-cli/packages/zod-bridge`](fdpm-cli/packages/zod-bridge/) —
-  `@fdpm/zod-bridge@0.1.0`. Deterministic, one-way translation from Zod v4
-  schemas into FDPM `PrimitiveTypeDef`s, CEL constraints, validators, and
-  approval-page descriptors. Reference implementation of the workbook
-  `howto-zod-to-fdpm-plugin` (rev 179): the schema is the source of truth,
-  the profile and view-page are derivations, and the CI snapshot gate keeps
-  them in sync. Targets Zod v4 explicitly; the host CLI itself stays on
-  Zod v3 — they coexist via peer-dependency installation in the consuming
-  plugin package.
+  `@fdpm/zod-bridge@0.4.0`. Deterministic, one-way translation from Zod v4
+  schemas plus a `defineDomain()` sidecar into runnable FDPM plugins:
+  `DomainProfile`, validators, view/product pages, USL-NG Core companion
+  data, generated `fdpm-plugin.json` / `index.ts`, and schema-derived
+  renderer / importer / exporter / expr-helper capabilities. Reference
+  implementation of the workbook `howto-zod-to-fdpm-plugin`: the schema and
+  sidecar are the source of truth, generated artefacts are derivations, and
+  the bridge's snapshot gates keep them in sync.
 
 ## License
 
-Same as the parent workbook (see [../LICENSE](../LICENSE) if present).
+License file is not currently checked into this repository snapshot.
 
 ## See also
 
@@ -954,6 +954,5 @@ Same as the parent workbook (see [../LICENSE](../LICENSE) if present).
 - [docs/specs/SPEC-EXPRESSION-RUNTIME.md](docs/specs/SPEC-EXPRESSION-RUNTIME.md) — host CEL runtime + helper-set + Tier-A/B activation.
 - [docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) — companion SPEC; server-side capabilities implemented (see "Plugin runtime" above).
 - [docs/adrs/decisions.md](docs/adrs/decisions.md) — architectural decision records, generated from `sw:Decision` primitives by [fdpm-cli/scripts/build-adrs.ts](fdpm-cli/scripts/build-adrs.ts).
-- [fdpm-cli/references/python-sources/formal_specification.py](fdpm-cli/references/python-sources/formal_specification.py) — the Python source the formal_specification plugin ports.
 - [CLAUDE.md](CLAUDE.md) — workbook-level engineering rules.
 - [PURPOSE.md](PURPOSE.md) — repository purpose and non-goals.

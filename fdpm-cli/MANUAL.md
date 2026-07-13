@@ -24,7 +24,7 @@ the in-tree `formal-specification` plugin and the roadmap fixture
 (`roadmap-unified-v04.fs-v3.json`); copy-paste should work.
 
 For the full normative reference (every command, every flag, every option),
-see [`README.md`](README.md). For the SPEC, see
+see the repository [`README.md`](../README.md). For the SPEC, see
 [../docs/specs/SPEC-CORE.md](../docs/specs/SPEC-CORE.md) and
 [../docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md](../docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md).
 
@@ -869,6 +869,6 @@ points to the offending field; file a bug against the importer plugin.
 
 ---
 
-For the full normative reference, command-by-command, see
-[`README.md`](README.md). For the spec, see
+For the full normative reference, command-by-command, see the repository
+[`README.md`](../README.md). For the spec, see
 [../docs/specs/SPEC-CORE.md](../docs/specs/SPEC-CORE.md).

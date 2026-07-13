@@ -28,4 +28,9 @@ describe("MANUAL command coverage", () => {
     expect(MANUAL).toContain("## 17. Workbook-wide validation");
     expect(MANUAL).toContain("## 18. Diffing and migration");
   });
+
+  it("links back to the repository README from the nested CLI package", () => {
+    expect(MANUAL).toContain("[`README.md`](../README.md)");
+    expect(MANUAL).not.toContain("[`README.md`](README.md)");
+  });
 });

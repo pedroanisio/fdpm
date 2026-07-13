@@ -441,7 +441,8 @@ No host configuration beyond standard plugin enablement is required.
 
 Once the plugin is active, the FDPM CLI exposes its profile, primitives,
 relations, and renderers as first-class citizens. Example invocations
-(consult the top-level CLI [`README.md`](../../README.md) and `MANUAL.md`
+(consult the repository [`README.md`](../../../README.md) and
+[`fdpm-cli/MANUAL.md`](../../MANUAL.md)
 for authoritative flag reference):
 
 ```bash
@@ -608,8 +609,7 @@ profile is an architectural omission, not a workflow shortcut.
 
 ## See also
 
-- Top-level CLI: [`../../README.md`](../../README.md), [`../../MANUAL.md`](../../MANUAL.md)
+- Top-level CLI: [`../../../README.md`](../../../README.md), [`../../MANUAL.md`](../../MANUAL.md)
 - Sibling plugins:
-  - [`../fs_v3_importer/`](../fs_v3_importer/) — importer for legacy v3 documents
   - [`../software_architecture/`](../software_architecture/) — software architecture profile
 - Workbook root: [`../../../README.md`](../../../README.md), [`../../../PURPOSE.md`](../../../PURPOSE.md), [`../../../DISCLAIMER.md`](../../../DISCLAIMER.md)
