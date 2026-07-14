@@ -1,0 +1,185 @@
+{
+  "id": "profile:software-requirements:0.2",
+  "version": "0.2.0",
+  "name": "Software Requirements (SRS)",
+  "label": "Software Requirements",
+  "description": "Corpus-led Requirements Engineering model. Translates the Doc·Ray-grounded Zod SRS schema (plugins/software_requirements/schemas/software-requirements.ts) into an FDPM DomainProfile: a Software Requirements Specification decomposed into typed primitives (Specification, Requirement, Stakeholder, Agreement, ChangeRequest, GlossaryEntry, Baseline) and relations (traceability, provenance, agreement, change control, baselining). v0.2 downgrades two edge-existence rules (agreement-min-two-parties, baseline-min-one) from error to warning so Agreement/Baseline nodes are creatable before their edges are wired. Grounding anchors preserved in descriptions as (SOURCE, sN): MRK=Managing Requirements Knowledge, OOSE=Object-Oriented Software Engineering, SE=Software Engineering.",
+  "extends": [],
+  "categories": [
+    { "id": "srs:cat:specification", "name": "Specification", "label": "Specification", "description": "The SRS document, its shared vocabulary, and frozen baselines (OOSE s2068; MRK s23, s93)." },
+    { "id": "srs:cat:requirement", "name": "Requirement", "label": "Requirement", "description": "Individual requirements — statements of what the system must do/be (MRK s93, s138)." },
+    { "id": "srs:cat:stakeholder", "name": "Stakeholder", "label": "Stakeholder", "description": "Parties holding requirements knowledge and the public agreement events between them (MRK s683, s3626)." },
+    { "id": "srs:cat:change", "name": "Change Control", "label": "Change Control", "description": "Change requests controlled against requirement identity (MRK s117, s5021)." }
+  ],
+  "scopes": [],
+  "scope_sets": {},
+  "default_scope_set": "",
+  "inline_structs": [],
+  "primitive_types": [
+    {
+      "id": "srs:Specification",
+      "name": "Software Requirements Specification",
+      "description": "Root document: '…constraints are stated in a document, called the software requirements specification (SRS)' (OOSE s2068). Section skeleton follows the template at OOSE s2519 (Introduction → Purpose → intended audience).",
+      "category_id": "srs:cat:specification",
+      "scoped": false,
+      "is_partition_unit": true,
+      "id_format": { "pattern": "srs:spec:{slug}", "pattern_kind": "template", "uniqueness": "global" },
+      "inline_structs": [],
+      "constraints": [],
+      "fields": [
+        { "name": "project", "kind": "string", "required": true, "description": "Project the SRS specifies.", "validations": [] },
+        { "name": "version", "kind": "string", "required": true, "description": "SRS document version (semantic).", "validations": [] },
+        { "name": "date", "kind": "datetime", "required": true, "description": "Document date (ISO-8601).", "validations": [] },
+        { "name": "authors", "kind": "list", "required": true, "description": "Document authors.", "validations": [{ "kind": "min_items", "value": 1, "level": "error", "message": "an SRS must name at least one author" }], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } },
+        { "name": "purpose", "kind": "text", "required": true, "description": "'1.1 Purpose — Specify the purpose of the SRS and the intended audience' (OOSE s2519).", "validations": [{ "kind": "max_length", "value": 2000, "level": "error" }] },
+        { "name": "intended_audience", "kind": "list", "required": true, "description": "Intended audience of the SRS (OOSE s2519).", "validations": [{ "kind": "min_items", "value": 1, "level": "error", "message": "declare at least one intended audience (OOSE s2519)" }], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } },
+        { "name": "scope", "kind": "text", "required": true, "description": "Scope of the system under specification.", "validations": [{ "kind": "max_length", "value": 2000, "level": "error" }] },
+        { "name": "overview", "kind": "text", "required": false, "description": "Optional document overview.", "validations": [{ "kind": "max_length", "value": 2000, "level": "error" }] },
+        { "name": "references", "kind": "list", "required": false, "description": "Referenced documents / standards.", "validations": [], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } },
+        { "name": "assumptions", "kind": "list", "required": false, "description": "Assumed properties outside the system's control; RE covers desired properties AND constraints (MRK s94).", "validations": [], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } }
+      ]
+    },
+    {
+      "id": "srs:Requirement",
+      "name": "Requirement",
+      "description": "'A statement of what the system must …' (IEEE glossary, quoted at MRK s93); prefer shall-form (MRK s140). Classified functional / non-functional / constraint (MRK s138, s94).",
+      "category_id": "srs:cat:requirement",
+      "scoped": false,
+      "is_partition_unit": false,
+      "id_format": { "pattern": "^srs:req:REQ-[A-Z0-9]+-[0-9]{3,}$", "pattern_kind": "regex", "uniqueness": "workbook" },
+      "inline_structs": [],
+      "constraints": [],
+      "fields": [
+        { "name": "title", "kind": "string", "required": true, "description": "Short requirement title.", "validations": [{ "kind": "max_length", "value": 200, "level": "error" }] },
+        { "name": "statement", "kind": "text", "required": true, "description": "A statement of what the system must do/be (MRK s93); prefer shall-form (MRK s140).", "validations": [{ "kind": "max_length", "value": 4000, "level": "error" }] },
+        { "name": "kind", "kind": "enum", "required": true, "description": "Classification (MRK s138): functional / non-functional / constraint.", "enum_values": ["functional", "non-functional", "constraint"], "validations": [] },
+        { "name": "nfr_category", "kind": "enum", "required": false, "description": "ISO/IEC 25010-style quality characteristic. Required when kind = non-functional [STD-1].", "enum_values": ["performance", "reliability", "availability", "security", "usability", "maintainability", "portability", "scalability", "compatibility", "safety"], "validations": [] },
+        { "name": "rationale", "kind": "text", "required": true, "description": "Why this requirement exists — externalized tacit knowledge (MRK s29). Unexplained requirements are unmanaged knowledge.", "validations": [{ "kind": "max_length", "value": 2000, "level": "error" }] },
+        { "name": "priority", "kind": "enum", "required": true, "description": "MoSCoW priority; corpus fixes only that priorities are managed annotations (MRK s205) [STD-2].", "enum_values": ["must", "should", "could", "wont"], "validations": [] },
+        { "name": "status", "kind": "enum", "required": false, "default": "proposed", "description": "Lifecycle: proposed → analyzed → agreed (public agreement, MRK s3626) → baselined (MRK s23) → implemented → verified; or rejected.", "enum_values": ["proposed", "analyzed", "agreed", "baselined", "implemented", "verified", "rejected"], "validations": [] },
+        { "name": "acceptance_criteria", "kind": "list", "required": true, "description": "Concrete criteria enabling acceptance (OOSE s2079); at least one — an unverifiable requirement cannot reach 'verified'.", "validations": [{ "kind": "min_items", "value": 1, "level": "error", "message": "at least one acceptance criterion is required (OOSE s2079)" }], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } },
+        { "name": "verification", "kind": "enum", "required": false, "default": "test", "description": "V&V method [STD-3].", "enum_values": ["test", "inspection", "analysis", "demonstration"], "validations": [] },
+        { "name": "elicitation", "kind": "enum", "required": false, "description": "How the knowledge was surfaced; elicitation confronts unshared expertise (MRK s683).", "enum_values": ["interview", "workshop", "observation", "document-analysis", "prototype", "other"], "validations": [] },
+        { "name": "source_reference", "kind": "string", "required": false, "description": "Originating document / regulation / ticket (provenance is requirements knowledge, MRK part I).", "validations": [] },
+        { "name": "attributes", "kind": "json", "required": false, "description": "Managed requirement attributes — open extension point (MRK s5021).", "validations": [] },
+        { "name": "open_issues", "kind": "list", "required": false, "default": [], "description": "Acknowledged ambiguities / unresolved questions; ambiguity is managed, not denied (MRK s674).", "validations": [], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } },
+        { "name": "notes", "kind": "list", "required": false, "default": [], "description": "Informal annotations — first-class knowledge carriers (MRK s205).", "validations": [], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } },
+        { "name": "version", "kind": "integer", "required": false, "default": 1, "description": "Requirement revision number; incremented per accepted change (change control, MRK s5021/s117).", "validations": [] }
+      ]
+    },
+    {
+      "id": "srs:Stakeholder",
+      "name": "Stakeholder",
+      "description": "A party holding requirements knowledge; elicitation must surface knowledge 'stakeholders immersed in their problem domain often fail' to share (MRK s683).",
+      "category_id": "srs:cat:stakeholder",
+      "scoped": false,
+      "is_partition_unit": false,
+      "id_format": { "pattern": "^srs:stk:STK-[0-9]{2,}$", "pattern_kind": "regex", "uniqueness": "workbook" },
+      "inline_structs": [],
+      "constraints": [],
+      "fields": [
+        { "name": "name", "kind": "string", "required": true, "description": "Stakeholder name.", "validations": [{ "kind": "max_length", "value": 200, "level": "error" }] },
+        { "name": "role", "kind": "string", "required": true, "description": "e.g. customer, end user, developer, regulator.", "validations": [] },
+        { "name": "concerns", "kind": "list", "required": false, "default": [], "description": "What this stakeholder cares about (MRK s683).", "validations": [], "item_field": { "name": "item", "kind": "string", "required": true, "validations": [] } },
+        { "name": "tacit_knowledge_notes", "kind": "text", "required": false, "description": "Externalized tacit knowledge captured during elicitation (MRK s29, s683).", "validations": [{ "kind": "max_length", "value": 2000, "level": "error" }] }
+      ]
+    },
+    {
+      "id": "srs:Agreement",
+      "name": "Agreement",
+      "description": "'The agreement to a requirement is public and made when programmers are looking into the eyes of the customer' (MRK s3626). Agreement is an EVENT with parties (→ srs:AgreedBy), not just a status value.",
+      "category_id": "srs:cat:stakeholder",
+      "scoped": false,
+      "is_partition_unit": false,
+      "id_format": { "pattern": "srs:agr:{slug}", "pattern_kind": "template", "uniqueness": "workbook" },
+      "inline_structs": [],
+      "constraints": [],
+      "fields": [
+        { "name": "date", "kind": "datetime", "required": true, "description": "Date the public agreement was made (ISO-8601).", "validations": [] },
+        { "name": "note", "kind": "text", "required": false, "description": "Optional note on the agreement.", "validations": [{ "kind": "max_length", "value": 1000, "level": "error" }] }
+      ]
+    },
+    {
+      "id": "srs:ChangeRequest",
+      "name": "Change Request",
+      "description": "'Change requests are often used to refer to changes on requirements' (MRK s117). Controlled against requirement identity (MRK s5021).",
+      "category_id": "srs:cat:change",
+      "scoped": false,
+      "is_partition_unit": false,
+      "id_format": { "pattern": "^srs:cr:CR-[0-9]{3,}$", "pattern_kind": "regex", "uniqueness": "workbook" },
+      "inline_structs": [],
+      "constraints": [],
+      "fields": [
+        { "name": "date", "kind": "datetime", "required": true, "description": "Date the change was requested (ISO-8601).", "validations": [] },
+        { "name": "author", "kind": "string", "required": true, "description": "Who requested the change.", "validations": [{ "kind": "max_length", "value": 200, "level": "error" }] },
+        { "name": "description", "kind": "text", "required": true, "description": "What the change requests.", "validations": [{ "kind": "max_length", "value": 2000, "level": "error" }] },
+        { "name": "impact", "kind": "text", "required": false, "description": "Analyzed impact on related requirements (via trace links).", "validations": [{ "kind": "max_length", "value": 2000, "level": "error" }] },
+        { "name": "resolution", "kind": "enum", "required": false, "default": "pending", "description": "Change resolution.", "enum_values": ["pending", "accepted", "rejected"], "validations": [] }
+      ]
+    },
+    {
+      "id": "srs:GlossaryEntry",
+      "name": "Glossary Entry",
+      "description": "Shared vocabulary; the corpus itself grounds 'requirement' in the IEEE standard glossary (MRK s93).",
+      "category_id": "srs:cat:specification",
+      "scoped": false,
+      "is_partition_unit": false,
+      "id_format": { "pattern": "srs:term:{slug}", "pattern_kind": "template", "uniqueness": "workbook" },
+      "inline_structs": [],
+      "constraints": [],
+      "fields": [
+        { "name": "term", "kind": "string", "required": true, "description": "Defined term.", "validations": [] },
+        { "name": "definition", "kind": "text", "required": true, "description": "Definition of the term.", "validations": [{ "kind": "max_length", "value": 1000, "level": "error" }] }
+      ]
+    },
+    {
+      "id": "srs:Baseline",
+      "name": "Baseline",
+      "description": "A frozen, agreed set of requirements (baseline as community anchor, MRK s23; agreement is public, MRK s3626).",
+      "category_id": "srs:cat:specification",
+      "scoped": false,
+      "is_partition_unit": false,
+      "id_format": { "pattern": "srs:baseline:{slug}", "pattern_kind": "template", "uniqueness": "workbook" },
+      "inline_structs": [],
+      "constraints": [],
+      "fields": [
+        { "name": "name", "kind": "string", "required": true, "description": "Baseline name.", "validations": [] },
+        { "name": "date", "kind": "datetime", "required": true, "description": "Date the baseline was frozen (ISO-8601).", "validations": [] },
+        { "name": "note", "kind": "text", "required": false, "description": "Optional note on the baseline.", "validations": [{ "kind": "max_length", "value": 1000, "level": "error" }] }
+      ]
+    }
+  ],
+  "relation_types": [
+    { "id": "srs:RelatedTo", "name": "RelatedTo", "description": "Verbatim corpus trace relation 'RelatedTo other requirements' (MRK s3133).", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": true, "transitive": false, "fields": [{ "name": "note", "kind": "text", "required": false, "description": "Optional annotation on the trace link.", "validations": [{ "kind": "max_length", "value": 500, "level": "error" }] }] },
+    { "id": "srs:DependsOn", "name": "DependsOn", "description": "Requirement dependency; dependency types enable reasoning over relationships (MRK s357) [STD-4]. Must be acyclic.", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": false, "transitive": true, "fields": [{ "name": "note", "kind": "text", "required": false, "description": "Optional annotation on the trace link.", "validations": [{ "kind": "max_length", "value": 500, "level": "error" }] }] },
+    { "id": "srs:DerivedFrom", "name": "DerivedFrom", "description": "This requirement was derived from the target (MRK s357) [STD-4]. Must be acyclic.", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": false, "transitive": true, "fields": [{ "name": "note", "kind": "text", "required": false, "description": "Optional annotation on the trace link.", "validations": [{ "kind": "max_length", "value": 500, "level": "error" }] }] },
+    { "id": "srs:Refines", "name": "Refines", "description": "This requirement refines the target into greater detail (MRK s357) [STD-4]. Must be acyclic.", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": false, "transitive": true, "fields": [{ "name": "note", "kind": "text", "required": false, "description": "Optional annotation on the trace link.", "validations": [{ "kind": "max_length", "value": 500, "level": "error" }] }] },
+    { "id": "srs:ConflictsWith", "name": "ConflictsWith", "description": "Symmetric conflict between requirements; consistency must be resolved (SE s3207; MRK s357) [STD-4].", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": true, "transitive": false, "fields": [{ "name": "note", "kind": "text", "required": false, "description": "Optional annotation on the trace link.", "validations": [{ "kind": "max_length", "value": 500, "level": "error" }] }] },
+    { "id": "srs:Duplicates", "name": "Duplicates", "description": "Symmetric duplication between requirements (MRK s357) [STD-4].", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": true, "transitive": false, "fields": [{ "name": "note", "kind": "text", "required": false, "description": "Optional annotation on the trace link.", "validations": [{ "kind": "max_length", "value": 500, "level": "error" }] }] },
+    { "id": "srs:Satisfies", "name": "Satisfies", "description": "This requirement satisfies the target (MRK s357) [STD-4].", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": false, "transitive": false, "fields": [{ "name": "note", "kind": "text", "required": false, "description": "Optional annotation on the trace link.", "validations": [{ "kind": "max_length", "value": 500, "level": "error" }] }] },
+    { "id": "srs:ElicitedFrom", "name": "ElicitedFrom", "description": "Provenance: the stakeholder from whom this requirement was elicited (MRK s683).", "source_types": ["srs:Requirement"], "target_types": ["srs:Stakeholder"], "cardinality": "many-to-one", "symmetric": false, "transitive": false, "fields": [] },
+    { "id": "srs:ReusedFrom", "name": "ReusedFrom", "description": "Provenance: the requirement this one was reused from; reused requirements carry their trace relations with them (MRK s3133).", "source_types": ["srs:Requirement"], "target_types": ["srs:Requirement"], "cardinality": "many-to-one", "symmetric": false, "transitive": false, "fields": [] },
+    { "id": "srs:HasAgreement", "name": "HasAgreement", "description": "The public agreement event behind status 'agreed' (MRK s3626).", "source_types": ["srs:Requirement"], "target_types": ["srs:Agreement"], "cardinality": "one-to-one", "symmetric": false, "transitive": false, "fields": [] },
+    { "id": "srs:AgreedBy", "name": "AgreedBy", "description": "Parties to a public agreement; requires at least the customer side and the builder side (MRK s3626).", "source_types": ["srs:Agreement"], "target_types": ["srs:Stakeholder"], "cardinality": "many-to-many", "symmetric": false, "transitive": false, "fields": [] },
+    { "id": "srs:ChangesRequirement", "name": "ChangesRequirement", "description": "A change request targeting a requirement; accepted changes drive version increments (MRK s117, s5021).", "source_types": ["srs:ChangeRequest"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": false, "transitive": false, "fields": [] },
+    { "id": "srs:Baselines", "name": "Baselines", "description": "A baseline freezes a set of requirements (MRK s23).", "source_types": ["srs:Baseline"], "target_types": ["srs:Requirement"], "cardinality": "many-to-many", "symmetric": false, "transitive": false, "fields": [] },
+    { "id": "srs:Includes", "name": "Includes", "description": "Document spine: the SRS includes its requirements, stakeholders, agreements, change requests, glossary entries, and baselines (OOSE s2068).", "source_types": ["srs:Specification"], "target_types": ["srs:Requirement", "srs:Stakeholder", "srs:Agreement", "srs:ChangeRequest", "srs:GlossaryEntry", "srs:Baseline"], "cardinality": "one-to-many", "symmetric": false, "transitive": false, "fields": [] }
+  ],
+  "validation_rules": [
+    { "id": "srs:val:nfr-requires-category", "name": "Non-functional requirement needs a category", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "field(kind) != 'non-functional' or non_trivial(nfr_category)", "expression": "!has(instance.field_values.kind) || instance.field_values.kind != 'non-functional' || (has(instance.field_values.nfr_category) && type(instance.field_values.nfr_category) == string && instance.field_values.nfr_category.trim().size() > 0)", "description": "Non-functional requirements need an nfr_category (MRK s138 classification + [STD-1])." },
+    { "id": "srs:val:category-only-nfr", "name": "nfr_category only for non-functional", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "is_empty(nfr_category) or field(kind) == 'non-functional'", "expression": "!has(instance.field_values.nfr_category) || type(instance.field_values.nfr_category) != string || instance.field_values.nfr_category.trim().size() == 0 || (has(instance.field_values.kind) && instance.field_values.kind == 'non-functional')", "description": "nfr_category is only meaningful for non-functional requirements." },
+    { "id": "srs:val:statement-non-trivial", "name": "Requirement must have a statement", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "non_trivial(statement)", "expression": "has(instance.field_values.statement) && type(instance.field_values.statement) == string && instance.field_values.statement.trim().size() > 0", "description": "Every requirement is a statement of what the system must do/be (MRK s93)." },
+    { "id": "srs:val:rationale-non-trivial", "name": "Requirement must have a rationale", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "non_trivial(rationale)", "expression": "has(instance.field_values.rationale) && type(instance.field_values.rationale) == string && instance.field_values.rationale.trim().size() > 0", "description": "Unexplained requirements are unmanaged knowledge — rationale externalizes tacit knowledge (MRK s29)." },
+    { "id": "srs:val:acceptance-min-one", "name": "Requirement must have acceptance criteria", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "min_items(acceptance_criteria, 1)", "expression": "has(instance.field_values.acceptance_criteria) && type(instance.field_values.acceptance_criteria) == list && instance.field_values.acceptance_criteria.size() >= 1", "description": "An unverifiable requirement cannot reach 'verified' (OOSE s2079)." },
+    { "id": "srs:val:agreed-requires-agreement", "name": "Agreed-or-beyond status requires a public agreement", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "field(status) not in {agreed, baselined, implemented, verified} or has_outgoing(srs:HasAgreement)", "expression": "!has(instance.field_values.status) || !(instance.field_values.status == 'agreed' || instance.field_values.status == 'baselined' || instance.field_values.status == 'implemented' || instance.field_values.status == 'verified') || graph.outgoing(\"srs:HasAgreement\").size() >= 1", "description": "Status 'agreed' or beyond requires a recorded public agreement (MRK s3626)." },
+    { "id": "srs:val:frozen-no-open-issues", "name": "Baselined/verified requirement cannot carry open issues", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "field(status) not in {baselined, verified} or is_empty(open_issues)", "expression": "!has(instance.field_values.status) || !(instance.field_values.status == 'baselined' || instance.field_values.status == 'verified') || !has(instance.field_values.open_issues) || instance.field_values.open_issues.size() == 0", "description": "Resolve or descope open issues before baselining/verifying (MRK s674 + s23)." },
+    { "id": "srs:val:agreement-min-two-parties", "name": "Agreement requires at least two parties", "level": "warning", "applies_to": ["srs:Agreement"], "targets": ["srs:Agreement"], "predicate": "min_outgoing(srs:AgreedBy, 2)", "expression": "graph.outgoing(\"srs:AgreedBy\").size() >= 2", "description": "A public agreement requires at least the customer side and the builder side (MRK s3626). WARNING, not error: AgreedBy edges are wired after the Agreement node is created, so this can only hold once parties are attached — a hard error would make Agreement uncreatable. Surfaced on the full-workbook validate pass." },
+    { "id": "srs:val:dependson-acyclic", "name": "DependsOn must be acyclic", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "acyclic(srs:DependsOn)", "expression": "graph.acyclic(\"srs:DependsOn\")", "description": "Requirement dependency graph must be a DAG; a cycle (including a self-dependency) is a defect (SE s3207)." },
+    { "id": "srs:val:refines-acyclic", "name": "Refines must be acyclic", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "acyclic(srs:Refines)", "expression": "graph.acyclic(\"srs:Refines\")", "description": "Refinement is hierarchical; the Refines graph must be a DAG (no self-refinement or cycles)." },
+    { "id": "srs:val:derivedfrom-acyclic", "name": "DerivedFrom must be acyclic", "level": "error", "applies_to": ["srs:Requirement"], "targets": ["srs:Requirement"], "predicate": "acyclic(srs:DerivedFrom)", "expression": "graph.acyclic(\"srs:DerivedFrom\")", "description": "Derivation is directional; the DerivedFrom graph must be a DAG (no self-derivation or cycles)." },
+    { "id": "srs:val:baseline-min-one", "name": "Baseline must freeze at least one requirement", "level": "warning", "applies_to": ["srs:Baseline"], "targets": ["srs:Baseline"], "predicate": "min_outgoing(srs:Baselines, 1)", "expression": "graph.outgoing(\"srs:Baselines\").size() >= 1", "description": "A baseline references at least one requirement (MRK s23). WARNING, not error: Baselines edges are wired after the Baseline node is created — a hard error would make Baseline uncreatable. Surfaced on the full-workbook validate pass." }
+  ],
+  "renderers": [],
+  "renderer_bindings": [],
+  "templates": []
+}
