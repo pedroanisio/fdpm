@@ -10,6 +10,51 @@ import {
 } from "./metadata.js";
 
 /**
+ * Text rendering for `profile list --resolved`: one block per profile showing
+ * the type hierarchy (category → primitive types) plus the extends chain and
+ * relation types. The JSON form carries the full profiles; this is the
+ * human-readable projection of the same data.
+ */
+function renderProfileHierarchy(profiles: readonly DomainProfile[]): string {
+  if (profiles.length === 0) return "(no profiles)";
+
+  const blocks = profiles.map((p) => {
+    const label = p.label ?? p.name;
+    const lines: string[] = [`${p.id}@${p.version}${label ? `  ${label}` : ""}`];
+
+    const ext = p.extends ?? [];
+    if (ext.length > 0) lines.push(`  extends: ${ext.join(", ")}`);
+
+    const categoryName = new Map<string, string>();
+    for (const c of p.categories ?? []) {
+      categoryName.set(c.id, c.label ?? c.name ?? c.id);
+    }
+
+    const byCategory = new Map<string, string[]>();
+    for (const t of p.primitive_types ?? []) {
+      const cid = t.category_id ?? t.category ?? "(uncategorized)";
+      (byCategory.get(cid) ?? byCategory.set(cid, []).get(cid)!).push(t.id);
+    }
+
+    if (byCategory.size === 0) {
+      lines.push("  (no primitive types)");
+    } else {
+      for (const [cid, ids] of byCategory) {
+        const name = categoryName.get(cid);
+        lines.push(`  ${cid}${name && name !== cid ? `  ${name}` : ""}`);
+        for (const id of ids) lines.push(`    ${id}`);
+      }
+    }
+
+    const relations = (p.relation_types ?? []).map((r) => r.id);
+    lines.push(`  relations: ${relations.length > 0 ? relations.join(", ") : "(none)"}`);
+    return lines.join("\n");
+  });
+
+  return blocks.join("\n\n");
+}
+
+/**
  * Profile commands — §9.1 GET /profiles, /profiles/{id}, /profiles/{id}/raw.
  *
  * Plus a `register` command (CLI-only convenience: takes a JSON profile
@@ -23,9 +68,24 @@ export function buildProfileCommand(host: Host): Command {
   cmd
     .command("list")
     .description("List registered profiles (§9.1 GET /profiles)")
+    .option(
+      "--resolved",
+      "emit every profile fully resolved (types, relations, fields) instead of summaries — the 'get all' form",
+    )
+    .option("--raw", "with --resolved: return raw (unresolved) profiles")
     .option("--json", "emit JSON")
     .action((opts) => {
       const ctx: OutputContext = { json: !!opts.json };
+
+      if (opts.resolved) {
+        const ids = host.profiles.listRaw().map((p) => p.id);
+        const profiles = ids.map((id) =>
+          opts.raw ? host.profiles.getRaw(id) : host.profiles.getResolved(id),
+        );
+        emit(ctx, { profiles }, () => renderProfileHierarchy(profiles));
+        return;
+      }
+
       const profiles = host.profiles.listRaw().map((p) => ({
         id: p.id,
         version: p.version,
