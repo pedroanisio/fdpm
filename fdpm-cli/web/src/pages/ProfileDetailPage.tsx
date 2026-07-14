@@ -44,7 +44,16 @@ export function ProfileDetailPage({ id }: Props) {
     <article className="profile-detail">
       <a href="#/plugins" className="back">← Plugins</a>
       <header className="profile-hero">
-        <h1>{profile.label}</h1>
+        <div className="profile-hero-top">
+          <h1>{profile.label}</h1>
+          <a
+            className="doc-export-link"
+            href={`#/profile-doc/${encodeURIComponent(profile.id)}`}
+            title="Open a polished, print-ready reference document for this profile"
+          >
+            Export as document
+          </a>
+        </div>
         <div className="profile-hero-meta">
           <code>{profile.id}</code>
           <span className="sep">·</span>

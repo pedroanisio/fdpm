@@ -3,6 +3,7 @@ import { WorkbooksPage } from "./pages/WorkbooksPage";
 import { PluginsPage } from "./pages/PluginsPage";
 import { PluginDetailPage } from "./pages/PluginDetailPage";
 import { ProfileDetailPage } from "./pages/ProfileDetailPage";
+import { ProfileDocumentPage } from "./pages/ProfileDocumentPage";
 import { WorkbookDetail } from "./components/WorkbookDetail";
 import { ThemeToggle } from "./components/ThemeToggle";
 
@@ -12,7 +13,8 @@ type Route =
   | { kind: "workbook"; id: string }
   | { kind: "plugins" }
   | { kind: "plugin"; id: string }
-  | { kind: "profile"; id: string };
+  | { kind: "profile"; id: string }
+  | { kind: "profile-doc"; id: string };
 
 /** Last route, kept so that non-route hashes (in-page anchors like
  *  `#prim-section-3` produced by template TOC links) do NOT throw the user
@@ -31,6 +33,7 @@ function parseHash(): Route {
   if (h === "#/plugins")   { lastRoute = { kind: "plugins" };   return lastRoute; }
   if (h.startsWith("#/wb/"))      { lastRoute = { kind: "workbook", id: decodeURIComponent(h.slice("#/wb/".length)) }; return lastRoute; }
   if (h.startsWith("#/plugin/"))  { lastRoute = { kind: "plugin",   id: decodeURIComponent(h.slice("#/plugin/".length)) }; return lastRoute; }
+  if (h.startsWith("#/profile-doc/")) { lastRoute = { kind: "profile-doc", id: decodeURIComponent(h.slice("#/profile-doc/".length)) }; return lastRoute; }
   if (h.startsWith("#/profile/")) { lastRoute = { kind: "profile",  id: decodeURIComponent(h.slice("#/profile/".length)) }; return lastRoute; }
   // Non-route hash (in-page anchor) — keep current route so :target can do its job.
   return lastRoute;
@@ -51,7 +54,7 @@ export function App() {
 
   const navActive = (kind: "workbooks" | "plugins") =>
     (kind === "workbooks" && (route.kind === "home" || route.kind === "workbooks" || route.kind === "workbook")) ||
-    (kind === "plugins" && (route.kind === "plugins" || route.kind === "plugin" || route.kind === "profile"));
+    (kind === "plugins" && (route.kind === "plugins" || route.kind === "plugin" || route.kind === "profile" || route.kind === "profile-doc"));
 
   return (
     <div className="layout">
@@ -82,6 +85,8 @@ export function App() {
           <PluginDetailPage id={route.id} />
         ) : route.kind === "profile" ? (
           <ProfileDetailPage id={route.id} />
+        ) : route.kind === "profile-doc" ? (
+          <ProfileDocumentPage id={route.id} />
         ) : null}
       </main>
     </div>

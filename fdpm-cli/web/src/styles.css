@@ -2402,3 +2402,379 @@ dl.kv dd { margin: 0; word-break: break-word; }
   color: var(--text-dim);
   font-style: italic;
 }
+
+/* ============================================================================
+ * Profile document export (print-ready reference)
+ *
+ * The `.doc` element is a self-contained "sheet of paper": it renders with a
+ * fixed light palette regardless of the app theme, so it reads as a document
+ * on screen and matches the browser's print-to-PDF output exactly. App chrome
+ * (`.topbar`, `.no-print`, toolbars) is hidden when printing.
+ * ==========================================================================*/
+
+/* Export entry point on the profile detail hero */
+.profile-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.doc-export-link,
+.doc-export-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.doc-export-link:hover,
+.doc-export-btn:hover {
+  text-decoration: none;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: var(--accent);
+}
+
+/* Document page shell (screen) */
+.doc-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 16px 64px;
+}
+.doc-toolbar {
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+}
+.doc-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.doc-toolbar-hint {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* The sheet of paper — theme-independent light palette */
+.doc {
+  --ink: #1a1d24;
+  --paper: #ffffff;
+  --doc-muted: #55607a;
+  --doc-rule: #dcdfe6;
+  --doc-accent: #1f3d7a;
+  --doc-code-bg: #f4f5f8;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  display: block;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--doc-rule);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(20, 30, 50, 0.18);
+  padding: 56px 60px;
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.doc h1,
+.doc h2,
+.doc h3 {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  line-height: 1.2;
+}
+.doc code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--doc-code-bg);
+  border: 1px solid var(--doc-rule);
+  border-radius: 4px;
+  padding: 0.5px 5px;
+}
+.doc a { color: var(--doc-accent); }
+
+/* Cover */
+.doc-cover {
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 22px;
+  margin-bottom: 28px;
+}
+.doc-eyebrow {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--doc-accent);
+  margin-bottom: 10px;
+}
+.doc-title {
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.doc-subtitle {
+  font-size: 17px;
+  color: var(--doc-muted);
+  margin: 0 0 20px;
+  max-width: 60ch;
+}
+.doc-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 32px;
+  margin: 0;
+}
+.doc-meta-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  border-bottom: 1px dotted var(--doc-rule);
+  padding: 4px 0;
+}
+.doc-meta-row dt {
+  flex: none;
+  width: 118px;
+  color: var(--doc-muted);
+  font-weight: 600;
+}
+.doc-meta-row dd {
+  margin: 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Table of contents */
+.doc-toc {
+  margin: 0 0 30px;
+  padding: 18px 22px;
+  background: var(--doc-code-bg);
+  border: 1px solid var(--doc-rule);
+  border-radius: 8px;
+}
+.doc-toc h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--doc-muted);
+  margin: 0 0 12px;
+}
+.doc-toc-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 32px;
+}
+.doc-toc-col h3 {
+  font-size: 13px;
+  margin: 0 0 6px;
+  color: var(--doc-accent);
+}
+.doc-toc-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 24px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+}
+.doc-toc-col li { break-inside: avoid; margin-bottom: 3px; }
+
+/* Sections */
+.doc-section { margin-bottom: 34px; }
+.doc-section > h2 {
+  font-size: 21px;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 6px;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.doc-count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--paper);
+  background: var(--doc-accent);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+.doc-empty { color: var(--doc-muted); font-style: italic; }
+
+/* Type entries */
+.doc-entry {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--doc-rule);
+  border-left: 3px solid var(--doc-accent);
+  border-radius: 6px;
+  background: #fcfcfd;
+}
+.doc-entry-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 6px;
+}
+.doc-entry-name { font-size: 17px; margin: 0; font-weight: 700; }
+.doc-entry-id {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.doc-badge,
+.doc-tag {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.doc-badge { background: #eef2fb; color: var(--doc-accent); border: 1px solid #cdd8f0; }
+.doc-tag { background: var(--doc-code-bg); color: var(--doc-muted); border: 1px solid var(--doc-rule); }
+.doc-entry-desc { margin: 6px 0 12px; }
+.doc-idformat { font-family: var(--font-sans); font-size: 12.5px; margin: 0 0 12px; }
+.doc-inline-label {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--doc-muted);
+  margin-right: 6px;
+}
+.doc-dim { color: var(--doc-muted); }
+
+/* Relation signature */
+.doc-relation-signature {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+}
+.doc-typeset { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.doc-typeset code { font-size: 11.5px; }
+.doc-arrow { color: var(--doc-accent); font-weight: 700; }
+.doc-any { font-style: italic; }
+
+/* Field table */
+.doc-nofields { color: var(--doc-muted); font-style: italic; font-size: 13px; margin: 4px 0 0; }
+.doc-fields {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  margin-top: 4px;
+}
+.doc-fields th {
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  color: var(--doc-muted);
+  border-bottom: 1.5px solid var(--doc-rule);
+  padding: 4px 8px;
+}
+.doc-fields td {
+  vertical-align: top;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--doc-rule);
+}
+.doc-fields th:nth-child(3),
+.doc-fields td.doc-req { text-align: center; width: 44px; color: var(--doc-accent); }
+.doc-fieldtype { white-space: normal; }
+.doc-kind {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink);
+}
+.doc-enum { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.doc-enum-val {
+  font-size: 10.5px;
+  padding: 0.5px 5px;
+  background: var(--paper);
+}
+
+/* Footer */
+.doc-footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--doc-rule);
+  font-family: var(--font-sans);
+}
+.doc-footer-provenance { font-size: 12px; color: var(--doc-muted); margin: 0 0 8px; }
+.doc-footer-provenance code { font-size: 11px; }
+.doc-footer-disclaimer { font-size: 10.5px; color: var(--doc-muted); line-height: 1.5; margin: 0; }
+
+@media (max-width: 720px) {
+  .doc { padding: 32px 22px; }
+  .doc-meta,
+  .doc-toc-cols { grid-template-columns: 1fr; }
+  .doc-toc-col ul { columns: 1; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Print — hide app chrome, lay the sheet flat, control page breaks.
+ * ------------------------------------------------------------------------- */
+@media print {
+  @page { size: A4; margin: 16mm 15mm; }
+
+  .topbar,
+  .no-print,
+  .doc-toolbar,
+  .doc-export-link { display: none !important; }
+
+  html, body { background: #ffffff !important; }
+  .layout { display: block !important; }
+  main { padding: 0 !important; margin: 0 !important; }
+  .doc-page { max-width: none; margin: 0; padding: 0; }
+
+  .doc {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    font-size: 10.5pt;
+  }
+
+  .doc-entry { break-inside: avoid; background: #fcfcfd !important; }
+  .doc-cover { break-after: avoid; }
+  .doc-section > h2,
+  .doc-entry-head { break-after: avoid; }
+  .doc-toc { break-inside: avoid; }
+  .doc-fields thead { display: table-header-group; }
+  .doc-fields tr { break-inside: avoid; }
+  .doc-footer { break-before: auto; }
+  .doc a { color: var(--ink); }
+}
