@@ -1,0 +1,25 @@
+{
+  "id": "fdpm.software-requirements",
+  "version": "0.2.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Software Requirements",
+  "description": "Software Requirements Specification profile generated from plugins/software_requirements/schemas/software-requirements.ts. Registers SRS primitives, traceability relations, provenance, agreement, change-control, and baseline validation rules.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.2,<2"
+  },
+  "permissions": [
+    "read:workbooks",
+    "read:primitives",
+    "read:relations"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "software-requirements",
+      "entry": "PROFILE"
+    }
+  ]
+}

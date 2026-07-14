@@ -101,6 +101,17 @@ export const RequirementStatus = z.enum([
 /** [STD-3] standard V&V methods. */
 export const VerificationMethod = z.enum(["test", "inspection", "analysis", "demonstration"]);
 
+/**
+ * First-class provenance ranking for requirement origin.
+ *
+ * Operator-origin requirements are primary evidence because they are captured
+ * from the accountable operator's explicit statement. AI-generated and derived
+ * requirements are secondary: useful, but lower-provenance until the operator
+ * promotes or agrees them through the normal lifecycle.
+ */
+export const RequirementOriginClass = z.enum(["operator", "ai_generated", "derived"]);
+export const ProvenanceRank = z.enum(["primary", "secondary"]);
+
 /* ------------------------------ traceability ----------------------------- */
 
 /** `RelatedTo` is corpus-verbatim (MRK, s3133); the rest extend the corpus's
@@ -183,6 +194,13 @@ export const Requirement = z
     priority: Priority,                                      // [STD-2]
     status: RequirementStatus.default("proposed"),
 
+    originClass: RequirementOriginClass
+      .describe("First-class requirement origin: operator is primary evidence; ai_generated and derived are secondary provenance."),
+    provenanceRank: ProvenanceRank
+      .describe("Provenance weight assigned from originClass: operator -> primary; ai_generated/derived -> secondary."),
+    originNote: z.string().optional()
+      .describe("Human-readable provenance note, including capture date, prompt/source, or derivation context."),
+
     acceptanceCriteria: z.array(z.string().min(5)).min(1)
       .describe("Concrete criteria enabling acceptance (OOSE, s2079); at least one — an unverifiable requirement cannot reach 'verified'"),
     verification: VerificationMethod.default("test"),        // [STD-3]
@@ -220,6 +238,12 @@ export const Requirement = z
     if (r.kind !== "non-functional" && r.nfrCategory)
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["nfrCategory"],
         message: "nfrCategory is only meaningful for non-functional requirements" });
+    if (r.originClass === "operator" && r.provenanceRank !== "primary")
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["provenanceRank"],
+        message: "operator-origin requirements must carry primary provenance" });
+    if ((r.originClass === "ai_generated" || r.originClass === "derived") && r.provenanceRank !== "secondary")
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["provenanceRank"],
+        message: "AI-generated and derived requirements must carry secondary provenance until operator-promoted" });
     // a requirement cannot be 'verified' with no acceptance criteria met-path
     if (r.status === "verified" && r.acceptanceCriteria.length === 0)
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["status"],
