@@ -7,6 +7,9 @@ import {
   patchRelation,
   deletePrimitive,
   deleteRelation,
+  previewPrimitiveDelete,
+  previewRelationDelete,
+  previewWorkbookDelete,
 } from "../src/sdk.js";
 import { FDPMException } from "../src/core/errors/fdpm-exception.js";
 
@@ -255,5 +258,33 @@ describe("edit helpers compose with defineProject", () => {
     expect(slice.relations["rel:1"]).toBeUndefined();
     // para:1 survives — only section:b and rel:1 were removed.
     expect(slice.primitives["para:1"]).toBeDefined();
+  });
+});
+
+// -- delete previews (dry-run surface) ----------------------------------
+
+describe("preview*Delete — the SDK dry-run surface", () => {
+  it("previewPrimitiveDelete reports referencing relations and appends nothing", async () => {
+    const host = await seedHost();
+    const WB = host.listProjects()[0]!.id;
+    await host.createPrimitive(WB, {
+      id: "section:pv",
+      type_id: "test:section",
+      field_values: { title: "PV", number: 9 },
+    });
+    await host.createPrimitive(WB, { id: "para:pv", type_id: "test:para", field_values: { text: "t" } });
+    await host.createRelation(WB, {
+      id: "rel:pv",
+      type_id: "test:rel:contains",
+      source_id: "section:pv",
+      target_id: "para:pv",
+      field_values: {},
+    });
+    const before = host.getLog(WB).length;
+    const p = previewPrimitiveDelete(host, { workbook: WB, id: "section:pv" });
+    expect(p.referencing_relations.map((r) => r.id)).toEqual(["rel:pv"]);
+    expect(host.getLog(WB).length).toBe(before);
+    expect(previewRelationDelete(host, { workbook: WB, id: "rel:pv" }).target_id).toBe("para:pv");
+    expect(previewWorkbookDelete(host, { workbook: WB }).relation_count).toBeGreaterThanOrEqual(1);
   });
 });

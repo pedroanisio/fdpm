@@ -59,4 +59,7 @@ export {
   type DeleteResult,
   type RenderOptions,
   type RenderResult,
+  previewPrimitiveDelete,
+  previewRelationDelete,
+  previewWorkbookDelete,
 } from "./sdk.js";

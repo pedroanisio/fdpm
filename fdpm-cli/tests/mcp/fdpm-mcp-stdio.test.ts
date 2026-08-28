@@ -142,6 +142,37 @@ describe("fdpm-mcp over stdio — catalog budget end to end", () => {
         expect(guideContent.text).toBe(SERVER_INSTRUCTIONS);
         expect(templates.resourceTemplates.map((t) => t.uriTemplate)).toContain(GUIDE_URI);
 
+        // §8.7 — dry_run is a preview: it passes the (disabled) destructive
+        // gate over the wire and appends nothing; the real call still refuses.
+        const created = await client.callTool({
+          name: "fdpm.workbook.create",
+          arguments: { workbook_id: "wb-e2e", name: "E2E", profile_id: "core:empty" },
+        });
+        expect(created.isError).toBe(false);
+        const preview = await client.callTool({
+          name: "fdpm.workbook.delete",
+          arguments: { workbook_id: "wb-e2e", dry_run: true },
+        });
+        expect(preview.isError).toBe(false);
+        const previewOut = preview.structuredContent as unknown as {
+          ok: boolean;
+          dry_run: boolean;
+          would_affect: { workbook_id: string; primitive_count: number };
+        };
+        expect(previewOut.dry_run).toBe(true);
+        expect(previewOut.would_affect.workbook_id).toBe("wb-e2e");
+        expect(previewOut.would_affect.primitive_count).toBe(0);
+        const refused = await client.callTool({
+          name: "fdpm.workbook.delete",
+          arguments: { workbook_id: "wb-e2e", idempotency_key: "e2e-1" },
+        });
+        expect(refused.isError).toBe(true);
+        const refusedOut = refused.structuredContent as unknown as { error: { evidence: { reason: string } } };
+        expect(refusedOut.error.evidence.reason).toBe("destructive_disabled");
+        const stillThere = await client.callTool({ name: "fdpm.workbook.list", arguments: {} });
+        const wbs = (stillThere.structuredContent as unknown as { workbooks: Array<{ id: string }> }).workbooks;
+        expect(wbs.map((w) => w.id)).toContain("wb-e2e");
+
         const rejected = await client.callTool({
           name: "fdpm.profile.register",
           arguments: { profile: { id: "not a valid id", version: "x" } },

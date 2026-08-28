@@ -160,3 +160,54 @@ describe("audit log — completeness and validation_status", () => {
     expect(completes[0]!.ok).toBe(false);
   });
 });
+
+describe("SPEC-MCP-SERVER §8.7 — pre-execution audit for Tier-3 calls", () => {
+  it("the start entry (intent) lands before the handler runs and carries tier, idempotency_key and dry_run", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "fdpm-audit-t3-"));
+    try {
+      const host = new Host({ dataDir: null, noPlugins: true });
+      await host.load();
+      await host.registerProfile(TEST_PROFILE);
+      await host.createProject({ workbook_id: "wb-a", name: "A", profile_id: TEST_PROFILE.id });
+      await host.createPrimitive("wb-a", {
+        id: "section:x",
+        type_id: "test:section",
+        field_values: { title: "X", number: 1 },
+      });
+      const audit = new McpAuditLog(dir);
+      const ctx: DispatchCtx = {
+        session: createSession({ maxPerMinute: 600 }),
+        enableDestructive: true,
+        enabledPlugins: new Set(),
+        auditFullArgs: false,
+        hostOptions: { dataDir: null, noPlugins: true },
+      };
+      const d = createDispatcher(host, ctx, audit);
+      await d.call("fdpm.primitive.delete", { workbook_id: "wb-a", id: "section:x", idempotency_key: "audit-1" });
+      const lines = readFileSync(join(dir, "mcp-audit.jsonl"), "utf8")
+        .split("\n")
+        .filter((l) => l.length > 0)
+        .map((l) => JSON.parse(l) as Record<string, unknown>);
+      expect(lines.map((e) => e["phase"])).toEqual(["start", "complete"]);
+      expect(lines[0]).toMatchObject({
+        tool: "fdpm.primitive.delete",
+        tier: "destructive",
+        idempotency_key: "audit-1",
+        dry_run: false,
+      });
+      expect(lines[1]).toMatchObject({ ok: true, validation_status: "n/a" });
+      expect(lines[1]!["replayed"]).toBeUndefined();
+      // Tier-1/2 entries stay unchanged: no tier/key fields.
+      await d.call("fdpm.health", {});
+      const after = readFileSync(join(dir, "mcp-audit.jsonl"), "utf8")
+        .split("\n")
+        .filter((l) => l.length > 0)
+        .map((l) => JSON.parse(l) as Record<string, unknown>);
+      const healthStart = after.find((e) => e["tool"] === "fdpm.health" && e["phase"] === "start")!;
+      expect(healthStart["tier"]).toBeUndefined();
+      expect(healthStart["idempotency_key"]).toBeUndefined();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

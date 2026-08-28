@@ -54,7 +54,7 @@ export const SERVER_INSTRUCTIONS: string = [
   `- replace tools accept expected_revision (If-Match): conflict on drift. patch tools validate only the touched paths.`,
   ``,
   `DESTRUCTIVE TOOLS`,
-  `Deletes cannot be undone by another tool call. When disabled they carry a ⚠ DISABLED banner in their description. Delete relations before the primitives they reference.`,
+  `Deletes cannot be undone by another tool call. When disabled they carry a ⚠ DISABLED banner in their description. Every real delete call MUST carry \`idempotency_key\` (any unique string): the same key with the same arguments replays the recorded result instead of running twice, so retries are safe; the same key with different arguments is refused (conflict/idempotency_key_reused); keys expire after 5 minutes. \`dry_run: true\` previews the would-affect set (what is removed, which relations reference it), appends nothing, needs no key, and works even while destructive tools are disabled — show that preview to the operator before asking for --enable-destructive. Delete relations before the primitives they reference.`,
   ``,
   `RUNTIME STATE`,
   `fdpm.health reports the manifest version, whether destructive tools are enabled, the catalog byte measurement against its budget, and this text's size. Profiles are metadata: fdpm.profile.register writes no operation-log entry.`,

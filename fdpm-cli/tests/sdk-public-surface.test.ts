@@ -28,6 +28,10 @@ describe("SDK public surface", () => {
       "patchRelation",
       "deletePrimitive",
       "deleteRelation",
+      // Dry-run previews — added with Tier-3 hardening (SPEC-MCP-SERVER §8.7).
+      "previewPrimitiveDelete",
+      "previewRelationDelete",
+      "previewWorkbookDelete",
     ];
     for (const name of expected) {
       expect(

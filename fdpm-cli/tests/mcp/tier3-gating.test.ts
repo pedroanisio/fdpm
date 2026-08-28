@@ -148,6 +148,7 @@ describe("Tier 3 — dispatch refusal when destructive is off (SPEC §23.1)", ()
     const before = host.getLog("p1").length;
 
     const result = await dispatcher.call("fdpm.workbook.delete", {
+      idempotency_key: "gating-1",
       workbook_id: "p1",
     });
 
@@ -168,6 +169,7 @@ describe("Tier 3 — dispatch refusal when destructive is off (SPEC §23.1)", ()
     const ctx = makeCtx({ enableDestructive: false });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.primitive.delete", {
+      idempotency_key: "gating-2",
       workbook_id: "p1",
       id: "section:does-not-matter",
     });
@@ -185,6 +187,7 @@ describe("Tier 3 — dispatch refusal when destructive is off (SPEC §23.1)", ()
     const ctx = makeCtx({ enableDestructive: false });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.relation.delete", {
+      idempotency_key: "gating-3",
       workbook_id: "p1",
       id: "rel:nope",
     });
@@ -207,6 +210,7 @@ describe("Tier 3 — dispatch success when destructive is enabled", () => {
     const before = host.getLog("p1").length;
 
     const result = await dispatcher.call("fdpm.workbook.delete", {
+      idempotency_key: "gating-4",
       workbook_id: "p1",
     });
 
@@ -231,6 +235,7 @@ describe("Tier 3 — dispatch success when destructive is enabled", () => {
     const ctx = makeCtx({ enableDestructive: true });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.primitive.delete", {
+      idempotency_key: "gating-5",
       workbook_id: "p1",
       id: "section:missing",
     });
@@ -256,6 +261,7 @@ describe("Tier 3 — confirmation-token mode (SPEC §9.3)", () => {
     });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.workbook.delete", {
+      idempotency_key: "gating-6",
       workbook_id: "p1",
     });
     expect(result.isError).toBe(true);
@@ -277,6 +283,7 @@ describe("Tier 3 — confirmation-token mode (SPEC §9.3)", () => {
     });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.workbook.delete", {
+      idempotency_key: "gating-7",
       workbook_id: "p1",
       _confirmation_token: "wrong",
     });
@@ -298,6 +305,7 @@ describe("Tier 3 — confirmation-token mode (SPEC §9.3)", () => {
     });
     const dispatcher = createDispatcher(host, ctx, null);
     const result = await dispatcher.call("fdpm.workbook.delete", {
+      idempotency_key: "gating-8",
       workbook_id: "p1",
       _confirmation_token: "secret-1",
     });

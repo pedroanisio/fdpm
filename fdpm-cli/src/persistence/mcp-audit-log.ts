@@ -41,6 +41,15 @@ export interface McpAuditStartEntry {
   tool: string;
   args_hash: string;
   args?: unknown;
+  /**
+   * Tier-3 intent fields (SPEC-MCP-SERVER §8.7). Present only for
+   * destructive tools, so a reviewer can see BEFORE the outcome entry
+   * what was about to be deleted, under which key, and whether it was
+   * a preview.
+   */
+  tier?: "destructive";
+  idempotency_key?: string;
+  dry_run?: boolean;
 }
 
 export interface McpAuditCompleteEntry {
@@ -56,6 +65,10 @@ export interface McpAuditCompleteEntry {
   validation_status: "pass" | "fail" | "n/a";
   error_category?: string;
   error_reason?: string;
+  /** §8.7: the result was replayed from the idempotency cache; no handler ran. */
+  replayed?: boolean;
+  /** §8.7: a dry-run preview; nothing was appended. */
+  dry_run?: boolean;
 }
 
 /**

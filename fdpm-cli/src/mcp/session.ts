@@ -1,7 +1,7 @@
 /**
  * MCP per-session state — SPEC-MCP-SERVER §9.3 / §10 / §21.
  *
- * Two responsibilities live here:
+ * Three responsibilities live here:
  *
  *   1. The token bucket (§9.3 / §21 per-session rate limit). One session
  *      per spawned MCP server process in v0.1 (stdio is inherently
@@ -22,6 +22,10 @@
  *
  *      The map is purely in-memory; SIGHUP / `Host.reload()` clears it
  *      (see `clearFreshnessMap`) so the next call re-seeds.
+ *
+ *   3. The Tier-3 idempotency cache (§8.7). `(tool, idempotency_key)` →
+ *      the first execution's result, TTL-bounded and capped, so a retried
+ *      delete replays instead of running twice. See `IdempotencyCache`.
  */
 
 import { mintUid } from "../core/identity/uid.js";
@@ -47,10 +51,44 @@ interface FreshnessEntry {
   size: bigint;
 }
 
+/**
+ * Idempotency cache for Tier-3 calls (SPEC-MCP-SERVER §8.7).
+ *
+ * Keyed by `(tool, idempotency_key)`; each entry pins the args hash it
+ * was first seen with and a promise of the dispatcher's final
+ * `CallToolResult`. A pending promise lets concurrent same-key calls
+ * coalesce onto one execution; a settled one is replayed. Entries
+ * expire after `ttlMs` (pruned lazily on access) and the map is capped
+ * (oldest evicted) so a long session cannot grow it without bound.
+ */
+export interface IdempotencyEntry<R = unknown> {
+  args_hash: string;
+  first_seen_at: number;
+  promise: Promise<R>;
+}
+
+export interface IdempotencyCache<R = unknown> {
+  /** Look up a live entry; expired entries are pruned first. */
+  lookup(key: string): IdempotencyEntry<R> | undefined;
+  /** Register a pending execution under `key`. */
+  register(key: string, args_hash: string, promise: Promise<R>): void;
+  /** Number of live entries. */
+  size(): number;
+  /** Maximum number of entries retained. */
+  capacity(): number;
+  /** Time-to-live in milliseconds. */
+  ttlMs(): number;
+}
+
+export const IDEMPOTENCY_TTL_MS = 5 * 60 * 1000;
+export const IDEMPOTENCY_CAPACITY = 1_000;
+
 export interface McpSession {
   readonly id: string;
   readonly firstSeen: number;
   readonly rateLimiter: TokenBucketLike;
+  /** Tier-3 idempotency cache (§8.7). */
+  readonly idempotency: IdempotencyCache;
   /**
    * Record (or refresh) the (mtime_ns, size) tuple for each workbook_id.
    * Called on first encounter and after a successful tail-replay /
@@ -127,16 +165,71 @@ class TokenBucket implements TokenBucketLike {
   }
 }
 
+class IdempotencyCacheImpl implements IdempotencyCache {
+  private readonly entries = new Map<string, IdempotencyEntry>();
+  private readonly ttl: number;
+  private readonly cap: number;
+
+  constructor(ttlMs: number, capacity: number) {
+    if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
+      throw new Error(`IdempotencyCache: ttlMs must be a positive finite number, got ${ttlMs}`);
+    }
+    this.ttl = ttlMs;
+    this.cap = capacity;
+  }
+
+  private prune(now: number): void {
+    for (const [key, entry] of this.entries) {
+      if (now - entry.first_seen_at > this.ttl) this.entries.delete(key);
+    }
+  }
+
+  lookup(key: string): IdempotencyEntry | undefined {
+    this.prune(Date.now());
+    return this.entries.get(key);
+  }
+
+  register(key: string, args_hash: string, promise: Promise<unknown>): void {
+    const now = Date.now();
+    this.prune(now);
+    this.entries.set(key, { args_hash, first_seen_at: now, promise });
+    // Map iteration is insertion-ordered: evict the oldest beyond the cap.
+    while (this.entries.size > this.cap) {
+      const oldest = this.entries.keys().next().value;
+      if (oldest === undefined) break;
+      this.entries.delete(oldest);
+    }
+  }
+
+  size(): number {
+    this.prune(Date.now());
+    return this.entries.size;
+  }
+
+  capacity(): number {
+    return this.cap;
+  }
+
+  ttlMs(): number {
+    return this.ttl;
+  }
+}
+
 class SessionImpl implements McpSession {
   readonly id: string;
   readonly firstSeen: number;
   readonly rateLimiter: TokenBucketLike;
+  readonly idempotency: IdempotencyCache;
   private readonly freshness: Map<string, FreshnessEntry>;
 
-  constructor(opts: { maxPerMinute: number }) {
+  constructor(opts: { maxPerMinute: number; idempotencyTtlMs?: number; idempotencyCapacity?: number }) {
     this.id = mintUid();
     this.firstSeen = Date.now();
     this.rateLimiter = new TokenBucket(opts.maxPerMinute);
+    this.idempotency = new IdempotencyCacheImpl(
+      opts.idempotencyTtlMs ?? IDEMPOTENCY_TTL_MS,
+      opts.idempotencyCapacity ?? IDEMPOTENCY_CAPACITY,
+    );
     this.freshness = new Map();
   }
 
@@ -196,6 +289,12 @@ function statOrSentinel(
   return { mtime_ns: stat.mtime_ns, size: stat.size };
 }
 
-export function createSession(opts: { maxPerMinute: number }): McpSession {
+export function createSession(opts: {
+  maxPerMinute: number;
+  /** Tier-3 idempotency TTL; default IDEMPOTENCY_TTL_MS (5 min). Test seam. */
+  idempotencyTtlMs?: number;
+  /** Tier-3 idempotency cache cap; default IDEMPOTENCY_CAPACITY (1,000). Test seam. */
+  idempotencyCapacity?: number;
+}): McpSession {
   return new SessionImpl(opts);
 }

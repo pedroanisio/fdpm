@@ -166,7 +166,7 @@ describe("dispatcher — tier gate (destructive)", () => {
       name: "fdpm.test.destruct",
       tier: "destructive" as const,
       description: "synthetic tier-3 for tests",
-      input: z.object({}).strict(),
+      input: z.object({ idempotency_key: z.string() }).strict(),
       output: z.object({ ok: z.literal(true) }).strict(),
       annotations: { destructiveHint: true },
       handler: async () => {
@@ -178,7 +178,7 @@ describe("dispatcher — tier gate (destructive)", () => {
       name === fakeTool.name ? (fakeTool as never) : null,
     );
 
-    const result = await dispatcher.call("fdpm.test.destruct", {});
+    const result = await dispatcher.call("fdpm.test.destruct", { idempotency_key: "syn-1" });
     expect(handlerRan).toBe(true);
     expect(result.isError).toBe(false);
   });

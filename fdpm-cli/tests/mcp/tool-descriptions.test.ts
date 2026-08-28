@@ -154,3 +154,12 @@ describe("tool descriptions — dedup contract (SPEC-MCP-SERVER §8.6)", () => {
     }
   });
 });
+
+describe("tool descriptions — Tier-3 hardening contract (SPEC-MCP-SERVER §8.7)", () => {
+  it("every Tier-3 description names dry_run and idempotency_key (the mechanics live in the server guide)", () => {
+    for (const t of TIER_3_TOOLS) {
+      expect(t.description, `${t.name} must mention dry_run`).toMatch(/dry_run/);
+      expect(t.description, `${t.name} must mention idempotency_key`).toMatch(/idempotency_key/);
+    }
+  });
+});

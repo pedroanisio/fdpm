@@ -656,6 +656,47 @@ export async function deleteRelation(
   return { revision: out.project_revision };
 }
 
+// -- Delete previews (dry-run surface) ---------------------------------
+//
+// The SDK face of the core delete-preview module: what a delete would
+// remove and what references it, as a pure read. The MCP tools' `dry_run`
+// and the CLI's `--dry-run` call the same functions.
+
+import {
+  previewPrimitiveDelete as corePreviewPrimitiveDelete,
+  previewRelationDelete as corePreviewRelationDelete,
+  previewWorkbookDelete as corePreviewWorkbookDelete,
+  type PrimitiveDeletePreview,
+  type RelationDeletePreview,
+  type WorkbookDeletePreview,
+} from "./core/operations/delete-preview.js";
+
+export type { PrimitiveDeletePreview, RelationDeletePreview, WorkbookDeletePreview };
+
+/** Preview a primitive delete: the primitive and every relation that references it. Throws `not_found`. */
+export function previewPrimitiveDelete(
+  host: Host,
+  args: { workbook: string; id: string },
+): PrimitiveDeletePreview {
+  return corePreviewPrimitiveDelete(host, args.workbook, args.id);
+}
+
+/** Preview a relation delete: type and endpoints. Throws `not_found`. */
+export function previewRelationDelete(
+  host: Host,
+  args: { workbook: string; id: string },
+): RelationDeletePreview {
+  return corePreviewRelationDelete(host, args.workbook, args.id);
+}
+
+/** Preview a workbook delete: counts of what would be removed. Throws `not_found`. */
+export function previewWorkbookDelete(
+  host: Host,
+  args: { workbook: string },
+): WorkbookDeletePreview {
+  return corePreviewWorkbookDelete(host, args.workbook);
+}
+
 /**
  * Flat-args options for `renderProject`.
  *

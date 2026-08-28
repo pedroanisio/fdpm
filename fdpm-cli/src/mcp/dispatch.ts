@@ -6,12 +6,21 @@
  *
  *   1. Resolve tool by name.
  *   2. Tier gate (destructive-tier off → permission/destructive_disabled).
+ *      A Tier-3 call with `dry_run: true` (strict boolean) is a preview
+ *      with no side effect: it passes this gate and the confirmation
+ *      gate (§8.7).
  *   3. Per-session rate limit (excess → permission/rate_limited).
  *   4. Freshness check.
  *      - Tier 1 (lenient): silent `host.reloadProjectTail` then continue.
  *      - Tier 2/3 (strict): refuse with `permission` + reason `stale_state`.
  *   5. Input schema validation.
- *   6. Audit-start log entry.
+ *   5b. Tier-3 idempotency (§8.7): a real (non-dry-run) destructive call
+ *       MUST carry `idempotency_key`; `(tool, key)` is looked up in the
+ *       session cache — same args → replay the recorded result (no
+ *       handler run, audit `replayed: true`); different args →
+ *       conflict/idempotency_key_reused; pending → coalesce.
+ *   6. Audit-start log entry (Tier-3: tier, idempotency_key, dry_run —
+ *      the intent record, written BEFORE the handler runs).
  *   7. Handler call (try/catch).
  *   8. Audit-complete log entry (ok/error, duration, validation_status).
  *   9. Return MCP CallToolResult shape.
@@ -114,8 +123,19 @@ async function dispatchOne(
     return errorResult(env);
   }
 
-  // 2. Tier gate. Tier 3 tools may only run when explicitly enabled.
-  if (tool.tier === "destructive" && !ctx.enableDestructive) {
+  // Tier-3 preview detection (§8.7). Only a strict boolean `true` on the
+  // raw args counts — a truthy string must not open the gate. The input
+  // schema re-validates the field below.
+  const isDestructive = tool.tier === "destructive";
+  const dryRun =
+    isDestructive &&
+    typeof rawArgs === "object" &&
+    rawArgs !== null &&
+    (rawArgs as Record<string, unknown>)["dry_run"] === true;
+
+  // 2. Tier gate. Tier 3 tools may only run when explicitly enabled;
+  // a dry-run preview appends nothing and passes.
+  if (isDestructive && !dryRun && !ctx.enableDestructive) {
     const env = errorEnvelope(
       new FDPMException(
         "permission",
@@ -142,7 +162,7 @@ async function dispatchOne(
   let argsForValidation: unknown = rawArgs;
   if (
     ctx.requireConfirmationToken === true &&
-    (tool.tier === "validating_write" || tool.tier === "destructive")
+    (tool.tier === "validating_write" || (isDestructive && !dryRun))
   ) {
     const provided =
       typeof rawArgs === "object" && rawArgs !== null
@@ -293,8 +313,74 @@ async function dispatchOne(
     return errorResult(env);
   }
 
-  // 6. Audit-start.
-  writeStart(audit, ctx, tool.name, callId, argsHashEarly, parsed.data);
+  // 5b. Tier-3 idempotency (§8.7). Gate refusals above are never cached;
+  // only what the handler decides is.
+  const auditExtra: AuditStartExtra | undefined = isDestructive
+    ? {
+        tier: "destructive",
+        dry_run: dryRun,
+        ...(dryRun
+          ? {}
+          : { idempotency_key: (parsed.data as { idempotency_key?: string }).idempotency_key }),
+      }
+    : undefined;
+  let settle: ((result: CallToolResult) => void) | null = null;
+  if (isDestructive && !dryRun) {
+    const key = (parsed.data as { idempotency_key?: unknown }).idempotency_key;
+    if (typeof key !== "string" || key.length === 0) {
+      const env = errorEnvelope(
+        new FDPMException("validation", `idempotency_key is required for ${tool.name}`, {
+          evidence: { reason: "idempotency_key_required", tool: tool.name },
+        }),
+      );
+      writeStartAndComplete(audit, ctx, tool.name, callId, argsHashEarly, rawArgs, {
+        ok: false,
+        duration_ms: Date.now() - start,
+        validation_status: "n/a",
+        error_category: env.category,
+        error_reason: reasonOf(env),
+      }, auditExtra);
+      return errorResult(env);
+    }
+    const cacheKey = `${tool.name}\u0000${key}`;
+    const argsHashForKey = hashArgs(argsForValidation);
+    const hit = ctx.session.idempotency.lookup(cacheKey);
+    if (hit !== undefined) {
+      if (hit.args_hash !== argsHashForKey) {
+        const env = errorEnvelope(
+          new FDPMException(
+            "conflict",
+            `idempotency_key ${JSON.stringify(key)} was already used for ${tool.name} with different arguments`,
+            { evidence: { reason: "idempotency_key_reused", tool: tool.name } },
+          ),
+        );
+        writeStartAndComplete(audit, ctx, tool.name, callId, argsHashEarly, rawArgs, {
+          ok: false,
+          duration_ms: Date.now() - start,
+          validation_status: "n/a",
+          error_category: env.category,
+          error_reason: reasonOf(env),
+        }, auditExtra);
+        return errorResult(env);
+      }
+      // Same key, same args: replay (or coalesce onto the in-flight call).
+      const replayed = (await hit.promise) as CallToolResult;
+      writeStartAndComplete(audit, ctx, tool.name, callId, argsHashEarly, rawArgs, {
+        ok: !replayed.isError,
+        duration_ms: Date.now() - start,
+        validation_status: "n/a",
+        replayed: true,
+      }, auditExtra);
+      return replayed;
+    }
+    const pending = new Promise<CallToolResult>((resolve) => {
+      settle = resolve;
+    });
+    ctx.session.idempotency.register(cacheKey, argsHashForKey, pending);
+  }
+
+  // 6. Audit-start — for Tier-3 this is the intent record (§8.7).
+  writeStart(audit, ctx, tool.name, callId, argsHashEarly, parsed.data, auditExtra);
 
   // Capture project_ids again so the success/error finalizers can
   // re-seed the freshness map after a Tier-2 write — without this,
@@ -302,7 +388,9 @@ async function dispatchOne(
   // because every append changes (mtime_ns, size).
   const project_ids_for_seed = resolveProjectIds(host, tool.name, rawArgs);
 
-  // 7. Handler invocation.
+  // 7. Handler invocation. The outcome — success or handler error — is
+  // what the idempotency entry records; `settle` is always called.
+  let outcome: CallToolResult;
   try {
     const result = await tool.handler(host, parsed.data, ctx);
     if (
@@ -313,7 +401,7 @@ async function dispatchOne(
       // from this session sees its own write as fresh, not stale.
       ctx.session.markFresh(host, project_ids_for_seed);
     }
-    return finalizeSuccess(
+    outcome = finalizeSuccess(
       audit,
       ctx,
       tool,
@@ -322,6 +410,7 @@ async function dispatchOne(
       parsed.data,
       start,
       result,
+      dryRun,
     );
   } catch (err) {
     if (
@@ -334,8 +423,10 @@ async function dispatchOne(
       // and idempotent regardless.
       ctx.session.markFresh(host, project_ids_for_seed);
     }
-    return finalizeError(audit, ctx, tool, callId, argsHashEarly, parsed.data, start, err);
+    outcome = finalizeError(audit, ctx, tool, callId, argsHashEarly, parsed.data, start, err);
   }
+  if (settle !== null) (settle as (r: CallToolResult) => void)(outcome);
+  return outcome;
 }
 
 /**
@@ -385,6 +476,7 @@ function finalizeSuccess(
   args: unknown,
   start: number,
   result: unknown,
+  dryRun: boolean = false,
 ): CallToolResult {
   // Tier-2 envelope detection: handlers return the SPEC §8.2 shape;
   // dispatcher decides between "happy" and "rejected by §7" based on
@@ -412,6 +504,7 @@ function finalizeSuccess(
     ok: true,
     duration_ms: Date.now() - start,
     validation_status: validationStatusFor(tool.tier, true),
+    ...(dryRun ? { dry_run: true } : {}),
   });
   return {
     content: [{ type: "text", text: JSON.stringify(result) }],
@@ -523,6 +616,13 @@ function errorResult(env: ErrorEnvelope): CallToolResult {
 
 // -- Audit-log helpers ------------------------------------------------
 
+/** Tier-3 intent fields recorded on the start entry (§8.7). */
+interface AuditStartExtra {
+  tier: "destructive";
+  dry_run: boolean;
+  idempotency_key?: string;
+}
+
 function writeStart(
   audit: McpAuditLog | null,
   ctx: DispatchCtx,
@@ -530,6 +630,7 @@ function writeStart(
   callId: string,
   argsHash: string,
   args: unknown,
+  extra?: AuditStartExtra,
 ): void {
   if (audit === null) return;
   const entry: McpAuditStartEntry = {
@@ -541,6 +642,11 @@ function writeStart(
     args_hash: argsHash,
   };
   if (ctx.auditFullArgs) entry.args = args;
+  if (extra !== undefined) {
+    entry.tier = extra.tier;
+    entry.dry_run = extra.dry_run;
+    if (extra.idempotency_key !== undefined) entry.idempotency_key = extra.idempotency_key;
+  }
   audit.write(entry);
 }
 
@@ -557,6 +663,8 @@ function writeComplete(
     validation_status: "pass" | "fail" | "n/a";
     error_category?: string;
     error_reason?: string;
+    replayed?: boolean;
+    dry_run?: boolean;
   },
 ): void {
   if (audit === null) return;
@@ -574,6 +682,8 @@ function writeComplete(
   if (ctx.auditFullArgs) entry.args = args;
   if (fields.error_category !== undefined) entry.error_category = fields.error_category;
   if (fields.error_reason !== undefined) entry.error_reason = fields.error_reason;
+  if (fields.replayed === true) entry.replayed = true;
+  if (fields.dry_run === true) entry.dry_run = true;
   audit.write(entry);
 }
 
@@ -590,9 +700,12 @@ function writeStartAndComplete(
     validation_status: "pass" | "fail" | "n/a";
     error_category?: string;
     error_reason?: string;
+    replayed?: boolean;
+    dry_run?: boolean;
   },
+  extra?: AuditStartExtra,
 ): void {
-  writeStart(audit, ctx, tool, callId, argsHash, args);
+  writeStart(audit, ctx, tool, callId, argsHash, args, extra);
   writeComplete(audit, ctx, tool, callId, argsHash, args, fields);
 }
 

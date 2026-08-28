@@ -15,18 +15,31 @@
 import { z } from "zod";
 import type { McpToolEntry } from "../types.js";
 import { Operation } from "../../core/operations/operation.js";
+import { PrimitiveDeletePreview, previewPrimitiveDelete } from "../../core/operations/delete-preview.js";
 
 const Input = z
   .object({
     workbook_id: z.string().min(1),
     id: z.string().min(1),
+    dry_run: z
+      .boolean()
+      .optional()
+      .describe("Preview: return would_affect, append nothing."),
+    idempotency_key: z
+      .string()
+      .min(1)
+      .max(200)
+      .optional()
+      .describe("Required unless dry_run; reuse to retry safely."),
   })
   .strict();
 
 const Output = z
   .object({
     ok: z.literal(true),
-    operation: Operation,
+    operation: Operation.optional(),
+    dry_run: z.literal(true).optional(),
+    would_affect: PrimitiveDeletePreview.optional(),
     post_state_summary: z
       .object({
         workbook_id: z.string(),
@@ -40,11 +53,19 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.primitive.delete",
   tier: "destructive",
   description:
-    "Delete a primitive by id within a workbook. Cannot be undone by another tool call; returns the recorded operation.",
+    "Delete a primitive by id within a workbook. Cannot be undone by another tool call; returns the recorded operation. Supports `dry_run` (preview, no key, allowed while disabled); otherwise `idempotency_key` is required — see the server guide.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: true },
   handler: async (host, args) => {
+    if (args.dry_run === true) {
+      return {
+        ok: true as const,
+        dry_run: true as const,
+        would_affect: previewPrimitiveDelete(host, args.workbook_id, args.id),
+        post_state_summary: { workbook_id: args.workbook_id, id: args.id },
+      };
+    }
     const append = await host.deletePrimitive(args.workbook_id, args.id);
     return {
       ok: true as const,
