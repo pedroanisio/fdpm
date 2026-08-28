@@ -111,6 +111,7 @@ hypothesis, not a finished product — see "Eval design" below.
 | Plugin runtime (profiles, validators, renderers, transformers, importers, exporters) | Shipped |
 | MCP server (Tier 1/2/3 generic CRUD tools) | Shipped |
 | MCP resource surface (`fdpm://workbook/{id}/render/{target}`) | Shipped |
+| MCP schema resources (`fdpm://schema/profile`) and the tool-catalog byte budget (SPEC-MCP-SERVER §8.5) | Shipped |
 | Renderers as the human-review surface (markdown / HTML / PDF / SVG) | Shipped |
 | Plugin-emitted operation kinds (verbs as first-class ops) | v1; SPEC-PLUGIN-VERBS in flight |
 | Per-verb MCP tools, plugin-version migration contract | v1 |
@@ -296,6 +297,7 @@ npm --prefix fdpm-cli run dev -- version     # tsx, no build needed
 | `FDPM_MCP_ENABLE_PLUGINS` | `""` | `fdpm-mcp`: comma-separated plugin ids whose MCP tools are exposed. |
 | `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | `fdpm-mcp`: per-session rate limit on tool calls. |
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | `fdpm-mcp`: truthy -> log full args (default: sha256 hash only). |
+| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `28000` | `fdpm-mcp`: cap on the UTF-8 byte size of the advertised `tools/list` catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
 | `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when `FDPM_DATA_DIR` is set. |
 | `FDPM_REGISTRY_PATH` | `$XDG_STATE_HOME/fdpm/workspaces.json` | SPEC-WORKSPACE §12: override path to the operator-local workspace registry. |
 

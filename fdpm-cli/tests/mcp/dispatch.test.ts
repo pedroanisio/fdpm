@@ -80,6 +80,23 @@ describe("dispatcher — happy path returns success shape", () => {
     const sc = result.structuredContent as { ok: boolean; manifest_version: string };
     expect(sc.ok).toBe(true);
     expect(typeof sc.manifest_version).toBe("string");
+    // SPEC-MCP-SERVER §8.5 — the catalog budget is observable over MCP.
+    const withCatalog = result.structuredContent as {
+      catalog: {
+        tool_count: number;
+        total_bytes: number;
+        budget_total_bytes: number;
+        budget_per_tool_bytes: number;
+        within_budget: boolean;
+      };
+    };
+    expect(withCatalog.catalog.within_budget).toBe(true);
+    expect(withCatalog.catalog.tool_count).toBeGreaterThan(0);
+    expect(withCatalog.catalog.total_bytes).toBeGreaterThan(0);
+    expect(withCatalog.catalog.total_bytes).toBeLessThanOrEqual(
+      withCatalog.catalog.budget_total_bytes,
+    );
+    expect(withCatalog.catalog.budget_per_tool_bytes).toBeGreaterThan(0);
   });
 });
 

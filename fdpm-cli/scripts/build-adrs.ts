@@ -5,8 +5,9 @@
  *
  * Source corpus
  * -------------
- * The five ADRs below are the same decisions encoded in
- * `scripts/build-cli-architecture.ts` (decision:0001 .. decision:0005).
+ * decision:0001 .. decision:0005 are the same decisions encoded in
+ * `scripts/build-cli-architecture.ts`; decision:0006 onward are recorded
+ * here first.
  * That script bundles them inside a much larger architecture workbook;
  * this script isolates the ADR surface so the rendered Markdown is
  * exactly the architectural decision record and nothing else.
@@ -123,6 +124,20 @@ const decisions: DecisionInput[] = [
     altName: "Hand-rolled argv parser",
     altReason: "Reinvents flags/help/error handling with no benefit.",
   },
+  {
+    id: "decision:0006",
+    title:
+      "MCP tool catalog is a measured, capped byte budget; payload schemas ship as resources",
+    context:
+      "Every MCP session pays for the whole tools/list registry before the agent does any work. On manifest 0.1.0 the 30-tool catalog measured 33,929 bytes, 8,809 of them the DomainProfile schema inlined into fdpm.profile.register. PURPOSE.md commits to per-verb plugin tools across five bundled plugins, so an unmeasured catalog only grows.",
+    rationale:
+      "Registry cost is roughly tools × schema size × result verbosity and is invisible unless measured. A byte budget enforced in CI and at boot (src/mcp/catalog.ts: 28,000 B total, 2,000 B per tool, a ratchet on the measured size) makes growth a reviewed decision; plugin tools share the budget so verbs can never bulk-advertise. Large payload schemas move to resources (fdpm://schema/profile), validated server-side with the same Zod object.",
+    consequences:
+      "Adding or widening a tool can fail the build or refuse boot; raising the budget needs a CHANGELOG line (FDPM_MCP_CATALOG_BUDGET_BYTES is the operator escape hatch, total only). A malformed profile is a Tier-2 rejection envelope, not a protocol error. Agents read a resource before composing a profile.",
+    altName: "Keep inlining full JSON Schemas per tool and rely on review to notice growth",
+    altReason:
+      "No reviewer sees the total; the 8.8 KB profile schema shipped through four manifest revisions without anyone measuring it.",
+  },
 ];
 
 const decisionSpecs: PrimitiveSpec[] = decisions.map((d) => ({
@@ -176,6 +191,16 @@ const evidenceSpecs: PrimitiveSpec[] = [
         "CLI entry point — Commander wiring and command dispatch.",
     },
   },
+  {
+    id: "evidence:ref:mcp-catalog",
+    type: "sw:Evidence",
+    fields: {
+      kind: "Reference",
+      source: "fdpm-cli/src/mcp/catalog.ts",
+      description:
+        "Tool-catalog measurement and byte budget — buildToolsListEntries, measureCatalog, checkCatalogBudget; enforced at boot by fdpm-mcp and in CI by tests/mcp/catalog-budget.test.ts.",
+    },
+  },
 ];
 
 const relations: RelationSpec[] = [
@@ -196,6 +221,12 @@ const relations: RelationSpec[] = [
     type: "sw:Justifies",
     from: "evidence:ref:cli-bin",
     to: "decision:0005",
+  },
+  {
+    id: "rel:mcp-catalog-justifies-d6",
+    type: "sw:Justifies",
+    from: "evidence:ref:mcp-catalog",
+    to: "decision:0006",
   },
 ];
 

@@ -23,6 +23,44 @@ upgrade.
 
 ### Added
 
+#### `fdpm-mcp` — tool-catalog byte budget and schema-by-resource (SPEC-MCP-SERVER §8.5)
+
+The `tools/list` catalog is now a measured, capped quantity. Every MCP
+session pays for the whole registry (name + description + JSON Schema
+per tool) before the agent does any work; on manifest 0.1.0 that was
+33,929 bytes for 30 tools, 8,809 of them the `DomainProfile` schema
+inlined into `fdpm.profile.register` (26 % of the catalog).
+
+- [`src/mcp/catalog.ts`](src/mcp/catalog.ts) — `buildToolsListEntries`,
+  `advertisedCatalog`, `measureCatalog`, `checkCatalogBudget`,
+  `buildCatalogReport`, `resolveCatalogBudget`. `DEFAULT_CATALOG_BUDGET`
+  is 28,000 bytes total / 2,000 bytes per tool — a ratchet on the
+  measured size plus ~10 % headroom; raising it is a reviewed change
+  that needs a CHANGELOG line.
+- `fdpm-mcp` builds the advertised catalog once at boot (Core manifest
+  followed by `discoverPluginTools` output, so plugin verbs are measured
+  against the same budget and can never bulk-advertise past it),
+  measures it, and **refuses to start with exit 2** when over budget,
+  printing each violation. `tools/list` carries `_meta.catalog_bytes`
+  and `_meta.catalog_budget_bytes`; the ready banner prints both.
+- `FDPM_MCP_CATALOG_BUDGET_BYTES` (default `28000`) raises the total for
+  a deployment that knowingly accepts the token cost. The per-tool
+  limit is not tunable: an oversized tool is a defect in the tool.
+- `fdpm.health` returns `catalog: { tool_count, total_bytes,
+  budget_total_bytes, budget_per_tool_bytes, within_budget }`.
+- New resource provider `fdpm://schema/{schema_id}`
+  ([`src/mcp/resources/schema.ts`](src/mcp/resources/schema.ts)); first
+  member `fdpm://schema/profile` serves the DomainProfile JSON Schema
+  (`application/schema+json`), derived at read time from the same Zod
+  schema the server validates with — resource and validator cannot drift.
+- CI: [`tests/mcp/catalog-budget.test.ts`](tests/mcp/catalog-budget.test.ts)
+  fails the build when the Core catalog exceeds the budget in either
+  destructive mode or any tool exceeds the per-tool cap;
+  [`tests/mcp/fdpm-mcp-stdio.test.ts`](tests/mcp/fdpm-mcp-stdio.test.ts)
+  spawns the real binary over stdio and checks the boot gate, `_meta`,
+  `fdpm.health.catalog`, the schema resource, and a wire-level Tier-2
+  rejection. 48 new tests.
+
 #### `@fdpm/zod-bridge@0.2.0` — Hybrid lift detection (Entity vs ValueObject)
 
 Closes the architectural gap surfaced by the v0.1.0 trial: identity
@@ -47,6 +85,34 @@ Workbook `howto-zod-to-fdpm-plugin@180` documents the convention
 and records Option A (USL-NG Core upstream) as the v1.x direction.
 
 72/72 tests passing.
+
+### Changed
+
+#### `fdpm-mcp` — MCP tool manifest `0.1.0` → `0.2.0`
+
+- `fdpm.profile.register` advertises an **opaque** `profile` object
+  (`{ type: "object" }`; 8,809 → ~300 bytes of schema). The shape is
+  served by `fdpm://schema/profile` and enforced server-side with the
+  same Zod schema. A malformed profile is now a Tier-2 **rejection** —
+  `isError: false`, `ok: false`, one `validation_report.findings[]` entry
+  per Zod issue with `rule_id: "core:profile-schema"` and `field_path` —
+  instead of a protocol-level `validation` error. Nothing is registered
+  on rejection. The `extends` contract the description always claimed
+  (parents registered first, else `not_found`) is now enforced; before,
+  a dangling parent surfaced only at `fdpm.workbook.create`.
+- `fdpm.health` output gained the `catalog` object (additive).
+- `Host.registerPluginProfile` classified as not-exposed in
+  [`src/mcp/not-exposed.ts`](src/mcp/not-exposed.ts) (plugin-activation
+  path; never LLM-facing).
+
+**Migration.** Clients that send a valid profile see no change. Clients
+that branched on `isError: true` + `category: "validation"` for a
+malformed profile must branch on `structuredContent.ok === false` and
+read `validation_report.findings[]` — the same loop as every other Tier-2
+tool. Operators whose catalog must exceed 28,000 bytes (many plugin
+tools) set `FDPM_MCP_CATALOG_BUDGET_BYTES` explicitly; otherwise the
+server refuses to start and prints the violations. Measured catalog after
+this change: 25,699 B (destructive off) / 24,709 B (on).
 
 ### Fixed
 

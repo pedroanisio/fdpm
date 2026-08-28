@@ -10,6 +10,7 @@
 import type { ZodTypeAny } from "zod";
 import type { Host } from "../core/host.js";
 import type { McpSession } from "./session.js";
+import type { CatalogReport } from "./catalog.js";
 
 export type Tier = "read_only" | "validating_write" | "destructive";
 
@@ -47,6 +48,13 @@ export interface DispatchCtx {
    */
   readonly requireConfirmationToken?: boolean;
   readonly confirmationToken?: string;
+  /**
+   * Tool-catalog measurement + budget verdict computed once at boot
+   * (SPEC-MCP-SERVER §8.5). Surfaced by `fdpm.health`. Optional so
+   * embedders and tests can build a ctx without measuring; the health
+   * tool measures the Core manifest on demand when absent.
+   */
+  readonly catalog?: CatalogReport;
 }
 
 /**

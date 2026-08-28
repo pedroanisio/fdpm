@@ -1,7 +1,7 @@
 /**
  * Resource provider registry.
  *
- * Providers in declared order: render, profile. Future providers
+ * Providers in declared order: render, profile, schema. Future providers
  * (workbook transfer, validate report, primitive view) plug in by
  * appending here and exporting from `./<name>.ts`.
  *
@@ -11,7 +11,7 @@
  * non-null match wins. URI overlap between providers is a contract
  * bug — providers MUST advertise mutually-exclusive URI shapes
  * (render owns `fdpm://workbook/...`; profile owns
- * `fdpm://profile/...` and `fdpm://profiles`).
+ * `fdpm://profile/...` and `fdpm://profiles`; schema owns `fdpm://schema/...`).
  */
 import type { Host } from "../../core/host.js";
 import { FDPMException } from "../../core/errors/fdpm-exception.js";
@@ -23,10 +23,12 @@ import {
 } from "./types.js";
 import { renderResourceProvider } from "./render.js";
 import { profileResourceProvider } from "./profile.js";
+import { schemaResourceProvider } from "./schema.js";
 
 export const RESOURCE_PROVIDERS: ReadonlyArray<ResourceProvider<unknown>> = [
   renderResourceProvider as ResourceProvider<unknown>,
   profileResourceProvider as ResourceProvider<unknown>,
+  schemaResourceProvider as ResourceProvider<unknown>,
 ];
 
 /** Aggregate every provider's templates for `resources/templates/list`. */

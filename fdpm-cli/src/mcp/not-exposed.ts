@@ -35,6 +35,13 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // / `:reload plugins` meta-command; never an MCP tool because LLMs
   // shouldn't be able to mutate the host's capability surface.
   "reloadPlugins",
+  // `registerPluginProfile` is the plugin-activation path for shipping a
+  // plugin's own profile (idempotent: "already-present" on re-activation).
+  // It bypasses persistence and the `extends` parent check that
+  // `fdpm.profile.register` enforces, because plugins own their activation
+  // order. Never LLM-facing: an agent registering profiles goes through
+  // `fdpm.profile.register` and `fdpm://schema/profile`.
+  "registerPluginProfile",
 
   // -- Read surfaces deferred -----------------------------------------
   // Resolved-profile read; deferred until a `fdpm.profile.resolved.get`

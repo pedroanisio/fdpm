@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts"
-revision: "0.1.2 — destructive-tool advertisement amendment: Tier 3 tools are now advertised when disabled, with a banner-prefixed description naming the enable mechanism. Dispatch refusal is unchanged. Replaces the prior 'absent when disabled' posture for self-recovery."
+revision: "0.1.3 — catalog byte budget and schema-by-resource amendment (§8.5): the advertised tools/list catalog is measured in UTF-8 bytes and capped (28,000 B / 2,000 B per tool) at boot and in CI; fdpm.profile.register takes an opaque profile validated against fdpm://schema/profile; manifest 0.2.0."
 status: "Proposal"
 ---
 
@@ -297,6 +297,22 @@ These tools have effects that cannot be undone by another tool call. Tier 3 tool
 
 `fdpm.host.reload`, `fdpm.persistence.write_raw`, anything taking 'raw operation' or 'raw JSONL' as input, anything calling `host.persistence`/`host.store` directly, and anything that executes shell or eval. A CI check MUST scan tool-module source under `fdpm-cli/src/mcp/tools/` and fail on imports of `host.persistence`, `host.store`, `node:child_process`, `node:vm`, `eval`, `Function`.
 
+### 8.5 Catalog byte budget and schema-by-resource (v0.1.3)
+
+Every `tools/list` response ships the whole registry — name, description, and derived JSON Schema per tool — and MCP clients place it at the head of every agent session. The registry's size is therefore a per-session token cost paid before the agent does any work, and it grows silently with every added tool, longer description, or widened schema. Registry cost is roughly `tools × schema size × result verbosity`; the threshold at which it degrades tool selection is an empirical question, not folklore, so this SPEC makes the quantity measured and capped rather than guessed.
+
+**Measurement.** The server MUST build the advertised `tools/list` entries once at boot — the Core manifest in tier order (Tier 3 banner-prefixed when destructive is off) followed by plugin-supplied tools — and MUST measure that exact array in UTF-8 bytes (`JSON.stringify({ tools })`). The array measured is the array advertised; there is no second construction.
+
+**Budget.** The measurement MUST NOT exceed the budget: by default 28,000 bytes total and 2,000 bytes per entry (`DEFAULT_CATALOG_BUDGET`, `fdpm-cli/src/mcp/catalog.ts`). Over budget, the server MUST refuse to start with exit code 2 and MUST print each violation on stderr, naming `FDPM_MCP_CATALOG_BUDGET_BYTES`. That variable MAY raise the total for a deployment that knowingly accepts the token cost; the per-tool limit is not operator-tunable — an oversized tool is a defect in the tool. Plugin tools count against the same budget: PURPOSE.md's rule that per-verb plugin tools are never bulk-advertised is enforced here, not by convention.
+
+**Observability.** `tools/list` MUST carry `_meta.catalog_bytes` and `_meta.catalog_budget_bytes`. `fdpm.health` MUST return `catalog: { tool_count, total_bytes, budget_total_bytes, budget_per_tool_bytes, within_budget }`.
+
+**CI.** The same budget MUST be enforced in CI for the Core manifest in both destructive modes (`fdpm-cli/tests/mcp/catalog-budget.test.ts`), so a description or schema that grows past the cap fails the build before it can cost every session. The budget numbers are a ratchet on the measured size plus headroom, not a derived optimum; raising them is a reviewed change recorded in the CHANGELOG.
+
+**Schema-by-resource.** A tool whose payload schema is large SHOULD advertise an opaque object and serve the schema as a resource under `fdpm://schema/{schema_id}` (`application/schema+json`), validating server-side with the same Zod schema the resource is derived from (§11.1) so the agent-visible contract and the enforced contract cannot drift. `fdpm.profile.register` is the first instance: its input is an opaque `profile` object; the DomainProfile schema is `fdpm://schema/profile`; a malformed profile is a Tier-2 rejection (`isError: false`, `ok: false`, one `core:profile-schema` finding per violated path with `field_path`), never a protocol error, and nothing is registered on rejection; parents named in `extends` MUST already be registered (else `not_found`).
+
+**Evidence.** Measured 2026-08-28 on manifest 0.1.0: 30 tools, 33,929 bytes, of which 8,809 bytes (26 %) were the DomainProfile schema inlined into `fdpm.profile.register`. After this amendment: 25,699 bytes with destructive off, 24,709 with it on.
+
 ---
 
 ## 9. Transport, Authentication, and Authorization
@@ -342,6 +358,10 @@ Every tool's output is also schema-typed. The output schema is part of the tool 
 ### 11.3 Versioning
 
 Tool names and argument shapes are a public contract. Adding a tool or an optional argument is a minor bump. Renaming/removing a tool, removing/renaming an argument, tightening a type, or changing a response shape backward-incompatibly is a major bump. The server advertises its tool-manifest version in the MCP `serverInfo` block.
+
+### 11.4 Advertised size
+
+The derived JSON Schema is part of the measured catalog (§8.5), so widening an input schema is subject to the byte budget. When a payload schema is large, serve it as a resource under `fdpm://schema/{schema_id}` and advertise an opaque object. Manifest 0.2.0 records the `fdpm.profile.register` input change (loosened: minor) and the additive `fdpm.health.catalog` field.
 
 ---
 
@@ -424,7 +444,7 @@ The full tool catalog by tier is rendered from the Tool primitives bound to this
 
 ## 17. Configuration
 
-Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed.
+Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 28,000 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.
 
 ---
 
@@ -564,6 +584,11 @@ Order matters: SPEC-REPL §13 Host changes must land first; Tier 1 surface lands
 5. **(Optional) Plugin-tool exposure** — Amend SPEC-PLUGGABLE-ARCHITECTURE to add mcp_tool capability. Implement plugin-tool dispatch behind FDPM_MCP_ENABLE_PLUGINS. Decoupled from v0.1 — v0.1 ships with Core tools only.
    - touches: `docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md`
    - touches: `fdpm-cli/src/mcp/plugin-tools.ts`
+6. **Catalog byte budget + schema-by-resource (0.1.3)** — Land src/mcp/catalog.ts, the boot-time gate in fdpm-mcp.ts, fdpm://schema/profile, and the opaque fdpm.profile.register input. Clients that branched on isError=true for a malformed profile must branch on structuredContent.ok=false and read validation_report.findings[]. Deployments over 28,000 B set FDPM_MCP_CATALOG_BUDGET_BYTES.
+   - touches: `fdpm-cli/src/mcp/catalog.ts`
+   - touches: `fdpm-cli/src/mcp/resources/schema.ts`
+   - touches: `fdpm-cli/src/mcp/tools/profile-register.ts`
+   - touches: `fdpm-cli/src/bin/fdpm-mcp.ts`
 
 ---
 
@@ -624,6 +649,12 @@ Other open questions (defaulted):
 ---
 
 ## 30. Revision history
+
+### 0.1.3 — 2026-08-28 — Catalog byte budget and schema-by-resource amendment.
+
+Adds §8.5: the advertised tools/list catalog is built once, measured in UTF-8 bytes, and capped (28,000 B total / 2,000 B per tool) at boot (refuse with exit 2) and in CI; plugin tools share the budget; tools/list._meta and fdpm.health expose the measurement; FDPM_MCP_CATALOG_BUDGET_BYTES raises the total only. Introduces fdpm://schema/{schema_id} resources; fdpm.profile.register advertises an opaque profile object validated server-side with the same Zod schema (malformed → Tier-2 rejection with core:profile-schema findings; unregistered extends parent → not_found). Manifest 0.1.0 → 0.2.0. Evidence: 33,929 B → 25,699 B. Authored by Claude Fable 5 via Claude Code.
+
+Affected sections: 8, 11, 16, 17, 25
 
 ### 0.1.2 — 2026-05-05 — Destructive-tool advertisement amendment.
 

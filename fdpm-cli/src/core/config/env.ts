@@ -122,6 +122,13 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     summary: "fdpm-mcp: truthy -> log full args (default: sha256 hash only)",
   },
   {
+    name: "FDPM_MCP_CATALOG_BUDGET_BYTES",
+    defaultValue: "28000",
+    exampleValue: "28000",
+    summary:
+      "fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5)",
+  },
+  {
     name: "FDPM_WORKSPACE",
     defaultValue: "unset",
     exampleValue: "prod-laptop",

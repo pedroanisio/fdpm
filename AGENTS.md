@@ -297,6 +297,35 @@ SDK serialises both correctly.
 | `host_compat` | The workbook's log was truncated or rewritten (SPEC-REPL §10.2 divergent-log path) |
 | Other categories | Propagated verbatim from the renderer (e.g. `verification` from a renderer that rejects malformed primitives) |
 
+#### Schema resources — `fdpm://schema/{schema_id}`
+
+Payload schemas an agent needs to *compose* an input ship as resources,
+not inside every `tools/list` response. The first member is
+`fdpm://schema/profile`, the DomainProfile JSON Schema (draft-7,
+`application/schema+json`) consumed by `fdpm.profile.register`. It is
+derived at read time from the same Zod schema the server validates
+with, so the agent-visible shape and the enforced shape are one object.
+The tool itself advertises an opaque `profile` object and returns a
+Tier-2 rejection (`ok: false`, findings keyed `core:profile-schema` with
+`field_path`) when the payload does not match.
+
+```json
+{ "uri": "fdpm://schema/profile", "mimeType": "application/schema+json", "text": "{ \"type\": \"object\", ... }" }
+```
+
+#### Catalog byte budget (SPEC-MCP-SERVER §8.5)
+
+The advertised catalog (Core manifest + any plugin tools) is measured at
+boot in UTF-8 bytes and checked against `DEFAULT_CATALOG_BUDGET`
+(28,000 B total / 2,000 B per tool, `src/mcp/catalog.ts`). Over budget
+→ `fdpm-mcp` refuses to start (exit 2) and prints each violation.
+`tools/list` carries `_meta.catalog_bytes` / `_meta.catalog_budget_bytes`;
+`fdpm.health` returns the same numbers under `catalog`.
+`FDPM_MCP_CATALOG_BUDGET_BYTES` raises the total (never the per-tool
+limit). `tests/mcp/catalog-budget.test.ts` enforces the same budget in
+CI, so a description or schema that grows past the cap fails the build
+before it can cost every agent session.
+
 #### What's deferred
 
 - **Subscriptions.** `notifications/resources/updated` would let the

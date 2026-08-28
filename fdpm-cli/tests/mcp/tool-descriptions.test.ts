@@ -94,3 +94,13 @@ describe("tool descriptions — teaching contract (v0.1.1)", () => {
     expect(relCreate!.description).toMatch(/create_batch|batch/);
   });
 });
+
+describe("tool descriptions — schema-by-resource contract (SPEC-MCP-SERVER §8.5)", () => {
+  it("fdpm.profile.register points the agent at fdpm://schema/profile instead of inlining the schema", () => {
+    const t = MANIFEST.find((m) => m.name === "fdpm.profile.register");
+    expect(t).toBeDefined();
+    expect(t!.description).toMatch(/fdpm:\/\/schema\/profile/);
+    expect(t!.description).toMatch(/resources\/read/);
+    expect(t!.description).toMatch(/core:profile-schema/);
+  });
+});

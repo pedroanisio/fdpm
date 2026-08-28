@@ -5,7 +5,8 @@
  * Long-lived process holding one Host. Speaks the MCP protocol over
  * stdio (the only transport in v0.1; HTTP/SSE deferred to v0.2 per
  * §6.1). The advertised tool surface is a hand-curated, version-pinned
- * manifest (see `../mcp/manifest.ts`).
+ * manifest (see `../mcp/manifest.ts`), measured against a byte budget
+ * at boot (§8.5, `../mcp/catalog.ts`).
  *
  * Critical I/O contract: stdio is the MCP transport. The very first
  * byte written to stdout MUST be a valid MCP frame. ALL human-facing
@@ -14,9 +15,9 @@
  * protocol stream and break every connected client.
  *
  * Lifecycle (SPEC-MCP-SERVER §15):
- *   startup → load Host → build dispatcher → wire stdio → respond to
- *   `initialize` → serve `tools/list` and `tools/call` until SIGTERM /
- *   SIGINT / EOF → drain → flush → exit 0.
+ *   startup → load Host → build + measure catalog → build dispatcher →
+ *   wire stdio → respond to `initialize` → serve `tools/list` and
+ *   `tools/call` until SIGTERM / SIGINT / EOF → drain → flush → exit 0.
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -32,8 +33,17 @@ import {
 import { Host } from "../core/host.js";
 import { defaultDataDir } from "../persistence/jsonl-log.js";
 import { resolveWorkspaceDataDir } from "../core/workspace/resolve.js";
-import { advertisedTools, MANIFEST } from "../mcp/manifest.js";
-import { MCP_TOOL_MANIFEST_VERSION, toJsonSchema } from "../mcp/schemas.js";
+import { MANIFEST } from "../mcp/manifest.js";
+import { MCP_TOOL_MANIFEST_VERSION } from "../mcp/schemas.js";
+import {
+  CATALOG_BUDGET_ENV,
+  advertisedCatalog,
+  buildCatalogReport,
+  formatViolations,
+  resolveCatalogBudget,
+  type CatalogBudget,
+} from "../mcp/catalog.js";
+import { discoverPluginTools } from "../mcp/plugin-tools.js";
 import { createSession } from "../mcp/session.js";
 import { createDispatcher } from "../mcp/dispatch.js";
 import type { DispatchCtx } from "../mcp/types.js";
@@ -54,6 +64,7 @@ interface ParsedFlags {
   enabledPlugins: string[];
   maxCallsPerMinute: number;
   auditFullArgs: boolean;
+  catalogBudget: CatalogBudget;
 }
 
 /**
@@ -120,6 +131,17 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
   const auditFullArgs =
     flag("--audit-full-args") || process.env["FDPM_MCP_AUDIT_FULL_ARGS"] === "1";
 
+  // SPEC-MCP-SERVER §8.5: the catalog budget. Only the total is
+  // operator-tunable; a malformed value is a startup refusal, like
+  // --max-calls-per-minute.
+  let catalogBudget: CatalogBudget;
+  try {
+    catalogBudget = resolveCatalogBudget(process.env);
+  } catch (err) {
+    process.stderr.write(`fdpm-mcp: ${err instanceof Error ? err.message : String(err)}\n`);
+    process.exit(2);
+  }
+
   return {
     dataDir: cliDataDir ?? "",
     cliDataDir,
@@ -127,6 +149,7 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
     enabledPlugins,
     maxCallsPerMinute,
     auditFullArgs,
+    catalogBudget,
   };
 }
 
@@ -147,6 +170,7 @@ async function main(): Promise<void> {
       `  enabled_plugins=${flags.enabledPlugins.length === 0 ? "(none)" : flags.enabledPlugins.join(",")}`,
       `  max_calls_per_minute=${flags.maxCallsPerMinute}`,
       `  audit_full_args=${flags.auditFullArgs}`,
+      `  catalog_budget_bytes=${flags.catalogBudget.total_bytes} (per_tool=${flags.catalogBudget.per_tool_bytes})`,
       ``,
     ].join("\n"),
   );
@@ -159,30 +183,6 @@ async function main(): Promise<void> {
     noPlugins,
   });
   await host.load();
-
-  const audit = new McpAuditLog(flags.dataDir);
-  const session = createSession({ maxPerMinute: flags.maxCallsPerMinute });
-
-  const ctx: DispatchCtx = {
-    session,
-    enableDestructive: flags.enableDestructive,
-    enabledPlugins: new Set(flags.enabledPlugins),
-    auditFullArgs: flags.auditFullArgs,
-    hostOptions: {
-      dataDir: flags.dataDir,
-      noPlugins,
-    },
-  };
-
-  const dispatcher = createDispatcher(host, ctx, audit);
-
-  // Build the advertised tool list once at startup. Tier 3 tools are
-  // included only when destructive is enabled; in slice B-prelim Tier
-  // 3 is empty either way.
-  const advertised = advertisedTools({
-    enableDestructive: flags.enableDestructive,
-  });
-  const advertisedSet = new Set(advertised.map((t) => t.name));
 
   // Sanity-check at boot: every tool we routed in MANIFEST should be
   // advertise-capable (the gate also enforces this; this is a fast
@@ -197,6 +197,49 @@ async function main(): Promise<void> {
       process.exit(70);
     }
   }
+
+  // -- Catalog: build once, measure once, enforce the budget (§8.5) --
+  // The advertised list is the Core manifest (Tier 3 banner-prefixed
+  // when destructive is off) followed by plugin-supplied tools. Plugin
+  // tools count against the same budget: PURPOSE.md's "never
+  // bulk-advertised" rule is enforced here, not by convention. The
+  // stub `discoverPluginTools` returns [] today; when the `mcp_tool`
+  // capability lands, this is the gate it must pass.
+  const pluginTools = discoverPluginTools(host, flags.enabledPlugins);
+  const advertised = advertisedCatalog({
+    enableDestructive: flags.enableDestructive,
+    pluginTools,
+  });
+  const catalog = buildCatalogReport(advertised, flags.catalogBudget);
+  if (!catalog.ok) {
+    process.stderr.write(
+      [
+        `fdpm-mcp: refusing to start — tool catalog exceeds its byte budget (SPEC-MCP-SERVER §8.5).`,
+        ...formatViolations(catalog.violations).map((line) => `  ${line}`),
+        `  measured: ${catalog.measurement.tool_count} tool(s), ${catalog.measurement.total_bytes} B`,
+        `  Fix: trim the offending description/schema, disable plugins, or raise ${CATALOG_BUDGET_ENV} (total only) if the token cost is accepted.`,
+        ``,
+      ].join("\n"),
+    );
+    process.exit(2);
+  }
+
+  const audit = new McpAuditLog(flags.dataDir);
+  const session = createSession({ maxPerMinute: flags.maxCallsPerMinute });
+
+  const ctx: DispatchCtx = {
+    session,
+    enableDestructive: flags.enableDestructive,
+    enabledPlugins: new Set(flags.enabledPlugins),
+    auditFullArgs: flags.auditFullArgs,
+    hostOptions: {
+      dataDir: flags.dataDir,
+      noPlugins,
+    },
+    catalog,
+  };
+
+  const dispatcher = createDispatcher(host, ctx, audit);
 
   // -- MCP server wiring ----------------------------------------------
   // Per SPEC-MCP-SERVER §11.3, the server advertises its tool-manifest
@@ -219,35 +262,27 @@ async function main(): Promise<void> {
         // freshness-watcher polling loop is in place.
         resources: {},
       },
-      instructions: `FDPM MCP server v0.1 (manifest ${MCP_TOOL_MANIFEST_VERSION}). Tier 1 + Tier 2 advertised; Tier 3 destructive deletes opt-in via --enable-destructive. Resources: fdpm://workbook/{id}/render/{target}.`,
+      instructions: `FDPM MCP server v0.1 (manifest ${MCP_TOOL_MANIFEST_VERSION}). Tier 1 + Tier 2 advertised; Tier 3 destructive deletes opt-in via --enable-destructive. Resources: fdpm://workbook/{id}/render/{target}, fdpm://profile/{id}, fdpm://schema/profile (read it before fdpm.profile.register).`,
     },
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
+    // `advertised` is already the wire shape (see catalog.ts); it is
+    // the SAME array the budget was measured against, so what the
+    // client sees is what was checked.
     return {
-      tools: advertised.map((tool) => {
-        const inputSchema = toJsonSchema(tool.input);
-        // Per MCP spec, inputSchema must have type:"object" at root.
-        // Zod object schemas already produce that; we coerce defensively.
-        const root: Record<string, unknown> = { ...inputSchema };
-        if (root["type"] !== "object") {
-          root["type"] = "object";
-        }
-        return {
-          name: tool.name,
-          description: tool.description,
-          inputSchema: root as { type: "object"; [k: string]: unknown },
-          annotations: tool.annotations,
-        };
-      }),
-      _meta: { manifest_version: MCP_TOOL_MANIFEST_VERSION },
+      tools: advertised,
+      _meta: {
+        manifest_version: MCP_TOOL_MANIFEST_VERSION,
+        catalog_bytes: catalog.measurement.total_bytes,
+        catalog_budget_bytes: catalog.budget.total_bytes,
+      },
     };
   });
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const name = request.params.name;
     const rawArgs = request.params.arguments ?? {};
-    void advertisedSet; // currently unused — gate is enforced by dispatcher
     const result = await dispatcher.call(name, rawArgs);
     // The MCP SDK's CallToolResult is a wider type than ours (it carries
     // optional `task`, `_meta`, etc.). Our shape is a strict subset, so
@@ -328,7 +363,7 @@ async function main(): Promise<void> {
   await server.connect(transport);
   const resourceCount = listResources(host).length;
   process.stderr.write(
-    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s), ${resourceCount} resource(s)\n`,
+    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s) (${catalog.measurement.total_bytes} B of ${catalog.budget.total_bytes} B catalog budget), ${resourceCount} resource(s)\n`,
   );
 }
 

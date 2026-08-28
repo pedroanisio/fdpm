@@ -17,7 +17,7 @@
 import { z, type ZodType } from "zod";
 
 /** Public manifest version advertised in MCP `serverInfo`. */
-export const MCP_TOOL_MANIFEST_VERSION = "0.1.0";
+export const MCP_TOOL_MANIFEST_VERSION = "0.2.0";
 
 /**
  * Convert a Zod schema to a JSON Schema object suitable for advertisement
