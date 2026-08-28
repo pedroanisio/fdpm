@@ -1,3 +1,4 @@
+import type { PromptRegistration } from "./types.js";
 import type { Host } from "../core/host.js";
 import type {
   LifecycleState,
@@ -25,6 +26,7 @@ import {
   type PluginRuntimeFacade,
 } from "./context.js";
 import { PluginError } from "./errors.js";
+import { validatePromptRegistration } from "../mcp/prompts.js";
 import { SPEC_CORE_VERSION } from "../core/version/spec.js";
 
 /**
@@ -52,6 +54,7 @@ const HOST_VERSION_MINOR = parseInt(SPEC_CORE_VERSION.split(".")[1]!, 10);
 export class PluginRuntime implements PluginRuntimeFacade {
   private readonly records = new Map<string, PluginRecord>();
   private readonly renderers = new Map<string, RendererRegistration & { pluginId: string }>();
+  private readonly prompts = new Map<string, PromptRegistration & { pluginId: string }>();
   private readonly transformers = new Map<string, TransformerRegistration & { pluginId: string }>();
   private readonly importers = new Map<string, ImporterRegistration & { pluginId: string }>();
   private readonly exporters = new Map<string, ExporterRegistration & { pluginId: string }>();
@@ -350,6 +353,9 @@ export class PluginRuntime implements PluginRuntimeFacade {
     for (const reg of r.contributions.renderers) {
       this.renderers.delete(`${r.id}:${reg.target}:${reg.rendererId}`);
     }
+    for (const reg of r.contributions.prompts) {
+      this.prompts.delete(`${r.id}:${reg.promptId}`);
+    }
     this.host.expr.unregisterPluginHelpers(r.id);
     for (const reg of r.contributions.transformers) {
       this.transformers.delete(`${r.id}:${reg.fromTypeId}->${reg.toTypeId}:${reg.name}`);
@@ -419,6 +425,20 @@ export class PluginRuntime implements PluginRuntimeFacade {
     const key = `${pluginId}:${reg.target}:${reg.rendererId}`;
     this.renderers.set(key, { ...reg, pluginId });
   }
+  installPrompt(pluginId: string, reg: PromptRegistration): void {
+    // Skill contract (shape, description, arguments, listing budget) —
+    // rejected here so a malformed prompt never reaches prompts/list.
+    validatePromptRegistration(reg);
+    for (const existing of this.prompts.values()) {
+      if (existing.promptId === reg.promptId)
+        throw new PluginError(
+          "conflict",
+          `prompt ${reg.promptId} already registered by ${existing.pluginId}`,
+          { pluginId },
+        );
+    }
+    this.prompts.set(`${pluginId}:${reg.promptId}`, { ...reg, pluginId });
+  }
   installExprHelper(pluginId: string, reg: ExprHelperRegistration): void {
     try {
       this.host.expr.registerHelper(pluginId, reg);
@@ -481,6 +501,14 @@ export class PluginRuntime implements PluginRuntimeFacade {
   }
   listRenderers() {
     return [...this.renderers.values()];
+  }
+  /** Prompts from every active plugin, sorted by promptId (SPEC-MCP-SERVER §13.5). */
+  listPrompts(): Array<PromptRegistration & { pluginId: string }> {
+    return [...this.prompts.values()].sort((a, b) => a.promptId.localeCompare(b.promptId));
+  }
+  findPrompt(promptId: string): (PromptRegistration & { pluginId: string }) | undefined {
+    for (const p of this.prompts.values()) if (p.promptId === promptId) return p;
+    return undefined;
   }
   listTransformers() {
     return [...this.transformers.values()];

@@ -40,6 +40,7 @@ import { renderRoadmap } from "./renderers/roadmap.js";
 import { renderGantt } from "./renderers/gantt.js";
 import { renderAgentBoard } from "./renderers/agent_board.js";
 import { registerPlanningCapabilities } from "./_capabilities.js";
+import { PLANNING_PROMPTS } from "./prompts.js";
 
 export { renderRoadmap, renderGantt, renderAgentBoard };
 export * from "./ids.js";
@@ -85,6 +86,7 @@ export const manifest: PluginManifest = JSON.parse(manifestRaw) as PluginManifes
 
 export async function activate(ctx: PluginContext): Promise<void> {
   ctx.registerProfile(PROFILE);
+  for (const prompt of PLANNING_PROMPTS) ctx.registerPrompt(prompt);
   ctx.registerRenderer({
     target: "text/markdown",
     rendererId: "plan:RoadmapRenderer",
@@ -102,7 +104,7 @@ export async function activate(ctx: PluginContext): Promise<void> {
   });
   registerPlanningCapabilities(ctx);
   ctx.logger.info(
-    `planning activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} CEL rules + 3 cap:validator implementations, 3 renderers (plan:RoadmapRenderer/md, plan:GanttSvgRenderer/svg, plan:AgentBoardRenderer/md), 1 expr-helper, 1 transformer, 1 importer (plan-jsonl), 1 exporter (plan-jsonl)`,
+    `planning activated: ${ALL_PRIMITIVES.length} primitive types, ${RELATIONS.length} relation types, ${VALIDATION_RULES.length} CEL rules + 3 cap:validator implementations, 3 renderers (plan:RoadmapRenderer/md, plan:GanttSvgRenderer/svg, plan:AgentBoardRenderer/md), 1 expr-helper, 1 transformer, 1 importer (plan-jsonl), 1 exporter (plan-jsonl), 1 MCP prompt (planning/triage_iteration)`,
   );
 }
 

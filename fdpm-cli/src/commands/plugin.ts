@@ -9,6 +9,7 @@ import {
   NO_PROJECT_ARGV,
   NO_PROJECT_JSON,
 } from "./metadata.js";
+import { promptListEntry, renderPrompt } from "../mcp/prompts.js";
 
 /**
  * §6.6 Admin API surface — exposed as CLI subcommands instead of HTTP
@@ -51,6 +52,53 @@ export function buildPluginCommand(host: Host): Command {
           { header: "CAPS", value: (r) => r.capabilities, align: "right" },
           { header: "ERROR", value: (r) => r.error ?? "" },
         ], { empty: "(no plugins)" }),
+      );
+    });
+
+  cmd
+    .command("prompts")
+    .description("List plugin-shipped MCP prompts — metadata only (SPEC-MCP-SERVER §13.5)")
+    .option("--json", "emit JSON")
+    .action((opts) => {
+      const ctx: OutputContext = { json: !!opts.json };
+      const rows = host.plugins.listPrompts().map((p) => ({ ...promptListEntry(p), plugin_id: p.pluginId }));
+      emit(ctx, { prompts: rows }, () =>
+        renderTable(rows, [
+          { header: "PROMPT", value: (r) => r.name },
+          { header: "PLUGIN", value: (r) => r.plugin_id },
+          { header: "TITLE", value: (r) => r.title },
+          { header: "ARGS", value: (r) => r.arguments.map((a) => (a.required ? a.name : `[${a.name}]`)).join(" ") },
+        ], { empty: "(no prompts)" }),
+      );
+    });
+
+  cmd
+    .command("prompt")
+    .argument("<id>", "prompt id, e.g. planning/triage_iteration")
+    .description("Render a plugin-shipped MCP prompt (the same body prompts/get returns)")
+    .option("--arg <k=v>", "prompt argument (repeatable)", (v: string, prev: string[]) => [...prev, v], [] as string[])
+    .option("--json", "emit JSON")
+    .action(async (id, opts) => {
+      const ctx: OutputContext = { json: !!opts.json };
+      const reg = host.plugins.findPrompt(id);
+      if (!reg) {
+        throw new FDPMException("not_found", `prompt not found: ${id} (not_found)`, {
+          evidence: { prompt: id, available: host.plugins.listPrompts().map((p) => p.promptId) },
+        });
+      }
+      const args: Record<string, string> = {};
+      for (const pair of opts.arg as string[]) {
+        const eq = pair.indexOf("=");
+        if (eq <= 0) {
+          throw new FDPMException("validation", `--arg expects k=v, got ${JSON.stringify(pair)}`, {
+            evidence: { reason: "prompt_argument_invalid", arg: pair },
+          });
+        }
+        args[pair.slice(0, eq)] = pair.slice(eq + 1);
+      }
+      const out = await renderPrompt(reg, args);
+      emit(ctx, { name: id, description: out.description, messages: out.messages }, () =>
+        out.messages.map((m) => m.content.text).join("\n\n"),
       );
     });
 
@@ -174,6 +222,16 @@ const PLUGIN_GLOBAL_WRITE = {
 };
 
 export const commandMetadata: CommandMetadataMap = {
+  "plugin prompts": {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "plugin prompt": {
+    readOnly: true,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
   "plugin list":              PLUGIN_GLOBAL_RO,
   "plugin get":               PLUGIN_GLOBAL_RO,
   "plugin manifest":          PLUGIN_GLOBAL_RO,

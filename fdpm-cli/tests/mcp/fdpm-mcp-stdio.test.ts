@@ -204,6 +204,11 @@ describe("fdpm-mcp over stdio — catalog budget end to end", () => {
         expect(templates.resourceTemplates.map((t) => t.uriTemplate)).toContain(
           "fdpm://audit/report/{window}",
         );
+
+        // §13.5 — prompts capability is declared; with plugins off the list is empty.
+        expect(client.getServerCapabilities()?.prompts).toBeDefined();
+        const noPrompts = await client.listPrompts();
+        expect(noPrompts.prompts).toEqual([]);
       } finally {
         await close();
       }
@@ -256,6 +261,40 @@ describe("fdpm-mcp over stdio — catalog budget end to end", () => {
       expect(result.status).toBe(2);
       expect(result.stderr).toMatch(/FDPM_MCP_CATALOG_BUDGET_BYTES must be a positive integer/);
       expect(result.stdout).toBe("");
+    },
+    SPAWN_TIMEOUT_MS,
+  );
+});
+
+describe("fdpm-mcp over stdio — plugin prompts (plugins on)", () => {
+  it(
+    "prompts/list is metadata only; prompts/get renders planning/triage_iteration with arguments",
+    async () => {
+      const { client, close } = await connect({ FDPM_NO_PLUGINS: "0" });
+      try {
+        const listed = await client.listPrompts();
+        const triage = listed.prompts.find((p) => p.name === "planning/triage_iteration");
+        expect(triage).toBeDefined();
+        expect(triage!.description).toMatch(/^Use /);
+        expect(JSON.stringify(triage)).not.toMatch(/Call order/);
+        expect(triage!.arguments?.some((a) => a.name === "workbook_id" && a.required === true)).toBe(true);
+
+        const got = await client.getPrompt({
+          name: "planning/triage_iteration",
+          arguments: { workbook_id: "plan-e2e", focus: "auth" },
+        });
+        const text = got.messages.map((m) => (m.content as { text: string }).text).join("\n");
+        expect(text).toContain("plan-e2e");
+        expect(text).toContain("auth");
+        expect(text).toMatch(/call order/i);
+
+        await expect(client.getPrompt({ name: "planning/triage_iteration", arguments: {} })).rejects.toThrow(
+          /prompt_argument_missing/,
+        );
+        await expect(client.getPrompt({ name: "planning/nope" })).rejects.toThrow(/not_found|not found/);
+      } finally {
+        await close();
+      }
     },
     SPAWN_TIMEOUT_MS,
   );

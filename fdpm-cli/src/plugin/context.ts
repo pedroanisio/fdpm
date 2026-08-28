@@ -10,6 +10,7 @@ import type {
   PluginLogger,
   ValidatorRegistration,
   RendererRegistration,
+  PromptRegistration,
   ExprHelperRegistration,
   TransformerRegistration,
   ImporterRegistration,
@@ -26,6 +27,7 @@ export interface PluginContributions {
   profileIds: string[];
   validators: ValidatorRegistration[];
   renderers: RendererRegistration[];
+  prompts: PromptRegistration[];
   exprHelpers: ExprHelperRegistration[];
   transformers: TransformerRegistration[];
   importers: ImporterRegistration[];
@@ -37,6 +39,7 @@ export function newContributions(): PluginContributions {
     profileIds: [],
     validators: [],
     renderers: [],
+    prompts: [],
     exprHelpers: [],
     transformers: [],
     importers: [],
@@ -105,7 +108,7 @@ export function makeContext(args: {
       // every startup re-runs activate() which re-registers them.
       // (Persistence is for operator-registered profiles only.)
       pluginRuntime.runMutation(manifest.id, () => {
-        void host.registerProfile(profile, { persist: false });
+        host.registerPluginProfile(profile);
       });
       contributions.profileIds.push(profile.id);
     },
@@ -162,6 +165,14 @@ export function makeContext(args: {
       requirePerm("render:server");
       pluginRuntime.installRenderer(manifest.id, reg);
       contributions.renderers.push(reg);
+    },
+
+    registerPrompt(reg: PromptRegistration): void {
+      // No extra permission: a prompt is inert text the server validates
+      // before serving; the client decides whether to use it.
+      requireMutable("registerPrompt");
+      pluginRuntime.installPrompt(manifest.id, reg);
+      contributions.prompts.push(reg);
     },
 
     registerExprHelper(reg: ExprHelperRegistration): void {
@@ -299,6 +310,7 @@ function makeLogger(pluginId: string): PluginLogger {
 export interface PluginRuntimeFacade {
   runMutation(pluginId: string, fn: () => void): void;
   installRenderer(pluginId: string, reg: RendererRegistration): void;
+  installPrompt(pluginId: string, reg: PromptRegistration): void;
   installExprHelper(pluginId: string, reg: ExprHelperRegistration): void;
   installTransformer(pluginId: string, reg: TransformerRegistration): void;
   installImporter(pluginId: string, reg: ImporterRegistration): void;

@@ -24,6 +24,8 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListResourceTemplatesRequestSchema,
   ListToolsRequestSchema,
@@ -44,6 +46,7 @@ import {
   type CatalogBudget,
 } from "../mcp/catalog.js";
 import { discoverPluginTools } from "../mcp/plugin-tools.js";
+import { promptListEntry, renderPrompt } from "../mcp/prompts.js";
 import {
   SERVER_INSTRUCTIONS,
   checkInstructionsBudget,
@@ -280,6 +283,9 @@ async function main(): Promise<void> {
         // is implicit via omission — slice 2 will add it once the
         // freshness-watcher polling loop is in place.
         resources: {},
+        // Plugin-shipped prompts (§13.5): metadata on prompts/list, the
+        // validated body on prompts/get.
+        prompts: {},
       },
       // SPEC-MCP-SERVER §8.6: static cold-start orientation, also served
       // at fdpm://guide for clients that ignore this field.
@@ -361,6 +367,29 @@ async function main(): Promise<void> {
     return { contents: [content] };
   });
 
+  // -- Prompts surface (§13.5) -----------------------------------------
+  // Progressive disclosure: `prompts/list` carries metadata only; the
+  // body is rendered on `prompts/get`, argument-checked and validated
+  // against the skill contract before it leaves the server. Errors
+  // (not_found, validation, verification) propagate as JSON-RPC errors
+  // with the reason in the message.
+
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    return { prompts: host.plugins.listPrompts().map(promptListEntry) };
+  });
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    const name = request.params.name;
+    const reg = host.plugins.findPrompt(name);
+    if (reg === undefined) {
+      throw new FDPMException("not_found", `prompt not found: ${name} (not_found)`, {
+        evidence: { prompt: name, available: host.plugins.listPrompts().map((p) => p.promptId) },
+      });
+    }
+    const rendered = await renderPrompt(reg, request.params.arguments);
+    return { description: rendered.description, messages: rendered.messages };
+  });
+
   // -- Signals & lifecycle --------------------------------------------
   let shuttingDown = false;
   const shutdown = (signal: string): void => {
@@ -384,7 +413,7 @@ async function main(): Promise<void> {
   await server.connect(transport);
   const resourceCount = listResources(host).length;
   process.stderr.write(
-    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s) (${catalog.measurement.total_bytes} B of ${catalog.budget.total_bytes} B catalog budget), ${resourceCount} resource(s), instructions ${instructionsBytes()} B\n`,
+    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s) (${catalog.measurement.total_bytes} B of ${catalog.budget.total_bytes} B catalog budget), ${resourceCount} resource(s), ${host.plugins.listPrompts().length} prompt(s), instructions ${instructionsBytes()} B\n`,
   );
 }
 

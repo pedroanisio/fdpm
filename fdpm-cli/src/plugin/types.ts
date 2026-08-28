@@ -30,6 +30,8 @@ export interface PluginContext {
   registerProfile(profile: DomainProfile): void;
   registerValidator(reg: ValidatorRegistration): void;
   registerRenderer(reg: RendererRegistration): void;
+  /** Register an MCP prompt (SPEC-MCP-SERVER §13.5). Validated at install; unique across plugins. */
+  registerPrompt(reg: PromptRegistration): void;
   registerExprHelper(reg: ExprHelperRegistration): void;
   registerTransformer(reg: TransformerRegistration): void;
   registerImporter(reg: ImporterRegistration): void;
@@ -97,6 +99,42 @@ export interface RendererRegistration {
   target: string; // mime type or symbolic id
   rendererId: string;
   fn: RendererFn;
+}
+
+// -- Prompts (SPEC-MCP-SERVER §13.5) ------------------------------------
+//
+// A prompt is a skill: when to use a set of tools, in what order, and
+// how to handle failures. `prompts/list` shows only the metadata below;
+// `render` runs on `prompts/get` and its output is validated by the
+// server (`src/mcp/prompts.ts`) before it reaches a client.
+
+export interface PromptArgumentSpec {
+  /** ^[a-z_][a-z0-9_]*$ */
+  name: string;
+  description: string;
+  required?: boolean;
+}
+
+export interface PromptMessage {
+  role: "user" | "assistant";
+  content: { type: "text"; text: string };
+}
+
+export interface PromptRenderInput {
+  /** Declared arguments only; required ones are guaranteed present. */
+  args: Readonly<Record<string, string>>;
+}
+
+export interface PromptRegistration {
+  /** `<plugin-short-name>/<slug>`, e.g. `planning/triage_iteration`. Unique across plugins. */
+  promptId: string;
+  /** ≤ 80 characters. */
+  title: string;
+  /** 40..300 characters; MUST say when to use the prompt. */
+  description: string;
+  arguments: PromptArgumentSpec[];
+  /** MUST return text messages containing "When to use", "Call order", "Failure modes". */
+  render: (input: PromptRenderInput) => PromptMessage[] | Promise<PromptMessage[]>;
 }
 
 export interface TransformerInput {

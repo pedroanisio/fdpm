@@ -19,7 +19,8 @@
  * where to look instead of embedding values that go stale.
  *
  * Size is a per-session cost like the catalog: `INSTRUCTIONS_BUDGET_BYTES`
- * is enforced by `tests/mcp/instructions.test.ts`.
+ * is enforced by `tests/mcp/instructions.test.ts`. Ratcheted 4,000 → 4,500
+ * when the audit (§9.5) and prompts (§13.5) lines were added.
  *
  * Resource URI templates below MUST match the registry verbatim; the
  * same test cross-checks them against `listTemplates()`.
@@ -27,7 +28,7 @@
 
 import { MCP_TOOL_MANIFEST_VERSION } from "./schemas.js";
 
-export const INSTRUCTIONS_BUDGET_BYTES = 4_000;
+export const INSTRUCTIONS_BUDGET_BYTES = 4_500;
 
 export const SERVER_INSTRUCTIONS: string = [
   `FDPM MCP server (manifest ${MCP_TOOL_MANIFEST_VERSION}). A workbook is a typed, event-sourced graph: primitives and relations validated against a DomainProfile, every write appended to an operation log. Reads are cheap; writes are validated and rejected with structured findings rather than failing.`,
@@ -56,6 +57,9 @@ export const SERVER_INSTRUCTIONS: string = [
   ``,
   `DESTRUCTIVE TOOLS`,
   `Deletes cannot be undone by another tool call. When disabled they carry a ⚠ DISABLED banner in their description. Every real delete call MUST carry \`idempotency_key\` (any unique string): the same key with the same arguments replays the recorded result instead of running twice, so retries are safe; the same key with different arguments is refused (conflict/idempotency_key_reused); keys expire after 5 minutes. \`dry_run: true\` previews the would-affect set (what is removed, which relations reference it), appends nothing, needs no key, and works even while destructive tools are disabled — show that preview to the operator before asking for --enable-destructive. Delete relations before the primitives they reference.`,
+  ``,
+  `PROMPTS`,
+  `prompts/list names plugin-shipped workflows (e.g. planning/triage_iteration); prompts/get renders one as a procedure: when to use it, the call order over these tools, and its failure modes. Prefer a prompt over improvising a multi-step workflow.`,
   ``,
   `RUNTIME STATE`,
   `fdpm.health reports the manifest version, whether destructive tools are enabled, the catalog byte measurement against its budget, and this text's size. Profiles are metadata: fdpm.profile.register writes no operation-log entry.`,

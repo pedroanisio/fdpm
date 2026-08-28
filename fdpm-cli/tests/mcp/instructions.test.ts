@@ -93,6 +93,9 @@ describe("SERVER_INSTRUCTIONS — content contract", () => {
 
   it("points at fdpm.health for runtime state instead of embedding it", () => {
     expect(SERVER_INSTRUCTIONS).toContain("fdpm.health");
+    // §13.5 — prompts are the domain layer; the guide says how to find them.
+    expect(SERVER_INSTRUCTIONS).toContain("prompts/list");
+    expect(SERVER_INSTRUCTIONS).toContain("planning/triage_iteration");
     expect(SERVER_INSTRUCTIONS).not.toMatch(/destructive_enabled=(true|false)/);
     expect(SERVER_INSTRUCTIONS).not.toMatch(/\b\d{2},\d{3} B\b/); // no baked-in catalog bytes
   });
@@ -111,7 +114,8 @@ describe("SERVER_INSTRUCTIONS — content contract", () => {
 
 describe("SERVER_INSTRUCTIONS — size and hygiene (per-session cost)", () => {
   it("fits INSTRUCTIONS_BUDGET_BYTES", () => {
-    expect(INSTRUCTIONS_BUDGET_BYTES).toBe(4_000);
+    // Ratcheted 4,000 → 4,500 with the audit (§9.5) and prompts (§13.5) lines.
+    expect(INSTRUCTIONS_BUDGET_BYTES).toBe(4_500);
     expect(instructionsBytes()).toBe(Buffer.byteLength(SERVER_INSTRUCTIONS, "utf8"));
     expect(instructionsBytes()).toBeLessThanOrEqual(INSTRUCTIONS_BUDGET_BYTES);
     expect(instructionsBytes()).toBeGreaterThan(1_000);

@@ -717,6 +717,45 @@ export function auditReport(host: Host, opts: AuditReportOptions = {}): AuditRep
   return auditReportFromDataDir(host.dataDir, opts);
 }
 
+// -- Plugin prompts (SPEC-MCP-SERVER §13.5) -----------------------------
+
+import {
+  promptListEntry,
+  renderPrompt as renderPromptRegistration,
+  type PromptListEntry,
+  type RenderedPrompt,
+} from "./mcp/prompts.js";
+
+export type { PromptListEntry, RenderedPrompt };
+
+export interface SdkPromptEntry extends PromptListEntry {
+  plugin_id: string;
+}
+
+/** Metadata of every plugin-shipped prompt (what `prompts/list` returns), with the owning plugin. */
+export function listPrompts(host: Host): SdkPromptEntry[] {
+  return host.plugins.listPrompts().map((p) => ({ ...promptListEntry(p), plugin_id: p.pluginId }));
+}
+
+/**
+ * Render a plugin-shipped prompt with arguments — the `prompts/get`
+ * pipeline: argument check, plugin render, skill-contract validation.
+ * Throws `not_found` for an unknown id.
+ */
+export async function renderPrompt(
+  host: Host,
+  args: { id: string; args?: Record<string, string> },
+): Promise<{ name: string } & RenderedPrompt> {
+  const reg = host.plugins.findPrompt(args.id);
+  if (reg === undefined) {
+    throw new FDPMException("not_found", `prompt not found: ${args.id}`, {
+      evidence: { prompt: args.id, available: host.plugins.listPrompts().map((p) => p.promptId) },
+    });
+  }
+  const out = await renderPromptRegistration(reg, args.args ?? {});
+  return { name: args.id, ...out };
+}
+
 /**
  * Flat-args options for `renderProject`.
  *

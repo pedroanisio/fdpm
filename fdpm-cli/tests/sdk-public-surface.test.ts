@@ -34,6 +34,9 @@ describe("SDK public surface", () => {
       "previewWorkbookDelete",
       // Audit flywheel (SPEC-MCP-SERVER §9.5).
       "auditReport",
+      // Plugin prompts (SPEC-MCP-SERVER §13.5).
+      "listPrompts",
+      "renderPrompt",
     ];
     for (const name of expected) {
       expect(

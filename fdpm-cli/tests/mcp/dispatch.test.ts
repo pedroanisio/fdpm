@@ -26,6 +26,7 @@ import { Host } from "../../src/core/host.js";
 import { TEST_PROFILE } from "../fixtures.js";
 import { createDispatcher } from "../../src/mcp/dispatch.js";
 import { createSession } from "../../src/mcp/session.js";
+import { INSTRUCTIONS_BUDGET_BYTES } from "../../src/mcp/instructions.js";
 import type { DispatchCtx } from "../../src/mcp/types.js";
 
 async function bootstrap(opts?: { maxPerMinute?: number }): Promise<{
@@ -100,7 +101,7 @@ describe("dispatcher — happy path returns success shape", () => {
     // §8.6 — the per-session instructions cost is observable too.
     const withInstr = result.structuredContent as { instructions_bytes: number };
     expect(withInstr.instructions_bytes).toBeGreaterThan(1_000);
-    expect(withInstr.instructions_bytes).toBeLessThanOrEqual(4_000);
+    expect(withInstr.instructions_bytes).toBeLessThanOrEqual(INSTRUCTIONS_BUDGET_BYTES);
   });
 });
 

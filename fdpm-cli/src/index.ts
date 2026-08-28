@@ -63,4 +63,6 @@ export {
   previewRelationDelete,
   previewWorkbookDelete,
   auditReport,
+  listPrompts,
+  renderPrompt,
 } from "./sdk.js";
