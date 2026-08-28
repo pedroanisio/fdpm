@@ -33,8 +33,12 @@
  * Evidence for the numbers, measured 2026-08-28 on manifest 0.1.0:
  * 30 tools advertised 33,929 bytes; `fdpm.profile.register` alone
  * carried an 8,809-byte inlined DomainProfile schema (26 %). After
- * moving that schema to `fdpm://schema/profile` the catalog measures
- * ~25 KB; the 28,000-byte default leaves ~10 % headroom.
+ * moving that schema to `fdpm://schema/profile` the catalog measured
+ * 25,699 B (budget 28,000). Manifest 0.3.0 (§8.6) moved the generic
+ * envelope/gating prose out of thirteen Tier-2 and five Tier-3
+ * descriptions into `initialize.instructions`: 23,567 B, and the budget
+ * was ratcheted down to 26,000 B (~10 % headroom). The ratchet only
+ * moves in a reviewed commit.
  */
 
 import type { McpToolEntry } from "./types.js";
@@ -91,7 +95,7 @@ export interface CatalogReport {
 }
 
 export const DEFAULT_CATALOG_BUDGET: CatalogBudget = Object.freeze({
-  total_bytes: 28_000,
+  total_bytes: 26_000,
   per_tool_bytes: 2_000,
 });
 

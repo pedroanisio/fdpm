@@ -35,7 +35,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.relation.delete",
   tier: "destructive",
   description:
-    "Delete a relation by id within a workbook. Destructive: the operation cannot be undone by another tool call. Refuses with category=permission, reason=destructive_disabled when destructive tools are not enabled.",
+    "Delete a relation by id within a workbook. Cannot be undone by another tool call; returns the recorded operation.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: true },

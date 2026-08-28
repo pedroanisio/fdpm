@@ -36,7 +36,7 @@ export const tool: McpToolEntry<
   name: "fdpm.structure.reparent",
   tier: "validating_write",
   description:
-    "Move a primitive between scopes within the same workbook. `from_scope_id` MUST currently contain `primitive_id`; `to_scope_id` MUST be a registered scope of a type that accepts the primitive's type (consult fdpm.profile.type_info on the parent scope's type to confirm). Optional `position` inserts at that index in the destination's ordering (default: append). Cross-workbook moves are NOT supported — re-create at the target instead. Rejection (membership / scope-type mismatch) surfaces as `isError: false`, `ok: false` with findings.",
+    "Move a primitive between scopes within the same workbook. `from_scope_id` MUST currently contain `primitive_id`; `to_scope_id` MUST be a registered scope of a type that accepts the primitive's type (consult fdpm.profile.type_info on the parent scope's type to confirm). Optional `position` inserts at that index in the destination's ordering (default: append). Cross-workbook moves are NOT supported — re-create at the target instead. A membership or scope-type mismatch is rejected with findings.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

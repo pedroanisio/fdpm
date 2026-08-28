@@ -313,11 +313,37 @@ Tier-2 rejection (`ok: false`, findings keyed `core:profile-schema` with
 { "uri": "fdpm://schema/profile", "mimeType": "application/schema+json", "text": "{ \"type\": \"object\", ... }" }
 ```
 
+#### Server instructions — `initialize.instructions` and `fdpm://guide` (SPEC-MCP-SERVER §8.6)
+
+Everything that is true of *every* tool — the cold-start workflow, the
+response contract, how to read a rejection, how Tier 3 is gated — is
+sent once per session in the MCP `initialize` result's `instructions`
+field (`src/mcp/instructions.ts`, `SERVER_INSTRUCTIONS`), not repeated
+inside each tool description. The text is static per manifest (no
+runtime state; `fdpm.health` reports state), capped by
+`INSTRUCTIONS_BUDGET_BYTES` (4,000 B; CI + boot gate), and mirrored
+byte-for-byte at the `fdpm://guide` resource (`text/markdown`) for
+clients that ignore `instructions`. `tests/mcp/instructions.test.ts`
+asserts it names every resource URI template the registry advertises
+and never names a tool absent from the manifest.
+
+An agent's first three calls, as the instructions prescribe:
+
+```text
+fdpm.workbook.list                          → workbook_id, profile_id
+fdpm.profile.type_info(profile_id, type_id) → id_pattern, required_field_names, source/target_type_id
+fdpm.primitive.create_batch(...)            → ok:true | ok:false + validation_report.findings[]
+```
+
+Tool descriptions keep only tool-specific facts; the dedup contract in
+`tests/mcp/tool-descriptions.test.ts` fails the build if the generic
+envelope prose creeps back into a description.
+
 #### Catalog byte budget (SPEC-MCP-SERVER §8.5)
 
 The advertised catalog (Core manifest + any plugin tools) is measured at
 boot in UTF-8 bytes and checked against `DEFAULT_CATALOG_BUDGET`
-(28,000 B total / 2,000 B per tool, `src/mcp/catalog.ts`). Over budget
+(26,000 B total / 2,000 B per tool, `src/mcp/catalog.ts`). Over budget
 → `fdpm-mcp` refuses to start (exit 2) and prints each violation.
 `tools/list` carries `_meta.catalog_bytes` / `_meta.catalog_budget_bytes`;
 `fdpm.health` returns the same numbers under `catalog`.

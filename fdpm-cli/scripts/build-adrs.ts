@@ -138,6 +138,20 @@ const decisions: DecisionInput[] = [
     altReason:
       "No reviewer sees the total; the 8.8 KB profile schema shipped through four manifest revisions without anyone measuring it.",
   },
+  {
+    id: "decision:0007",
+    title:
+      "Server-generic orientation ships once in initialize.instructions, mirrored at fdpm://guide, not in every tool description",
+    context:
+      "A cold agent needs call order, the response contract, and rejection recovery before its first call. Until manifest 0.2.0 that prose was pasted into 13 Tier-2 and 5 Tier-3 descriptions and re-sent on every tools/list; PURPOSE.md's eval asks whether a cold agent can drive a workbook on first contact, and plugin prompts (the per-domain layer) are still v0.2.",
+    rationale:
+      "MCP initialize.instructions is placed in the model context once per session — the right cost profile for text true of every tool. Keeping it static (no runtime state; fdpm.health reports state) makes it byte-identical to a fdpm://guide resource for clients that ignore instructions, and testable without a server. A 4,000 B budget plus CI drift guards (every registry URI template named, no unknown tool named) keep it honest.",
+    consequences:
+      "Descriptions keep only tool-specific facts; a dedup test fails the build if generic prose creeps back. Catalog shrank 25,699 → 23,567 B and the budget ratcheted to 26,000. Agents get one place to learn the contract; prompts will compose on top, not replace it.",
+    altName: "Wait for plugin-shipped MCP prompts (v0.2) to carry orientation",
+    altReason:
+      "Prompts are per-domain and user-invoked; the server-generic contract would still have to live somewhere the agent sees on first contact, and v0.2 has no date.",
+  },
 ];
 
 const decisionSpecs: PrimitiveSpec[] = decisions.map((d) => ({
@@ -201,6 +215,16 @@ const evidenceSpecs: PrimitiveSpec[] = [
         "Tool-catalog measurement and byte budget — buildToolsListEntries, measureCatalog, checkCatalogBudget; enforced at boot by fdpm-mcp and in CI by tests/mcp/catalog-budget.test.ts.",
     },
   },
+  {
+    id: "evidence:ref:mcp-instructions",
+    type: "sw:Evidence",
+    fields: {
+      kind: "Reference",
+      source: "fdpm-cli/src/mcp/instructions.ts",
+      description:
+        "SERVER_INSTRUCTIONS — static cold-start orientation, INSTRUCTIONS_BUDGET_BYTES, checkInstructionsBudget; served on initialize and at fdpm://guide; contract in tests/mcp/instructions.test.ts.",
+    },
+  },
 ];
 
 const relations: RelationSpec[] = [
@@ -227,6 +251,12 @@ const relations: RelationSpec[] = [
     type: "sw:Justifies",
     from: "evidence:ref:mcp-catalog",
     to: "decision:0006",
+  },
+  {
+    id: "rel:mcp-instructions-justifies-d7",
+    type: "sw:Justifies",
+    from: "evidence:ref:mcp-instructions",
+    to: "decision:0007",
   },
 ];
 

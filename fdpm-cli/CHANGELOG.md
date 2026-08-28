@@ -23,6 +23,32 @@ upgrade.
 
 ### Added
 
+#### `fdpm-mcp` — server instructions and `fdpm://guide` (SPEC-MCP-SERVER §8.6)
+
+The cold-start orientation layer. PURPOSE.md's eval asks whether a cold
+agent, given only the server, can drive a workbook on first contact;
+until plugin-shipped MCP prompts land (v0.2), `initialize.instructions`
+is the server's answer.
+
+- [`src/mcp/instructions.ts`](src/mcp/instructions.ts) — `SERVER_INSTRUCTIONS`,
+  a static (per-manifest, no runtime state) text sent once per session:
+  the cold-start workflow (list → `type_info` → write → read via
+  resources), the response contract (`isError` vs `ok:false`,
+  `validation_report.findings[]`, the recovery loop), the protocol-error
+  categories and `evidence.reason`s (`destructive_disabled`,
+  `stale_state`, `rate_limited`, `confirmation_required`), and the
+  common `rule_id`s. `INSTRUCTIONS_BUDGET_BYTES` (4,000) caps it;
+  `checkInstructionsBudget()` is enforced in CI and at boot (exit 2).
+- New resource `fdpm://guide` (`text/markdown`,
+  [`src/mcp/resources/guide.ts`](src/mcp/resources/guide.ts)) serves the
+  same bytes for clients that ignore `initialize.instructions`.
+- `fdpm.health` returns `instructions_bytes` (additive).
+- CI: [`tests/mcp/instructions.test.ts`](tests/mcp/instructions.test.ts)
+  (content contract, budget, every registry URI template named, no
+  unknown tool named), [`tests/mcp/resources-guide.test.ts`](tests/mcp/resources-guide.test.ts),
+  dedup contract in `tool-descriptions.test.ts`, and the stdio E2E checks
+  `client.getInstructions()` and `fdpm://guide` are byte-identical.
+
 #### `fdpm-mcp` — tool-catalog byte budget and schema-by-resource (SPEC-MCP-SERVER §8.5)
 
 The `tools/list` catalog is now a measured, capped quantity. Every MCP
@@ -87,6 +113,27 @@ and records Option A (USL-NG Core upstream) as the v1.x direction.
 72/72 tests passing.
 
 ### Changed
+
+#### `fdpm-mcp` — MCP tool manifest `0.2.0` → `0.3.0`; descriptions deduplicated; catalog budget ratcheted
+
+- The generic prose that thirteen Tier-2 descriptions repeated ("on
+  rejection the response is `isError: false`, `ok: false` … read those,
+  fix the input, retry"; "Returns the standard Tier-2 envelope") and the
+  gating sentence five Tier-3 descriptions repeated now live once in
+  `initialize.instructions`. Descriptions keep only tool-specific facts
+  (what `type_info` must be consulted for, what rejects, batch
+  preference, immutability rules). Catalog: 25,699 B → **23,567 B**
+  (destructive off), 24,709 → 22,577 B (on).
+- `DEFAULT_CATALOG_BUDGET.total_bytes` ratcheted **28,000 → 26,000**
+  (~10 % headroom over the new measurement). `FDPM_MCP_CATALOG_BUDGET_BYTES`
+  default in the docs follows.
+- Manifest `0.3.0`: additive `fdpm.health.instructions_bytes`, new
+  resource family, no tool/argument changes.
+
+**Migration.** No client change is required. Clients that cached tool
+descriptions keyed by manifest version see new text under `0.3.0`.
+Operators who pinned `FDPM_MCP_CATALOG_BUDGET_BYTES=28000` explicitly may
+keep it; the new default is lower, not higher.
 
 #### `fdpm-mcp` — MCP tool manifest `0.1.0` → `0.2.0`
 

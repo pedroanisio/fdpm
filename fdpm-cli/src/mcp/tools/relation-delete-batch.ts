@@ -44,7 +44,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.relation.delete_batch",
   tier: "destructive",
   description:
-    "Atomically delete 1..500 relations in one call. ALL deletes succeed together, or the WHOLE batch rolls back. CAUTION: Tier-3 destructive, OFF by default. Each id MUST currently exist; first missing id rejects the whole batch with `not_found`. Use this BEFORE fdpm.primitive.delete_batch when cleaning up primitives that are referenced by relations — the two batches together (relations then primitives) execute atomically only within each call, so reasoning about cross-batch atomicity is the operator's responsibility.",
+    "Destructive: atomically delete 1..500 relations. ALL deletes succeed together or the WHOLE batch rolls back. Each id MUST currently exist; the first missing id rejects the whole batch with `not_found`. Use this BEFORE fdpm.primitive.delete_batch when cleaning up primitives that are referenced by relations — atomicity holds within each call only, so cross-batch ordering is the caller's responsibility.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: true },

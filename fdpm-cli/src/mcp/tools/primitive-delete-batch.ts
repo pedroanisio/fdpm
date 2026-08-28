@@ -53,7 +53,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.primitive.delete_batch",
   tier: "destructive",
   description:
-    "Atomically delete 1..500 primitives in one call. ALL deletes succeed together, or the WHOLE batch rolls back — no partial deletion. CAUTION: this is a Tier-3 destructive tool and is OFF by default; reachable only when fdpm-mcp was started with --enable-destructive (or FDPM_MCP_ENABLE_DESTRUCTIVE=1). Each id MUST currently exist in the workbook; the first missing id rejects the whole batch with `not_found`. Note: deleting a primitive referenced by an existing relation MAY be rejected by validation (depending on the profile's relation cardinality bounds — consult fdpm.profile.type_info on the relation type). Returns `ok: true` with the operation envelopes on success; on failure the call rejects (isError: true) with a structured envelope and the workbook is unchanged.",
+    "Destructive: atomically delete 1..500 primitives. ALL deletes succeed together or the WHOLE batch rolls back — no partial deletion. Each id MUST currently exist in the workbook; the first missing id rejects the whole batch with `not_found`. Deleting a primitive referenced by an existing relation MAY be rejected by validation (relation cardinality bounds — consult fdpm.profile.type_info on the relation type). Success returns the operation envelopes; on failure the call is a protocol error (isError: true) and the workbook is unchanged.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: true },

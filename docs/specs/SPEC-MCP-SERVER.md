@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts"
-revision: "0.1.3 — catalog byte budget and schema-by-resource amendment (§8.5): the advertised tools/list catalog is measured in UTF-8 bytes and capped (28,000 B / 2,000 B per tool) at boot and in CI; fdpm.profile.register takes an opaque profile validated against fdpm://schema/profile; manifest 0.2.0."
+revision: "0.1.4 — server-instructions amendment (§8.6): static cold-start orientation sent once per session in initialize.instructions and mirrored at fdpm://guide; generic envelope/gating prose removed from tool descriptions; catalog budget ratcheted to 26,000 B; manifest 0.3.0."
 status: "Proposal"
 ---
 
@@ -313,6 +313,20 @@ Every `tools/list` response ships the whole registry — name, description, and 
 
 **Evidence.** Measured 2026-08-28 on manifest 0.1.0: 30 tools, 33,929 bytes, of which 8,809 bytes (26 %) were the DomainProfile schema inlined into `fdpm.profile.register`. After this amendment: 25,699 bytes with destructive off, 24,709 with it on.
 
+### 8.6 Server instructions and schema of orientation (v0.1.4)
+
+Tool descriptions can say what a tool does; they cannot carry the layer a cold agent needs before its first call — in what order to call, what a response means, how to recover from a rejection, why a delete refuses. Until v0.1.3 that layer was pasted into thirteen Tier-2 and five Tier-3 descriptions and re-sent with every `tools/list`. MCP `initialize` carries an `instructions` field that clients place in the model context once per session; it is the correct home.
+
+**Content.** The server MUST send `instructions` on `initialize`. The text MUST state: the cold-start workflow (`fdpm.workbook.list` → `fdpm.profile.type_info` before any create/replace → write, preferring the batch tools → read through resources); the response contract (`isError: false` + `ok: true` written; `isError: false` + `ok: false` rejected with `validation_report.findings[]` and nothing written; `isError: true` protocol error with `category` and `evidence.reason`); the meaning of `destructive_disabled`, `stale_state`, `rate_limited` and `confirmation_required`; and every resource URI template the server advertises.
+
+**Static.** The text MUST be a pure function of manifest constants — no runtime state (destructive on/off, rate limit, catalog bytes). Runtime state is reported by `fdpm.health` and by the Tier-3 banner; the text says where to look. Consequently `initialize.instructions` and the `fdpm://guide` resource (`text/markdown`) MUST be byte-identical, and the content is testable without a running server.
+
+**Budget.** The text is a per-session cost like the catalog. It MUST NOT exceed `INSTRUCTIONS_BUDGET_BYTES` (4,000 bytes); the server MUST refuse to start (exit 2) when it does and CI MUST enforce the same limit. CI MUST also assert that the text names every resource URI template the registry advertises and never names a tool absent from the manifest (drift guards).
+
+**Dedup.** Tool descriptions MUST NOT repeat the generic envelope or gating prose; they keep only tool-specific facts — what `fdpm.profile.type_info` must be consulted for, what rejects, immutability rules, batch preference. CI enforces this (`fdpm-cli/tests/mcp/tool-descriptions.test.ts`). Catalog after dedup: 23,567 bytes (destructive off); `DEFAULT_CATALOG_BUDGET.total_bytes` ratcheted from 28,000 to 26,000.
+
+**Relation to prompts.** Plugin-shipped MCP prompts (§28, v0.2) carry the per-domain "how to think" layer; `instructions` carries the server-generic layer. They compose; neither replaces the other.
+
 ---
 
 ## 9. Transport, Authentication, and Authorization
@@ -361,7 +375,7 @@ Tool names and argument shapes are a public contract. Adding a tool or an option
 
 ### 11.4 Advertised size
 
-The derived JSON Schema is part of the measured catalog (§8.5), so widening an input schema is subject to the byte budget. When a payload schema is large, serve it as a resource under `fdpm://schema/{schema_id}` and advertise an opaque object. Manifest 0.2.0 records the `fdpm.profile.register` input change (loosened: minor) and the additive `fdpm.health.catalog` field.
+The derived JSON Schema is part of the measured catalog (§8.5), so widening an input schema is subject to the byte budget. When a payload schema is large, serve it as a resource under `fdpm://schema/{schema_id}` and advertise an opaque object. Manifest 0.2.0 records the `fdpm.profile.register` input change (loosened: minor) and the additive `fdpm.health.catalog` field; 0.3.0 records the additive `fdpm.health.instructions_bytes` field and the `fdpm://guide` resource family (§8.6).
 
 ---
 
@@ -444,7 +458,7 @@ The full tool catalog by tier is rendered from the Tool primitives bound to this
 
 ## 17. Configuration
 
-Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 28,000 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.
+Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 26,000 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.
 
 ---
 
@@ -589,6 +603,11 @@ Order matters: SPEC-REPL §13 Host changes must land first; Tier 1 surface lands
    - touches: `fdpm-cli/src/mcp/resources/schema.ts`
    - touches: `fdpm-cli/src/mcp/tools/profile-register.ts`
    - touches: `fdpm-cli/src/bin/fdpm-mcp.ts`
+7. **Server instructions + fdpm://guide (0.1.4)** — Land src/mcp/instructions.ts (SERVER_INSTRUCTIONS, INSTRUCTIONS_BUDGET_BYTES, checkInstructionsBudget), the initialize.instructions wiring and boot gate in fdpm-mcp.ts, the fdpm://guide provider, fdpm.health.instructions_bytes, and the description dedup. No client change required; description text changes under manifest 0.3.0.
+   - touches: `fdpm-cli/src/mcp/instructions.ts`
+   - touches: `fdpm-cli/src/mcp/resources/guide.ts`
+   - touches: `fdpm-cli/src/bin/fdpm-mcp.ts`
+   - touches: `fdpm-cli/src/mcp/tools/`
 
 ---
 
@@ -649,6 +668,12 @@ Other open questions (defaulted):
 ---
 
 ## 30. Revision history
+
+### 0.1.4 — 2026-08-28 — Server-instructions amendment.
+
+Adds §8.6: the server MUST send a static, budget-capped (4,000 B) instructions text on initialize — cold-start workflow, response contract, evidence.reason meanings, every resource URI template — mirrored byte-for-byte at fdpm://guide; CI drift guards (templates named, no unknown tools). Tool descriptions MUST NOT repeat generic envelope/gating prose; catalog after dedup 23,567 B, DEFAULT_CATALOG_BUDGET ratcheted 28,000 → 26,000. fdpm.health gains instructions_bytes. Manifest 0.2.0 → 0.3.0. Authored by Claude Fable 5 via Claude Code, with a forked peer session contributing instructions.ts and its tests.
+
+Affected sections: 8, 11, 17, 25
 
 ### 0.1.3 — 2026-08-28 — Catalog byte budget and schema-by-resource amendment.
 

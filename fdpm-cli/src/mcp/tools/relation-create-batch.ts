@@ -59,7 +59,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.relation.create_batch",
   tier: "validating_write",
   description:
-    "Atomically create 1..500 relations in one call. ALL relations validate and persist together, or the WHOLE batch rolls back. BEFORE calling: invoke fdpm.profile.type_info(profile_id, type_id) for each distinct type_id to confirm source_type_id / target_type_id and id_pattern. Source and target primitives MUST already exist in the project; a relation in this batch CAN target a primitive being created by an earlier batch (call primitive.create_batch first, or use a cross-batch ordering). Validates entries in array order; cardinality bounds account for in-flight projection. On success: `ok: true` with `operations[]` and `validation_reports[]` of length N. On rejection: `isError: false`, `ok: false` with a single `validation_report` carrying the failing entry's findings; the entire batch is discarded.",
+    "Atomically create 1..500 relations: ALL validate and persist together or the WHOLE batch rolls back. BEFORE calling: fdpm.profile.type_info for each distinct type_id (source_type_id / target_type_id, id_pattern). Source and target primitives MUST already exist in the workbook — run fdpm.primitive.create_batch first when they are new. Entries validate in array order; cardinality bounds account for the in-flight projection. Success returns `operations[]` and `validation_reports[]` of length N; a rejection carries a single `validation_report` for the failing entry and discards the entire batch.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

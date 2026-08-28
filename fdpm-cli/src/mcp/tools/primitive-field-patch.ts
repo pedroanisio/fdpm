@@ -44,7 +44,7 @@ export const tool: McpToolEntry<
   name: "fdpm.primitive.field_patch",
   tier: "validating_write",
   description:
-    "Apply a JSON-Patch-shaped operation list to a primitive's field_values (`add`, `replace`, `remove`, `move`, `copy`, `test`, `merge`). Use this when you need precise path-level edits (e.g. mutating one element of a nested list) and fdpm.primitive.patch's whole-field-merge is too coarse. Validation scope is the touched paths only. Each operation's `path` is a JSON Pointer (`/categories/0/id`). Rejection surfaces as `isError: false`, `ok: false`; the operations are atomic — a single failing operation rejects the whole patch.",
+    "Apply a JSON-Patch-shaped operation list to a primitive's field_values (`add`, `replace`, `remove`, `move`, `copy`, `test`, `merge`) for precise path-level edits (e.g. one element of a nested list) when fdpm.primitive.patch's whole-field merge is too coarse. Each operation's `path` is a JSON Pointer (`/categories/0/id`). Validation covers the touched paths only. Operations are atomic — a single failing operation rejects the whole patch.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

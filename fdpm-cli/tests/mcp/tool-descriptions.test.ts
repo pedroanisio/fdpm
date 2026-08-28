@@ -16,6 +16,7 @@
 
 import { describe, it, expect } from "vitest";
 import { MANIFEST } from "../../src/mcp/manifest.js";
+import { SERVER_INSTRUCTIONS } from "../../src/mcp/instructions.js";
 
 const MIN_LEN_TIER_2 = 200;
 const MIN_LEN_TIER_3 = 80;
@@ -102,5 +103,54 @@ describe("tool descriptions — schema-by-resource contract (SPEC-MCP-SERVER §8
     expect(t!.description).toMatch(/fdpm:\/\/schema\/profile/);
     expect(t!.description).toMatch(/resources\/read/);
     expect(t!.description).toMatch(/core:profile-schema/);
+  });
+});
+
+/**
+ * SPEC-MCP-SERVER §8.6 — dedup contract. Prose that is true of EVERY
+ * tool (the envelope semantics, the recovery loop, the Tier-3 refusal
+ * text) is sent once per session in `initialize.instructions`, not
+ * re-sent per tool on every `tools/list`. Descriptions keep only what
+ * is specific to the tool. These assertions make a regression to the
+ * copy-pasted form fail the build.
+ */
+const GENERIC_ENVELOPE_PHRASES: ReadonlyArray<RegExp> = [
+  /read those, fix the input, retry/,
+  /Rejection surfaces as `isError: false`, `ok: false`/,
+  /Validation runs the §7 pipeline/,
+  /Returns the standard Tier-2 envelope/,
+  /On rejection returns `isError: false`, `ok: false`/,
+];
+const GENERIC_TIER3_PHRASES: ReadonlyArray<RegExp> = [
+  /Refuses with category=permission, reason=destructive_disabled when destructive tools are not enabled/,
+  /reachable only when fdpm-mcp was started with --enable-destructive/,
+];
+
+describe("tool descriptions — dedup contract (SPEC-MCP-SERVER §8.6)", () => {
+  it("no Tier-2 description repeats the generic envelope / recovery prose", () => {
+    for (const t of TIER_2_TOOLS) {
+      for (const phrase of GENERIC_ENVELOPE_PHRASES) {
+        expect(t.description, `${t.name} repeats generic prose ${phrase}`).not.toMatch(phrase);
+      }
+    }
+  });
+
+  it("no Tier-3 description repeats the generic gating prose (the banner + instructions carry it)", () => {
+    for (const t of TIER_3_TOOLS) {
+      for (const phrase of GENERIC_TIER3_PHRASES) {
+        expect(t.description, `${t.name} repeats generic prose ${phrase}`).not.toMatch(phrase);
+      }
+    }
+  });
+
+  it("the instructions carry the recovery loop and the gating rule exactly once each", () => {
+    expect(SERVER_INSTRUCTIONS.match(/fix the input, retry/g)?.length).toBe(1);
+    expect(SERVER_INSTRUCTIONS.match(/destructive_disabled/g)?.length).toBe(1);
+  });
+
+  it("every Tier-2 description still says what specifically rejects it", () => {
+    for (const t of TIER_2_TOOLS) {
+      expect(t.description.toLowerCase(), t.name).toMatch(/reject/);
+    }
   });
 });

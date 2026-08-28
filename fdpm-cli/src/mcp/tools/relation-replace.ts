@@ -41,7 +41,7 @@ export const tool: McpToolEntry<
   name: "fdpm.relation.replace",
   tier: "validating_write",
   description:
-    "Replace a relation's field_values wholesale (source_id, target_id, type_id are immutable — submit a different combination and the call rejects with `conflict`). Optional expected_revision enforces If-Match optimistic concurrency. Rejection surfaces as `isError: false`, `ok: false` with findings. To change endpoints, delete (Tier 3) and re-create.",
+    "Replace a relation's field_values wholesale. source_id, target_id and type_id are immutable — a different combination is rejected with `conflict`; to change endpoints, delete (Tier 3) and re-create. Optional expected_revision enforces If-Match optimistic concurrency (`conflict` on revision drift).",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

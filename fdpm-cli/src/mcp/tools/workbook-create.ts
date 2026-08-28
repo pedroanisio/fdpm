@@ -43,7 +43,7 @@ export const tool: McpToolEntry<
   name: "fdpm.workbook.create",
   tier: "validating_write",
   description:
-    "Create a new workbook bound to a registered profile. The profile_id MUST already be registered (call fdpm.profile.list to discover what's available; fdpm.profile.register to add a new one). The workbook_id MUST be unique within the data dir; collision returns `conflict`. Returns the standard Tier-2 envelope including operation and validation_report.",
+    "Create a workbook bound to a registered profile. profile_id MUST already be registered (fdpm.profile.list to discover what exists; fdpm.profile.register to add one). workbook_id MUST be unique within the data dir — a collision is rejected with `conflict`.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

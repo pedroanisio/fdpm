@@ -67,7 +67,7 @@ export const tool: McpToolEntry<
   name: "fdpm.profile.register",
   tier: "validating_write",
   description:
-    `Register a DomainProfile (persisted). BEFORE composing \`profile\`, read ${PROFILE_SCHEMA_URI} via resources/read — it is the exact JSON Schema (id, version, label|name, primitive_types, relation_types, scopes, categories, optional \`extends\`) and the server validates against the same schema. A malformed profile returns the Tier-2 envelope with \`ok: false\` and one \`validation_report.findings[]\` entry per violated path (rule_id \`${PROFILE_SCHEMA_RULE_ID}\`, \`field_path\` set) — read those, fix the input, retry; nothing is registered on rejection. Parents listed in \`extends\` MUST already be registered (else \`not_found\`). Profiles produce no operation-log entry, so \`operation\` is omitted on success.`,
+    "Register a DomainProfile (persisted). BEFORE composing `profile`, read fdpm://schema/profile via resources/read — it is the exact JSON Schema (id, version, label|name, primitive_types, relation_types, scopes, categories, optional `extends`) and the server validates against the same schema. A malformed profile is rejected with one `core:profile-schema` finding per violated path (`field_path` set); nothing is registered. Parents listed in `extends` MUST already be registered (else `not_found`). Profiles produce no operation-log entry, so `operation` is omitted on success.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

@@ -40,7 +40,7 @@ export const tool: McpToolEntry<
   name: "fdpm.relation.patch",
   tier: "validating_write",
   description:
-    "Partial-update a relation's field_values: only the keys present in `patch.field_values` are merged in. source_id, target_id, type_id are NOT mutable through this path — use fdpm.relation.replace for type-preserving rewrites. Validation scope is the touched paths only; pre-existing violations on untouched fields do not block the edit. Rejection surfaces as `isError: false`, `ok: false` with findings restricted to the touched paths.",
+    "Partial-update a relation's field_values: only the keys present in `patch.field_values` are merged in. source_id, target_id and type_id are NOT mutable through this path — use fdpm.relation.replace for type-preserving rewrites. Validation covers the touched paths only; pre-existing violations on untouched fields do not block the edit, and a rejection lists findings for the touched paths only.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

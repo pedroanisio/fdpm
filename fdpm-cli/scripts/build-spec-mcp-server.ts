@@ -83,7 +83,7 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "0.1.3 — catalog byte budget and schema-by-resource amendment (§8.5): the advertised tools/list catalog is measured in UTF-8 bytes and capped (28,000 B / 2,000 B per tool) at boot and in CI; fdpm.profile.register takes an opaque profile validated against fdpm://schema/profile; manifest 0.2.0.",
+      "0.1.4 — server-instructions amendment (§8.6): static cold-start orientation sent once per session in initialize.instructions and mirrored at fdpm://guide; generic envelope/gating prose removed from tool descriptions; catalog budget ratcheted to 26,000 B; manifest 0.3.0.",
     source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-mcp",
@@ -1025,7 +1025,7 @@ const configEntries: PrimitiveSpec[] = [
     type: "spec:ConfigEntry",
     fields: {
       key: "FDPM_MCP_CATALOG_BUDGET_BYTES",
-      default: "28000",
+      default: "26000",
       purpose:
         "Cap on the UTF-8 byte size of the advertised tools/list catalog (Core + plugin tools). Boot refuses with exit 2 when exceeded. Raises the total only; the 2,000-byte per-tool limit is not tunable (§8.5).",
       scope: "mcp",
@@ -1584,6 +1584,23 @@ const migration: PrimitiveSpec[] = [
       depends_on: ["spec:mig:4"],
     },
   },
+  {
+    id: "spec:mig:7",
+    type: "spec:MigrationStep",
+    fields: {
+      ordinal: 7,
+      label: "Server instructions + fdpm://guide (0.1.4)",
+      action:
+        "Land src/mcp/instructions.ts (SERVER_INSTRUCTIONS, INSTRUCTIONS_BUDGET_BYTES, checkInstructionsBudget), the initialize.instructions wiring and boot gate in fdpm-mcp.ts, the fdpm://guide provider, fdpm.health.instructions_bytes, and the description dedup. No client change required; description text changes under manifest 0.3.0.",
+      affected_paths: [
+        "fdpm-cli/src/mcp/instructions.ts",
+        "fdpm-cli/src/mcp/resources/guide.ts",
+        "fdpm-cli/src/bin/fdpm-mcp.ts",
+        "fdpm-cli/src/mcp/tools/",
+      ],
+      depends_on: ["spec:mig:6"],
+    },
+  },
 ];
 
 // ── §17 / §20 Risks & Mitigations ──────────────────────────────────────────
@@ -1969,6 +1986,19 @@ const revisions: PrimitiveSpec[] = [
       kind: "patch",
     },
   },
+  {
+    id: "spec:rev:0-1-4",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.4",
+      date: "2026-08-28",
+      title: "Server-instructions amendment.",
+      notes:
+        "Adds §8.6: the server MUST send a static, budget-capped (4,000 B) instructions text on initialize — cold-start workflow, response contract, evidence.reason meanings, every resource URI template — mirrored byte-for-byte at fdpm://guide; CI drift guards (templates named, no unknown tools). Tool descriptions MUST NOT repeat generic envelope/gating prose; catalog after dedup 23,567 B, DEFAULT_CATALOG_BUDGET ratcheted 28,000 → 26,000. fdpm.health gains instructions_bytes. Manifest 0.2.0 → 0.3.0. Authored by Claude Fable 5 via Claude Code, with a forked peer session contributing instructions.ts and its tests.",
+      affected_sections: ["8", "11", "17", "25"],
+      kind: "patch",
+    },
+  },
 ];
 
 // ── §0..§N Sections (the document tree) ────────────────────────────────────
@@ -2118,6 +2148,20 @@ const sections: PrimitiveSpec[] = [
         "**Schema-by-resource.** A tool whose payload schema is large SHOULD advertise an opaque object and serve the schema as a resource under `fdpm://schema/{schema_id}` (`application/schema+json`), validating server-side with the same Zod schema the resource is derived from (§11.1) so the agent-visible contract and the enforced contract cannot drift. `fdpm.profile.register` is the first instance: its input is an opaque `profile` object; the DomainProfile schema is `fdpm://schema/profile`; a malformed profile is a Tier-2 rejection (`isError: false`, `ok: false`, one `core:profile-schema` finding per violated path with `field_path`), never a protocol error, and nothing is registered on rejection; parents named in `extends` MUST already be registered (else `not_found`).",
         "",
         "**Evidence.** Measured 2026-08-28 on manifest 0.1.0: 30 tools, 33,929 bytes, of which 8,809 bytes (26 %) were the DomainProfile schema inlined into `fdpm.profile.register`. After this amendment: 25,699 bytes with destructive off, 24,709 with it on.",
+        "",
+        "### 8.6 Server instructions and schema of orientation (v0.1.4)",
+        "",
+        "Tool descriptions can say what a tool does; they cannot carry the layer a cold agent needs before its first call — in what order to call, what a response means, how to recover from a rejection, why a delete refuses. Until v0.1.3 that layer was pasted into thirteen Tier-2 and five Tier-3 descriptions and re-sent with every `tools/list`. MCP `initialize` carries an `instructions` field that clients place in the model context once per session; it is the correct home.",
+        "",
+        "**Content.** The server MUST send `instructions` on `initialize`. The text MUST state: the cold-start workflow (`fdpm.workbook.list` → `fdpm.profile.type_info` before any create/replace → write, preferring the batch tools → read through resources); the response contract (`isError: false` + `ok: true` written; `isError: false` + `ok: false` rejected with `validation_report.findings[]` and nothing written; `isError: true` protocol error with `category` and `evidence.reason`); the meaning of `destructive_disabled`, `stale_state`, `rate_limited` and `confirmation_required`; and every resource URI template the server advertises.",
+        "",
+        "**Static.** The text MUST be a pure function of manifest constants — no runtime state (destructive on/off, rate limit, catalog bytes). Runtime state is reported by `fdpm.health` and by the Tier-3 banner; the text says where to look. Consequently `initialize.instructions` and the `fdpm://guide` resource (`text/markdown`) MUST be byte-identical, and the content is testable without a running server.",
+        "",
+        "**Budget.** The text is a per-session cost like the catalog. It MUST NOT exceed `INSTRUCTIONS_BUDGET_BYTES` (4,000 bytes); the server MUST refuse to start (exit 2) when it does and CI MUST enforce the same limit. CI MUST also assert that the text names every resource URI template the registry advertises and never names a tool absent from the manifest (drift guards).",
+        "",
+        "**Dedup.** Tool descriptions MUST NOT repeat the generic envelope or gating prose; they keep only tool-specific facts — what `fdpm.profile.type_info` must be consulted for, what rejects, immutability rules, batch preference. CI enforces this (`fdpm-cli/tests/mcp/tool-descriptions.test.ts`). Catalog after dedup: 23,567 bytes (destructive off); `DEFAULT_CATALOG_BUDGET.total_bytes` ratcheted from 28,000 to 26,000.",
+        "",
+        "**Relation to prompts.** Plugin-shipped MCP prompts (§28, v0.2) carry the per-domain \"how to think\" layer; `instructions` carries the server-generic layer. They compose; neither replaces the other.",
       ].join("\n"),
     },
   },
@@ -2185,7 +2229,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "### 11.4 Advertised size",
         "",
-        "The derived JSON Schema is part of the measured catalog (§8.5), so widening an input schema is subject to the byte budget. When a payload schema is large, serve it as a resource under `fdpm://schema/{schema_id}` and advertise an opaque object. Manifest 0.2.0 records the `fdpm.profile.register` input change (loosened: minor) and the additive `fdpm.health.catalog` field.",
+        "The derived JSON Schema is part of the measured catalog (§8.5), so widening an input schema is subject to the byte budget. When a payload schema is large, serve it as a resource under `fdpm://schema/{schema_id}` and advertise an opaque object. Manifest 0.2.0 records the `fdpm.profile.register` input change (loosened: minor) and the additive `fdpm.health.catalog` field; 0.3.0 records the additive `fdpm.health.instructions_bytes` field and the `fdpm://guide` resource family (§8.6).",
       ].join("\n"),
     },
   },
@@ -2303,7 +2347,7 @@ const sections: PrimitiveSpec[] = [
       title: "Configuration",
       kind: "prose",
       body_md:
-        "Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 28,000 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.",
+        "Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 26,000 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.",
     },
   },
   {
@@ -2595,6 +2639,12 @@ const relations: RelationSpec[] = [
     type: "spec:DependsOn",
     from: "spec:mig:6",
     to: "spec:mig:4",
+  },
+  {
+    id: "rel:mig-7-deps-6",
+    type: "spec:DependsOn",
+    from: "spec:mig:7",
+    to: "spec:mig:6",
   },
 
   // Acceptance criteria verify requirements / invariants

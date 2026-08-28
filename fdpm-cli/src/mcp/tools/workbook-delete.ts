@@ -39,7 +39,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.workbook.delete",
   tier: "destructive",
   description:
-    "Delete an existing workbook. Destructive: the operation cannot be undone by another tool call. Returns the recorded operation. Refuses with category=permission, reason=destructive_disabled when destructive tools are not enabled.",
+    "Delete an existing workbook. Cannot be undone by another tool call; returns the recorded operation. The workbook's log file is kept for audit.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: true },
