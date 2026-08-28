@@ -282,7 +282,7 @@ const acSpecs: PrimitiveSpec[] = [
       criterion:
         "AC-P1: resources/subscribe + notifications/resources/updated work end-to-end against a watcher polling host.statProjectLog; FDPM_MCP_MAX_RESOURCE_BYTES rejects oversized renders with a structured envelope; transfer + validate + primitive resource providers all return content via resources/read.",
       expression:
-        'graph.exists("task:p1-subscribe") && graph.exists("task:p1-sizecap") && graph.exists("task:p1-providers") && graph.exists("task:p1-catalog-budget")',
+        'graph.exists("task:p1-subscribe") && graph.exists("task:p1-sizecap") && graph.exists("task:p1-providers") && graph.exists("task:p1-catalog-budget") && graph.exists("task:p1-server-instructions")',
       status: "open",
       evidence_refs: [
         "fdpm-cli/src/mcp/resources/",
@@ -479,6 +479,21 @@ const tasks: TaskDef[] = [
     priority: "P1",
     planned_start: "2026-05-18",
     planned_finish: "2026-05-25",
+    wbs: "wbs:p1-mcp-slice-2",
+  },
+  {
+    id: "task:p1-server-instructions",
+    name: "p1-server-instructions",
+    summary:
+      "Static initialize.instructions (cold-start workflow, response contract, gating) mirrored at fdpm://guide; 18 tool descriptions deduplicated; catalog 25,699 \u2192 23,567 B, budget ratcheted to 26,000. Shipped 33c774b + 6689bfd (SPEC-MCP-SERVER 0.1.4 \u00a78.6, ADR decision:0007, GH #10).",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 60,
+    // In_review at create, patched to Done post-commit (see `shipped` in main()).
+    status: "In_review",
+    priority: "P0",
+    planned_start: "2026-08-28",
+    planned_finish: "2026-08-28",
     wbs: "wbs:p1-mcp-slice-2",
   },
   {
@@ -934,6 +949,7 @@ const relations: RelationSpec[] = [
   { id: "rel:p1-dep-2", type: PLAN_REL_DEPENDS_ON, from: "task:p1-tests", to: "task:p1-subscribe" },
   { id: "rel:p1-dep-3", type: PLAN_REL_DEPENDS_ON, from: "task:p1-tests", to: "task:p1-sizecap" },
   { id: "rel:p1-dep-4", type: PLAN_REL_DEPENDS_ON, from: "task:p1-tests", to: "task:p1-providers" },
+  { id: "rel:p1-dep-5", type: PLAN_REL_DEPENDS_ON, from: "task:p1-server-instructions", to: "task:p1-catalog-budget" },
 
   // Phase 2: dry-run first, then idempotency, then audit gates, then tests.
   { id: "rel:p2-dep-1", type: PLAN_REL_DEPENDS_ON, from: "task:p2-idempotency", to: "task:p2-dry-run" },
@@ -980,6 +996,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p1-2", type: PLAN_REL_VERIFIES, from: "task:p1-sizecap", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-3", type: PLAN_REL_VERIFIES, from: "task:p1-providers", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-4", type: PLAN_REL_VERIFIES, from: "task:p1-catalog-budget", to: "ac:p1-subs-and-sizecap" },
+  { id: "rel:ver-p1-5", type: PLAN_REL_VERIFIES, from: "task:p1-server-instructions", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p2-1", type: PLAN_REL_VERIFIES, from: "task:p2-dry-run", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-2", type: PLAN_REL_VERIFIES, from: "task:p2-idempotency", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-3", type: PLAN_REL_VERIFIES, from: "task:p2-audit-gates", to: "ac:p2-tier3-hardened" },
@@ -1036,7 +1053,7 @@ async function main(): Promise<void> {
     .commit();
 
   // Shipped tasks: flip to Done now that their plan:Verifies edges exist.
-  const shipped = ["task:p1-catalog-budget"];
+  const shipped = ["task:p1-catalog-budget", "task:p1-server-instructions"];
   for (const id of shipped) {
     const { report } = await host.patchPrimitive(PROJECT_ID, {
       id,

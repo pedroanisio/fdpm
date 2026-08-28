@@ -1,6 +1,6 @@
 # plan-roadmap-2026-q2 — Agent Board
 
-> Profile: `profile:planning:0.1` v0.1.0. 29 tasks. Generated at 2026-08-28T09:50:37.007Z.
+> Profile: `profile:planning:0.1` v0.1.0. 30 tasks. Generated at 2026-08-28T10:32:06.732Z.
 
 ## 🎯 Available to claim
 
@@ -46,6 +46,7 @@
 - `task:p8-implementation` _(Either/P2)_ — Implement the chosen approach from p8-design. Either way: env-contract test passes after adding a new env var without manual MANUAL.md / README.md edits.
 - `task:p8-tests` _(Either/P2)_ — Update tests/env-contract.test.ts to reflect the new generation/include mechanism. Add a regression test: adding a fake env var to env.ts triggers regeneration and the test re-passes without manual edits.
 
-### Done (1)
+### Done (2)
 
+- `task:p1-server-instructions` _(Either/P0)_ — Static initialize.instructions (cold-start workflow, response contract, gating) mirrored at fdpm://guide; 18 tool descriptions deduplicated; catalog 25,699 → 23,567 B, budget ratcheted to 26,000. Shipped 33c774b + 6689bfd (SPEC-MCP-SERVER 0.1.4 §8.6, ADR decision:0007, GH #10).
 - `task:p1-catalog-budget` _(Either/P0)_ — Measure and cap the advertised tools/list catalog (28,000 B / 2,000 B per tool) at boot and in CI; fdpm://schema/profile resource; opaque fdpm.profile.register input validated server-side. Shipped fe03e34 (SPEC-MCP-SERVER 0.1.3, ADR decision:0006, GH #9).
