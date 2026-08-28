@@ -173,23 +173,23 @@ Backlog / Either
 2026-05-26 → 2026-05-29</title></rect>
 <text class="bar-text" x="676" y="168">p1-tests</text>
 <text class="row-label" x="8" y="192">task:p2-dry-run</text>
-<rect class="bar-either" x="816" y="178" width="96" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:p2-dry-run — p2-tier3-dry-run
-Backlog / Either
+<rect class="bar-either" x="816" y="178" width="96" height="20" fill="#6b7280" rx="2" ry="2"><title>task:p2-dry-run — p2-tier3-dry-run
+Done / Either
 2026-06-01 → 2026-06-04</title></rect>
 <text class="bar-text" x="820" y="192">p2-tier3-dry-run</text>
 <text class="row-label" x="8" y="216">task:p2-idempotency</text>
-<rect class="bar-either" x="912" y="202" width="96" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:p2-idempotency — p2-tier3-idempotency
-Backlog / Either
+<rect class="bar-either" x="912" y="202" width="96" height="20" fill="#6b7280" rx="2" ry="2"><title>task:p2-idempotency — p2-tier3-idempotency
+Done / Either
 2026-06-05 → 2026-06-08</title></rect>
 <text class="bar-text" x="916" y="216">p2-tier3-idempotency</text>
 <text class="row-label" x="8" y="240">task:p2-audit-gates</text>
-<rect class="bar-either" x="1008" y="226" width="72" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:p2-audit-gates — p2-audit-pre-execution
-Backlog / Either
+<rect class="bar-either" x="1008" y="226" width="72" height="20" fill="#6b7280" rx="2" ry="2"><title>task:p2-audit-gates — p2-audit-pre-execution
+Done / Either
 2026-06-09 → 2026-06-11</title></rect>
 <text class="bar-text" x="1012" y="240">p2-audit-pre-execution</text>
 <text class="row-label" x="8" y="264">task:p2-tests</text>
-<rect class="bar-either" x="1080" y="250" width="72" height="20" fill="#94a3b8" rx="2" ry="2"><title>task:p2-tests — p2-tests
-Backlog / Either
+<rect class="bar-either" x="1080" y="250" width="72" height="20" fill="#6b7280" rx="2" ry="2"><title>task:p2-tests — p2-tests
+Done / Either
 2026-06-12 → 2026-06-14</title></rect>
 <text class="bar-text" x="1084" y="264">p2-tests</text>
 <text class="row-label" x="8" y="288">task:p3-streaming</text>

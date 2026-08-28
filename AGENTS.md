@@ -352,6 +352,38 @@ limit). `tests/mcp/catalog-budget.test.ts` enforces the same budget in
 CI, so a description or schema that grows past the cap fails the build
 before it can cost every agent session.
 
+#### Tier-3 hardening — `dry_run` and idempotency keys (SPEC-MCP-SERVER §8.7)
+
+Every destructive tool (`fdpm.workbook.delete`, `fdpm.primitive.delete`,
+`fdpm.primitive.delete_batch`, `fdpm.relation.delete`,
+`fdpm.relation.delete_batch`) accepts two extra arguments:
+
+- `dry_run: true` — returns `{ ok, dry_run, would_affect, post_state_summary }`
+  and appends nothing. It passes the destructive and confirmation gates
+  (no side effect) and needs no key, so an agent can show the operator
+  what a delete would remove *before* asking for `--enable-destructive`.
+  `would_affect` is the core delete preview: for a primitive, its type and
+  every relation that references it; for a relation, its endpoints; for a
+  workbook, counts. The CLI (`fdpm … delete --dry-run`) and the SDK
+  (`previewPrimitiveDelete` / `previewRelationDelete` / `previewWorkbookDelete`)
+  use the same module.
+- `idempotency_key` — **required** on every real Tier-3 call. The session
+  remembers `(tool, key) → result` for 5 minutes: the same key with the
+  same arguments replays the recorded result (nothing runs twice; audit
+  `replayed: true`); the same key with different arguments is refused with
+  `conflict` / `idempotency_key_reused`; concurrent same-key calls coalesce.
+  A call without a key is refused with `validation` /
+  `idempotency_key_required`.
+
+```json
+{ "workbook_id": "spec-core", "id": "section:intro", "dry_run": true }
+{ "workbook_id": "spec-core", "id": "section:intro", "idempotency_key": "del-intro-2026-08-28" }
+```
+
+The audit log's `start` entry is the intent record for Tier-3 calls — it
+carries `tier`, `idempotency_key` and `dry_run` and is written before the
+handler runs.
+
 #### What's deferred
 
 - **Subscriptions.** `notifications/resources/updated` would let the

@@ -296,7 +296,7 @@ const acSpecs: PrimitiveSpec[] = [
     scope: SCOPE_IDS.workbook,
     fields: {
       criterion:
-        "AC-P2: every Tier-3 destructive tool accepts --dry-run, requires an idempotency key on first call, writes a pre-execution audit entry, and refuses on a sub-second-old re-issue without the same key. Coverage gate: 100% of Tier-3 tools.",
+        "AC-P2: every Tier-3 destructive tool accepts dry_run (preview, no append, passes the gates), requires idempotency_key on real calls, replays same-key/same-args, refuses same-key/different-args with conflict, and writes a pre-execution audit entry. Coverage gate: 100% of Tier-3 tools.",
       expression:
         'graph.exists("task:p2-dry-run") && graph.exists("task:p2-idempotency") && graph.exists("task:p2-audit-gates")',
       status: "open",
@@ -533,11 +533,11 @@ const tasks: TaskDef[] = [
     id: "task:p2-dry-run",
     name: "p2-tier3-dry-run",
     summary:
-      "Add `dry_run: boolean` to every Tier-3 tool input schema. When true, the tool runs the validation pipeline + computes the would-affect set but does NOT call host.delete*. Returns the would-affect summary.",
+      "Every Tier-3 tool accepts dry_run: would-affect preview via src/core/operations/delete-preview.ts (also CLI --dry-run and SDK preview*Delete); passes the destructive and confirmation gates; appends nothing. Shipped 8279af2 (SPEC-MCP-SERVER 0.1.5 §8.7).",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 60,
-    status: "Backlog",
+    status: "In_review",
     priority: "P0",
     planned_start: "2026-06-01",
     planned_finish: "2026-06-04",
@@ -547,11 +547,11 @@ const tasks: TaskDef[] = [
     id: "task:p2-idempotency",
     name: "p2-tier3-idempotency",
     summary:
-      "Require an `idempotency_key: string` on every Tier-3 tool call. Server stores (tool_name, key) → first_seen_at in a TTL map (~5 min). Re-issue with same key returns the cached result; re-issue with different key after the TTL succeeds normally.",
+      "Real Tier-3 calls require idempotency_key; session cache (tool, key) → result, TTL 5 min, cap 1,000: same args replay (audit replayed:true), different args conflict/idempotency_key_reused, concurrent same-key calls coalesce. Shipped 8279af2.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "Backlog",
+    status: "In_review",
     priority: "P0",
     planned_start: "2026-06-05",
     planned_finish: "2026-06-08",
@@ -561,11 +561,11 @@ const tasks: TaskDef[] = [
     id: "task:p2-audit-gates",
     name: "p2-audit-pre-execution",
     summary:
-      "Write the McpAuditLog entry BEFORE invoking host.delete* (today it's after) — on crash the audit shows intent; on success it's amended with outcome=ok. Add a debounce gate: refuse re-issue if the prior same-workbook audit entry is <100ms old.",
+      "Start audit entry is the intent record (written before the handler) with tier/idempotency_key/dry_run; complete carries replayed/dry_run. ADJUSTED: the 100 ms debounce was not adopted — with keys mandatory it only refuses legitimate deletes (decision:0008). Shipped 8279af2.",
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 45,
-    status: "Backlog",
+    status: "In_review",
     priority: "P1",
     planned_start: "2026-06-09",
     planned_finish: "2026-06-11",
@@ -575,11 +575,11 @@ const tasks: TaskDef[] = [
     id: "task:p2-tests",
     name: "p2-tests",
     summary:
-      "Tests covering: dry-run returns correct would-affect; idempotency key dedupes within TTL; pre-execution audit entry persists across simulated crash; debounce refuses sub-100ms re-issue.",
+      "tier3-dry-run (13), tier3-idempotency (14), delete-preview (9), pre-execution audit, stdio E2E dry-run through the disabled gate, SDK previews, CLI --dry-run (6). Suite 148 files / 1,288+ tests green at 8279af2.",
     kind: "Test",
     executor: "Either",
     ai_minutes: 60,
-    status: "Backlog",
+    status: "In_review",
     priority: "P0",
     planned_start: "2026-06-12",
     planned_finish: "2026-06-14",
@@ -1000,6 +1000,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p2-1", type: PLAN_REL_VERIFIES, from: "task:p2-dry-run", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-2", type: PLAN_REL_VERIFIES, from: "task:p2-idempotency", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-3", type: PLAN_REL_VERIFIES, from: "task:p2-audit-gates", to: "ac:p2-tier3-hardened" },
+  { id: "rel:ver-p2-4", type: PLAN_REL_VERIFIES, from: "task:p2-tests", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p3-1", type: PLAN_REL_VERIFIES, from: "task:p3-streaming", to: "ac:p3-repl-streaming" },
   { id: "rel:ver-p3-2", type: PLAN_REL_VERIFIES, from: "task:p3-multiline", to: "ac:p3-repl-streaming" },
   { id: "rel:ver-p3-3", type: PLAN_REL_VERIFIES, from: "task:p3-completion", to: "ac:p3-repl-streaming" },
@@ -1053,7 +1054,14 @@ async function main(): Promise<void> {
     .commit();
 
   // Shipped tasks: flip to Done now that their plan:Verifies edges exist.
-  const shipped = ["task:p1-catalog-budget", "task:p1-server-instructions"];
+  const shipped = [
+    "task:p1-catalog-budget",
+    "task:p1-server-instructions",
+    "task:p2-dry-run",
+    "task:p2-idempotency",
+    "task:p2-audit-gates",
+    "task:p2-tests",
+  ];
   for (const id of shipped) {
     const { report } = await host.patchPrimitive(PROJECT_ID, {
       id,

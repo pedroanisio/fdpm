@@ -152,6 +152,20 @@ const decisions: DecisionInput[] = [
     altReason:
       "Prompts are per-domain and user-invoked; the server-generic contract would still have to live somewhere the agent sees on first contact, and v0.2 has no date.",
   },
+  {
+    id: "decision:0008",
+    title:
+      "Make Tier-3 deletes previewable and retry-safe: dry_run previews plus mandatory idempotency keys; no time-based debounce",
+    context:
+      "Deletes over MCP were neither retry-safe nor previewable: a retried delete could run twice, and an agent had no way to show an operator what a delete would remove. The 2026-Q2 roadmap (task p2-audit-gates) also proposed a 100 ms same-workbook debounce refusing any re-issue without the same key.",
+    rationale:
+      "Idempotency keys are the established answer to unsafe retries (session-scoped TTL cache with atomic check-then-execute; refuse key reuse with different parameters), and a dry-run preview is the established precaution before destructive actions. With keys mandatory, a time-based debounce adds nothing but false refusals of legitimate distinct deletes and timing-dependent tests, so it is rejected. One core preview module serves MCP, CLI and SDK.",
+    consequences:
+      "Every real Tier-3 call needs idempotency_key (a tightening on the destructive surface only); same key + same args replays, different args conflicts. dry_run passes the destructive and confirmation gates because it has no side effect. The audit start entry becomes the intent record. No debounce; the roadmap task is recorded as adjusted.",
+    altName: "Time-based debounce (refuse a same-workbook re-issue within 100 ms without the same key)",
+    altReason:
+      "Refuses legitimate distinct deletes issued in quick succession, adds nothing once keys are mandatory, and makes conformance tests timing-dependent.",
+  },
 ];
 
 const decisionSpecs: PrimitiveSpec[] = decisions.map((d) => ({
@@ -225,6 +239,16 @@ const evidenceSpecs: PrimitiveSpec[] = [
         "SERVER_INSTRUCTIONS — static cold-start orientation, INSTRUCTIONS_BUDGET_BYTES, checkInstructionsBudget; served on initialize and at fdpm://guide; contract in tests/mcp/instructions.test.ts.",
     },
   },
+  {
+    id: "evidence:ref:mcp-tier3",
+    type: "sw:Evidence",
+    fields: {
+      kind: "Reference",
+      source: "fdpm-cli/src/mcp/dispatch.ts",
+      description:
+        "Dispatcher step 5b — idempotency cache lookup/replay/conflict/coalescing and the dry_run gate bypass; previews in src/core/operations/delete-preview.ts; tests tier3-dry-run / tier3-idempotency.",
+    },
+  },
 ];
 
 const relations: RelationSpec[] = [
@@ -257,6 +281,12 @@ const relations: RelationSpec[] = [
     type: "sw:Justifies",
     from: "evidence:ref:mcp-instructions",
     to: "decision:0007",
+  },
+  {
+    id: "rel:mcp-tier3-justifies-d8",
+    type: "sw:Justifies",
+    from: "evidence:ref:mcp-tier3",
+    to: "decision:0008",
   },
 ];
 

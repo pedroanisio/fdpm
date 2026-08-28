@@ -23,6 +23,40 @@ upgrade.
 
 ### Added
 
+#### `fdpm-mcp` — Tier-3 hardening: `dry_run` previews, mandatory idempotency keys, pre-execution audit (SPEC-MCP-SERVER §8.7)
+
+A delete is not retry-safe unless the server can recognise a duplicate,
+and an agent cannot show an operator what a delete will do without
+running it. Both now hold on every Tier-3 tool.
+
+- [`src/core/operations/delete-preview.ts`](src/core/operations/delete-preview.ts)
+  — would-affect previews as pure reads: a primitive's type and every
+  relation that references it; a relation's endpoints; a workbook's
+  counts; batch variants with the first-missing-id `not_found` contract.
+  One implementation behind three surfaces: MCP `dry_run`, CLI
+  `--dry-run`, SDK `previewPrimitiveDelete` / `previewRelationDelete` /
+  `previewWorkbookDelete` (also at the package root).
+- Every Tier-3 tool accepts `dry_run` and `idempotency_key`.
+  `dry_run: true` (strict boolean) returns
+  `{ ok, dry_run, would_affect, post_state_summary }` with no
+  `operation`, passes the destructive and confirmation gates (it has no
+  side effect), and needs no key — PURPOSE.md's approval preview.
+- A real destructive call without `idempotency_key` is refused
+  (`validation` / `idempotency_key_required`). The session keeps
+  `(tool, key) → result` for 5 minutes (cap 1,000): same key + same
+  args replays the recorded outcome (handler errors included; audit
+  `replayed: true`); same key + different args is refused (`conflict`
+  / `idempotency_key_reused`); concurrent same-key calls coalesce onto
+  one execution; gate refusals are never cached.
+- Audit: the `start` entry is the intent record, written before the
+  handler runs; for Tier-3 it carries `tier`, `idempotency_key`,
+  `dry_run`; `complete` entries carry `replayed` / `dry_run`.
+- CLI: `fdpm workbook|primitive|relation delete --dry-run`.
+- Tests (+45): core previews, `tier3-dry-run`, `tier3-idempotency`
+  (replay, conflict, per-tool scope, coalescing, TTL, cap, audit),
+  pre-execution audit, stdio E2E dry-run through the disabled gate, SDK
+  previews, CLI dry-run.
+
 #### `fdpm-mcp` — server instructions and `fdpm://guide` (SPEC-MCP-SERVER §8.6)
 
 The cold-start orientation layer. PURPOSE.md's eval asks whether a cold
@@ -113,6 +147,23 @@ and records Option A (USL-NG Core upstream) as the v1.x direction.
 72/72 tests passing.
 
 ### Changed
+
+#### `fdpm-mcp` — MCP tool manifest `0.3.0` → `0.4.0`; Tier-3 calls require `idempotency_key`
+
+- Tier-3 input schemas gained optional `dry_run` and `idempotency_key`
+  (minor). A real (non-dry-run) Tier-3 call without a key is now
+  refused — a behavioural tightening on the destructive surface only.
+- Server instructions grew to 3,887 B (budget 4,000); catalog 25,312 B
+  destructive off / 24,322 B on (budget 26,000).
+- Roadmap task `p2-audit-gates` asked for a 100 ms same-workbook
+  debounce; it is deliberately **not** implemented — with keys
+  mandatory it would only refuse legitimate distinct deletes and make
+  tests timing-dependent (ADR `decision:0008`).
+
+**Migration.** Agents and scripts issuing Tier-3 calls must add
+`idempotency_key` (any unique string; reuse it to retry). Preview first
+with `dry_run: true`. Nothing changes for Tier-1/2 tools, the CLI
+(`--dry-run` is additive), or the SDK (new exports only).
 
 #### `fdpm-mcp` — MCP tool manifest `0.2.0` → `0.3.0`; descriptions deduplicated; catalog budget ratcheted
 

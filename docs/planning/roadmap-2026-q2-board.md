@@ -1,6 +1,6 @@
 # plan-roadmap-2026-q2 — Agent Board
 
-> Profile: `profile:planning:0.1` v0.1.0. 30 tasks. Generated at 2026-08-28T10:32:06.732Z.
+> Profile: `profile:planning:0.1` v0.1.0. 30 tasks. Generated at 2026-08-28T11:05:26.009Z.
 
 ## 🎯 Available to claim
 
@@ -18,13 +18,9 @@
 - `task:p1-sizecap` _(Either/P0)_ — Add FDPM\_MCP\_MAX\_RESOURCE\_BYTES (default 1 MiB). Reject oversized renders in resources/read with a \`quota\` envelope carrying \`evidence.bytes\` and \`evidence.cap\`. Cap also applies after base64 expansion for binary blobs.
 - `task:p1-providers` _(Either/P1)_ — Add three more resource providers: (a) workbook transfer at fdpm://workbook/{id}/transfer, (b) validate report at fdpm://workbook/{id}/validate, (c) primitive view at fdpm://workbook/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.
 
-### Backlog (25)
+### Backlog (21)
 
 - `task:p1-tests` _(Either/P0)_ — End-to-end JSON-RPC smoke against fdpm-mcp via stdio: subscribe, modify workbook log, observe notification; oversized render → quota envelope; each new provider returns content.
-- `task:p2-dry-run` _(Either/P0)_ — Add \`dry\_run: boolean\` to every Tier-3 tool input schema. When true, the tool runs the validation pipeline + computes the would-affect set but does NOT call host.delete\*. Returns the would-affect summary.
-- `task:p2-idempotency` _(Either/P0)_ — Require an \`idempotency\_key: string\` on every Tier-3 tool call. Server stores (tool\_name, key) → first\_seen\_at in a TTL map (~5 min). Re-issue with same key returns the cached result; re-issue with different key after the TTL succeeds normally.
-- `task:p2-audit-gates` _(Either/P1)_ — Write the McpAuditLog entry BEFORE invoking host.delete\* (today it's after) — on crash the audit shows intent; on success it's amended with outcome=ok. Add a debounce gate: refuse re-issue if the prior same-workbook audit entry is \<100ms old.
-- `task:p2-tests` _(Either/P0)_ — Tests covering: dry-run returns correct would-affect; idempotency key dedupes within TTL; pre-execution audit entry persists across simulated crash; debounce refuses sub-100ms re-issue.
 - `task:p3-streaming` _(Either/P1)_ — Long renders (>1 MB) stream partial chunks to stdout in JSON mode. Each chunk: \`{stream\_id, seq, final, bytes\_chunk}\` envelope. Renderer needs an optional streaming hook the REPL drives.
 - `task:p3-multiline` _(Either/P2)_ — Trailing backslash continues input across lines. Continuation prompt \`... > \` on stderr. Cancel via Ctrl-C clears the in-progress buffer.
 - `task:p3-completion` _(Either/P2)_ — Tab completion learns: profile ids after \`--profile\`, primitive ids after \`--id\`/\`get\`/\`patch\` second arg, type ids after \`--type\`. Sourced from registry only (per SPEC-REPL §8.6 — never from filesystem).
@@ -46,7 +42,11 @@
 - `task:p8-implementation` _(Either/P2)_ — Implement the chosen approach from p8-design. Either way: env-contract test passes after adding a new env var without manual MANUAL.md / README.md edits.
 - `task:p8-tests` _(Either/P2)_ — Update tests/env-contract.test.ts to reflect the new generation/include mechanism. Add a regression test: adding a fake env var to env.ts triggers regeneration and the test re-passes without manual edits.
 
-### Done (2)
+### Done (6)
 
 - `task:p1-server-instructions` _(Either/P0)_ — Static initialize.instructions (cold-start workflow, response contract, gating) mirrored at fdpm://guide; 18 tool descriptions deduplicated; catalog 25,699 → 23,567 B, budget ratcheted to 26,000. Shipped 33c774b + 6689bfd (SPEC-MCP-SERVER 0.1.4 §8.6, ADR decision:0007, GH #10).
 - `task:p1-catalog-budget` _(Either/P0)_ — Measure and cap the advertised tools/list catalog (28,000 B / 2,000 B per tool) at boot and in CI; fdpm://schema/profile resource; opaque fdpm.profile.register input validated server-side. Shipped fe03e34 (SPEC-MCP-SERVER 0.1.3, ADR decision:0006, GH #9).
+- `task:p2-dry-run` _(Either/P0)_ — Every Tier-3 tool accepts dry\_run: would-affect preview via src/core/operations/delete-preview.ts (also CLI --dry-run and SDK preview\*Delete); passes the destructive and confirmation gates; appends nothing. Shipped 8279af2 (SPEC-MCP-SERVER 0.1.5 §8.7).
+- `task:p2-idempotency` _(Either/P0)_ — Real Tier-3 calls require idempotency\_key; session cache (tool, key) → result, TTL 5 min, cap 1,000: same args replay (audit replayed:true), different args conflict/idempotency\_key\_reused, concurrent same-key calls coalesce. Shipped 8279af2.
+- `task:p2-audit-gates` _(Either/P1)_ — Start audit entry is the intent record (written before the handler) with tier/idempotency\_key/dry\_run; complete carries replayed/dry\_run. ADJUSTED: the 100 ms debounce was not adopted — with keys mandatory it only refuses legitimate deletes (decision:0008). Shipped 8279af2.
+- `task:p2-tests` _(Either/P0)_ — tier3-dry-run (13), tier3-idempotency (14), delete-preview (9), pre-execution audit, stdio E2E dry-run through the disabled gate, SDK previews, CLI --dry-run (6). Suite 148 files / 1,288+ tests green at 8279af2.

@@ -113,6 +113,7 @@ hypothesis, not a finished product — see "Eval design" below.
 | MCP resource surface (`fdpm://workbook/{id}/render/{target}`) | Shipped |
 | MCP schema resources (`fdpm://schema/profile`) and the tool-catalog byte budget (SPEC-MCP-SERVER §8.5) | Shipped |
 | MCP server instructions (`initialize.instructions`, mirrored at `fdpm://guide`) — cold-start orientation until plugin prompts land (SPEC-MCP-SERVER §8.6) | Shipped |
+| MCP Tier-3 hardening — `dry_run` previews (also CLI `--dry-run` and SDK `preview*Delete`), mandatory idempotency keys with replay, pre-execution audit (SPEC-MCP-SERVER §8.7) | Shipped |
 | Renderers as the human-review surface (markdown / HTML / PDF / SVG) | Shipped |
 | Plugin-emitted operation kinds (verbs as first-class ops) | v1; SPEC-PLUGIN-VERBS in flight |
 | Per-verb MCP tools, plugin-version migration contract | v1 |

@@ -30,7 +30,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 |---|---|---|
 | Server name | `fdpm-mcp` | [src/bin/fdpm-mcp.ts:198](../../fdpm-cli/src/bin/fdpm-mcp.ts#L198) |
 | Server version | 1.2.0 | live `mcp__fdpm__fdpm_health` |
-| MCP tool manifest version | 0.3.0 | [src/mcp/schemas.ts](../../fdpm-cli/src/mcp/schemas.ts) `MCP_TOOL_MANIFEST_VERSION` |
+| MCP tool manifest version | 0.4.0 | [src/mcp/schemas.ts](../../fdpm-cli/src/mcp/schemas.ts) `MCP_TOOL_MANIFEST_VERSION` |
 | Catalog byte budget | 26,000 B total / 2,000 B per tool (`FDPM_MCP_CATALOG_BUDGET_BYTES` raises the total); measured 23,567 B with destructive off, 22,577 B on | [src/mcp/catalog.ts](../../fdpm-cli/src/mcp/catalog.ts) `DEFAULT_CATALOG_BUDGET`; `fdpm.health.catalog` |
 | Instructions byte budget | `SERVER_INSTRUCTIONS` measured at boot against `INSTRUCTIONS_BUDGET_BYTES` (4,000 B); over → refuse to start, exit 2. Same check in CI (`tests/mcp/instructions.test.ts`) | [src/mcp/instructions.ts](../../fdpm-cli/src/mcp/instructions.ts), [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
 | Transport | stdio | [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
@@ -80,11 +80,11 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 
 | Tool | Operation | Description |
 |---|---|---|
-| `fdpm.workbook.delete` | delete workbook | Delete a workbook; refuses with `category=permission, reason=destructive_disabled` when not enabled |
-| `fdpm.primitive.delete` | delete primitive | Delete a primitive by id |
-| `fdpm.primitive.delete_batch` | atomic batch delete | Atomically delete 1..500 primitives; first missing id rejects the whole batch |
-| `fdpm.relation.delete` | delete relation | Delete a relation by id |
-| `fdpm.relation.delete_batch` | atomic batch delete | Atomically delete 1..500 relations; use **before** primitive batch when cleaning up referenced primitives |
+| `fdpm.workbook.delete` | delete workbook | Delete a workbook. `dry_run: true` → counts preview, no append, passes the gate; otherwise `idempotency_key` required (§8.7) |
+| `fdpm.primitive.delete` | delete primitive | Delete a primitive by id. `dry_run` → type + referencing relations; `idempotency_key` required otherwise |
+| `fdpm.primitive.delete_batch` | atomic batch delete | Atomically delete 1..500 primitives; first missing id rejects the whole batch; `dry_run` previews every id (first missing → `not_found`); `idempotency_key` required otherwise |
+| `fdpm.relation.delete` | delete relation | Delete a relation by id. `dry_run` → endpoints; `idempotency_key` required otherwise |
+| `fdpm.relation.delete_batch` | atomic batch delete | Atomically delete 1..500 relations; use **before** primitive batch when cleaning up referenced primitives; `dry_run` / `idempotency_key` as above |
 
 ## Resources
 
@@ -123,6 +123,8 @@ Source: [src/mcp/resources/render.ts](../../fdpm-cli/src/mcp/resources/render.ts
 |---|---|---|
 | Tier-3 dispatch | `--enable-destructive` flag (or `FDPM_MCP_ENABLE_DESTRUCTIVE=1`) — when off, Tier-3 tools are advertised with a `⚠ DISABLED` banner (v0.1.2) and refused at dispatch with `permission`/`destructive_disabled` | [src/mcp/manifest.ts](../../fdpm-cli/src/mcp/manifest.ts), `advertisedTools()` |
 | Catalog byte budget | Advertised catalog (Core + plugin tools) measured in UTF-8 bytes at boot; over `DEFAULT_CATALOG_BUDGET` (26,000 B total / 2,000 B per tool) → refuse to start, exit 2, violations on stderr. `FDPM_MCP_CATALOG_BUDGET_BYTES` raises the total only. Same budget enforced in CI by `tests/mcp/catalog-budget.test.ts`; `tools/list._meta.catalog_bytes` and `fdpm.health.catalog` expose the measurement | [src/mcp/catalog.ts](../../fdpm-cli/src/mcp/catalog.ts), [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
+| Tier-3 idempotency | Real destructive calls MUST carry `idempotency_key`; session cache `(tool, key) → result`, TTL 5 min, cap 1,000 — same args replay (`replayed: true` in audit), different args → `conflict`/`idempotency_key_reused`, concurrent same-key calls coalesce; gate refusals never cached | [src/mcp/dispatch.ts](../../fdpm-cli/src/mcp/dispatch.ts) step 5b, [src/mcp/session.ts](../../fdpm-cli/src/mcp/session.ts) `IdempotencyCache` |
+| Tier-3 dry-run | `dry_run: true` (strict boolean) bypasses the destructive and confirmation gates, runs the core delete preview, appends nothing; audit `start` carries `tier`/`dry_run`/`idempotency_key` before the handler runs | [src/core/operations/delete-preview.ts](../../fdpm-cli/src/core/operations/delete-preview.ts) |
 | Freshness check | Every tool that addresses a `workbook_id` runs SPEC-REPL §10.2 lenient tail-replay before serving | [src/mcp/tool-metadata-map.ts](../../fdpm-cli/src/mcp/tool-metadata-map.ts) |
 | CI manifest gate | `tests/mcp-classification.test.ts` — every public Host method must be in `EXPOSED_HOST_METHODS` or `not-exposed.NOT_EXPOSED`; new unclassified methods break the build | [src/mcp/manifest.ts](../../fdpm-cli/src/mcp/manifest.ts), [src/mcp/not-exposed.ts](../../fdpm-cli/src/mcp/not-exposed.ts) |
 

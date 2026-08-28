@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts"
-revision: "0.1.4 — server-instructions amendment (§8.6): static cold-start orientation sent once per session in initialize.instructions and mirrored at fdpm://guide; generic envelope/gating prose removed from tool descriptions; catalog budget ratcheted to 26,000 B; manifest 0.3.0."
+revision: "0.1.5 — Tier-3 hardening amendment (§8.7): every destructive tool accepts dry_run (preview via the core delete-preview module; passes the gates; appends nothing) and otherwise requires idempotency_key (same-args replay, different-args conflict); pre-execution audit fields; manifest 0.4.0."
 status: "Proposal"
 ---
 
@@ -327,6 +327,20 @@ Tool descriptions can say what a tool does; they cannot carry the layer a cold a
 
 **Relation to prompts.** Plugin-shipped MCP prompts (§28, v0.2) carry the per-domain "how to think" layer; `instructions` carries the server-generic layer. They compose; neither replaces the other.
 
+### 8.7 Tier-3 hardening: dry-run previews, idempotency keys, pre-execution audit (v0.1.5)
+
+A delete is not retry-safe unless the server can recognise a duplicate, and an agent cannot show an operator what a delete will do without running it. Tier-3 tools therefore carry two extra arguments, enforced by the dispatcher, not by convention.
+
+**Preview.** Every Tier-3 tool MUST accept `dry_run: boolean`. When it is the strict boolean `true`, the tool MUST compute the would-affect set through the core delete-preview module (`fdpm-cli/src/core/operations/delete-preview.ts`: a primitive's type and every relation that references it; a relation's endpoints; a workbook's counts; batch variants with the first-missing-id `not_found` contract) and MUST NOT append an operation. The response is `{ ok: true, dry_run: true, would_affect, post_state_summary }` with no `operation`. Because a preview has no side effect it is a Tier-1-equivalent read: it MUST pass the destructive gate (§8.3) and the confirmation-token gate (§9.3) and MUST NOT require an idempotency key. The CLI (`fdpm … delete --dry-run`) and the SDK (`previewPrimitiveDelete`, `previewRelationDelete`, `previewWorkbookDelete`) MUST use the same module. A preview does not run the §7 pipeline on the projected post-state; `referencing_relations` is the signal the pipeline's cardinality rules act on and is therefore reported.
+
+**Idempotency.** Every real (non-dry-run) Tier-3 call MUST carry `idempotency_key` (1..200 characters); a call without one is refused with `validation` / `evidence.reason: "idempotency_key_required"`. The session keeps `(tool, key) → { args_hash, result }` for `IDEMPOTENCY_TTL_MS` (5 minutes) with a bounded capacity (1,000, oldest evicted). The same key with the same argument hash MUST replay the recorded result without running the handler (handler errors such as `not_found` are recorded and replayed too); the same key with a different argument hash MUST be refused with `conflict` / `evidence.reason: "idempotency_key_reused"`; concurrent calls with the same key MUST coalesce onto one execution. Gate refusals (§8.3, §9.3, §10, rate limit) are evaluated before the cache and MUST NOT be cached. Keys are scoped per tool.
+
+**Audit.** The `start` audit entry is the intent record: it MUST be written before the handler runs and, for Tier-3 calls, MUST carry `tier: "destructive"`, `dry_run`, and (for real calls) `idempotency_key`. A replayed result MUST produce a `complete` entry with `replayed: true`; a preview MUST produce one with `dry_run: true`.
+
+**Not adopted.** The roadmap's proposed 100 ms same-workbook debounce (refuse a re-issue without the same key) is deliberately not part of this contract: with keys mandatory it would only refuse legitimate distinct deletes and make conformance timing-dependent. ADR `decision:0008` records the reasoning.
+
+**Evidence.** Reference designs: session-scoped, TTL-bounded idempotency caches with atomic check-then-execute (OpenClaw gateway), key-reuse-with-different-parameters refusal (Stripe API semantics), and dry-run as a first-line precaution for destructive tools (corpus review 2026-08-28). Measured after the amendment: instructions 3,887 B of 4,000; catalog 25,312 B (destructive off) / 24,322 B (on) of 26,000.
+
 ---
 
 ## 9. Transport, Authentication, and Authorization
@@ -608,6 +622,11 @@ Order matters: SPEC-REPL §13 Host changes must land first; Tier 1 surface lands
    - touches: `fdpm-cli/src/mcp/resources/guide.ts`
    - touches: `fdpm-cli/src/bin/fdpm-mcp.ts`
    - touches: `fdpm-cli/src/mcp/tools/`
+8. **Tier-3 hardening (0.1.5)** — Land src/core/operations/delete-preview.ts, the dispatcher's dry_run gate bypass and idempotency cache (session.ts), audit intent fields, and dry_run/idempotency_key on the five Tier-3 tools. Clients issuing real Tier-3 calls must add idempotency_key; preview first with dry_run: true.
+   - touches: `fdpm-cli/src/core/operations/delete-preview.ts`
+   - touches: `fdpm-cli/src/mcp/dispatch.ts`
+   - touches: `fdpm-cli/src/mcp/session.ts`
+   - touches: `fdpm-cli/src/mcp/tools/`
 
 ---
 
@@ -668,6 +687,12 @@ Other open questions (defaulted):
 ---
 
 ## 30. Revision history
+
+### 0.1.5 — 2026-08-28 — Tier-3 hardening amendment.
+
+Adds §8.7: every destructive tool accepts dry_run (would-affect preview through the core delete-preview module; passes the destructive and confirmation gates; appends nothing; no key needed) and otherwise requires idempotency_key — session cache (tool, key) → result, TTL 5 min, cap 1,000: same args replay with audit replayed:true, different args conflict/idempotency_key_reused, concurrent same-key calls coalesce, gate refusals never cached. The start audit entry is the intent record with tier/idempotency_key/dry_run. The roadmap's 100 ms debounce is deliberately not adopted (decision:0008). CLI --dry-run and SDK preview*Delete share the module. Manifest 0.3.0 → 0.4.0. Authored by Claude Fable 5 via Claude Code.
+
+Affected sections: 8, 11, 25
 
 ### 0.1.4 — 2026-08-28 — Server-instructions amendment.
 
