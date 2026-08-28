@@ -7,6 +7,7 @@ import {
   firstPositionalAfter,
   projectFromJsonField,
 } from "./metadata.js";
+import { previewPrimitiveDelete } from "../core/operations/delete-preview.js";
 
 /**
  * `cite` builds a default relation id like `rel:cites:foo-bar` from the
@@ -277,10 +278,21 @@ export function buildPrimitiveCommand(host: Host): Command {
     .argument("<workbook>", "workbook id")
     .argument("<id>", "primitive id (slug, or uid with --by-uid)")
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
+    .option("--dry-run", "preview what would be removed; append nothing")
     .option("--json", "emit JSON")
     .action(async (workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const slug = resolveSlug(host, workbook, id, "primitive", !!opts.byUid);
+      if (opts.dryRun) {
+        const would_affect = previewPrimitiveDelete(host, workbook, slug);
+        emit(
+          ctx,
+          { id: slug, dry_run: true, would_affect },
+          () =>
+            `dry-run: would delete ${slug} (${would_affect.type_id}); ${would_affect.referencing_relations.length} referencing relation(s)`,
+        );
+        return;
+      }
       const result = await host.deletePrimitive(workbook, slug);
       emit(ctx, { id: slug, op_id: result.op.op_id, deleted: true }, () => `deleted ${slug}`);
     });

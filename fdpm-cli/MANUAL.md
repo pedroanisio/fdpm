@@ -211,6 +211,9 @@ fdpm workbook get roadmap-v04 --json | jq '{id, name, revision, primitives: (.pr
 
 # Delete a project (the log file stays — only the projection is dropped).
 fdpm workbook delete roadmap-v04
+
+# Preview first: what would be removed (counts, revision), nothing appended.
+fdpm workbook delete roadmap-v04 --dry-run --json
 ```
 
 The `revision` field on a workbook is monotonic: every accepted operation
@@ -302,6 +305,10 @@ inner ops.
 
 ```sh
 fdpm primitive delete roadmap-v04 change:0.4.1:1 --json
+
+# Preview: the primitive and every relation that references it; nothing appended.
+# The same preview backs the MCP tools' `dry_run` and the SDK previewPrimitiveDelete.
+fdpm primitive delete roadmap-v04 change:0.4.1:1 --dry-run --json
 ```
 
 The primitive disappears from the projection, but the `primitive.create`

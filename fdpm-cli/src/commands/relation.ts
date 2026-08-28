@@ -10,6 +10,7 @@ import {
 } from "./metadata.js";
 import type { JsonPatchOp } from "../core/operations/json-patch.js";
 import { resolveSlug } from "./primitive.js";
+import { previewRelationDelete } from "../core/operations/delete-preview.js";
 
 export function buildRelationCommand(host: Host): Command {
   const cmd = new Command("relation");
@@ -162,10 +163,21 @@ export function buildRelationCommand(host: Host): Command {
     .argument("<workbook>", "workbook id")
     .argument("<id>", "relation id (slug, or uid with --by-uid)")
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
+    .option("--dry-run", "preview what would be removed; append nothing")
     .option("--json", "emit JSON")
     .action(async (workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
       const slug = resolveSlug(host, workbook, id, "relation", !!opts.byUid);
+      if (opts.dryRun) {
+        const would_affect = previewRelationDelete(host, workbook, slug);
+        emit(
+          ctx,
+          { id: slug, dry_run: true, would_affect },
+          () =>
+            `dry-run: would delete ${slug} (${would_affect.type_id}: ${would_affect.source_id} → ${would_affect.target_id})`,
+        );
+        return;
+      }
       const result = await host.deleteRelation(workbook, slug);
       emit(ctx, { id: slug, op_id: result.op.op_id, deleted: true });
     });

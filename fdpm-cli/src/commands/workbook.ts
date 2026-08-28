@@ -12,6 +12,7 @@ import {
   NO_PROJECT_JSON,
   projectFromJsonField,
 } from "./metadata.js";
+import { previewWorkbookDelete } from "../core/operations/delete-preview.js";
 
 function renderProjectGetHuman(
   slice: {
@@ -154,9 +155,20 @@ export function buildProjectCommand(host: Host): Command {
     .command("delete")
     .argument("<id>", "workbook id")
     .description("Delete a workbook (§9.1 DELETE /workbooks/{id})")
+    .option("--dry-run", "preview what would be removed; append nothing")
     .option("--json", "emit JSON")
     .action(async (id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
+      if (opts.dryRun) {
+        const would_affect = previewWorkbookDelete(host, id);
+        emit(
+          ctx,
+          { workbook_id: id, dry_run: true, would_affect },
+          () =>
+            `dry-run: would delete ${id} (${would_affect.primitive_count} primitive(s), ${would_affect.relation_count} relation(s), revision ${would_affect.revision})`,
+        );
+        return;
+      }
       const result = await host.deleteProject(id);
       emit(ctx, { workbook_id: id, op_id: result.op.op_id, deleted: true }, () => `deleted ${id}`);
     });
