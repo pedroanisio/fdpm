@@ -282,7 +282,7 @@ const acSpecs: PrimitiveSpec[] = [
       criterion:
         "AC-P1: resources/subscribe + notifications/resources/updated work end-to-end against a watcher polling host.statProjectLog; FDPM_MCP_MAX_RESOURCE_BYTES rejects oversized renders with a structured envelope; transfer + validate + primitive resource providers all return content via resources/read.",
       expression:
-        'graph.exists("task:p1-subscribe") && graph.exists("task:p1-sizecap") && graph.exists("task:p1-providers")',
+        'graph.exists("task:p1-subscribe") && graph.exists("task:p1-sizecap") && graph.exists("task:p1-providers") && graph.exists("task:p1-catalog-budget")',
       status: "open",
       evidence_refs: [
         "fdpm-cli/src/mcp/resources/",
@@ -479,6 +479,23 @@ const tasks: TaskDef[] = [
     priority: "P1",
     planned_start: "2026-05-18",
     planned_finish: "2026-05-25",
+    wbs: "wbs:p1-mcp-slice-2",
+  },
+  {
+    id: "task:p1-catalog-budget",
+    name: "p1-catalog-byte-budget",
+    summary:
+      "Measure and cap the advertised tools/list catalog (28,000 B / 2,000 B per tool) at boot and in CI; fdpm://schema/profile resource; opaque fdpm.profile.register input validated server-side. Shipped fe03e34 (SPEC-MCP-SERVER 0.1.3, ADR decision:0006, GH #9).",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 60,
+    // Created as In_review and patched to Done AFTER relations land:
+    // plan:val requires a Done task to carry a plan:Verifies edge, and the
+    // builder commits primitives before relations (GH #1 create-time rule).
+    status: "In_review",
+    priority: "P0",
+    planned_start: "2026-08-28",
+    planned_finish: "2026-08-28",
     wbs: "wbs:p1-mcp-slice-2",
   },
   {
@@ -962,6 +979,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p1-1", type: PLAN_REL_VERIFIES, from: "task:p1-subscribe", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-2", type: PLAN_REL_VERIFIES, from: "task:p1-sizecap", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-3", type: PLAN_REL_VERIFIES, from: "task:p1-providers", to: "ac:p1-subs-and-sizecap" },
+  { id: "rel:ver-p1-4", type: PLAN_REL_VERIFIES, from: "task:p1-catalog-budget", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p2-1", type: PLAN_REL_VERIFIES, from: "task:p2-dry-run", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-2", type: PLAN_REL_VERIFIES, from: "task:p2-idempotency", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-3", type: PLAN_REL_VERIFIES, from: "task:p2-audit-gates", to: "ac:p2-tier3-hardened" },
@@ -1016,6 +1034,18 @@ async function main(): Promise<void> {
     ])
     .relations(relations)
     .commit();
+
+  // Shipped tasks: flip to Done now that their plan:Verifies edges exist.
+  const shipped = ["task:p1-catalog-budget"];
+  for (const id of shipped) {
+    const { report } = await host.patchPrimitive(PROJECT_ID, {
+      id,
+      field_values: { status: "Done" },
+    });
+    if (!report.accepted) {
+      throw new Error(`could not mark ${id} Done: ${JSON.stringify(report.findings)}`);
+    }
+  }
 
   console.log("Built workbook:", result.workbook_id);
   console.log("  primitives:", result.primitives_created);
