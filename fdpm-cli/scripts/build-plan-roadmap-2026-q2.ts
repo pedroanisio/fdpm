@@ -585,6 +585,20 @@ const tasks: TaskDef[] = [
     planned_finish: "2026-06-14",
     wbs: "wbs:p2-mcp-tier3-hardening",
   },
+  {
+    id: "task:p2-audit-report",
+    name: "p2-audit-report",
+    summary:
+      "Audit flywheel: Tier-2 rejections record rule_ids; mcp-audit.jsonl aggregated into per-tool outcomes, error classes and a success-rate SLO; served as fdpm://audit/report[/{window}], fdpm mcp audit-report, SDK auditReport. Shipped d05bc8b (SPEC 0.1.6 §9.5, decision:0009).",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 60,
+    status: "In_review",
+    priority: "P1",
+    planned_start: "2026-08-28",
+    planned_finish: "2026-08-28",
+    wbs: "wbs:p2-mcp-tier3-hardening",
+  },
 
   // ── Phase 3: REPL v0.2 ───────────────────────────────────────────
   {
@@ -1001,6 +1015,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p2-2", type: PLAN_REL_VERIFIES, from: "task:p2-idempotency", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-3", type: PLAN_REL_VERIFIES, from: "task:p2-audit-gates", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-4", type: PLAN_REL_VERIFIES, from: "task:p2-tests", to: "ac:p2-tier3-hardened" },
+  { id: "rel:ver-p2-5", type: PLAN_REL_VERIFIES, from: "task:p2-audit-report", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p3-1", type: PLAN_REL_VERIFIES, from: "task:p3-streaming", to: "ac:p3-repl-streaming" },
   { id: "rel:ver-p3-2", type: PLAN_REL_VERIFIES, from: "task:p3-multiline", to: "ac:p3-repl-streaming" },
   { id: "rel:ver-p3-3", type: PLAN_REL_VERIFIES, from: "task:p3-completion", to: "ac:p3-repl-streaming" },
@@ -1061,6 +1076,7 @@ async function main(): Promise<void> {
     "task:p2-idempotency",
     "task:p2-audit-gates",
     "task:p2-tests",
+    "task:p2-audit-report",
   ];
   for (const id of shipped) {
     const { report } = await host.patchPrimitive(PROJECT_ID, {

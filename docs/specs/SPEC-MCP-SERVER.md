@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts"
-revision: "0.1.5 — Tier-3 hardening amendment (§8.7): every destructive tool accepts dry_run (preview via the core delete-preview module; passes the gates; appends nothing) and otherwise requires idempotency_key (same-args replay, different-args conflict); pre-execution audit fields; manifest 0.4.0."
+revision: "0.1.6 — audit-report amendment (§9.5): Tier-2 rejections record rule_ids on the audit complete entry; mcp-audit.jsonl is aggregated into per-tool outcomes, error classes and a success-rate SLO, served as fdpm://audit/report[/{window}], fdpm mcp audit-report, and the SDK auditReport."
 status: "Proposal"
 ---
 
@@ -361,6 +361,18 @@ The server does NOT trust the client to enforce tool tiers. Tier 3 tools refuse 
 
 Every tool invocation is appended to `$FDPM_DATA_DIR/mcp-audit.jsonl` with one JSON line per call: timestamp, session, tool, args_hash, ok, duration_ms, validation_status. `args_hash` (sha256) is used by default; `FDPM_MCP_AUDIT_FULL_ARGS=1` opts into full-args logging for debugging.
 
+### 9.5 Audit report — closing the flywheel (v0.1.6)
+
+The audit log is only useful if something reads it. The server MUST make its own failure classes observable so description, instruction and profile changes are driven by evidence: which tool, which `evidence.reason`, which `rule_id` fails most.
+
+**Record the class.** A Tier-2 rejection's `complete` entry MUST carry `rule_ids`: the sorted, distinct `rule_id`s among the `validation_report.findings[]` the §7 pipeline returned. Protocol errors keep `error_category` / `error_reason`.
+
+**Aggregate.** `fdpm-cli/src/persistence/mcp-audit-report.ts` parses the JSONL through typed schemas (a line that fails to parse is counted in `source.skipped`, never coerced) and computes, for an absolute (`since`/`until`) or relative (`1h` | `24h` | `7d` | `all`) window: totals (`calls`, `ok`, `failed`, `rejected`, `replayed`, `dry_run`, `success_rate`); per-tool rows with the same counts, `error_reasons`, `rule_ids`, nearest-rank `p50_ms`/`p95_ms`; ranked error classes named `<tool> category/reason` (protocol) or `<tool> rule:<rule_id>` (rejection) with `count` and `share`; and an SLO block (`target`, default 0.9; `met`; `shortfall` = successful calls the window still needed). Calls are `complete` entries; `start` and `reload` entries are ignored.
+
+**Serve it three ways, one implementation.** Resource `fdpm://audit/report[/{window}]` (`application/json`; reads go through resources, so no catalog bytes; an in-memory Host yields an empty report, not an error; an unknown window is `not_found`), CLI `fdpm mcp audit-report [--window|--since|--until|--top|--slo|--json]`, and SDK `auditReport(host, opts)`. `Host.dataDir` (read-only getter, not exposed as a tool) locates the log.
+
+**Use.** The top classes are the backlog for the teaching surfaces: a `rule:core:id-format` class means the id contract is not landing (fix `fdpm.profile.type_info` guidance or the instructions); a `validation/idempotency_key_required` class means the Tier-3 contract is not landing. The same classes are the seed set for the three-arm cold-agent eval PURPOSE.md gates v2 on.
+
 ---
 
 ## 10. Concurrency and Freshness
@@ -627,6 +639,11 @@ Order matters: SPEC-REPL §13 Host changes must land first; Tier 1 surface lands
    - touches: `fdpm-cli/src/mcp/dispatch.ts`
    - touches: `fdpm-cli/src/mcp/session.ts`
    - touches: `fdpm-cli/src/mcp/tools/`
+9. **Audit report (0.1.6)** — Land rule_ids on Tier-2 rejection audit entries, src/persistence/mcp-audit-report.ts, the fdpm://audit/report resource, the fdpm mcp audit-report command and the SDK auditReport. Additive: older audit lines read without rule_ids (classed rule:unknown).
+   - touches: `fdpm-cli/src/persistence/mcp-audit-report.ts`
+   - touches: `fdpm-cli/src/mcp/resources/audit.ts`
+   - touches: `fdpm-cli/src/commands/mcp.ts`
+   - touches: `fdpm-cli/src/mcp/dispatch.ts`
 
 ---
 
@@ -687,6 +704,12 @@ Other open questions (defaulted):
 ---
 
 ## 30. Revision history
+
+### 0.1.6 — 2026-08-28 — Audit-report amendment.
+
+Adds §9.5: Tier-2 rejections record rule_ids on the audit complete entry; mcp-audit.jsonl is parsed through typed schemas and aggregated into per-tool outcomes, error classes (<tool> category/reason, <tool> rule:<rule_id>), a success-rate SLO with shortfall, and p50/p95 latency over absolute or relative windows; served as the fdpm://audit/report[/{window}] resource, the fdpm mcp audit-report CLI command, and the SDK auditReport. Host.dataDir getter (not exposed). No manifest bump (resource only). Authored by Claude Fable 5 via Claude Code.
+
+Affected sections: 9, 25
 
 ### 0.1.5 — 2026-08-28 — Tier-3 hardening amendment.
 

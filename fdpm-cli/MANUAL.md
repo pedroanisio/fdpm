@@ -53,6 +53,7 @@ see the repository [`README.md`](../README.md). For the SPEC, see
 19. [Output, errors, and exit codes](#19-output-errors-and-exit-codes)
 20. [Recipes — common workflows](#20-recipes--common-workflows)
 21. [Troubleshooting](#21-troubleshooting)
+22. [MCP audit report](#22-mcp-audit-report)
 
 ---
 
@@ -874,6 +875,38 @@ preview validation without committing, build a test-suite or call
 The importer plugin returned a malformed transfer. The host re-validates
 on every import (PALS's-LAW). The error envelope's `evidence.issues`
 points to the offending field; file a bug against the importer plugin.
+
+## 22. MCP audit report
+
+`fdpm-mcp` appends one JSON line per tool call to
+`<data-dir>/mcp-audit.jsonl` (start + complete, with `ok`,
+`error_category`/`error_reason`, `validation_status`, and — for Tier-2
+rejections — the `rule_ids` that fired). `fdpm mcp audit-report`
+aggregates it so you can see which tool, reason or rule fails most and
+fix the description, the instructions, or the profile that causes it.
+
+```bash
+# Whole history, human summary: success rate vs the SLO, per-tool rows,
+# error classes ranked by count.
+fdpm mcp audit-report
+
+# Last 24 hours, top 5 classes, JSON (same shape as fdpm://audit/report).
+fdpm mcp audit-report --window 24h --top 5 --json
+
+# Absolute bounds and a stricter SLO.
+fdpm mcp audit-report --since 2026-08-28T00:00:00Z --slo 0.95
+```
+
+Error classes read `<tool> <label>`: `fdpm.primitive.create rule:core:id-format`
+is a §7 rejection (the agent's id did not match `id_pattern`),
+`fdpm.primitive.delete validation/idempotency_key_required` is a
+protocol error. `slo.shortfall` is how many more successful calls the
+window needed to meet the target. The same report is served to agents
+as the MCP resource `fdpm://audit/report[/{1h|24h|7d|all}]` and to
+embedders as the SDK `auditReport(host, opts)`.
+
+Unparseable lines are counted in `source.skipped` and never coerced. An
+in-memory data dir has no log and reports zero calls.
 
 ---
 

@@ -384,6 +384,32 @@ The audit log's `start` entry is the intent record for Tier-3 calls — it
 carries `tier`, `idempotency_key` and `dry_run` and is written before the
 handler runs.
 
+#### Audit report — `fdpm://audit/report[/{window}]` (SPEC-MCP-SERVER §9.5)
+
+The audit log is the server's memory of what went wrong. The resource
+aggregates `<data-dir>/mcp-audit.jsonl` into per-tool outcomes, error
+classes and a success-rate SLO:
+
+```json
+{
+  "window": { "since": null, "until": null, "calls": 42 },
+  "totals": { "calls": 42, "ok": 37, "failed": 2, "rejected": 3, "replayed": 1, "dry_run": 4, "success_rate": 0.881 },
+  "slo": { "target": 0.9, "success_rate": 0.881, "met": false, "shortfall": 1 },
+  "per_tool": [ { "tool": "fdpm.primitive.create", "calls": 20, "ok": 17, "rejected": 3, "p50_ms": 4, "p95_ms": 11,
+                  "rule_ids": { "core:id-format": 3 }, "error_reasons": {} } ],
+  "error_classes": [ { "class": "fdpm.primitive.create rule:core:id-format", "kind": "rejection", "count": 3, "share": 0.071 } ]
+}
+```
+
+`{window}` ∈ `1h` | `24h` | `7d` | `all`; the bare URI is `all`.
+`rule:<rule_id>` classes come from the `rule_ids` a Tier-2 rejection
+records; `category/reason` classes are protocol errors. The flywheel:
+read the top classes → fix the tool description, the server
+instructions, or the profile's `id_pattern`/required fields that cause
+them → the same classes become the eval cases for PURPOSE.md's
+three-arm cold-agent gate. Same report from the CLI (`fdpm mcp
+audit-report`) and the SDK (`auditReport(host, opts)`).
+
 #### What's deferred
 
 - **Subscriptions.** `notifications/resources/updated` would let the

@@ -166,6 +166,20 @@ const decisions: DecisionInput[] = [
     altReason:
       "Refuses legitimate distinct deletes issued in quick succession, adds nothing once keys are mandatory, and makes conformance tests timing-dependent.",
   },
+  {
+    id: "decision:0009",
+    title:
+      "Close the audit flywheel: record rule_ids on rejections and serve an aggregated audit report as a resource, CLI command and SDK call",
+    context:
+      "mcp-audit.jsonl recorded every call's outcome, but nothing read it: no one could say which tool, evidence.reason or rule_id failed most, so changes to descriptions, instructions and profiles were driven by taste. Tier-2 rejections did not even record which rules fired.",
+    rationale:
+      "Honeycomb's MCP server showed the flywheel that works: instrument where tools fail, set a success SLO, turn the error classes into eval cases. Recording rule_ids on rejections gives the class; a typed reader aggregates per tool, reason and rule with an SLO shortfall; serving it as a resource keeps reads off the tool catalog and lets any client or human pull it. One module behind resource, CLI and SDK.",
+    consequences:
+      "Tier-2 rejection audit entries carry rule_ids (additive). The flywheel's output is the backlog for the teaching surfaces and the seed set for PURPOSE.md's three-arm eval. Host gains a read-only dataDir getter (not exposed as a tool). No manifest bump.",
+    altName: "Ship a Tier-1 fdpm.audit.report tool instead of a resource",
+    altReason:
+      "Costs catalog bytes on every session for an operator-facing read, and contradicts PURPOSE.md's rule that reads go through resources.",
+  },
 ];
 
 const decisionSpecs: PrimitiveSpec[] = decisions.map((d) => ({
@@ -249,6 +263,16 @@ const evidenceSpecs: PrimitiveSpec[] = [
         "Dispatcher step 5b — idempotency cache lookup/replay/conflict/coalescing and the dry_run gate bypass; previews in src/core/operations/delete-preview.ts; tests tier3-dry-run / tier3-idempotency.",
     },
   },
+  {
+    id: "evidence:ref:mcp-audit-report",
+    type: "sw:Evidence",
+    fields: {
+      kind: "Reference",
+      source: "fdpm-cli/src/persistence/mcp-audit-report.ts",
+      description:
+        "Typed JSONL parse and aggregation (totals, per-tool rows, error classes, SLO, percentiles); served by src/mcp/resources/audit.ts, src/commands/mcp.ts and sdk.auditReport; tests audit-report / resources-audit / cli-audit-report.",
+    },
+  },
 ];
 
 const relations: RelationSpec[] = [
@@ -287,6 +311,12 @@ const relations: RelationSpec[] = [
     type: "sw:Justifies",
     from: "evidence:ref:mcp-tier3",
     to: "decision:0008",
+  },
+  {
+    id: "rel:mcp-audit-justifies-d9",
+    type: "sw:Justifies",
+    from: "evidence:ref:mcp-audit-report",
+    to: "decision:0009",
   },
 ];
 

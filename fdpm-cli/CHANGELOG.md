@@ -23,6 +23,32 @@ upgrade.
 
 ### Added
 
+#### `fdpm-mcp` — audit report: error classes from `mcp-audit.jsonl` (SPEC-MCP-SERVER §9.5)
+
+The audit log recorded every call's outcome but nothing read it, so
+nothing said which tool, reason or rule fails most. This closes the
+flywheel — instrument where tools fail, set a success SLO, turn the
+error classes into eval cases — the way Honeycomb ran its MCP server.
+
+- Tier-2 rejections now record the distinct `rule_ids` they fired on
+  the audit `complete` entry: the error class a §7 rejection belongs to.
+- [`src/persistence/mcp-audit-report.ts`](src/persistence/mcp-audit-report.ts)
+  — typed parse of the JSONL (malformed lines are counted in
+  `source.skipped`, never coerced), per-tool outcomes (`ok` / `failed` /
+  `rejected` / `replayed` / `dry_run`), error classes (`<tool>
+  category/reason` for protocol errors, `<tool> rule:<id>` for
+  rejections) with count and share, success-rate SLO with the shortfall
+  in calls, nearest-rank p50/p95 latency, absolute (`since`/`until`) or
+  relative (`1h` | `24h` | `7d` | `all`) windows.
+- Three surfaces, one implementation: resource
+  `fdpm://audit/report[/{window}]` (reads go through resources — no
+  catalog bytes), `fdpm mcp audit-report [--window|--since|--until|--top|--slo|--json]`,
+  SDK / package-root `auditReport(host, opts)`.
+- `Host.dataDir` read-only getter (classified not-exposed).
+- Tests (+30): aggregator, resource (incl. a live rejection becoming a
+  `rule:` class), CLI E2E on the real binary, SDK, audit-log `rule_ids`,
+  stdio E2E reading the report over the wire.
+
 #### `fdpm-mcp` — Tier-3 hardening: `dry_run` previews, mandatory idempotency keys, pre-execution audit (SPEC-MCP-SERVER §8.7)
 
 A delete is not retry-safe unless the server can recognise a duplicate,
@@ -147,6 +173,12 @@ and records Option A (USL-NG Core upstream) as the v1.x direction.
 72/72 tests passing.
 
 ### Changed
+
+#### Audit log gains `rule_ids`; server instructions name the audit resource
+
+- `McpAuditCompleteEntry.rule_ids?: string[]` on Tier-2 rejections
+  (additive; older readers ignore it). Instructions 3,964 B / 4,000.
+- No manifest bump: a resource was added, no tool changed (0.4.0).
 
 #### `fdpm-mcp` — MCP tool manifest `0.3.0` → `0.4.0`; Tier-3 calls require `idempotency_key`
 
