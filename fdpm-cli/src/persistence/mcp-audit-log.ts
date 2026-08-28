@@ -69,6 +69,12 @@ export interface McpAuditCompleteEntry {
   replayed?: boolean;
   /** §8.7: a dry-run preview; nothing was appended. */
   dry_run?: boolean;
+  /**
+   * §9.5: distinct rule_ids the §7 pipeline fired on a Tier-2 rejection
+   * (validation_status "fail", no error_category). The audit report
+   * turns these into `rule:<id>` error classes.
+   */
+  rule_ids?: string[];
 }
 
 /**

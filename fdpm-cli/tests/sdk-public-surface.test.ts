@@ -32,6 +32,8 @@ describe("SDK public surface", () => {
       "previewPrimitiveDelete",
       "previewRelationDelete",
       "previewWorkbookDelete",
+      // Audit flywheel (SPEC-MCP-SERVER §9.5).
+      "auditReport",
     ];
     for (const name of expected) {
       expect(

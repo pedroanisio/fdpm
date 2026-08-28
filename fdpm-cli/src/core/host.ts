@@ -576,6 +576,18 @@ export class Host {
     return { appliedOps: tail.length, newRevision: newRev };
   }
 
+  /**
+   * Plugin-contributed profiles are startup contributions, not operator
+   * profile-register commands. Persisted profiles load before plugins and
+   * keep precedence: if a profile id is already present, activation treats
+   * that contribution as already satisfied instead of failing startup.
+   */
+  registerPluginProfile(profile: DomainProfile): "registered" | "already-present" {
+    if (this.profiles.has(profile.id)) return "already-present";
+    this.profiles.register(profile);
+    return "registered";
+  }
+
   /** §1.5: core:empty is registered by the registry constructor. */
   async registerProfile(
     profile: DomainProfile,
@@ -1213,6 +1225,16 @@ export class Host {
 
   getProject(id: string): ProjectStateSlice {
     return this.store.getProject(id);
+  }
+
+  /**
+   * The persistence directory this Host operates against, or `null`
+   * for an in-memory Host. Read-only; consumers (the audit-report
+   * resource, the SDK) use it to locate sidecar files such as
+   * `mcp-audit.jsonl` without touching `persistence` directly.
+   */
+  get dataDir(): string | null {
+    return this.persistence ? this.persistence.dataDir : null;
   }
 
   private projectFingerprint(workbook_id: string): string {

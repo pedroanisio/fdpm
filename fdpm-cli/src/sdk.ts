@@ -697,6 +697,26 @@ export function previewWorkbookDelete(
   return corePreviewWorkbookDelete(host, args.workbook);
 }
 
+// -- Audit report (the flywheel) ----------------------------------------
+
+import {
+  auditReportFromDataDir,
+  type AuditReport,
+  type AuditReportOptions,
+} from "./persistence/mcp-audit-report.js";
+
+export type { AuditReport, AuditReportOptions };
+
+/**
+ * Aggregate the Host's `mcp-audit.jsonl` into per-tool outcomes, error
+ * classes, a success-rate SLO and latency percentiles (SPEC-MCP-SERVER
+ * §9.5). Same report as the `fdpm://audit/report` resource and
+ * `fdpm mcp audit-report`. An in-memory Host yields an empty report.
+ */
+export function auditReport(host: Host, opts: AuditReportOptions = {}): AuditReport {
+  return auditReportFromDataDir(host.dataDir, opts);
+}
+
 /**
  * Flat-args options for `renderProject`.
  *

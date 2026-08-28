@@ -1,7 +1,7 @@
 /**
  * Resource provider registry.
  *
- * Providers in declared order: render, profile, schema, guide. Future providers
+ * Providers in declared order: render, profile, schema, guide, audit. Future providers
  * (workbook transfer, validate report, primitive view) plug in by
  * appending here and exporting from `./<name>.ts`.
  *
@@ -11,7 +11,7 @@
  * non-null match wins. URI overlap between providers is a contract
  * bug — providers MUST advertise mutually-exclusive URI shapes
  * (render owns `fdpm://workbook/...`; profile owns
- * `fdpm://profile/...` and `fdpm://profiles`; schema owns `fdpm://schema/...`; guide owns `fdpm://guide`).
+ * `fdpm://profile/...` and `fdpm://profiles`; schema owns `fdpm://schema/...`; guide owns `fdpm://guide`; audit owns `fdpm://audit/...`).
  */
 import type { Host } from "../../core/host.js";
 import { FDPMException } from "../../core/errors/fdpm-exception.js";
@@ -25,12 +25,14 @@ import { renderResourceProvider } from "./render.js";
 import { profileResourceProvider } from "./profile.js";
 import { schemaResourceProvider } from "./schema.js";
 import { guideResourceProvider } from "./guide.js";
+import { auditResourceProvider } from "./audit.js";
 
 export const RESOURCE_PROVIDERS: ReadonlyArray<ResourceProvider<unknown>> = [
   renderResourceProvider as ResourceProvider<unknown>,
   profileResourceProvider as ResourceProvider<unknown>,
   schemaResourceProvider as ResourceProvider<unknown>,
   guideResourceProvider as ResourceProvider<unknown>,
+  auditResourceProvider as ResourceProvider<unknown>,
 ];
 
 /** Aggregate every provider's templates for `resources/templates/list`. */

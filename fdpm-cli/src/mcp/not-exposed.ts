@@ -42,6 +42,10 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // order. Never LLM-facing: an agent registering profiles goes through
   // `fdpm.profile.register` and `fdpm://schema/profile`.
   "registerPluginProfile",
+  // `dataDir` is a read-only getter naming the persistence directory.
+  // Not a tool: `fdpm.health.host_options.data_dir` already reports it,
+  // and the audit-report resource consumes it internally.
+  "dataDir",
 
   // -- Read surfaces deferred -----------------------------------------
   // Resolved-profile read; deferred until a `fdpm.profile.resolved.get`

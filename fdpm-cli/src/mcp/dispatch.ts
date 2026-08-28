@@ -487,6 +487,7 @@ function finalizeSuccess(
       ok: accepted,
       duration_ms: Date.now() - start,
       validation_status: accepted ? "pass" : "fail",
+      ...(accepted ? {} : { rule_ids: distinctRuleIds(result.validation_report.findings) }),
     });
     // Per SPEC §12 / §8.2: protocol call succeeded; isError stays false
     // even when validation_report.accepted=false. The caller distinguishes
@@ -547,6 +548,7 @@ function finalizeError(
       ok: false,
       duration_ms: Date.now() - start,
       validation_status: "fail",
+      rule_ids: distinctRuleIds(report.findings),
     });
     return {
       content: [{ type: "text", text: JSON.stringify(envelope) }],
@@ -563,6 +565,18 @@ function finalizeError(
     error_reason: reasonOf(env),
   });
   return errorResult(env);
+}
+
+/** §9.5: the sorted, distinct rule_ids among a rejection's findings. */
+function distinctRuleIds(findings: unknown): string[] {
+  if (!Array.isArray(findings)) return [];
+  const ids = new Set<string>();
+  for (const f of findings) {
+    if (f && typeof f === "object" && typeof (f as { rule_id?: unknown }).rule_id === "string") {
+      ids.add((f as { rule_id: string }).rule_id);
+    }
+  }
+  return [...ids].sort();
 }
 
 function validationStatusFor(tier: Tier, ok: boolean): "pass" | "fail" | "n/a" {
@@ -665,6 +679,7 @@ function writeComplete(
     error_reason?: string;
     replayed?: boolean;
     dry_run?: boolean;
+    rule_ids?: string[];
   },
 ): void {
   if (audit === null) return;
@@ -684,6 +699,7 @@ function writeComplete(
   if (fields.error_reason !== undefined) entry.error_reason = fields.error_reason;
   if (fields.replayed === true) entry.replayed = true;
   if (fields.dry_run === true) entry.dry_run = true;
+  if (fields.rule_ids !== undefined && fields.rule_ids.length > 0) entry.rule_ids = fields.rule_ids;
   audit.write(entry);
 }
 
@@ -702,6 +718,7 @@ function writeStartAndComplete(
     error_reason?: string;
     replayed?: boolean;
     dry_run?: boolean;
+    rule_ids?: string[];
   },
   extra?: AuditStartExtra,
 ): void {

@@ -62,4 +62,5 @@ export {
   previewPrimitiveDelete,
   previewRelationDelete,
   previewWorkbookDelete,
+  auditReport,
 } from "./sdk.js";

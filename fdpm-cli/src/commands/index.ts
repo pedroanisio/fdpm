@@ -21,6 +21,7 @@ import { commandMetadata as dnisMetadata } from "./dnis.js";
 import { commandMetadata as editMetadata } from "./edit.js";
 import { commandMetadata as healthMetadata } from "./health.js";
 import { commandMetadata as logMetadata } from "./log.js";
+import { commandMetadata as mcpMetadata } from "./mcp.js";
 import { commandMetadata as migrateMetadata } from "./migrate.js";
 import { commandMetadata as planningMetadata } from "./planning.js";
 import { commandMetadata as pluginMetadata } from "./plugin.js";
@@ -44,6 +45,7 @@ export const ALL_COMMAND_METADATA: CommandMetadataMap = {
   ...editMetadata,
   ...healthMetadata,
   ...logMetadata,
+  ...mcpMetadata,
   ...migrateMetadata,
   ...planningMetadata,
   ...pluginMetadata,

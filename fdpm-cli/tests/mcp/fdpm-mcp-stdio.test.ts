@@ -187,6 +187,23 @@ describe("fdpm-mcp over stdio — catalog budget end to end", () => {
         expect(env.validation_report.findings.every((f) => f.rule_id === "core:profile-schema")).toBe(
           true,
         );
+
+        // §9.5 — the audit report is a resource; the rejection above is now an error class.
+        const audit = await client.readResource({ uri: "fdpm://audit/report" });
+        const auditContent = audit.contents[0] as { mimeType?: string; text?: string };
+        expect(auditContent.mimeType).toBe("application/json");
+        const auditReport = JSON.parse(auditContent.text!) as {
+          totals: { calls: number; rejected: number };
+          error_classes: Array<{ class: string }>;
+        };
+        expect(auditReport.totals.calls).toBeGreaterThanOrEqual(2);
+        expect(auditReport.totals.rejected).toBeGreaterThanOrEqual(1);
+        expect(auditReport.error_classes.map((c) => c.class)).toContain(
+          "fdpm.profile.register rule:core:profile-schema",
+        );
+        expect(templates.resourceTemplates.map((t) => t.uriTemplate)).toContain(
+          "fdpm://audit/report/{window}",
+        );
       } finally {
         await close();
       }

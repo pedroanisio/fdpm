@@ -30,6 +30,7 @@ import { buildTemplateCommand } from "../commands/template.js";
 import { buildTestSuiteCommand } from "../commands/test-suite.js";
 import { buildTransferCommand } from "../commands/transfer.js";
 import { buildLogCommand } from "../commands/log.js";
+import { buildMcpCommand } from "../commands/mcp.js";
 import { buildHealthCommand, buildVersionCommand } from "../commands/health.js";
 import { buildPluginCommand } from "../commands/plugin.js";
 import { buildRenderCommand } from "../commands/render.js";
@@ -109,6 +110,7 @@ export function buildProgram(host: Host, opts: BuildProgramOptions = {}): Comman
   program.addCommand(buildTestSuiteCommand(host));
   program.addCommand(buildTransferCommand(host));
   program.addCommand(buildLogCommand(host));
+  program.addCommand(buildMcpCommand(host));
   program.addCommand(buildPluginCommand(host));
   program.addCommand(buildRenderCommand(host));
   program.addCommand(buildValidateCommand(host));

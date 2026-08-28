@@ -211,3 +211,43 @@ describe("SPEC-MCP-SERVER §8.7 — pre-execution audit for Tier-3 calls", () =>
     }
   });
 });
+
+describe("SPEC-MCP-SERVER §9.5 — rule_ids on Tier-2 rejections (the flywheel's error class)", () => {
+  it("a §7 rejection records the distinct rule_ids it fired; an input-schema error records none", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "fdpm-audit-rules-"));
+    try {
+      const host = new Host({ dataDir: null, noPlugins: true });
+      await host.load();
+      await host.registerProfile(TEST_PROFILE);
+      await host.createProject({ workbook_id: "wb-r", name: "R", profile_id: TEST_PROFILE.id });
+      const audit = new McpAuditLog(dir);
+      const ctx: DispatchCtx = {
+        session: createSession({ maxPerMinute: 600 }),
+        enableDestructive: false,
+        enabledPlugins: new Set(),
+        auditFullArgs: false,
+        hostOptions: { dataDir: null, noPlugins: true },
+      };
+      const d = createDispatcher(host, ctx, audit);
+      const rejected = await d.call("fdpm.primitive.create", {
+        workbook_id: "wb-r",
+        primitive: { id: "bad id", type_id: "test:section", field_values: { title: "x", number: 1 } },
+      });
+      expect(rejected.isError).toBe(false);
+      const schemaErr = await d.call("fdpm.primitive.create", { workbook_id: "wb-r", primitive: { id: 1 } });
+      expect(schemaErr.isError).toBe(true);
+      const lines = readFileSync(join(dir, "mcp-audit.jsonl"), "utf8")
+        .split("\n")
+        .filter((l) => l.length > 0)
+        .map((l) => JSON.parse(l) as Record<string, unknown>);
+      const completes = lines.filter((e) => e["phase"] === "complete");
+      expect(completes).toHaveLength(2);
+      expect(completes[0]).toMatchObject({ ok: false, validation_status: "fail" });
+      expect(completes[0]!["rule_ids"]).toEqual(["core:id-format"]);
+      expect(completes[1]).toMatchObject({ ok: false, error_category: "validation" });
+      expect(completes[1]!["rule_ids"]).toBeUndefined();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
