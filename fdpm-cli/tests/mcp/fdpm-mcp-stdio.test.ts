@@ -29,6 +29,8 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { DEFAULT_CATALOG_BUDGET } from "../../src/mcp/catalog.js";
 import { PROFILE_SCHEMA_URI, SCHEMA_MIME } from "../../src/mcp/resources/schema.js";
+import { SERVER_INSTRUCTIONS } from "../../src/mcp/instructions.js";
+import { GUIDE_MIME, GUIDE_URI } from "../../src/mcp/resources/guide.js";
 
 const TSX = join(process.cwd(), "node_modules", ".bin", "tsx");
 const BIN = join(process.cwd(), "src", "bin", "fdpm-mcp.ts");
@@ -130,6 +132,15 @@ describe("fdpm-mcp over stdio — catalog budget end to end", () => {
         expect(templates.resourceTemplates.map((t) => t.uriTemplate)).toContain(
           "fdpm://schema/{schema_id}",
         );
+
+        // §8.6 — initialize.instructions is the static orientation text and
+        // fdpm://guide serves the same bytes.
+        expect(client.getInstructions()).toBe(SERVER_INSTRUCTIONS);
+        const guide = await client.readResource({ uri: GUIDE_URI });
+        const guideContent = guide.contents[0] as { mimeType?: string; text?: string };
+        expect(guideContent.mimeType).toBe(GUIDE_MIME);
+        expect(guideContent.text).toBe(SERVER_INSTRUCTIONS);
+        expect(templates.resourceTemplates.map((t) => t.uriTemplate)).toContain(GUIDE_URI);
 
         const rejected = await client.callTool({
           name: "fdpm.profile.register",

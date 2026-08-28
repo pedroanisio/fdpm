@@ -20,6 +20,7 @@ import { z } from "zod";
 import type { McpToolEntry } from "../types.js";
 import { HOST_VERSION } from "../../core/version/spec.js";
 import { MCP_TOOL_MANIFEST_VERSION } from "../schemas.js";
+import { instructionsBytes } from "../instructions.js";
 
 const Input = z.object({}).strict();
 
@@ -47,6 +48,8 @@ const Output = z
       })
       .strict(),
     catalog: Catalog,
+    /** SPEC-MCP-SERVER §8.6 — per-session size of initialize.instructions. */
+    instructions_bytes: z.number().int(),
   })
   .strict();
 
@@ -54,7 +57,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.health",
   tier: "read_only",
   description:
-    "Liveness probe. Returns server version, MCP tool manifest version, a summary of loaded profiles and workbooks, and the tool-catalog byte measurement against its budget (tool_count, total_bytes, budget_total_bytes, within_budget).",
+    "Liveness probe. Returns server version, MCP tool manifest version, a summary of loaded profiles and workbooks, the tool-catalog byte measurement against its budget (tool_count, total_bytes, budget_total_bytes, within_budget), and instructions_bytes (the per-session size of the server instructions).",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
@@ -87,6 +90,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
         budget_per_tool_bytes: report.budget.per_tool_bytes,
         within_budget: report.ok,
       },
+      instructions_bytes: instructionsBytes(),
     };
   },
 };

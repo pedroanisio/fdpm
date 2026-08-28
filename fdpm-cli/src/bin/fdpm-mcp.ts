@@ -44,6 +44,11 @@ import {
   type CatalogBudget,
 } from "../mcp/catalog.js";
 import { discoverPluginTools } from "../mcp/plugin-tools.js";
+import {
+  SERVER_INSTRUCTIONS,
+  checkInstructionsBudget,
+  instructionsBytes,
+} from "../mcp/instructions.js";
 import { createSession } from "../mcp/session.js";
 import { createDispatcher } from "../mcp/dispatch.js";
 import type { DispatchCtx } from "../mcp/types.js";
@@ -171,6 +176,7 @@ async function main(): Promise<void> {
       `  max_calls_per_minute=${flags.maxCallsPerMinute}`,
       `  audit_full_args=${flags.auditFullArgs}`,
       `  catalog_budget_bytes=${flags.catalogBudget.total_bytes} (per_tool=${flags.catalogBudget.per_tool_bytes})`,
+      `  instructions_bytes=${instructionsBytes()}`,
       ``,
     ].join("\n"),
   );
@@ -224,6 +230,19 @@ async function main(): Promise<void> {
     process.exit(2);
   }
 
+  // -- Instructions: one per session, capped like the catalog (§8.6) --
+  // The text is a compile-time constant, so this gate is unreachable
+  // when tests/mcp/instructions.test.ts passes; it exists so a future
+  // edit that outgrows the budget fails loudly at boot, never silently
+  // in every agent session.
+  const instructionsVerdict = checkInstructionsBudget();
+  if (!instructionsVerdict.ok) {
+    process.stderr.write(
+      `fdpm-mcp: refusing to start — server instructions are ${instructionsVerdict.bytes} B, budget ${instructionsVerdict.budget_bytes} B (SPEC-MCP-SERVER §8.6). Trim src/mcp/instructions.ts.\n`,
+    );
+    process.exit(2);
+  }
+
   const audit = new McpAuditLog(flags.dataDir);
   const session = createSession({ maxPerMinute: flags.maxCallsPerMinute });
 
@@ -262,7 +281,9 @@ async function main(): Promise<void> {
         // freshness-watcher polling loop is in place.
         resources: {},
       },
-      instructions: `FDPM MCP server v0.1 (manifest ${MCP_TOOL_MANIFEST_VERSION}). Tier 1 + Tier 2 advertised; Tier 3 destructive deletes opt-in via --enable-destructive. Resources: fdpm://workbook/{id}/render/{target}, fdpm://profile/{id}, fdpm://schema/profile (read it before fdpm.profile.register).`,
+      // SPEC-MCP-SERVER §8.6: static cold-start orientation, also served
+      // at fdpm://guide for clients that ignore this field.
+      instructions: SERVER_INSTRUCTIONS,
     },
   );
 
@@ -363,7 +384,7 @@ async function main(): Promise<void> {
   await server.connect(transport);
   const resourceCount = listResources(host).length;
   process.stderr.write(
-    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s) (${catalog.measurement.total_bytes} B of ${catalog.budget.total_bytes} B catalog budget), ${resourceCount} resource(s)\n`,
+    `fdpm-mcp: ready on stdio with ${advertised.length} tool(s) (${catalog.measurement.total_bytes} B of ${catalog.budget.total_bytes} B catalog budget), ${resourceCount} resource(s), instructions ${instructionsBytes()} B\n`,
   );
 }
 

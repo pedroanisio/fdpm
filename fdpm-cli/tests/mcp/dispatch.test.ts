@@ -97,6 +97,10 @@ describe("dispatcher — happy path returns success shape", () => {
       withCatalog.catalog.budget_total_bytes,
     );
     expect(withCatalog.catalog.budget_per_tool_bytes).toBeGreaterThan(0);
+    // §8.6 — the per-session instructions cost is observable too.
+    const withInstr = result.structuredContent as { instructions_bytes: number };
+    expect(withInstr.instructions_bytes).toBeGreaterThan(1_000);
+    expect(withInstr.instructions_bytes).toBeLessThanOrEqual(4_000);
   });
 });
 
