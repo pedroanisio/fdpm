@@ -615,6 +615,25 @@ mkdir -p ~/.fdpm/plugins/acme.thing
 FDPM_PLUGIN_PATH=~/.fdpm/plugins fdpm plugin list
 ```
 
+### Plugin-shipped MCP prompts
+
+Plugins can ship MCP prompts — skills that tell an agent *when* to use a
+set of tools, in what *order*, and how to handle *failures*
+(SPEC-MCP-SERVER §13.5). The CLI shows what an MCP client would see:
+
+```sh
+# Metadata only (what prompts/list returns): id, plugin, title, arguments.
+fdpm plugin prompts
+
+# Render one with arguments (what prompts/get returns).
+fdpm plugin prompt planning/triage_iteration --arg workbook_id=plan-roadmap-2026-q2
+fdpm plugin prompt planning/triage_iteration --arg workbook_id=p --arg focus=auth --json
+```
+
+A prompt whose body lacks the three sections, or whose listing entry
+exceeds 600 bytes, is rejected at plugin activation; a missing required
+argument or an unknown one is a `validation` error naming the argument.
+
 ---
 
 ## 16. Rendering workbook output

@@ -23,6 +23,33 @@ upgrade.
 
 ### Added
 
+#### `fdpm-mcp` — plugin-shipped prompts as skills; `planning/triage_iteration` (SPEC-MCP-SERVER §13.5)
+
+PURPOSE.md's third layer: prompts carry the domain "how to think" that
+tool descriptions cannot. Shipped as skills, not templates.
+
+- Plugin API: `ctx.registerPrompt(reg)` → runtime prompt registry
+  (validated at install, `promptId` unique across plugins, listed
+  sorted, torn down on deactivate). `PromptRegistration` =
+  `{ promptId: "<plugin>/<slug>", title, description, arguments, render }`.
+- Skill contract ([`src/mcp/prompts.ts`](src/mcp/prompts.ts)): the
+  description must say *when* to use the prompt (40..300 chars); the
+  listing entry is ≤ 600 B (progressive disclosure — `prompts/list` is
+  metadata only); the rendered body must contain "When to use", "Call
+  order" and "Failure modes" and stay ≤ 16 KB; arguments are resolved
+  and type-checked; the plugin's render output is validated before it
+  reaches a client (PALS's LAW).
+- `fdpm-mcp` declares the `prompts` capability and serves
+  `prompts/list` and `prompts/get`.
+- `planning/triage_iteration`: when to use, a nine-step call order over
+  real tools and resources, failure modes by real `plan:val:*` ids —
+  tests cross-check both against the manifest and the plugin sources.
+- CLI `fdpm plugin prompts` / `fdpm plugin prompt <id> --arg k=v`;
+  SDK / package root `listPrompts(host)`, `renderPrompt(host, { id, args })`.
+- Tests (+45): contract, registry, prompt content, CLI E2E, SDK, stdio
+  E2E (capability declared, empty with plugins off, list/get with
+  plugins on).
+
 #### `fdpm-mcp` — audit report: error classes from `mcp-audit.jsonl` (SPEC-MCP-SERVER §9.5)
 
 The audit log recorded every call's outcome but nothing read it, so
@@ -173,6 +200,13 @@ and records Option A (USL-NG Core upstream) as the v1.x direction.
 72/72 tests passing.
 
 ### Changed
+
+#### Server instructions budget ratcheted 4,000 → 4,500 B; PROMPTS block
+
+- `INSTRUCTIONS_BUDGET_BYTES` 4,000 → 4,500 after the audit (§9.5) and
+  prompts (§13.5) lines; measured 4,219 B. The ratchet is a reviewed
+  change, recorded here.
+- No manifest bump (a capability was added; no tool changed — 0.4.0).
 
 #### Audit log gains `rule_ids`; server instructions name the audit resource
 

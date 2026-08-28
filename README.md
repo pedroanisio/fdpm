@@ -118,10 +118,10 @@ hypothesis, not a finished product — see "Eval design" below.
 | Renderers as the human-review surface (markdown / HTML / PDF / SVG) | Shipped |
 | Plugin-emitted operation kinds (verbs as first-class ops) | v1; SPEC-PLUGIN-VERBS in flight |
 | Per-verb MCP tools, plugin-version migration contract | v1 |
-| `ctx.registerPrompt(reg)` API (no prompts yet) | v1 |
+| `ctx.registerPrompt(reg)` API with the skill contract (when to use / call order / failure modes, budgets) (SPEC-MCP-SERVER §13.5) | Shipped |
 | Plugin-contributed resource URI schemes (beyond render) | v2 |
 | Discovery tools (`list_verbs`, `describe_verb`, `applicable_operations`, `list_resources`) | v2 |
-| First plugin-shipped MCP prompt (`planning/triage_iteration`) | v2 |
+| First plugin-shipped MCP prompt (`planning/triage_iteration`) via `prompts/list` / `prompts/get`, CLI and SDK | Shipped |
 | Progressive-disclosure / Skills-shaped catalog summarization | v2 |
 | MCP change notifications (`tools`/`resources`/`prompts` list_changed) | v2 |
 | **Three-arm cold-agent eval gate** | **End of v2** |

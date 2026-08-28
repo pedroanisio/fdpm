@@ -46,12 +46,35 @@ When activated against an FDPM host, this plugin registers:
 - **9** relation types
 - **12** validation rules (10 in v0.1, +2 added in pass-2 refine)
 - **3** templates bound 1:1 to **3** executable renderers
+- **1** MCP prompt (`planning/triage_iteration`) — see *MCP prompt* below
 
 Activation log:
 
 ```
 planning activated: 6 primitive types, 9 relation types, 12 validators, 3 renderers (plan:RoadmapRenderer/md, plan:GanttSvgRenderer/svg, plan:AgentBoardRenderer/md)
 ```
+
+## MCP prompt: `planning/triage_iteration`
+
+Registered with `ctx.registerPrompt` (SPEC-MCP-SERVER §13.5) and served
+by `fdpm-mcp` as `prompts/list` metadata and a `prompts/get` body.
+Written as a skill: **When to use** (start or checkpoint of an
+iteration), **Call order** (workbook.get → board via the render
+resource → task/blocker/iteration search → DependsOn/BlockedBy
+readiness → rank → patch transitions with claims → AC + `plan:Verifies`
+before Done → `dry_run` before deletes → `log.tail` verification), and
+**Failure modes** by rule id (`plan:val:done-task-has-ac`,
+`plan:val:ai-task-has-machine-checkable-ac`, `plan:val:ai-minutes-numeric-bucket`,
+`plan:val:blocked-task-has-blocker`, `plan:val:claim-has-expiry`,
+`plan:val:no-circular-deps`, `stale_state`). Arguments: `workbook_id`
+(required), `iteration_id`, `focus`.
+
+```sh
+fdpm plugin prompt planning/triage_iteration --arg workbook_id=<id>
+```
+
+`tests/planning-prompt.test.ts` cross-checks every tool name against the
+MCP manifest and every `plan:val:*` id against this plugin's sources.
 
 ## Hard constraint: AI task duration
 

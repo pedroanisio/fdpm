@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts"
-revision: "0.1.6 — audit-report amendment (§9.5): Tier-2 rejections record rule_ids on the audit complete entry; mcp-audit.jsonl is aggregated into per-tool outcomes, error classes and a success-rate SLO, served as fdpm://audit/report[/{window}], fdpm mcp audit-report, and the SDK auditReport."
+revision: "0.1.7 — prompts amendment (§13.5): plugins ship MCP prompts as skills via ctx.registerPrompt (when to use, call order, failure modes; listing ≤600 B, body ≤16 KB, validated on install and get); prompts/list + prompts/get on fdpm-mcp; first prompt planning/triage_iteration; instructions budget 4,500."
 status: "Proposal"
 ---
 
@@ -439,6 +439,18 @@ Plugin-contributed tools are namespaced `fdpm.plugin.<plugin-id>.<verb>` so they
 
 The plugin manifest MUST declare a tier for each exposed operation (`read_only`, `validating_write`, or `destructive`). The server MUST enforce the same gating as for Core tools.
 
+### 13.5 Plugin-shipped prompts as skills (v0.1.7)
+
+`instructions` (§8.6) carries the server-generic orientation; the per-domain "how to think" layer is a plugin's to ship, as MCP prompts. A prompt is a skill — reusable procedural knowledge about when to use a set of tools, in what order, and how to handle failures — not a fill-in template. Two rules from the evidence base are enforced as code: "context, not just templates", and progressive disclosure (the agent sees only metadata until it selects a prompt).
+
+**Registration.** A plugin registers a prompt during `activate()` with `ctx.registerPrompt(reg)`. `reg` MUST carry `promptId` matching `<plugin>/<slug>` (`^[a-z][a-z0-9_-]*/[a-z][a-z0-9_]*$`), unique across all plugins (`conflict` otherwise); `title` ≤ 80 characters; `description` 40..300 characters that states when to use the prompt; `arguments` with unique names matching `^[a-z_][a-z0-9_]*$`, each with a description and an optional `required`; and `render({ args })` returning text messages. The listing entry (`name`, `title`, `description`, `arguments`) MUST NOT exceed 600 bytes. Violations are rejected at install (`validation` / `prompt_invalid`) so a malformed prompt never reaches `prompts/list`. Prompts are torn down with the plugin's other contributions on deactivate.
+
+**Serving.** The server MUST declare the `prompts` capability. `prompts/list` MUST return metadata only, sorted by `promptId`. `prompts/get` MUST resolve the caller's arguments against the declaration — a missing required argument, an unknown argument, or a non-string value is `validation` (`prompt_argument_missing` / `prompt_argument_unknown` / `prompt_argument_invalid`) — run the plugin's `render`, and validate the result before returning it: non-empty text messages whose text contains the sections "When to use", "Call order" and "Failure modes" (case-insensitive) and totals at most 16 KB; anything else is `verification` / `prompt_body_invalid`; a throwing `render` is `internal` / `prompt_render_failed`. Plugin output is untrusted (PALS's LAW). An unknown prompt is `not_found`. The CLI (`fdpm plugin prompts`, `fdpm plugin prompt <id> --arg k=v`) and the SDK (`listPrompts`, `renderPrompt`) MUST use the same pipeline.
+
+**First prompt.** `planning/triage_iteration` (fdpm.planning): when to use; a call order over real tools and resources (workbook.get → board via the render resource → task/blocker/iteration search → DependsOn/BlockedBy readiness → rank → status transitions with claims → acceptance criterion + plan:Verifies before Done → dry_run before deletes → log.tail verification); failure modes by `plan:val:*` id. Its test cross-checks every tool name against the manifest and every rule id against the plugin's sources, so the prompt cannot drift from what it teaches.
+
+**Budgets.** Prompts cost nothing until listed; the listing cap keeps `prompts/list` small. The §8.6 instructions gained a PROMPTS paragraph and their budget was ratcheted 4,000 → 4,500 bytes (measured 4,219).
+
 ---
 
 ## 14. Verification Contract (PALS's law)
@@ -644,6 +656,12 @@ Order matters: SPEC-REPL §13 Host changes must land first; Tier 1 surface lands
    - touches: `fdpm-cli/src/mcp/resources/audit.ts`
    - touches: `fdpm-cli/src/commands/mcp.ts`
    - touches: `fdpm-cli/src/mcp/dispatch.ts`
+10. **Plugin prompts (0.1.7)** — Land PromptRegistration + ctx.registerPrompt + the runtime prompt registry, src/mcp/prompts.ts (contract, arguments, body validation), prompts capability and handlers in fdpm-mcp, planning/triage_iteration, CLI plugin prompts|prompt, SDK listPrompts/renderPrompt. Additive for clients; plugin authors adopt the skill contract.
+   - touches: `fdpm-cli/src/plugin/context.ts`
+   - touches: `fdpm-cli/src/plugin/runtime.ts`
+   - touches: `fdpm-cli/src/mcp/prompts.ts`
+   - touches: `fdpm-cli/src/bin/fdpm-mcp.ts`
+   - touches: `fdpm-cli/plugins/planning/prompts.ts`
 
 ---
 
@@ -679,7 +697,7 @@ Other open questions (defaulted):
 - **HTTP / SSE transport with authn** _(target: 0.2)_ — Add a network-listener transport with a real authentication layer (OAuth, mTLS, or signed-token bearer). Out of scope for v0.1 because it introduces an authn problem this SPEC does not solve.
 - **Streaming tool results** _(target: 0.2)_ — Long-running validate / render with progressive output. v0.1 is request/response only.
 - **Multi-tenant isolation** _(target: 0.3)_ — One server, many Hosts, with tenant identity carried in the call. v0.1 is single-Host, single-dataDir.
-- **MCP `resources` and `prompts` surfaces** _(target: 0.2)_ — Native MCP resources for workbook state (not just tools) and MCP prompts for templates like 'draft a primitive of type X'.
+- **MCP `resources` and `prompts` surfaces** _(target: 0.2)_ — Delivered ahead of v0.2: resources in 0.1.2 (render, profile, schema, guide, audit families) and prompts in 0.1.7 (§13.5, plugin-shipped skills). Remaining: subscriptions/list_changed notifications.
 - **Per-tool, per-client capability negotiation** _(target: 0.3)_ — Allow clients to request a subset of tools, or to declare their own destructive-ack capabilities.
 
 ---
@@ -704,6 +722,12 @@ Other open questions (defaulted):
 ---
 
 ## 30. Revision history
+
+### 0.1.7 — 2026-08-28 — Prompts amendment.
+
+Adds §13.5: plugins ship MCP prompts as skills via ctx.registerPrompt — promptId <plugin>/<slug> unique across plugins, description that says when to use (40..300 chars), arguments, render; listing entry ≤ 600 B (progressive disclosure), body ≤ 16 KB with the sections When to use / Call order / Failure modes; validated at install and on prompts/get, plugin output never passed through. fdpm-mcp declares prompts and serves prompts/list (metadata) and prompts/get. First prompt planning/triage_iteration with tests cross-checking tool names and plan:val rule ids. CLI plugin prompts / plugin prompt; SDK listPrompts / renderPrompt. Instructions budget ratcheted 4,000 → 4,500 (measured 4,219). §28 resources-and-prompts item marked delivered. Authored by Claude Fable 5 via Claude Code.
+
+Affected sections: 8, 13, 25, 28
 
 ### 0.1.6 — 2026-08-28 — Audit-report amendment.
 

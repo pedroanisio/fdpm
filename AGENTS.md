@@ -410,6 +410,36 @@ them → the same classes become the eval cases for PURPOSE.md's
 three-arm cold-agent gate. Same report from the CLI (`fdpm mcp
 audit-report`) and the SDK (`auditReport(host, opts)`).
 
+#### Prompts — plugin-shipped skills (SPEC-MCP-SERVER §13.5)
+
+`initialize.instructions` is the server-generic layer; prompts are the
+domain layer. A plugin registers one with `ctx.registerPrompt(reg)`:
+
+```ts
+ctx.registerPrompt({
+  promptId: "planning/triage_iteration",          // <plugin>/<slug>, unique
+  title: "Triage an iteration",
+  description: "Use at the start of an iteration to …", // says WHEN, 40..300 chars
+  arguments: [{ name: "workbook_id", description: "…", required: true }],
+  render: ({ args }) => [{ role: "user", content: { type: "text", text: "…" } }],
+});
+```
+
+The skill contract is enforced in code, not by review: `prompts/list`
+returns metadata only (≤ 600 B per entry — progressive disclosure);
+`prompts/get` resolves and type-checks arguments, runs the plugin's
+`render`, and rejects a body that does not contain **When to use**,
+**Call order**, and **Failure modes** or exceeds 16 KB. The first prompt,
+`planning/triage_iteration`, walks nine calls over real tools and
+resources and names the `plan:val:*` rules that reject a naive edit.
+
+```json
+{ "method": "prompts/get", "params": { "name": "planning/triage_iteration", "arguments": { "workbook_id": "plan-roadmap-2026-q2" } } }
+```
+
+Same surface from the CLI (`fdpm plugin prompts`, `fdpm plugin prompt <id>
+--arg k=v`) and the SDK (`listPrompts(host)`, `renderPrompt(host, { id, args })`).
+
 #### What's deferred
 
 - **Subscriptions.** `notifications/resources/updated` would let the

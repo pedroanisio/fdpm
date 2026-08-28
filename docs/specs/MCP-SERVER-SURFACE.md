@@ -36,7 +36,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 | Transport | stdio | [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
 | Capabilities advertised | `tools`, `resources` | [src/bin/fdpm-mcp.ts:206-212](../../fdpm-cli/src/bin/fdpm-mcp.ts#L206-L212) |
 | `initialize.instructions` | declared — static `SERVER_INSTRUCTIONS` (cold-start workflow, response contract, gating); 4,000 B budget; mirrored at `fdpm://guide` | [src/mcp/instructions.ts](../../fdpm-cli/src/mcp/instructions.ts) |
-| `prompts` capability | not declared (plugin prompts are v0.2; `instructions` carries the generic layer meanwhile) | n/a |
+| `prompts` capability | declared — plugin-shipped skills via `ctx.registerPrompt`; `prompts/list` metadata only, `prompts/get` validated body (§13.5) | [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts), [src/mcp/prompts.ts](../../fdpm-cli/src/mcp/prompts.ts) |
 | `resources/subscribe` | not declared (slice 1) | [src/bin/fdpm-mcp.ts:208-211](../../fdpm-cli/src/bin/fdpm-mcp.ts#L208-L211) |
 
 **Total surface:** 30 tools (12 Tier-1 + 13 Tier-2 + 5 Tier-3) + 4 resource providers (render, profile, schema, guide) + server instructions. The advertised catalog is measured against a byte budget at boot and in CI (SPEC-MCP-SERVER §8.5).
@@ -105,11 +105,18 @@ active, `resources/list` advertises ~24+ concrete render URIs.
 
 Source: [src/mcp/resources/render.ts](../../fdpm-cli/src/mcp/resources/render.ts)
 
+## Prompts (plugin-shipped skills)
+
+| Prompt | Plugin | Arguments | Body |
+|---|---|---|---|
+| `planning/triage_iteration` | `fdpm.planning` | `workbook_id` (required), `iteration_id`, `focus` | When to use; nine-step call order over tools + resources; failure modes by `plan:val:*` id |
+
+Contract: listing entry ≤ 600 B; body ≤ 16 KB with the three sections; arguments resolved/type-checked; render output validated. Source: [src/mcp/prompts.ts](../../fdpm-cli/src/mcp/prompts.ts), [plugins/planning/prompts.ts](../../fdpm-cli/plugins/planning/prompts.ts).
+
 ## What's NOT exposed
 
 | Capability | Status | Note |
 |---|---|---|
-| MCP `prompts` capability | not declared | no handlers registered |
 | MCP `resources/subscribe` | not declared | `subscribe: false` implicit; deferred to slice 2 with freshness-watcher |
 | MCP `roots` | not used | n/a |
 | MCP `sampling` | not used | n/a |

@@ -497,6 +497,20 @@ const tasks: TaskDef[] = [
     wbs: "wbs:p1-mcp-slice-2",
   },
   {
+    id: "task:p1-plugin-prompts",
+    name: "p1-plugin-prompts",
+    summary:
+      "Plugin MCP prompts as skills: ctx.registerPrompt + registry, prompts/list (metadata) + prompts/get (validated body), skill contract and budgets, planning/triage_iteration, CLI plugin prompts|prompt, SDK listPrompts/renderPrompt. Shipped 8ecaf14 (SPEC 0.1.7 §13.5, decision:0010).",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 60,
+    status: "In_review",
+    priority: "P0",
+    planned_start: "2026-08-28",
+    planned_finish: "2026-08-28",
+    wbs: "wbs:p1-mcp-slice-2",
+  },
+  {
     id: "task:p1-catalog-budget",
     name: "p1-catalog-byte-budget",
     summary:
@@ -1011,6 +1025,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p1-3", type: PLAN_REL_VERIFIES, from: "task:p1-providers", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-4", type: PLAN_REL_VERIFIES, from: "task:p1-catalog-budget", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-5", type: PLAN_REL_VERIFIES, from: "task:p1-server-instructions", to: "ac:p1-subs-and-sizecap" },
+  { id: "rel:ver-p1-6", type: PLAN_REL_VERIFIES, from: "task:p1-plugin-prompts", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p2-1", type: PLAN_REL_VERIFIES, from: "task:p2-dry-run", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-2", type: PLAN_REL_VERIFIES, from: "task:p2-idempotency", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-3", type: PLAN_REL_VERIFIES, from: "task:p2-audit-gates", to: "ac:p2-tier3-hardened" },
@@ -1077,6 +1092,7 @@ async function main(): Promise<void> {
     "task:p2-audit-gates",
     "task:p2-tests",
     "task:p2-audit-report",
+    "task:p1-plugin-prompts",
   ];
   for (const id of shipped) {
     const { report } = await host.patchPrimitive(PROJECT_ID, {

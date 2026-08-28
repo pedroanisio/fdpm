@@ -180,6 +180,20 @@ const decisions: DecisionInput[] = [
     altReason:
       "Costs catalog bytes on every session for an operator-facing read, and contradicts PURPOSE.md's rule that reads go through resources.",
   },
+  {
+    id: "decision:0010",
+    title:
+      "Ship plugin prompts as skills with an enforced contract (when to use, call order, failure modes; listing and body budgets)",
+    context:
+      "PURPOSE.md names prompts as the layer that closes the cold-start gap, but the runtime had no prompt API and the SPEC deferred prompts to v0.2. Left unconstrained, prompts become fill-in templates that add tokens without judgment, and prompts/list can grow into the same bloat the tool catalog had.",
+    rationale:
+      "Prompt providers earn their keep by giving context, not templates — when to use, the order of calls, the failure modes — and agents should see only metadata until they select one. Encoding those as validated invariants (description says when; listing ≤ 600 B; body carries the three sections and stays ≤ 16 KB; arguments type-checked; render output validated) makes every plugin prompt substantive by construction; a content test cross-checking tool names and rule ids keeps the first prompt honest.",
+    consequences:
+      "Plugin authors write prompts to a contract enforced at activation and on every get; a template-only prompt is rejected. prompts/list stays cheap. Instructions budget ratcheted 4,000 → 4,500 for the PROMPTS paragraph. The planning triage prompt is the reference; further prompts follow the same shape.",
+    altName: "Free-form prompt templates registered by plugins without validation",
+    altReason:
+      "Reproduces the tool-catalog bloat in prompts/list and lets template-only prompts through — exactly the failure the evidence base warns against.",
+  },
 ];
 
 const decisionSpecs: PrimitiveSpec[] = decisions.map((d) => ({
@@ -273,6 +287,16 @@ const evidenceSpecs: PrimitiveSpec[] = [
         "Typed JSONL parse and aggregation (totals, per-tool rows, error classes, SLO, percentiles); served by src/mcp/resources/audit.ts, src/commands/mcp.ts and sdk.auditReport; tests audit-report / resources-audit / cli-audit-report.",
     },
   },
+  {
+    id: "evidence:ref:mcp-prompts",
+    type: "sw:Evidence",
+    fields: {
+      kind: "Reference",
+      source: "fdpm-cli/src/mcp/prompts.ts",
+      description:
+        "Skill contract: registration validation, listing/body budgets, argument resolution, body validation, renderPrompt pipeline; registry in src/plugin/runtime.ts; first prompt plugins/planning/prompts.ts; tests mcp/prompts, plugin-prompts, planning-prompt.",
+    },
+  },
 ];
 
 const relations: RelationSpec[] = [
@@ -317,6 +341,12 @@ const relations: RelationSpec[] = [
     type: "sw:Justifies",
     from: "evidence:ref:mcp-audit-report",
     to: "decision:0009",
+  },
+  {
+    id: "rel:mcp-prompts-justifies-d10",
+    type: "sw:Justifies",
+    from: "evidence:ref:mcp-prompts",
+    to: "decision:0010",
   },
 ];
 
