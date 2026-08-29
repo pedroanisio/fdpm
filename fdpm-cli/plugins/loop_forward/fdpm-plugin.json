@@ -1,0 +1,135 @@
+{
+  "id": "fdpm.loop-forward",
+  "version": "0.1.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Loop-Forward Prompt Pipelines",
+  "description": "The canonical loop-forward v2 contract as an FDPM profile: versioned prompt templates, reusable agents with approval-aware tool grants, bounded multi-stage feedback pipelines whose only backward data path is a named carry, per-stage output contracts, executable examples, an evaluation gate and terminal run receipts. Ships five design-graph renderers.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2"
+  },
+  "permissions": ["read:workbooks", "read:primitives", "read:relations", "render:server"],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "loop-forward",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "pipeline-graph-svg",
+      "entry": "renderPipelineGraph",
+      "metadata": {
+        "renderer_id": "lf:PipelineGraphRenderer",
+        "target": "image/svg+xml",
+        "output_path": "pipeline-graph.svg"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "verification-surface-html",
+      "entry": "renderVerificationSurface",
+      "metadata": {
+        "renderer_id": "lf:VerificationSurfaceRenderer",
+        "target": "text/html",
+        "output_path": "verification-surface.html"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "authority-matrix-html",
+      "entry": "renderAuthorityMatrix",
+      "metadata": {
+        "renderer_id": "lf:AuthorityMatrixRenderer",
+        "target": "text/html",
+        "output_path": "authority-matrix.html"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "binding-matrix-html",
+      "entry": "renderBindingMatrix",
+      "metadata": {
+        "renderer_id": "lf:BindingMatrixRenderer",
+        "target": "text/html",
+        "output_path": "binding-matrix.html"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "budget-envelope-md",
+      "entry": "renderBudgetEnvelope",
+      "metadata": {
+        "renderer_id": "lf:BudgetEnvelopeRenderer",
+        "target": "text/markdown",
+        "output_path": "budget-envelope.md"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "binding-source-arm",
+      "metadata": {
+        "rule_id": "lf:val:binding-source-arm",
+        "type_id": "lf:VariableBinding"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "output-contract-arm",
+      "metadata": {
+        "rule_id": "lf:val:output-contract-arm",
+        "type_id": "lf:OutputContract"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "output-validator-arm",
+      "metadata": {
+        "rule_id": "lf:val:output-validator-arm",
+        "type_id": "lf:OutputValidator"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "stop-condition-arm",
+      "metadata": {
+        "rule_id": "lf:val:stop-condition-arm",
+        "type_id": "lf:StopCondition"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "carry-consistency",
+      "metadata": {
+        "rule_id": "lf:val:carry-consistency",
+        "type_id": "lf:Carry"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "variable-enum-consistency",
+      "metadata": {
+        "rule_id": "lf:val:variable-enum-consistency",
+        "type_id": "lf:VariableSpec"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "tool-grant-zod",
+      "metadata": {
+        "rule_id": "lf:val:tool-grant-zod",
+        "type_id": "lf:ToolGrant"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "example-reason",
+      "metadata": {
+        "rule_id": "lf:val:example-reason",
+        "type_id": "lf:PipelineExample"
+      }
+    }
+  ]
+}

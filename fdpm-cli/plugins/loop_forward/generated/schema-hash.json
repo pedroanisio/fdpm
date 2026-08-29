@@ -1,0 +1,9 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "schemas/loop-forward.ts": "0290ae2d81052ffa90fa9f6c1008829f221346be2990015227da33a4d8d2b5a5"
+  },
+  "vendored_from": "_ingest_bin/loop-forward.schema.ts",
+  "vendored_at": "2026-08-29T22:22:03Z",
+  "schema_version": "2.0.0"
+}

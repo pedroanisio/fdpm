@@ -33,23 +33,23 @@ and plugin `generated/` trees.
 | Area | Lines (nearest 1,000) |
 |---|---:|
 | `src/` | ≈28K |
-| `plugins/` | ≈64K |
-| `tests/` | ≈41K |
+| `plugins/` | ≈71K |
+| `tests/` | ≈42K |
 | `scripts/` | ≈42K |
 | `packages/zod-bridge/` | ≈7K |
-| **Total** | **≈182K** |
+| **Total** | **≈191K** |
 
 ## Counts
 
 | Fact | Value | Derivation |
 |---|---:|---|
-| Plugin directories | 17 | `plugins/*/` |
+| Plugin directories | 18 | `plugins/*/` |
 | `FDPM_*` environment variables | 24 | `FDPM_ENV_VARS` in `src/core/config/env.ts` |
 | CI workflows | 4 | `.github/workflows/*.yml` |
 | `SPEC-*.md` documents | 13 | `docs/specs/SPEC-*.md` |
 | Distinct MCP tool ids | 29 | `fdpm.<group>.<verb>` literals under `src/mcp/` |
 
-## Plugin directories (17)
+## Plugin directories (18)
 
 - `_starter`
 - `academic_paper_v0_4_1`
@@ -60,6 +60,7 @@ and plugin `generated/` trees.
 - `document_plan_dnis`
 - `formal_specification`
 - `formal_specification_dnis`
+- `loop_forward`
 - `planning`
 - `software_architecture`
 - `software_requirements`
