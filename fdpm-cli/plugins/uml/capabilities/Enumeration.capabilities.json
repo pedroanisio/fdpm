@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "enumerationMarkdownRenderer",
+    "local_name": "uml-enumeration",
+    "metadata": {
+      "primitive_type_id": "uml:Enumeration",
+      "target": "text/markdown"
+    }
+  }
+}

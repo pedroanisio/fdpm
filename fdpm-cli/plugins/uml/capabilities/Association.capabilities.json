@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "associationMarkdownRenderer",
+    "local_name": "uml-association",
+    "metadata": {
+      "primitive_type_id": "uml:Association",
+      "target": "text/markdown"
+    }
+  }
+}

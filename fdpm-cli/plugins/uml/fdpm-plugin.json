@@ -1,0 +1,642 @@
+{
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "entry": "profile",
+      "local_name": "fdpm-uml"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "associationMarkdownRenderer",
+      "local_name": "association-md",
+      "metadata": {
+        "primitive_type_id": "uml:Association",
+        "renderer_id": "fdpm.uml:AssociationMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "classMarkdownRenderer",
+      "local_name": "class-md",
+      "metadata": {
+        "primitive_type_id": "uml:Class",
+        "renderer_id": "fdpm.uml:ClassMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "commentMarkdownRenderer",
+      "local_name": "comment-md",
+      "metadata": {
+        "primitive_type_id": "uml:Comment",
+        "renderer_id": "fdpm.uml:CommentMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "constraintMarkdownRenderer",
+      "local_name": "constraint-md",
+      "metadata": {
+        "primitive_type_id": "uml:Constraint",
+        "renderer_id": "fdpm.uml:ConstraintMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "dataTypeMarkdownRenderer",
+      "local_name": "data-type-md",
+      "metadata": {
+        "primitive_type_id": "uml:DataType",
+        "renderer_id": "fdpm.uml:DataTypeMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "enumerationLiteralMarkdownRenderer",
+      "local_name": "enumeration-literal-md",
+      "metadata": {
+        "primitive_type_id": "uml:EnumerationLiteral",
+        "renderer_id": "fdpm.uml:EnumerationLiteralMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "enumerationMarkdownRenderer",
+      "local_name": "enumeration-md",
+      "metadata": {
+        "primitive_type_id": "uml:Enumeration",
+        "renderer_id": "fdpm.uml:EnumerationMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "interfaceMarkdownRenderer",
+      "local_name": "interface-md",
+      "metadata": {
+        "primitive_type_id": "uml:Interface",
+        "renderer_id": "fdpm.uml:InterfaceMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "modelMarkdownRenderer",
+      "local_name": "model-md",
+      "metadata": {
+        "primitive_type_id": "uml:Model",
+        "renderer_id": "fdpm.uml:ModelMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "renderModelOutline",
+      "local_name": "model-outline-md",
+      "metadata": {
+        "renderer_id": "uml:ModelOutlineRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "operationMarkdownRenderer",
+      "local_name": "operation-md",
+      "metadata": {
+        "primitive_type_id": "uml:Operation",
+        "renderer_id": "fdpm.uml:OperationMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "packageMarkdownRenderer",
+      "local_name": "package-md",
+      "metadata": {
+        "primitive_type_id": "uml:Package",
+        "renderer_id": "fdpm.uml:PackageMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "parameterMarkdownRenderer",
+      "local_name": "parameter-md",
+      "metadata": {
+        "primitive_type_id": "uml:Parameter",
+        "renderer_id": "fdpm.uml:ParameterMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "primitiveTypeMarkdownRenderer",
+      "local_name": "primitive-type-md",
+      "metadata": {
+        "primitive_type_id": "uml:PrimitiveType",
+        "renderer_id": "fdpm.uml:PrimitiveTypeMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "propertyMarkdownRenderer",
+      "local_name": "property-md",
+      "metadata": {
+        "primitive_type_id": "uml:Property",
+        "renderer_id": "fdpm.uml:PropertyMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "associationValidator",
+      "local_name": "association-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.association.invalid_format.xmi_id",
+          "fdpm.uml:zod.association.invalid_type",
+          "fdpm.uml:zod.association.invalid_type.is_abstract",
+          "fdpm.uml:zod.association.invalid_type.is_derived",
+          "fdpm.uml:zod.association.invalid_type.is_final_specialization",
+          "fdpm.uml:zod.association.invalid_type.is_leaf",
+          "fdpm.uml:zod.association.invalid_type.name",
+          "fdpm.uml:zod.association.invalid_type.qualified_name",
+          "fdpm.uml:zod.association.invalid_type.xmi_id",
+          "fdpm.uml:zod.association.invalid_type.xmi_type",
+          "fdpm.uml:zod.association.invalid_value.visibility",
+          "fdpm.uml:zod.association.too_big.name",
+          "fdpm.uml:zod.association.too_big.qualified_name",
+          "fdpm.uml:zod.association.too_big.xmi_type",
+          "fdpm.uml:zod.association.too_small.name",
+          "fdpm.uml:zod.association.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Association",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "classValidator",
+      "local_name": "class-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.class.invalid_format.xmi_id",
+          "fdpm.uml:zod.class.invalid_type",
+          "fdpm.uml:zod.class.invalid_type.is_abstract",
+          "fdpm.uml:zod.class.invalid_type.is_active",
+          "fdpm.uml:zod.class.invalid_type.is_final_specialization",
+          "fdpm.uml:zod.class.invalid_type.is_leaf",
+          "fdpm.uml:zod.class.invalid_type.name",
+          "fdpm.uml:zod.class.invalid_type.qualified_name",
+          "fdpm.uml:zod.class.invalid_type.xmi_id",
+          "fdpm.uml:zod.class.invalid_type.xmi_type",
+          "fdpm.uml:zod.class.invalid_value.visibility",
+          "fdpm.uml:zod.class.too_big.name",
+          "fdpm.uml:zod.class.too_big.qualified_name",
+          "fdpm.uml:zod.class.too_big.xmi_type",
+          "fdpm.uml:zod.class.too_small.name",
+          "fdpm.uml:zod.class.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Class",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "commentValidator",
+      "local_name": "comment-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.comment.invalid_format.xmi_id",
+          "fdpm.uml:zod.comment.invalid_type",
+          "fdpm.uml:zod.comment.invalid_type.body",
+          "fdpm.uml:zod.comment.invalid_type.xmi_id",
+          "fdpm.uml:zod.comment.invalid_type.xmi_type",
+          "fdpm.uml:zod.comment.too_big.body",
+          "fdpm.uml:zod.comment.too_big.xmi_type",
+          "fdpm.uml:zod.comment.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Comment",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "constraintValidator",
+      "local_name": "constraint-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.constraint.invalid_format.xmi_id",
+          "fdpm.uml:zod.constraint.invalid_type",
+          "fdpm.uml:zod.constraint.invalid_type.name",
+          "fdpm.uml:zod.constraint.invalid_type.qualified_name",
+          "fdpm.uml:zod.constraint.invalid_type.specification.body",
+          "fdpm.uml:zod.constraint.invalid_type.specification.language",
+          "fdpm.uml:zod.constraint.invalid_type.xmi_id",
+          "fdpm.uml:zod.constraint.invalid_type.xmi_type",
+          "fdpm.uml:zod.constraint.invalid_value.specification.kind",
+          "fdpm.uml:zod.constraint.invalid_value.visibility",
+          "fdpm.uml:zod.constraint.too_big.name",
+          "fdpm.uml:zod.constraint.too_big.qualified_name",
+          "fdpm.uml:zod.constraint.too_big.specification.body",
+          "fdpm.uml:zod.constraint.too_big.specification.language",
+          "fdpm.uml:zod.constraint.too_big.xmi_type",
+          "fdpm.uml:zod.constraint.too_small.name",
+          "fdpm.uml:zod.constraint.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Constraint",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "dataTypeValidator",
+      "local_name": "data-type-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.datatype.invalid_format.xmi_id",
+          "fdpm.uml:zod.datatype.invalid_type",
+          "fdpm.uml:zod.datatype.invalid_type.is_abstract",
+          "fdpm.uml:zod.datatype.invalid_type.is_final_specialization",
+          "fdpm.uml:zod.datatype.invalid_type.is_leaf",
+          "fdpm.uml:zod.datatype.invalid_type.name",
+          "fdpm.uml:zod.datatype.invalid_type.qualified_name",
+          "fdpm.uml:zod.datatype.invalid_type.xmi_id",
+          "fdpm.uml:zod.datatype.invalid_type.xmi_type",
+          "fdpm.uml:zod.datatype.invalid_value.visibility",
+          "fdpm.uml:zod.datatype.too_big.name",
+          "fdpm.uml:zod.datatype.too_big.qualified_name",
+          "fdpm.uml:zod.datatype.too_big.xmi_type",
+          "fdpm.uml:zod.datatype.too_small.name",
+          "fdpm.uml:zod.datatype.unrecognized_keys"
+        ],
+        "target_type_id": "uml:DataType",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "enumerationLiteralValidator",
+      "local_name": "enumeration-literal-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.enumerationliteral.invalid_format.xmi_id",
+          "fdpm.uml:zod.enumerationliteral.invalid_type",
+          "fdpm.uml:zod.enumerationliteral.invalid_type.name",
+          "fdpm.uml:zod.enumerationliteral.invalid_type.qualified_name",
+          "fdpm.uml:zod.enumerationliteral.invalid_type.xmi_id",
+          "fdpm.uml:zod.enumerationliteral.invalid_type.xmi_type",
+          "fdpm.uml:zod.enumerationliteral.invalid_value.visibility",
+          "fdpm.uml:zod.enumerationliteral.too_big.name",
+          "fdpm.uml:zod.enumerationliteral.too_big.qualified_name",
+          "fdpm.uml:zod.enumerationliteral.too_big.xmi_type",
+          "fdpm.uml:zod.enumerationliteral.too_small.name",
+          "fdpm.uml:zod.enumerationliteral.unrecognized_keys"
+        ],
+        "target_type_id": "uml:EnumerationLiteral",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "enumerationValidator",
+      "local_name": "enumeration-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.enumeration.invalid_format.xmi_id",
+          "fdpm.uml:zod.enumeration.invalid_type",
+          "fdpm.uml:zod.enumeration.invalid_type.is_abstract",
+          "fdpm.uml:zod.enumeration.invalid_type.is_final_specialization",
+          "fdpm.uml:zod.enumeration.invalid_type.is_leaf",
+          "fdpm.uml:zod.enumeration.invalid_type.name",
+          "fdpm.uml:zod.enumeration.invalid_type.qualified_name",
+          "fdpm.uml:zod.enumeration.invalid_type.xmi_id",
+          "fdpm.uml:zod.enumeration.invalid_type.xmi_type",
+          "fdpm.uml:zod.enumeration.invalid_value.visibility",
+          "fdpm.uml:zod.enumeration.too_big.name",
+          "fdpm.uml:zod.enumeration.too_big.qualified_name",
+          "fdpm.uml:zod.enumeration.too_big.xmi_type",
+          "fdpm.uml:zod.enumeration.too_small.name",
+          "fdpm.uml:zod.enumeration.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Enumeration",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "interfaceValidator",
+      "local_name": "interface-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.interface.invalid_format.xmi_id",
+          "fdpm.uml:zod.interface.invalid_type",
+          "fdpm.uml:zod.interface.invalid_type.is_abstract",
+          "fdpm.uml:zod.interface.invalid_type.is_final_specialization",
+          "fdpm.uml:zod.interface.invalid_type.is_leaf",
+          "fdpm.uml:zod.interface.invalid_type.name",
+          "fdpm.uml:zod.interface.invalid_type.qualified_name",
+          "fdpm.uml:zod.interface.invalid_type.xmi_id",
+          "fdpm.uml:zod.interface.invalid_type.xmi_type",
+          "fdpm.uml:zod.interface.invalid_value.visibility",
+          "fdpm.uml:zod.interface.too_big.name",
+          "fdpm.uml:zod.interface.too_big.qualified_name",
+          "fdpm.uml:zod.interface.too_big.xmi_type",
+          "fdpm.uml:zod.interface.too_small.name",
+          "fdpm.uml:zod.interface.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Interface",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "modelValidator",
+      "local_name": "model-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.model.invalid_format.xmi_id",
+          "fdpm.uml:zod.model.invalid_type",
+          "fdpm.uml:zod.model.invalid_type.name",
+          "fdpm.uml:zod.model.invalid_type.qualified_name",
+          "fdpm.uml:zod.model.invalid_type.viewpoint",
+          "fdpm.uml:zod.model.invalid_type.xmi_id",
+          "fdpm.uml:zod.model.invalid_type.xmi_type",
+          "fdpm.uml:zod.model.invalid_value.visibility",
+          "fdpm.uml:zod.model.too_big.name",
+          "fdpm.uml:zod.model.too_big.qualified_name",
+          "fdpm.uml:zod.model.too_big.viewpoint",
+          "fdpm.uml:zod.model.too_big.xmi_type",
+          "fdpm.uml:zod.model.too_small.name",
+          "fdpm.uml:zod.model.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Model",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "operationValidator",
+      "local_name": "operation-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.operation.invalid_format.lower",
+          "fdpm.uml:zod.operation.invalid_format.upper",
+          "fdpm.uml:zod.operation.invalid_format.xmi_id",
+          "fdpm.uml:zod.operation.invalid_type",
+          "fdpm.uml:zod.operation.invalid_type.is_abstract",
+          "fdpm.uml:zod.operation.invalid_type.is_ordered",
+          "fdpm.uml:zod.operation.invalid_type.is_query",
+          "fdpm.uml:zod.operation.invalid_type.is_static",
+          "fdpm.uml:zod.operation.invalid_type.is_unique",
+          "fdpm.uml:zod.operation.invalid_type.lower",
+          "fdpm.uml:zod.operation.invalid_type.name",
+          "fdpm.uml:zod.operation.invalid_type.qualified_name",
+          "fdpm.uml:zod.operation.invalid_type.upper",
+          "fdpm.uml:zod.operation.invalid_type.xmi_id",
+          "fdpm.uml:zod.operation.invalid_type.xmi_type",
+          "fdpm.uml:zod.operation.invalid_value.concurrency",
+          "fdpm.uml:zod.operation.invalid_value.visibility",
+          "fdpm.uml:zod.operation.too_big.name",
+          "fdpm.uml:zod.operation.too_big.qualified_name",
+          "fdpm.uml:zod.operation.too_big.xmi_type",
+          "fdpm.uml:zod.operation.too_small.lower",
+          "fdpm.uml:zod.operation.too_small.name",
+          "fdpm.uml:zod.operation.too_small.upper",
+          "fdpm.uml:zod.operation.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Operation",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "packageValidator",
+      "local_name": "package-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.package.invalid_format.xmi_id",
+          "fdpm.uml:zod.package.invalid_type",
+          "fdpm.uml:zod.package.invalid_type.name",
+          "fdpm.uml:zod.package.invalid_type.qualified_name",
+          "fdpm.uml:zod.package.invalid_type.uri",
+          "fdpm.uml:zod.package.invalid_type.xmi_id",
+          "fdpm.uml:zod.package.invalid_type.xmi_type",
+          "fdpm.uml:zod.package.invalid_value.visibility",
+          "fdpm.uml:zod.package.too_big.name",
+          "fdpm.uml:zod.package.too_big.qualified_name",
+          "fdpm.uml:zod.package.too_big.uri",
+          "fdpm.uml:zod.package.too_big.xmi_type",
+          "fdpm.uml:zod.package.too_small.name",
+          "fdpm.uml:zod.package.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Package",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "parameterValidator",
+      "local_name": "parameter-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.parameter.invalid_format.lower",
+          "fdpm.uml:zod.parameter.invalid_format.upper",
+          "fdpm.uml:zod.parameter.invalid_format.xmi_id",
+          "fdpm.uml:zod.parameter.invalid_type",
+          "fdpm.uml:zod.parameter.invalid_type.default_value.body",
+          "fdpm.uml:zod.parameter.invalid_type.default_value.language",
+          "fdpm.uml:zod.parameter.invalid_type.is_exception",
+          "fdpm.uml:zod.parameter.invalid_type.is_ordered",
+          "fdpm.uml:zod.parameter.invalid_type.is_stream",
+          "fdpm.uml:zod.parameter.invalid_type.is_unique",
+          "fdpm.uml:zod.parameter.invalid_type.lower",
+          "fdpm.uml:zod.parameter.invalid_type.name",
+          "fdpm.uml:zod.parameter.invalid_type.qualified_name",
+          "fdpm.uml:zod.parameter.invalid_type.upper",
+          "fdpm.uml:zod.parameter.invalid_type.xmi_id",
+          "fdpm.uml:zod.parameter.invalid_type.xmi_type",
+          "fdpm.uml:zod.parameter.invalid_value.default_value.kind",
+          "fdpm.uml:zod.parameter.invalid_value.direction",
+          "fdpm.uml:zod.parameter.invalid_value.effect",
+          "fdpm.uml:zod.parameter.invalid_value.visibility",
+          "fdpm.uml:zod.parameter.too_big.default_value.body",
+          "fdpm.uml:zod.parameter.too_big.default_value.language",
+          "fdpm.uml:zod.parameter.too_big.name",
+          "fdpm.uml:zod.parameter.too_big.qualified_name",
+          "fdpm.uml:zod.parameter.too_big.xmi_type",
+          "fdpm.uml:zod.parameter.too_small.lower",
+          "fdpm.uml:zod.parameter.too_small.name",
+          "fdpm.uml:zod.parameter.too_small.upper",
+          "fdpm.uml:zod.parameter.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Parameter",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "primitiveTypeValidator",
+      "local_name": "primitive-type-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.primitivetype.invalid_format.xmi_id",
+          "fdpm.uml:zod.primitivetype.invalid_type",
+          "fdpm.uml:zod.primitivetype.invalid_type.is_abstract",
+          "fdpm.uml:zod.primitivetype.invalid_type.is_final_specialization",
+          "fdpm.uml:zod.primitivetype.invalid_type.is_leaf",
+          "fdpm.uml:zod.primitivetype.invalid_type.name",
+          "fdpm.uml:zod.primitivetype.invalid_type.qualified_name",
+          "fdpm.uml:zod.primitivetype.invalid_type.xmi_id",
+          "fdpm.uml:zod.primitivetype.invalid_type.xmi_type",
+          "fdpm.uml:zod.primitivetype.invalid_value.visibility",
+          "fdpm.uml:zod.primitivetype.too_big.name",
+          "fdpm.uml:zod.primitivetype.too_big.qualified_name",
+          "fdpm.uml:zod.primitivetype.too_big.xmi_type",
+          "fdpm.uml:zod.primitivetype.too_small.name",
+          "fdpm.uml:zod.primitivetype.unrecognized_keys"
+        ],
+        "target_type_id": "uml:PrimitiveType",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "propertyValidator",
+      "local_name": "property-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.uml:zod.property.invalid_format.lower",
+          "fdpm.uml:zod.property.invalid_format.upper",
+          "fdpm.uml:zod.property.invalid_format.xmi_id",
+          "fdpm.uml:zod.property.invalid_type",
+          "fdpm.uml:zod.property.invalid_type.default_value.body",
+          "fdpm.uml:zod.property.invalid_type.default_value.language",
+          "fdpm.uml:zod.property.invalid_type.is_derived",
+          "fdpm.uml:zod.property.invalid_type.is_derived_union",
+          "fdpm.uml:zod.property.invalid_type.is_id",
+          "fdpm.uml:zod.property.invalid_type.is_ordered",
+          "fdpm.uml:zod.property.invalid_type.is_read_only",
+          "fdpm.uml:zod.property.invalid_type.is_static",
+          "fdpm.uml:zod.property.invalid_type.is_unique",
+          "fdpm.uml:zod.property.invalid_type.lower",
+          "fdpm.uml:zod.property.invalid_type.name",
+          "fdpm.uml:zod.property.invalid_type.qualified_name",
+          "fdpm.uml:zod.property.invalid_type.upper",
+          "fdpm.uml:zod.property.invalid_type.xmi_id",
+          "fdpm.uml:zod.property.invalid_type.xmi_type",
+          "fdpm.uml:zod.property.invalid_value.aggregation",
+          "fdpm.uml:zod.property.invalid_value.default_value.kind",
+          "fdpm.uml:zod.property.invalid_value.visibility",
+          "fdpm.uml:zod.property.too_big.default_value.body",
+          "fdpm.uml:zod.property.too_big.default_value.language",
+          "fdpm.uml:zod.property.too_big.name",
+          "fdpm.uml:zod.property.too_big.qualified_name",
+          "fdpm.uml:zod.property.too_big.xmi_type",
+          "fdpm.uml:zod.property.too_small.lower",
+          "fdpm.uml:zod.property.too_small.name",
+          "fdpm.uml:zod.property.too_small.upper",
+          "fdpm.uml:zod.property.unrecognized_keys"
+        ],
+        "target_type_id": "uml:Property",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    }
+  ],
+  "description": "UML 2.5.1 Foundation subset, auto-generated from schemas/uml-foundation.ts via @fdpm/zod-bridge. Fourteen metaclasses as primitives with field-level Zod validators, plus twelve author-declared relation types (ownership, typing, generalisation, realisation, dependency, association ends, annotation, constraint) merged by finalizeProfile.",
+  "host_compatibility": {
+    "fdpm": ">=1.2,<2"
+  },
+  "id": "fdpm.uml",
+  "kind": "server",
+  "license": "MIT",
+  "name": "UML Foundation",
+  "permissions": [
+    "read:primitives",
+    "read:relations",
+    "read:workbooks",
+    "render:server"
+  ],
+  "spec_version": "1.0.0",
+  "version": "0.1.0"
+}

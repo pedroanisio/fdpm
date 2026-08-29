@@ -1,0 +1,1030 @@
+{
+  "expr_helpers": [],
+  "feature_flag_states": [
+    {
+      "flag": "flag:scope-server-only",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-v3-support",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:auto-migration",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-cross-field-refine",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-async-refine",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-discriminated-union",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-intersection",
+      "state": "enabled"
+    },
+    {
+      "flag": "flag:zod-recursive-lazy",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-function-promise",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-brand",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-regex-flags",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-pipe-transform",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-default",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:uml.field-name-normalisation",
+      "reason": "soundness-loss (complete-but-not-sound): FieldDef.name must match ^[a-z][a-z0-9_]*$ (src/core/models/meta.ts), so every camelCase UML property is snake_cased and xmi:id / xmi:type become xmi_id / xmi_type. The mapping is mechanical and reversible; an XMI importer must apply the inverse.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:uml.value-specification",
+      "reason": "completeness-loss (sound-but-not-complete): The source schemas model defaultValue / specification / lowerValue / upperValue as z.lazy(() => z.any()), which the bridge rejects. They are modelled here as a closed ValueSpecification struct (UML 2.5.1 §8.3) limited to the literal arms plus opaque_expression; Expression trees with operands are not representable.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:uml.unlimited-natural",
+      "reason": "soundness-loss (complete-but-not-sound): UnlimitedNatural (number | \"*\") is a field-level union, which the bridge stores as an opaque json-union string the host's kind check rejects. `upper` is an integer with -1 meaning unlimited; a consumer printing UML notation must map -1 back to '*'.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:uml.generalization-identity",
+      "reason": "completeness-loss (sound-but-not-complete): Generalization, InterfaceRealization and Dependency are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn) carrying their attributes, so the relationship element's own identity and its comments are not preserved.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:uml.derived-unions",
+      "reason": "completeness-loss (sound-but-not-complete): UML's derived unions (Namespace::member, Classifier::inheritedMember / feature / attribute, Namespace::importedMember) are not stored. They are derivable by traversing uml:Owns / uml:OwnsAttribute / uml:Specializes, and storing them would duplicate truth the host cannot keep consistent.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:uml.subset-scope",
+      "reason": "completeness-loss (sound-but-not-complete): This profile realises the Foundation packages (CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers, Packages). StateMachines, Activities, Interactions, UseCases, Components, Deployments and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total.",
+      "state": "behind-flag"
+    }
+  ],
+  "host_compatibility": ">=1.2,<2",
+  "plugin_id": "fdpm.uml",
+  "profile_id": "profile:uml:2.5",
+  "relation_types": [],
+  "schemas": [
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "uri",
+          "required": false
+        }
+      ],
+      "name": "Package",
+      "primitive_type_id": "uml:Package",
+      "source_path": "domain.entities.Package.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "viewpoint",
+          "required": false
+        }
+      ],
+      "name": "Model",
+      "primitive_type_id": "uml:Model",
+      "source_path": "domain.entities.Model.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_active",
+          "required": false
+        }
+      ],
+      "name": "Class",
+      "primitive_type_id": "uml:Class",
+      "source_path": "domain.entities.Class.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false
+        }
+      ],
+      "name": "Interface",
+      "primitive_type_id": "uml:Interface",
+      "source_path": "domain.entities.Interface.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false
+        }
+      ],
+      "name": "DataType",
+      "primitive_type_id": "uml:DataType",
+      "source_path": "domain.entities.DataType.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false
+        }
+      ],
+      "name": "PrimitiveType",
+      "primitive_type_id": "uml:PrimitiveType",
+      "source_path": "domain.entities.PrimitiveType.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false
+        }
+      ],
+      "name": "Enumeration",
+      "primitive_type_id": "uml:Enumeration",
+      "source_path": "domain.entities.Enumeration.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        }
+      ],
+      "name": "EnumerationLiteral",
+      "primitive_type_id": "uml:EnumerationLiteral",
+      "source_path": "domain.entities.EnumerationLiteral.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "lower",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "upper",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "aggregation",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_read_only",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_derived_union",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_id",
+          "required": false
+        },
+        {
+          "kind": "struct",
+          "name": "default_value",
+          "required": false
+        }
+      ],
+      "name": "Property",
+      "primitive_type_id": "uml:Property",
+      "source_path": "domain.entities.Property.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "lower",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "upper",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_query",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "concurrency",
+          "required": false
+        }
+      ],
+      "name": "Operation",
+      "primitive_type_id": "uml:Operation",
+      "source_path": "domain.entities.Operation.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "lower",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "upper",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "direction",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "effect",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_exception",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_stream",
+          "required": false
+        },
+        {
+          "kind": "struct",
+          "name": "default_value",
+          "required": false
+        }
+      ],
+      "name": "Parameter",
+      "primitive_type_id": "uml:Parameter",
+      "source_path": "domain.entities.Parameter.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false
+        }
+      ],
+      "name": "Association",
+      "primitive_type_id": "uml:Association",
+      "source_path": "domain.entities.Association.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "visibility",
+          "required": false
+        },
+        {
+          "kind": "struct",
+          "name": "specification",
+          "required": true
+        }
+      ],
+      "name": "Constraint",
+      "primitive_type_id": "uml:Constraint",
+      "source_path": "domain.entities.Constraint.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true
+        }
+      ],
+      "name": "Comment",
+      "primitive_type_id": "uml:Comment",
+      "source_path": "domain.entities.Comment.schema"
+    }
+  ],
+  "validator_rule_ids": [
+    "fdpm.uml:zod.association.invalid_format.xmi_id",
+    "fdpm.uml:zod.association.invalid_type",
+    "fdpm.uml:zod.association.invalid_type.is_abstract",
+    "fdpm.uml:zod.association.invalid_type.is_derived",
+    "fdpm.uml:zod.association.invalid_type.is_final_specialization",
+    "fdpm.uml:zod.association.invalid_type.is_leaf",
+    "fdpm.uml:zod.association.invalid_type.name",
+    "fdpm.uml:zod.association.invalid_type.qualified_name",
+    "fdpm.uml:zod.association.invalid_type.xmi_id",
+    "fdpm.uml:zod.association.invalid_type.xmi_type",
+    "fdpm.uml:zod.association.invalid_value.visibility",
+    "fdpm.uml:zod.association.too_big.name",
+    "fdpm.uml:zod.association.too_big.qualified_name",
+    "fdpm.uml:zod.association.too_big.xmi_type",
+    "fdpm.uml:zod.association.too_small.name",
+    "fdpm.uml:zod.association.unrecognized_keys",
+    "fdpm.uml:zod.class.invalid_format.xmi_id",
+    "fdpm.uml:zod.class.invalid_type",
+    "fdpm.uml:zod.class.invalid_type.is_abstract",
+    "fdpm.uml:zod.class.invalid_type.is_active",
+    "fdpm.uml:zod.class.invalid_type.is_final_specialization",
+    "fdpm.uml:zod.class.invalid_type.is_leaf",
+    "fdpm.uml:zod.class.invalid_type.name",
+    "fdpm.uml:zod.class.invalid_type.qualified_name",
+    "fdpm.uml:zod.class.invalid_type.xmi_id",
+    "fdpm.uml:zod.class.invalid_type.xmi_type",
+    "fdpm.uml:zod.class.invalid_value.visibility",
+    "fdpm.uml:zod.class.too_big.name",
+    "fdpm.uml:zod.class.too_big.qualified_name",
+    "fdpm.uml:zod.class.too_big.xmi_type",
+    "fdpm.uml:zod.class.too_small.name",
+    "fdpm.uml:zod.class.unrecognized_keys",
+    "fdpm.uml:zod.comment.invalid_format.xmi_id",
+    "fdpm.uml:zod.comment.invalid_type",
+    "fdpm.uml:zod.comment.invalid_type.body",
+    "fdpm.uml:zod.comment.invalid_type.xmi_id",
+    "fdpm.uml:zod.comment.invalid_type.xmi_type",
+    "fdpm.uml:zod.comment.too_big.body",
+    "fdpm.uml:zod.comment.too_big.xmi_type",
+    "fdpm.uml:zod.comment.unrecognized_keys",
+    "fdpm.uml:zod.constraint.invalid_format.xmi_id",
+    "fdpm.uml:zod.constraint.invalid_type",
+    "fdpm.uml:zod.constraint.invalid_type.name",
+    "fdpm.uml:zod.constraint.invalid_type.qualified_name",
+    "fdpm.uml:zod.constraint.invalid_type.specification.body",
+    "fdpm.uml:zod.constraint.invalid_type.specification.language",
+    "fdpm.uml:zod.constraint.invalid_type.xmi_id",
+    "fdpm.uml:zod.constraint.invalid_type.xmi_type",
+    "fdpm.uml:zod.constraint.invalid_value.specification.kind",
+    "fdpm.uml:zod.constraint.invalid_value.visibility",
+    "fdpm.uml:zod.constraint.too_big.name",
+    "fdpm.uml:zod.constraint.too_big.qualified_name",
+    "fdpm.uml:zod.constraint.too_big.specification.body",
+    "fdpm.uml:zod.constraint.too_big.specification.language",
+    "fdpm.uml:zod.constraint.too_big.xmi_type",
+    "fdpm.uml:zod.constraint.too_small.name",
+    "fdpm.uml:zod.constraint.unrecognized_keys",
+    "fdpm.uml:zod.datatype.invalid_format.xmi_id",
+    "fdpm.uml:zod.datatype.invalid_type",
+    "fdpm.uml:zod.datatype.invalid_type.is_abstract",
+    "fdpm.uml:zod.datatype.invalid_type.is_final_specialization",
+    "fdpm.uml:zod.datatype.invalid_type.is_leaf",
+    "fdpm.uml:zod.datatype.invalid_type.name",
+    "fdpm.uml:zod.datatype.invalid_type.qualified_name",
+    "fdpm.uml:zod.datatype.invalid_type.xmi_id",
+    "fdpm.uml:zod.datatype.invalid_type.xmi_type",
+    "fdpm.uml:zod.datatype.invalid_value.visibility",
+    "fdpm.uml:zod.datatype.too_big.name",
+    "fdpm.uml:zod.datatype.too_big.qualified_name",
+    "fdpm.uml:zod.datatype.too_big.xmi_type",
+    "fdpm.uml:zod.datatype.too_small.name",
+    "fdpm.uml:zod.datatype.unrecognized_keys",
+    "fdpm.uml:zod.enumeration.invalid_format.xmi_id",
+    "fdpm.uml:zod.enumeration.invalid_type",
+    "fdpm.uml:zod.enumeration.invalid_type.is_abstract",
+    "fdpm.uml:zod.enumeration.invalid_type.is_final_specialization",
+    "fdpm.uml:zod.enumeration.invalid_type.is_leaf",
+    "fdpm.uml:zod.enumeration.invalid_type.name",
+    "fdpm.uml:zod.enumeration.invalid_type.qualified_name",
+    "fdpm.uml:zod.enumeration.invalid_type.xmi_id",
+    "fdpm.uml:zod.enumeration.invalid_type.xmi_type",
+    "fdpm.uml:zod.enumeration.invalid_value.visibility",
+    "fdpm.uml:zod.enumeration.too_big.name",
+    "fdpm.uml:zod.enumeration.too_big.qualified_name",
+    "fdpm.uml:zod.enumeration.too_big.xmi_type",
+    "fdpm.uml:zod.enumeration.too_small.name",
+    "fdpm.uml:zod.enumeration.unrecognized_keys",
+    "fdpm.uml:zod.enumerationliteral.invalid_format.xmi_id",
+    "fdpm.uml:zod.enumerationliteral.invalid_type",
+    "fdpm.uml:zod.enumerationliteral.invalid_type.name",
+    "fdpm.uml:zod.enumerationliteral.invalid_type.qualified_name",
+    "fdpm.uml:zod.enumerationliteral.invalid_type.xmi_id",
+    "fdpm.uml:zod.enumerationliteral.invalid_type.xmi_type",
+    "fdpm.uml:zod.enumerationliteral.invalid_value.visibility",
+    "fdpm.uml:zod.enumerationliteral.too_big.name",
+    "fdpm.uml:zod.enumerationliteral.too_big.qualified_name",
+    "fdpm.uml:zod.enumerationliteral.too_big.xmi_type",
+    "fdpm.uml:zod.enumerationliteral.too_small.name",
+    "fdpm.uml:zod.enumerationliteral.unrecognized_keys",
+    "fdpm.uml:zod.interface.invalid_format.xmi_id",
+    "fdpm.uml:zod.interface.invalid_type",
+    "fdpm.uml:zod.interface.invalid_type.is_abstract",
+    "fdpm.uml:zod.interface.invalid_type.is_final_specialization",
+    "fdpm.uml:zod.interface.invalid_type.is_leaf",
+    "fdpm.uml:zod.interface.invalid_type.name",
+    "fdpm.uml:zod.interface.invalid_type.qualified_name",
+    "fdpm.uml:zod.interface.invalid_type.xmi_id",
+    "fdpm.uml:zod.interface.invalid_type.xmi_type",
+    "fdpm.uml:zod.interface.invalid_value.visibility",
+    "fdpm.uml:zod.interface.too_big.name",
+    "fdpm.uml:zod.interface.too_big.qualified_name",
+    "fdpm.uml:zod.interface.too_big.xmi_type",
+    "fdpm.uml:zod.interface.too_small.name",
+    "fdpm.uml:zod.interface.unrecognized_keys",
+    "fdpm.uml:zod.model.invalid_format.xmi_id",
+    "fdpm.uml:zod.model.invalid_type",
+    "fdpm.uml:zod.model.invalid_type.name",
+    "fdpm.uml:zod.model.invalid_type.qualified_name",
+    "fdpm.uml:zod.model.invalid_type.viewpoint",
+    "fdpm.uml:zod.model.invalid_type.xmi_id",
+    "fdpm.uml:zod.model.invalid_type.xmi_type",
+    "fdpm.uml:zod.model.invalid_value.visibility",
+    "fdpm.uml:zod.model.too_big.name",
+    "fdpm.uml:zod.model.too_big.qualified_name",
+    "fdpm.uml:zod.model.too_big.viewpoint",
+    "fdpm.uml:zod.model.too_big.xmi_type",
+    "fdpm.uml:zod.model.too_small.name",
+    "fdpm.uml:zod.model.unrecognized_keys",
+    "fdpm.uml:zod.operation.invalid_format.lower",
+    "fdpm.uml:zod.operation.invalid_format.upper",
+    "fdpm.uml:zod.operation.invalid_format.xmi_id",
+    "fdpm.uml:zod.operation.invalid_type",
+    "fdpm.uml:zod.operation.invalid_type.is_abstract",
+    "fdpm.uml:zod.operation.invalid_type.is_ordered",
+    "fdpm.uml:zod.operation.invalid_type.is_query",
+    "fdpm.uml:zod.operation.invalid_type.is_static",
+    "fdpm.uml:zod.operation.invalid_type.is_unique",
+    "fdpm.uml:zod.operation.invalid_type.lower",
+    "fdpm.uml:zod.operation.invalid_type.name",
+    "fdpm.uml:zod.operation.invalid_type.qualified_name",
+    "fdpm.uml:zod.operation.invalid_type.upper",
+    "fdpm.uml:zod.operation.invalid_type.xmi_id",
+    "fdpm.uml:zod.operation.invalid_type.xmi_type",
+    "fdpm.uml:zod.operation.invalid_value.concurrency",
+    "fdpm.uml:zod.operation.invalid_value.visibility",
+    "fdpm.uml:zod.operation.too_big.name",
+    "fdpm.uml:zod.operation.too_big.qualified_name",
+    "fdpm.uml:zod.operation.too_big.xmi_type",
+    "fdpm.uml:zod.operation.too_small.lower",
+    "fdpm.uml:zod.operation.too_small.name",
+    "fdpm.uml:zod.operation.too_small.upper",
+    "fdpm.uml:zod.operation.unrecognized_keys",
+    "fdpm.uml:zod.package.invalid_format.xmi_id",
+    "fdpm.uml:zod.package.invalid_type",
+    "fdpm.uml:zod.package.invalid_type.name",
+    "fdpm.uml:zod.package.invalid_type.qualified_name",
+    "fdpm.uml:zod.package.invalid_type.uri",
+    "fdpm.uml:zod.package.invalid_type.xmi_id",
+    "fdpm.uml:zod.package.invalid_type.xmi_type",
+    "fdpm.uml:zod.package.invalid_value.visibility",
+    "fdpm.uml:zod.package.too_big.name",
+    "fdpm.uml:zod.package.too_big.qualified_name",
+    "fdpm.uml:zod.package.too_big.uri",
+    "fdpm.uml:zod.package.too_big.xmi_type",
+    "fdpm.uml:zod.package.too_small.name",
+    "fdpm.uml:zod.package.unrecognized_keys",
+    "fdpm.uml:zod.parameter.invalid_format.lower",
+    "fdpm.uml:zod.parameter.invalid_format.upper",
+    "fdpm.uml:zod.parameter.invalid_format.xmi_id",
+    "fdpm.uml:zod.parameter.invalid_type",
+    "fdpm.uml:zod.parameter.invalid_type.default_value.body",
+    "fdpm.uml:zod.parameter.invalid_type.default_value.language",
+    "fdpm.uml:zod.parameter.invalid_type.is_exception",
+    "fdpm.uml:zod.parameter.invalid_type.is_ordered",
+    "fdpm.uml:zod.parameter.invalid_type.is_stream",
+    "fdpm.uml:zod.parameter.invalid_type.is_unique",
+    "fdpm.uml:zod.parameter.invalid_type.lower",
+    "fdpm.uml:zod.parameter.invalid_type.name",
+    "fdpm.uml:zod.parameter.invalid_type.qualified_name",
+    "fdpm.uml:zod.parameter.invalid_type.upper",
+    "fdpm.uml:zod.parameter.invalid_type.xmi_id",
+    "fdpm.uml:zod.parameter.invalid_type.xmi_type",
+    "fdpm.uml:zod.parameter.invalid_value.default_value.kind",
+    "fdpm.uml:zod.parameter.invalid_value.direction",
+    "fdpm.uml:zod.parameter.invalid_value.effect",
+    "fdpm.uml:zod.parameter.invalid_value.visibility",
+    "fdpm.uml:zod.parameter.too_big.default_value.body",
+    "fdpm.uml:zod.parameter.too_big.default_value.language",
+    "fdpm.uml:zod.parameter.too_big.name",
+    "fdpm.uml:zod.parameter.too_big.qualified_name",
+    "fdpm.uml:zod.parameter.too_big.xmi_type",
+    "fdpm.uml:zod.parameter.too_small.lower",
+    "fdpm.uml:zod.parameter.too_small.name",
+    "fdpm.uml:zod.parameter.too_small.upper",
+    "fdpm.uml:zod.parameter.unrecognized_keys",
+    "fdpm.uml:zod.primitivetype.invalid_format.xmi_id",
+    "fdpm.uml:zod.primitivetype.invalid_type",
+    "fdpm.uml:zod.primitivetype.invalid_type.is_abstract",
+    "fdpm.uml:zod.primitivetype.invalid_type.is_final_specialization",
+    "fdpm.uml:zod.primitivetype.invalid_type.is_leaf",
+    "fdpm.uml:zod.primitivetype.invalid_type.name",
+    "fdpm.uml:zod.primitivetype.invalid_type.qualified_name",
+    "fdpm.uml:zod.primitivetype.invalid_type.xmi_id",
+    "fdpm.uml:zod.primitivetype.invalid_type.xmi_type",
+    "fdpm.uml:zod.primitivetype.invalid_value.visibility",
+    "fdpm.uml:zod.primitivetype.too_big.name",
+    "fdpm.uml:zod.primitivetype.too_big.qualified_name",
+    "fdpm.uml:zod.primitivetype.too_big.xmi_type",
+    "fdpm.uml:zod.primitivetype.too_small.name",
+    "fdpm.uml:zod.primitivetype.unrecognized_keys",
+    "fdpm.uml:zod.property.invalid_format.lower",
+    "fdpm.uml:zod.property.invalid_format.upper",
+    "fdpm.uml:zod.property.invalid_format.xmi_id",
+    "fdpm.uml:zod.property.invalid_type",
+    "fdpm.uml:zod.property.invalid_type.default_value.body",
+    "fdpm.uml:zod.property.invalid_type.default_value.language",
+    "fdpm.uml:zod.property.invalid_type.is_derived",
+    "fdpm.uml:zod.property.invalid_type.is_derived_union",
+    "fdpm.uml:zod.property.invalid_type.is_id",
+    "fdpm.uml:zod.property.invalid_type.is_ordered",
+    "fdpm.uml:zod.property.invalid_type.is_read_only",
+    "fdpm.uml:zod.property.invalid_type.is_static",
+    "fdpm.uml:zod.property.invalid_type.is_unique",
+    "fdpm.uml:zod.property.invalid_type.lower",
+    "fdpm.uml:zod.property.invalid_type.name",
+    "fdpm.uml:zod.property.invalid_type.qualified_name",
+    "fdpm.uml:zod.property.invalid_type.upper",
+    "fdpm.uml:zod.property.invalid_type.xmi_id",
+    "fdpm.uml:zod.property.invalid_type.xmi_type",
+    "fdpm.uml:zod.property.invalid_value.aggregation",
+    "fdpm.uml:zod.property.invalid_value.default_value.kind",
+    "fdpm.uml:zod.property.invalid_value.visibility",
+    "fdpm.uml:zod.property.too_big.default_value.body",
+    "fdpm.uml:zod.property.too_big.default_value.language",
+    "fdpm.uml:zod.property.too_big.name",
+    "fdpm.uml:zod.property.too_big.qualified_name",
+    "fdpm.uml:zod.property.too_big.xmi_type",
+    "fdpm.uml:zod.property.too_small.lower",
+    "fdpm.uml:zod.property.too_small.name",
+    "fdpm.uml:zod.property.too_small.upper",
+    "fdpm.uml:zod.property.unrecognized_keys"
+  ],
+  "version": "0.1.0"
+}

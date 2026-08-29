@@ -1,0 +1,2649 @@
+{
+  "constraints": [
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.package.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.package.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.package.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.package.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.package.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.package.visibility.enum"
+    },
+    {
+      "expression": "size(self.field_values.uri) <= 2000",
+      "level": "error",
+      "name": "uml.package.uri.max_length"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.model.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.model.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.model.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.model.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.model.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.model.visibility.enum"
+    },
+    {
+      "expression": "size(self.field_values.viewpoint) <= 200",
+      "level": "error",
+      "name": "uml.model.viewpoint.max_length"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.class.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.class.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.class.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.class.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.class.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.class.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.interface.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.interface.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.interface.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.interface.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.interface.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.interface.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.datatype.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.datatype.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.datatype.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.datatype.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.datatype.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.datatype.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.primitivetype.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.primitivetype.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.primitivetype.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.primitivetype.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.primitivetype.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.primitivetype.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.enumeration.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.enumeration.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.enumeration.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.enumeration.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.enumeration.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.enumeration.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.enumerationliteral.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.enumerationliteral.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.enumerationliteral.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.enumerationliteral.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.enumerationliteral.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.enumerationliteral.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.property.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.property.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.property.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.property.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.property.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.property.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.lower >= 0",
+      "level": "error",
+      "name": "uml.property.lower.gt"
+    },
+    {
+      "expression": "int(self.field_values.lower) == self.field_values.lower",
+      "level": "error",
+      "name": "uml.property.lower.int"
+    },
+    {
+      "expression": "self.field_values.upper >= -1",
+      "level": "error",
+      "name": "uml.property.upper.gt"
+    },
+    {
+      "expression": "int(self.field_values.upper) == self.field_values.upper",
+      "level": "error",
+      "name": "uml.property.upper.int"
+    },
+    {
+      "expression": "self.field_values.aggregation in [\"none\", \"shared\", \"composite\"]",
+      "level": "error",
+      "name": "uml.property.aggregation.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.operation.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.operation.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.operation.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.operation.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.operation.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.operation.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.lower >= 0",
+      "level": "error",
+      "name": "uml.operation.lower.gt"
+    },
+    {
+      "expression": "int(self.field_values.lower) == self.field_values.lower",
+      "level": "error",
+      "name": "uml.operation.lower.int"
+    },
+    {
+      "expression": "self.field_values.upper >= -1",
+      "level": "error",
+      "name": "uml.operation.upper.gt"
+    },
+    {
+      "expression": "int(self.field_values.upper) == self.field_values.upper",
+      "level": "error",
+      "name": "uml.operation.upper.int"
+    },
+    {
+      "expression": "self.field_values.concurrency in [\"sequential\", \"guarded\", \"concurrent\"]",
+      "level": "error",
+      "name": "uml.operation.concurrency.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.parameter.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.parameter.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.parameter.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.parameter.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.parameter.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.parameter.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.lower >= 0",
+      "level": "error",
+      "name": "uml.parameter.lower.gt"
+    },
+    {
+      "expression": "int(self.field_values.lower) == self.field_values.lower",
+      "level": "error",
+      "name": "uml.parameter.lower.int"
+    },
+    {
+      "expression": "self.field_values.upper >= -1",
+      "level": "error",
+      "name": "uml.parameter.upper.gt"
+    },
+    {
+      "expression": "int(self.field_values.upper) == self.field_values.upper",
+      "level": "error",
+      "name": "uml.parameter.upper.int"
+    },
+    {
+      "expression": "self.field_values.direction in [\"in\", \"inout\", \"out\", \"return\"]",
+      "level": "error",
+      "name": "uml.parameter.direction.enum"
+    },
+    {
+      "expression": "self.field_values.effect in [\"create\", \"read\", \"update\", \"delete\"]",
+      "level": "error",
+      "name": "uml.parameter.effect.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.association.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.association.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.association.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.association.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.association.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.association.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.constraint.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.constraint.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.constraint.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.constraint.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.constraint.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.constraint.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.comment.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.comment.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.body) <= 8000",
+      "level": "error",
+      "name": "uml.comment.body.max_length"
+    }
+  ],
+  "description": "Bridge-generated from schemas/uml-foundation.ts — a normalisation of schemas-lib src/schemas/domains/uml (UML 2.5.1). Fourteen metaclasses as primitives (Package, Model, Class, Interface, DataType, PrimitiveType, Enumeration, EnumerationLiteral, Property, Operation, Parameter, Association, Constraint, Comment) and twelve typed edges for ownership, typing, generalisation, realisation, dependency, association ends, annotation and constraint.",
+  "enum_defs": [
+    {
+      "description": "Enum derived from Association.visibility",
+      "id": "enum:AssociationVisibility",
+      "name": "AssociationVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Class.visibility",
+      "id": "enum:ClassVisibility",
+      "name": "ClassVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Constraint.Specification.kind",
+      "id": "enum:ConstraintSpecificationKind",
+      "name": "ConstraintSpecificationKind",
+      "values": [
+        "literal_boolean",
+        "literal_integer",
+        "literal_real",
+        "literal_string",
+        "literal_unlimited_natural",
+        "literal_null",
+        "opaque_expression"
+      ]
+    },
+    {
+      "description": "Enum derived from Constraint.visibility",
+      "id": "enum:ConstraintVisibility",
+      "name": "ConstraintVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from DataType.visibility",
+      "id": "enum:DataTypeVisibility",
+      "name": "DataTypeVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from EnumerationLiteral.visibility",
+      "id": "enum:EnumerationLiteralVisibility",
+      "name": "EnumerationLiteralVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Enumeration.visibility",
+      "id": "enum:EnumerationVisibility",
+      "name": "EnumerationVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Interface.visibility",
+      "id": "enum:InterfaceVisibility",
+      "name": "InterfaceVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Model.visibility",
+      "id": "enum:ModelVisibility",
+      "name": "ModelVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Operation.concurrency",
+      "id": "enum:OperationConcurrency",
+      "name": "OperationConcurrency",
+      "values": [
+        "sequential",
+        "guarded",
+        "concurrent"
+      ]
+    },
+    {
+      "description": "Enum derived from Operation.visibility",
+      "id": "enum:OperationVisibility",
+      "name": "OperationVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Package.visibility",
+      "id": "enum:PackageVisibility",
+      "name": "PackageVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Parameter.DefaultValue.kind",
+      "id": "enum:ParameterDefaultValueKind",
+      "name": "ParameterDefaultValueKind",
+      "values": [
+        "literal_boolean",
+        "literal_integer",
+        "literal_real",
+        "literal_string",
+        "literal_unlimited_natural",
+        "literal_null",
+        "opaque_expression"
+      ]
+    },
+    {
+      "description": "Enum derived from Parameter.direction",
+      "id": "enum:ParameterDirection",
+      "name": "ParameterDirection",
+      "values": [
+        "in",
+        "inout",
+        "out",
+        "return"
+      ]
+    },
+    {
+      "description": "Enum derived from Parameter.effect",
+      "id": "enum:ParameterEffect",
+      "name": "ParameterEffect",
+      "values": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "description": "Enum derived from Parameter.visibility",
+      "id": "enum:ParameterVisibility",
+      "name": "ParameterVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from PrimitiveType.visibility",
+      "id": "enum:PrimitiveTypeVisibility",
+      "name": "PrimitiveTypeVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Property.aggregation",
+      "id": "enum:PropertyAggregation",
+      "name": "PropertyAggregation",
+      "values": [
+        "none",
+        "shared",
+        "composite"
+      ]
+    },
+    {
+      "description": "Enum derived from Property.DefaultValue.kind",
+      "id": "enum:PropertyDefaultValueKind",
+      "name": "PropertyDefaultValueKind",
+      "values": [
+        "literal_boolean",
+        "literal_integer",
+        "literal_real",
+        "literal_string",
+        "literal_unlimited_natural",
+        "literal_null",
+        "opaque_expression"
+      ]
+    },
+    {
+      "description": "Enum derived from Property.visibility",
+      "id": "enum:PropertyVisibility",
+      "name": "PropertyVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    }
+  ],
+  "id": "profile:uml:2.5",
+  "label": "UML 2.5.1 (Foundation subset)",
+  "name": "UML",
+  "primitive_types": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "uri",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 2000
+            }
+          ]
+        }
+      ],
+      "id": "uml:Package",
+      "id_format": {
+        "pattern": "uml:Package:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "viewpoint",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        }
+      ],
+      "id": "uml:Model",
+      "id_format": {
+        "pattern": "uml:Model:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_active",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Class",
+      "id_format": {
+        "pattern": "uml:Class:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Interface",
+      "id_format": {
+        "pattern": "uml:Interface:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:DataType",
+      "id_format": {
+        "pattern": "uml:DataType:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:PrimitiveType",
+      "id_format": {
+        "pattern": "uml:PrimitiveType:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Enumeration",
+      "id_format": {
+        "pattern": "uml:Enumeration:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:EnumerationLiteral",
+      "id_format": {
+        "pattern": "uml:EnumerationLiteral:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: true",
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "lower",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "upper",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": -1
+            }
+          ]
+        },
+        {
+          "description": "default: \"none\"",
+          "enum_values": [
+            "none",
+            "shared",
+            "composite"
+          ],
+          "kind": "enum",
+          "name": "aggregation",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_read_only",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_derived_union",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_id",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "default_value",
+          "required": false,
+          "struct_id": "PropertyDefaultValue",
+          "validations": []
+        }
+      ],
+      "id": "uml:Property",
+      "id_format": {
+        "pattern": "uml:Property:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "literal_boolean",
+                "literal_integer",
+                "literal_real",
+                "literal_string",
+                "literal_unlimited_natural",
+                "literal_null",
+                "opaque_expression"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "description": "default: \"\"",
+              "kind": "string",
+              "name": "body",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 4000
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "language",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 80
+                }
+              ]
+            }
+          ],
+          "id": "PropertyDefaultValue"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: true",
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "lower",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "upper",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": -1
+            }
+          ]
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_query",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: \"sequential\"",
+          "enum_values": [
+            "sequential",
+            "guarded",
+            "concurrent"
+          ],
+          "kind": "enum",
+          "name": "concurrency",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Operation",
+      "id_format": {
+        "pattern": "uml:Operation:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: true",
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "lower",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "upper",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": -1
+            }
+          ]
+        },
+        {
+          "description": "default: \"in\"",
+          "enum_values": [
+            "in",
+            "inout",
+            "out",
+            "return"
+          ],
+          "kind": "enum",
+          "name": "direction",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "create",
+            "read",
+            "update",
+            "delete"
+          ],
+          "kind": "enum",
+          "name": "effect",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_exception",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_stream",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "default_value",
+          "required": false,
+          "struct_id": "ParameterDefaultValue",
+          "validations": []
+        }
+      ],
+      "id": "uml:Parameter",
+      "id_format": {
+        "pattern": "uml:Parameter:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "literal_boolean",
+                "literal_integer",
+                "literal_real",
+                "literal_string",
+                "literal_unlimited_natural",
+                "literal_null",
+                "opaque_expression"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "description": "default: \"\"",
+              "kind": "string",
+              "name": "body",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 4000
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "language",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 80
+                }
+              ]
+            }
+          ],
+          "id": "ParameterDefaultValue"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Association",
+      "id_format": {
+        "pattern": "uml:Association:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "specification",
+          "required": true,
+          "struct_id": "ConstraintSpecification",
+          "validations": []
+        }
+      ],
+      "id": "uml:Constraint",
+      "id_format": {
+        "pattern": "uml:Constraint:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "literal_boolean",
+                "literal_integer",
+                "literal_real",
+                "literal_string",
+                "literal_unlimited_natural",
+                "literal_null",
+                "opaque_expression"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "description": "default: \"\"",
+              "kind": "string",
+              "name": "body",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 4000
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "language",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 80
+                }
+              ]
+            }
+          ],
+          "id": "ConstraintSpecification"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "body",
+          "required": true,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 8000
+            }
+          ]
+        }
+      ],
+      "id": "uml:Comment",
+      "id_format": {
+        "pattern": "uml:Comment:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    }
+  ],
+  "relation_types": [
+    {
+      "cardinality": "one-to-many",
+      "description": "Namespace ownership — Package::packagedElement (§12.2.3). The owned element is deleted with its owner.",
+      "fields": [],
+      "id": "uml:Owns",
+      "name": "owns",
+      "source_types": [
+        "uml:Package",
+        "uml:Model"
+      ],
+      "target_types": [
+        "uml:Package",
+        "uml:Model",
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:Association",
+        "uml:Constraint"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "Classifier::ownedAttribute (§9.2.3) — the classifier's structural features, in order.",
+      "fields": [
+        {
+          "description": "0-based declaration order inside the owner.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsAttribute",
+      "name": "owns_attribute",
+      "source_types": [
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:Association"
+      ],
+      "target_types": [
+        "uml:Property"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "Classifier::ownedOperation (§9.6) — the classifier's behavioral features, in order.",
+      "fields": [
+        {
+          "description": "0-based declaration order inside the owner.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsOperation",
+      "name": "owns_operation",
+      "source_types": [
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration"
+      ],
+      "target_types": [
+        "uml:Operation"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "BehavioralFeature::ownedParameter (§9.4) — the operation's signature, in order.",
+      "fields": [
+        {
+          "description": "0-based position in the signature.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsParameter",
+      "name": "owns_parameter",
+      "source_types": [
+        "uml:Operation"
+      ],
+      "target_types": [
+        "uml:Parameter"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "Enumeration::ownedLiteral (§10.5.3) — the enumeration's values, in order.",
+      "fields": [
+        {
+          "description": "0-based order of the literal.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsLiteral",
+      "name": "owns_literal",
+      "source_types": [
+        "uml:Enumeration"
+      ],
+      "target_types": [
+        "uml:EnumerationLiteral"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "Generalization (§9.9): source is the specific classifier, target the general one. The Generalization element's own xmi:id is not preserved — see declaredLoss.",
+      "fields": [
+        {
+          "description": "Whether the specific classifier can substitute for the general one.",
+          "kind": "boolean",
+          "name": "is_substitutable",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Specializes",
+      "name": "specializes",
+      "source_types": [
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:Association"
+      ],
+      "target_types": [
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:Association"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "InterfaceRealization (§10.4.4) — the classifier implements the interface's contract.",
+      "fields": [],
+      "id": "uml:Realizes",
+      "name": "realizes",
+      "source_types": [
+        "uml:Class",
+        "uml:DataType"
+      ],
+      "target_types": [
+        "uml:Interface"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "Dependency (§7.8) — the client requires the supplier. `kind` carries the standard specialisation.",
+      "fields": [
+        {
+          "description": "Dependency specialisation (§7.8.4).",
+          "enum_values": [
+            "dependency",
+            "usage",
+            "abstraction",
+            "realization"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:DependsOn",
+      "name": "depends_on",
+      "source_types": [
+        "uml:Package",
+        "uml:Model",
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:EnumerationLiteral",
+        "uml:Property",
+        "uml:Operation",
+        "uml:Parameter",
+        "uml:Association",
+        "uml:Constraint",
+        "uml:Comment"
+      ],
+      "target_types": [
+        "uml:Package",
+        "uml:Model",
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:EnumerationLiteral",
+        "uml:Property",
+        "uml:Operation",
+        "uml:Parameter",
+        "uml:Association",
+        "uml:Constraint",
+        "uml:Comment"
+      ]
+    },
+    {
+      "cardinality": "many-to-one",
+      "description": "TypedElement::type (§7.7) — the classifier that types this property, parameter or result.",
+      "fields": [],
+      "id": "uml:TypedBy",
+      "name": "typed_by",
+      "source_types": [
+        "uml:Property",
+        "uml:Parameter",
+        "uml:Operation"
+      ],
+      "target_types": [
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:Association"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "Association::memberEnd (§11.5.3) — the two or more properties that are the association's ends.",
+      "fields": [
+        {
+          "description": "0-based end order; end 0 is the source end by convention.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "Whether the end is navigable from the opposite end.",
+          "kind": "boolean",
+          "name": "is_navigable",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:MemberEnd",
+      "name": "member_end",
+      "source_types": [
+        "uml:Association"
+      ],
+      "target_types": [
+        "uml:Property"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "Comment::annotatedElement (§7.3.3) — the elements the comment is attached to.",
+      "fields": [],
+      "id": "uml:Annotates",
+      "name": "annotates",
+      "source_types": [
+        "uml:Comment"
+      ],
+      "target_types": [
+        "uml:Package",
+        "uml:Model",
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:EnumerationLiteral",
+        "uml:Property",
+        "uml:Operation",
+        "uml:Parameter",
+        "uml:Association",
+        "uml:Constraint",
+        "uml:Comment"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "Constraint::constrainedElement (§7.6.3) — the elements the condition applies to.",
+      "fields": [],
+      "id": "uml:Constrains",
+      "name": "constrains",
+      "source_types": [
+        "uml:Constraint"
+      ],
+      "target_types": [
+        "uml:Package",
+        "uml:Model",
+        "uml:Class",
+        "uml:Interface",
+        "uml:DataType",
+        "uml:PrimitiveType",
+        "uml:Enumeration",
+        "uml:EnumerationLiteral",
+        "uml:Property",
+        "uml:Operation",
+        "uml:Parameter",
+        "uml:Association",
+        "uml:Constraint",
+        "uml:Comment"
+      ]
+    }
+  ],
+  "version": "2.5.1"
+}

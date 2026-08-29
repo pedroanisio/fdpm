@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "constraintMarkdownRenderer",
+    "local_name": "uml-constraint",
+    "metadata": {
+      "primitive_type_id": "uml:Constraint",
+      "target": "text/markdown"
+    }
+  }
+}

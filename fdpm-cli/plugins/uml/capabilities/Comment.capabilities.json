@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "commentMarkdownRenderer",
+    "local_name": "uml-comment",
+    "metadata": {
+      "primitive_type_id": "uml:Comment",
+      "target": "text/markdown"
+    }
+  }
+}

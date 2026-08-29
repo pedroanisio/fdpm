@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "operationMarkdownRenderer",
+    "local_name": "uml-operation",
+    "metadata": {
+      "primitive_type_id": "uml:Operation",
+      "target": "text/markdown"
+    }
+  }
+}

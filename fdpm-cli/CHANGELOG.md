@@ -21,6 +21,54 @@ upgrade.
 
 ## [Unreleased]
 
+### Added
+
+#### `fdpm.uml` — UML 2.5.1 Foundation subset as a bridge-derived profile
+
+Answers "can `schemas-lib/src/schemas/domains/uml` be mapped into an FDPM
+profile?" with a working plugin rather than an opinion. `profile:uml:2.5`
+carries fourteen metaclasses (Package, Model, Class, Interface, DataType,
+PrimitiveType, Enumeration, EnumerationLiteral, Property, Operation,
+Parameter, Association, Constraint, Comment) and twelve typed edges.
+
+- [`schemas/uml-foundation.ts`](plugins/uml/schemas/uml-foundation.ts) is
+  a *normalisation* of the source library, not a copy. Three host rules
+  make that unavoidable, and each is asserted in the tests against the
+  rule that forces it: `FieldDef.name` must match `^[a-z][a-z0-9_]*$`
+  (1,375 of the source's 2,032 fields are camelCase or `xmi:id`); the
+  bridge rejects `z.any()` (65 value-specification fields block 33 of the
+  source's 110 metaclasses), so `ValueSpecification` is modelled per UML
+  2.5.1 §8.3; and `UnlimitedNatural` (`number | "*"`) would become an
+  opaque `json-union` string, so `upper` is an integer with `-1` =
+  unlimited.
+- Relation types are author-declared in
+  [`sidecar.ts`](plugins/uml/sidecar.ts) and merged by
+  `finalizeProfile()`: UML's references are polymorphic (a package owns
+  any PackageableElement) and the sidecar's `ReferenceSpec` emits a
+  single `target_type_id`, while `RelationTypeDef.target_types` accepts a
+  list. Same drift gate as the generated files.
+- [`ingest.ts`](plugins/uml/ingest.ts) accepts a model in the source
+  library's own shape (camelCase, `xmi:id`, nested containment, `"*"`
+  bounds) and lifts every containment array into its own primitive, so
+  the `Property` a class owns and the one an association names as a
+  member end are one primitive — not two copies. PALS's LAW: unknown
+  fields are rejected, then id uniqueness, referential validity and UML's
+  ≥2-ends rule are asserted; a rejected model writes nothing.
+- [`renderers/model_outline.ts`](plugins/uml/renderers/model_outline.ts)
+  prints the model in UML notation (`+ keywords : String [0..*]`) with
+  generalisation, realisation, dependency, ends, constraints and comments
+  in place — the bridge's per-metaclass renderers print field tables.
+- Tests: [`tests/plugins/uml/`](tests/plugins/uml/) — 34 across bridge
+  drift/`--check`, manifest parity, activation and relation endpoints,
+  validator accept/reject, the three normalisations, and the fixture
+  model ingested, validated and rendered end to end with every ingest
+  rejection path exercised. CI:
+  [`.github/workflows/plugin-uml.yml`](.github/workflows/plugin-uml.yml).
+- Out of scope, declared as losses in `generated/audit.json`:
+  StateMachines, Activities, Interactions, UseCases, Components,
+  Deployments, Profiles/Stereotypes; relationship-element identity; UML's
+  derived unions.
+
 ### Fixed
 
 #### `spec:SpecMarkdownRenderer` — references without optional fields rendered a `[[render-error]]` marker into the SPEC

@@ -1,0 +1,132 @@
+{
+  "__sidecarSpec": "0.1",
+  "aggregates": [
+    {
+      "parts": [
+        "Class",
+        "Interface",
+        "DataType",
+        "PrimitiveType",
+        "Enumeration",
+        "Association",
+        "Constraint"
+      ],
+      "root": "Package"
+    },
+    {
+      "parts": [
+        "Property",
+        "Operation"
+      ],
+      "root": "Class"
+    },
+    {
+      "parts": [
+        "Parameter"
+      ],
+      "root": "Operation"
+    },
+    {
+      "parts": [
+        "EnumerationLiteral"
+      ],
+      "root": "Enumeration"
+    }
+  ],
+  "declaredLoss": [
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uml.field-name-normalisation",
+      "kind": "soundness-loss",
+      "reason": "FieldDef.name must match ^[a-z][a-z0-9_]*$ (src/core/models/meta.ts), so every camelCase UML property is snake_cased and xmi:id / xmi:type become xmi_id / xmi_type. The mapping is mechanical and reversible; an XMI importer must apply the inverse."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uml.value-specification",
+      "kind": "completeness-loss",
+      "reason": "The source schemas model defaultValue / specification / lowerValue / upperValue as z.lazy(() => z.any()), which the bridge rejects. They are modelled here as a closed ValueSpecification struct (UML 2.5.1 §8.3) limited to the literal arms plus opaque_expression; Expression trees with operands are not representable."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uml.unlimited-natural",
+      "kind": "soundness-loss",
+      "reason": "UnlimitedNatural (number | \"*\") is a field-level union, which the bridge stores as an opaque json-union string the host's kind check rejects. `upper` is an integer with -1 meaning unlimited; a consumer printing UML notation must map -1 back to '*'."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uml.generalization-identity",
+      "kind": "completeness-loss",
+      "reason": "Generalization, InterfaceRealization and Dependency are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn) carrying their attributes, so the relationship element's own identity and its comments are not preserved."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uml.derived-unions",
+      "kind": "completeness-loss",
+      "reason": "UML's derived unions (Namespace::member, Classifier::inheritedMember / feature / attribute, Namespace::importedMember) are not stored. They are derivable by traversing uml:Owns / uml:OwnsAttribute / uml:Specializes, and storing them would duplicate truth the host cannot keep consistent."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uml.subset-scope",
+      "kind": "completeness-loss",
+      "reason": "This profile realises the Foundation packages (CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers, Packages). StateMachines, Activities, Interactions, UseCases, Components, Deployments and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total."
+    }
+  ],
+  "entities": {
+    "Association": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Class": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Comment": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Constraint": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "DataType": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Enumeration": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "EnumerationLiteral": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Interface": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Model": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Operation": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Package": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Parameter": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "PrimitiveType": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Property": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    }
+  }
+}

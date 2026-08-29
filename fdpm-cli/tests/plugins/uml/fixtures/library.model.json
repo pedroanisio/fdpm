@@ -1,0 +1,167 @@
+{
+  "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0001",
+  "xmi:type": "uml:Model",
+  "name": "Library",
+  "viewpoint": "domain",
+  "packagedElement": [
+    {
+      "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0002",
+      "xmi:type": "uml:Package",
+      "name": "lending",
+      "packagedElement": [
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0003",
+          "xmi:type": "uml:PrimitiveType",
+          "name": "String"
+        },
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0004",
+          "xmi:type": "uml:Enumeration",
+          "name": "LoanState",
+          "ownedLiteral": [
+            { "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0005", "name": "requested" },
+            { "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0006", "name": "active" },
+            { "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0007", "name": "returned" }
+          ]
+        },
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0008",
+          "xmi:type": "uml:Interface",
+          "name": "Borrowable",
+          "ownedOperation": [
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0009",
+              "name": "isAvailable",
+              "isQuery": true,
+              "isAbstract": true,
+              "ownedParameter": [
+                {
+                  "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0010",
+                  "name": "result",
+                  "direction": "return",
+                  "type": "01HQ8Z3K7M4N5P6R7S8T9V0003"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0011",
+          "xmi:type": "uml:Class",
+          "name": "Publication",
+          "isAbstract": true,
+          "ownedAttribute": [
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0012",
+              "name": "title",
+              "type": "01HQ8Z3K7M4N5P6R7S8T9V0003",
+              "visibility": "protected"
+            }
+          ]
+        },
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0013",
+          "xmi:type": "uml:Class",
+          "name": "Book",
+          "generalization": [
+            { "general": "01HQ8Z3K7M4N5P6R7S8T9V0011", "isSubstitutable": true }
+          ],
+          "interfaceRealization": [{ "contract": "01HQ8Z3K7M4N5P6R7S8T9V0008" }],
+          "ownedAttribute": [
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0014",
+              "name": "isbn",
+              "type": "01HQ8Z3K7M4N5P6R7S8T9V0003",
+              "isID": true
+            },
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0015",
+              "name": "subtitle",
+              "type": "01HQ8Z3K7M4N5P6R7S8T9V0003",
+              "lower": 0,
+              "upper": 1,
+              "defaultValue": ""
+            },
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0016",
+              "name": "keywords",
+              "type": "01HQ8Z3K7M4N5P6R7S8T9V0003",
+              "lower": 0,
+              "upper": "*",
+              "isOrdered": true
+            }
+          ],
+          "ownedOperation": [
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0017",
+              "name": "isAvailable",
+              "isQuery": true,
+              "ownedParameter": [
+                {
+                  "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0018",
+                  "name": "result",
+                  "direction": "return",
+                  "type": "01HQ8Z3K7M4N5P6R7S8T9V0003"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0019",
+          "xmi:type": "uml:Class",
+          "name": "Member",
+          "ownedAttribute": [
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0020",
+              "name": "cardNumber",
+              "type": "01HQ8Z3K7M4N5P6R7S8T9V0003",
+              "isID": true
+            }
+          ],
+          "clientDependency": [
+            { "supplier": "01HQ8Z3K7M4N5P6R7S8T9V0004", "kind": "usage" }
+          ]
+        },
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0021",
+          "xmi:type": "uml:Association",
+          "name": "Loan",
+          "ownedEnd": [
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0022",
+              "name": "borrower",
+              "type": "01HQ8Z3K7M4N5P6R7S8T9V0019",
+              "lower": 1,
+              "upper": 1,
+              "isNavigable": true
+            },
+            {
+              "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0023",
+              "name": "borrowed",
+              "type": "01HQ8Z3K7M4N5P6R7S8T9V0013",
+              "lower": 0,
+              "upper": "*",
+              "aggregation": "shared",
+              "isNavigable": true
+            }
+          ]
+        },
+        {
+          "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0024",
+          "xmi:type": "uml:Constraint",
+          "name": "loanLimit",
+          "specification": { "kind": "opaque_expression", "body": "self.borrowed->size() <= 10", "language": "OCL" },
+          "constrainedElement": ["01HQ8Z3K7M4N5P6R7S8T9V0021"]
+        }
+      ]
+    }
+  ],
+  "ownedComment": [
+    {
+      "xmi:id": "01HQ8Z3K7M4N5P6R7S8T9V0025",
+      "body": "Loans are governed by the lending policy of 2026-01.",
+      "annotatedElement": ["01HQ8Z3K7M4N5P6R7S8T9V0021"]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "propertyMarkdownRenderer",
+    "local_name": "uml-property",
+    "metadata": {
+      "primitive_type_id": "uml:Property",
+      "target": "text/markdown"
+    }
+  }
+}

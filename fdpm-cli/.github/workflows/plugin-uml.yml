@@ -1,0 +1,33 @@
+name: plugin-uml
+
+on:
+  push:
+    paths:
+      - "fdpm-cli/plugins/uml/**"
+      - "fdpm-cli/tests/plugins/uml/**"
+      - "fdpm-cli/packages/zod-bridge/**"
+      - ".github/workflows/plugin-uml.yml"
+  pull_request:
+    paths:
+      - "fdpm-cli/plugins/uml/**"
+      - "fdpm-cli/tests/plugins/uml/**"
+      - "fdpm-cli/packages/zod-bridge/**"
+
+jobs:
+  bridge-and-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fdpm-cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: fdpm-cli/package-lock.json
+      - run: npm ci
+      # The gate: generated artefacts must match the sidecar as committed.
+      - run: npx tsx plugins/uml/scripts/run-bridge.ts --check
+      - run: npx tsc --noEmit -p tsconfig.json
+      - run: npx vitest run tests/plugins/uml
