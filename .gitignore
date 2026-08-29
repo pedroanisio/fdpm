@@ -5,3 +5,7 @@ dist/
 static/node_modules
 .lake/
 *.pyc
+_ingest_bin/
+.playwright-mcp/
+# Agent scratch (CLAUDE.md — never a delivery location)
+_tmp/
