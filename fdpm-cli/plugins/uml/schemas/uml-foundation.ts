@@ -60,6 +60,9 @@ export const CallConcurrencyKind = z.enum(["sequential", "guarded", "concurrent"
 /** UML 2.5.1 §7.8.4 — the standard `Dependency` specialisations we keep. */
 export const DependencyKind = z.enum(["dependency", "usage", "abstraction", "realization"]);
 /** UML 2.5.1 §8.3 — ValueSpecification, closed to the literal arms. */
+/** UML 2.5.1 §11.2 — how a connector joins its ends. */
+export const ConnectorKind = z.enum(["assembly", "delegation"]);
+
 export const ValueSpecificationKind = z.enum([
   "literal_boolean",
   "literal_integer",
@@ -201,6 +204,106 @@ export const Association = z
   })
   .describe("An Association classifies links between typed instances (§11.5).");
 
+export const Component = z
+  .object({
+    ...element,
+    ...named,
+    ...classifier,
+    is_active: z.boolean().default(false),
+    is_indirectly_instantiated: z
+      .boolean()
+      .default(true)
+      .describe("Whether the component is instantiated indirectly, through its realizing classifiers (§11.6)."),
+  })
+  .describe(
+    "A Component is a modular part of a system whose contents are replaceable within its environment (§11.6). Its contract is the interfaces its ports provide and require.",
+  );
+
+export const Port = z
+  .object({
+    ...element,
+    ...named,
+    ...multiplicity,
+    aggregation: AggregationKind.default("composite"),
+    is_read_only: z.boolean().default(false),
+    is_derived: z.boolean().default(false),
+    is_static: z.boolean().default(false),
+    is_behavior: z
+      .boolean()
+      .default(false)
+      .describe("Requests arriving at the port are handled by the classifier's own behavior (§11.3)."),
+    is_conjugated: z
+      .boolean()
+      .default(false)
+      .describe("The provided and required interfaces are inverted relative to the port's type (§11.3)."),
+    is_service: z
+      .boolean()
+      .default(true)
+      .describe("The port is part of the classifier's published contract rather than an implementation detail (§11.3)."),
+    default_value: ValueSpecification.optional(),
+  })
+  .describe(
+    "A Port is a property of a classifier specifying a distinct interaction point between it and its environment (§11.3).",
+  );
+
+export const Connector = z
+  .object({
+    ...element,
+    ...named,
+    kind: ConnectorKind.default("assembly"),
+    is_static: z.boolean().default(false),
+  })
+  .describe(
+    "A Connector specifies a link between two or more instances playing roles in a classifier's internal structure (§11.2).",
+  );
+
+export const ConnectorEnd = z
+  .object({ ...element, ...multiplicity })
+  .describe(
+    "A ConnectorEnd is an endpoint of a connector, attached to the role it connects (§11.2). A connector has at least two.",
+  );
+
+export const Artifact = z
+  .object({
+    ...element,
+    ...named,
+    ...classifier,
+    file_name: z
+      .string()
+      .max(1000)
+      .optional()
+      .describe("Physical location of the artifact, relative to the deployment (§19.2)."),
+  })
+  .describe("An Artifact is a physical piece of information produced or used by a development process (§19.2).");
+
+export const AssociationClass = z
+  .object({
+    ...element,
+    ...named,
+    ...classifier,
+    is_active: z.boolean().default(false),
+    is_derived: z.boolean().default(false),
+  })
+  .describe(
+    "An AssociationClass is both an Association and a Class: the links it classifies carry their own features (§11.5).",
+  );
+
+export const Signal = z
+  .object({ ...element, ...named, ...classifier })
+  .describe(
+    "A Signal is a classifier whose instances are asynchronous communications between objects (§11.3). Its owned attributes are the payload the communication carries.",
+  );
+
+export const Reception = z
+  .object({
+    ...element,
+    ...named,
+    is_static: z.boolean().default(false),
+  })
+  .describe(
+    "A Reception declares that a classifier is prepared to react to a Signal (§11.4). The signal itself is joined by uml:Signals.",
+  );
+
 export const Constraint = z
   .object({
     ...element,
@@ -227,6 +330,14 @@ export const Schemas = {
   Operation,
   Parameter,
   Association,
+  AssociationClass,
+  Component,
+  Port,
+  Connector,
+  ConnectorEnd,
+  Artifact,
+  Signal,
+  Reception,
   Constraint,
   Comment,
 } as const;
@@ -238,4 +349,12 @@ export type PropertyType = z.infer<typeof Property>;
 export type OperationType = z.infer<typeof Operation>;
 export type ParameterType = z.infer<typeof Parameter>;
 export type AssociationType = z.infer<typeof Association>;
+export type SignalType = z.infer<typeof Signal>;
+export type ComponentType = z.infer<typeof Component>;
+export type PortType = z.infer<typeof Port>;
+export type ConnectorType = z.infer<typeof Connector>;
+export type ConnectorEndType = z.infer<typeof ConnectorEnd>;
+export type ArtifactType = z.infer<typeof Artifact>;
+export type AssociationClassType = z.infer<typeof AssociationClass>;
+export type ReceptionType = z.infer<typeof Reception>;
 export type ValueSpecificationType = z.infer<typeof ValueSpecification>;

@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "receptionMarkdownRenderer",
+    "local_name": "uml-reception",
+    "metadata": {
+      "primitive_type_id": "uml:Reception",
+      "target": "text/markdown"
+    }
+  }
+}

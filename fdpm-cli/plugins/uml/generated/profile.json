@@ -453,6 +453,281 @@
     {
       "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
       "level": "error",
+      "name": "uml.associationclass.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.associationclass.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.associationclass.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.associationclass.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.associationclass.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.associationclass.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.component.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.component.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.component.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.component.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.component.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.component.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.port.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.port.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.port.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.port.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.port.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.port.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.lower >= 0",
+      "level": "error",
+      "name": "uml.port.lower.gt"
+    },
+    {
+      "expression": "int(self.field_values.lower) == self.field_values.lower",
+      "level": "error",
+      "name": "uml.port.lower.int"
+    },
+    {
+      "expression": "self.field_values.upper >= -1",
+      "level": "error",
+      "name": "uml.port.upper.gt"
+    },
+    {
+      "expression": "int(self.field_values.upper) == self.field_values.upper",
+      "level": "error",
+      "name": "uml.port.upper.int"
+    },
+    {
+      "expression": "self.field_values.aggregation in [\"none\", \"shared\", \"composite\"]",
+      "level": "error",
+      "name": "uml.port.aggregation.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.connector.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.connector.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.connector.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.connector.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.connector.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.connector.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.kind in [\"assembly\", \"delegation\"]",
+      "level": "error",
+      "name": "uml.connector.kind.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.connectorend.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.connectorend.xmi_type.max_length"
+    },
+    {
+      "expression": "self.field_values.lower >= 0",
+      "level": "error",
+      "name": "uml.connectorend.lower.gt"
+    },
+    {
+      "expression": "int(self.field_values.lower) == self.field_values.lower",
+      "level": "error",
+      "name": "uml.connectorend.lower.int"
+    },
+    {
+      "expression": "self.field_values.upper >= -1",
+      "level": "error",
+      "name": "uml.connectorend.upper.gt"
+    },
+    {
+      "expression": "int(self.field_values.upper) == self.field_values.upper",
+      "level": "error",
+      "name": "uml.connectorend.upper.int"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.artifact.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.artifact.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.artifact.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.artifact.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.artifact.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.artifact.visibility.enum"
+    },
+    {
+      "expression": "size(self.field_values.file_name) <= 1000",
+      "level": "error",
+      "name": "uml.artifact.file_name.max_length"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.signal.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.signal.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.signal.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.signal.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.signal.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.signal.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
+      "name": "uml.reception.xmi_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.xmi_type) <= 120",
+      "level": "error",
+      "name": "uml.reception.xmi_type.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "uml.reception.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "uml.reception.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.qualified_name) <= 1000",
+      "level": "error",
+      "name": "uml.reception.qualified_name.max_length"
+    },
+    {
+      "expression": "self.field_values.visibility in [\"public\", \"private\", \"protected\", \"package\"]",
+      "level": "error",
+      "name": "uml.reception.visibility.enum"
+    },
+    {
+      "expression": "self.field_values.xmi_id.matches(\"^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$\")",
+      "level": "error",
       "name": "uml.constraint.xmi_id.regex"
     },
     {
@@ -496,8 +771,30 @@
       "name": "uml.comment.body.max_length"
     }
   ],
-  "description": "Bridge-generated from schemas/uml-foundation.ts — a normalisation of schemas-lib src/schemas/domains/uml (UML 2.5.1). Fourteen metaclasses as primitives (Package, Model, Class, Interface, DataType, PrimitiveType, Enumeration, EnumerationLiteral, Property, Operation, Parameter, Association, Constraint, Comment) and twelve typed edges for ownership, typing, generalisation, realisation, dependency, association ends, annotation and constraint.",
+  "description": "Bridge-generated from schemas/uml-foundation.ts — a normalisation of schemas-lib src/schemas/domains/uml (UML 2.5.1). Twenty-two metaclasses as primitives (Package, Model, Class, Interface, DataType, PrimitiveType, Enumeration, EnumerationLiteral, Property, Operation, Parameter, Association, AssociationClass, Component, Port, Connector, ConnectorEnd, Artifact, Signal, Reception, Constraint, Comment) and twenty-four typed edges for ownership, typing, generalisation, realisation, dependency, association ends, annotation and constraint.",
   "enum_defs": [
+    {
+      "description": "Enum derived from Artifact.visibility",
+      "id": "enum:ArtifactVisibility",
+      "name": "ArtifactVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from AssociationClass.visibility",
+      "id": "enum:AssociationClassVisibility",
+      "name": "AssociationClassVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
     {
       "description": "Enum derived from Association.visibility",
       "id": "enum:AssociationVisibility",
@@ -513,6 +810,37 @@
       "description": "Enum derived from Class.visibility",
       "id": "enum:ClassVisibility",
       "name": "ClassVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Component.visibility",
+      "id": "enum:ComponentVisibility",
+      "name": "ComponentVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Connector.kind",
+      "id": "enum:ConnectorKind",
+      "name": "ConnectorKind",
+      "values": [
+        "assembly",
+        "delegation"
+      ]
+    },
+    {
+      "description": "Enum derived from Connector.visibility",
+      "id": "enum:ConnectorVisibility",
+      "name": "ConnectorVisibility",
       "values": [
         "public",
         "private",
@@ -680,6 +1008,41 @@
       ]
     },
     {
+      "description": "Enum derived from Port.aggregation",
+      "id": "enum:PortAggregation",
+      "name": "PortAggregation",
+      "values": [
+        "none",
+        "shared",
+        "composite"
+      ]
+    },
+    {
+      "description": "Enum derived from Port.DefaultValue.kind",
+      "id": "enum:PortDefaultValueKind",
+      "name": "PortDefaultValueKind",
+      "values": [
+        "literal_boolean",
+        "literal_integer",
+        "literal_real",
+        "literal_string",
+        "literal_unlimited_natural",
+        "literal_null",
+        "opaque_expression"
+      ]
+    },
+    {
+      "description": "Enum derived from Port.visibility",
+      "id": "enum:PortVisibility",
+      "name": "PortVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
       "description": "Enum derived from PrimitiveType.visibility",
       "id": "enum:PrimitiveTypeVisibility",
       "name": "PrimitiveTypeVisibility",
@@ -718,6 +1081,28 @@
       "description": "Enum derived from Property.visibility",
       "id": "enum:PropertyVisibility",
       "name": "PropertyVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Reception.visibility",
+      "id": "enum:ReceptionVisibility",
+      "name": "ReceptionVisibility",
+      "values": [
+        "public",
+        "private",
+        "protected",
+        "package"
+      ]
+    },
+    {
+      "description": "Enum derived from Signal.visibility",
+      "id": "enum:SignalVisibility",
+      "name": "SignalVisibility",
       "values": [
         "public",
         "private",
@@ -2222,6 +2607,909 @@
           "validations": []
         },
         {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_active",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:AssociationClass",
+      "id_format": {
+        "pattern": "uml:AssociationClass:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_active",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: true",
+          "kind": "boolean",
+          "name": "is_indirectly_instantiated",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Component",
+      "id_format": {
+        "pattern": "uml:Component:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: true",
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "lower",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "upper",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": -1
+            }
+          ]
+        },
+        {
+          "description": "default: \"composite\"",
+          "enum_values": [
+            "none",
+            "shared",
+            "composite"
+          ],
+          "kind": "enum",
+          "name": "aggregation",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_read_only",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_behavior",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_conjugated",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: true",
+          "kind": "boolean",
+          "name": "is_service",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "default_value",
+          "required": false,
+          "struct_id": "PortDefaultValue",
+          "validations": []
+        }
+      ],
+      "id": "uml:Port",
+      "id_format": {
+        "pattern": "uml:Port:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "literal_boolean",
+                "literal_integer",
+                "literal_real",
+                "literal_string",
+                "literal_unlimited_natural",
+                "literal_null",
+                "opaque_expression"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "description": "default: \"\"",
+              "kind": "string",
+              "name": "body",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 4000
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "language",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 80
+                }
+              ]
+            }
+          ],
+          "id": "PortDefaultValue"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: \"assembly\"",
+          "enum_values": [
+            "assembly",
+            "delegation"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Connector",
+      "id_format": {
+        "pattern": "uml:Connector:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: true",
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "lower",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "description": "default: 1",
+          "kind": "number",
+          "name": "upper",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": -1
+            }
+          ]
+        }
+      ],
+      "id": "uml:ConnectorEnd",
+      "id_format": {
+        "pattern": "uml:ConnectorEnd:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "file_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        }
+      ],
+      "id": "uml:Artifact",
+      "id_format": {
+        "pattern": "uml:Artifact:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Signal",
+      "id_format": {
+        "pattern": "uml:Signal:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: false",
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:Reception",
+      "id_format": {
+        "pattern": "uml:Reception:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "description": "default: \"public\"",
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "validations": []
+        },
+        {
           "kind": "struct",
           "name": "specification",
           "required": true,
@@ -2350,6 +3638,10 @@
         "uml:PrimitiveType",
         "uml:Enumeration",
         "uml:Association",
+        "uml:AssociationClass",
+        "uml:Signal",
+        "uml:Component",
+        "uml:Artifact",
         "uml:Constraint"
       ]
     },
@@ -2373,6 +3665,10 @@
         "uml:DataType",
         "uml:PrimitiveType",
         "uml:Enumeration",
+        "uml:Signal",
+        "uml:Component",
+        "uml:Artifact",
+        "uml:AssociationClass",
         "uml:Association"
       ],
       "target_types": [
@@ -2398,7 +3694,11 @@
         "uml:Interface",
         "uml:DataType",
         "uml:PrimitiveType",
-        "uml:Enumeration"
+        "uml:Enumeration",
+        "uml:Signal",
+        "uml:Component",
+        "uml:Artifact",
+        "uml:AssociationClass"
       ],
       "target_types": [
         "uml:Operation"
@@ -2466,7 +3766,11 @@
         "uml:DataType",
         "uml:PrimitiveType",
         "uml:Enumeration",
-        "uml:Association"
+        "uml:Association",
+        "uml:AssociationClass",
+        "uml:Signal",
+        "uml:Component",
+        "uml:Artifact"
       ],
       "target_types": [
         "uml:Class",
@@ -2474,7 +3778,11 @@
         "uml:DataType",
         "uml:PrimitiveType",
         "uml:Enumeration",
-        "uml:Association"
+        "uml:Association",
+        "uml:AssociationClass",
+        "uml:Signal",
+        "uml:Component",
+        "uml:Artifact"
       ]
     },
     {
@@ -2485,7 +3793,9 @@
       "name": "realizes",
       "source_types": [
         "uml:Class",
-        "uml:DataType"
+        "uml:DataType",
+        "uml:Component",
+        "uml:AssociationClass"
       ],
       "target_types": [
         "uml:Interface"
@@ -2524,6 +3834,14 @@
         "uml:Operation",
         "uml:Parameter",
         "uml:Association",
+        "uml:AssociationClass",
+        "uml:Component",
+        "uml:Port",
+        "uml:Connector",
+        "uml:ConnectorEnd",
+        "uml:Artifact",
+        "uml:Signal",
+        "uml:Reception",
         "uml:Constraint",
         "uml:Comment"
       ],
@@ -2540,6 +3858,14 @@
         "uml:Operation",
         "uml:Parameter",
         "uml:Association",
+        "uml:AssociationClass",
+        "uml:Component",
+        "uml:Port",
+        "uml:Connector",
+        "uml:ConnectorEnd",
+        "uml:Artifact",
+        "uml:Signal",
+        "uml:Reception",
         "uml:Constraint",
         "uml:Comment"
       ]
@@ -2553,7 +3879,9 @@
       "source_types": [
         "uml:Property",
         "uml:Parameter",
-        "uml:Operation"
+        "uml:Operation",
+        "uml:Port",
+        "uml:Connector"
       ],
       "target_types": [
         "uml:Class",
@@ -2561,7 +3889,11 @@
         "uml:DataType",
         "uml:PrimitiveType",
         "uml:Enumeration",
-        "uml:Association"
+        "uml:Association",
+        "uml:AssociationClass",
+        "uml:Signal",
+        "uml:Component",
+        "uml:Artifact"
       ]
     },
     {
@@ -2586,10 +3918,218 @@
       "id": "uml:MemberEnd",
       "name": "member_end",
       "source_types": [
-        "uml:Association"
+        "uml:Association",
+        "uml:AssociationClass"
       ],
       "target_types": [
         "uml:Property"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "Class::ownedReception (§11.4) — the receptions declaring which signals the classifier reacts to.",
+      "fields": [
+        {
+          "description": "0-based declaration order inside the owner.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsReception",
+      "name": "owns_reception",
+      "source_types": [
+        "uml:Class",
+        "uml:Interface",
+        "uml:Component"
+      ],
+      "target_types": [
+        "uml:Reception"
+      ]
+    },
+    {
+      "cardinality": "many-to-one",
+      "description": "Reception::signal (§11.4) — the signal the reception reacts to.",
+      "fields": [],
+      "id": "uml:Signals",
+      "name": "signals",
+      "source_types": [
+        "uml:Reception"
+      ],
+      "target_types": [
+        "uml:Signal"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "EncapsulatedClassifier::ownedPort (§11.3) — the interaction points on the classifier's boundary. A port is an owned attribute of a particular kind, so it is listed here rather than under uml:OwnsAttribute.",
+      "fields": [
+        {
+          "description": "0-based declaration order.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsPort",
+      "name": "owns_port",
+      "source_types": [
+        "uml:Component",
+        "uml:Class",
+        "uml:AssociationClass"
+      ],
+      "target_types": [
+        "uml:Port"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "StructuredClassifier::ownedConnector (§11.2) — the links between the classifier's parts and ports.",
+      "fields": [
+        {
+          "description": "0-based declaration order.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsConnector",
+      "name": "owns_connector",
+      "source_types": [
+        "uml:Component",
+        "uml:Class",
+        "uml:AssociationClass"
+      ],
+      "target_types": [
+        "uml:Connector"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "Connector::end (§11.2) — the two or more endpoints the connector joins, in order.",
+      "fields": [
+        {
+          "description": "0-based end order.",
+          "kind": "integer",
+          "name": "position",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "uml:OwnsConnectorEnd",
+      "name": "owns_connector_end",
+      "source_types": [
+        "uml:Connector"
+      ],
+      "target_types": [
+        "uml:ConnectorEnd"
+      ]
+    },
+    {
+      "cardinality": "many-to-one",
+      "description": "ConnectorEnd::role (§11.2) — the part or port this end attaches to. Both are properties in UML; a port is the encapsulated kind.",
+      "fields": [],
+      "id": "uml:ConnectorRole",
+      "name": "connector_role",
+      "source_types": [
+        "uml:ConnectorEnd"
+      ],
+      "target_types": [
+        "uml:Property",
+        "uml:Port"
+      ]
+    },
+    {
+      "cardinality": "many-to-one",
+      "description": "ConnectorEnd::partWithPort (§11.2) — when the role is a port, the containing part whose port it is.",
+      "fields": [],
+      "id": "uml:PartWithPort",
+      "name": "part_with_port",
+      "source_types": [
+        "uml:ConnectorEnd"
+      ],
+      "target_types": [
+        "uml:Property"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "The interfaces a port or component offers to its environment (§11.3, §11.6). Derived in UML from the realizations of the port's type; stored here because it is the contract a reader needs.",
+      "fields": [],
+      "id": "uml:Provides",
+      "name": "provides",
+      "source_types": [
+        "uml:Port",
+        "uml:Component"
+      ],
+      "target_types": [
+        "uml:Interface"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "The interfaces a port or component needs from its environment (§11.3, §11.6).",
+      "fields": [],
+      "id": "uml:Requires",
+      "name": "requires",
+      "source_types": [
+        "uml:Port",
+        "uml:Component"
+      ],
+      "target_types": [
+        "uml:Interface"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "ComponentRealization (§11.6): the classifier implements the component's contract. Modelled as an edge, like the other DirectedRelationships — the realization element's own identity is not preserved (see declaredLoss).",
+      "fields": [],
+      "id": "uml:RealizesComponent",
+      "name": "realizes_component",
+      "source_types": [
+        "uml:Class",
+        "uml:Component",
+        "uml:DataType",
+        "uml:AssociationClass"
+      ],
+      "target_types": [
+        "uml:Component"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "Artifact::manifestation (§19.2) — the model elements this physical artifact embodies.",
+      "fields": [],
+      "id": "uml:Manifests",
+      "name": "manifests",
+      "source_types": [
+        "uml:Artifact"
+      ],
+      "target_types": [
+        "uml:Component",
+        "uml:Class",
+        "uml:Interface",
+        "uml:Package",
+        "uml:Signal",
+        "uml:Enumeration",
+        "uml:DataType",
+        "uml:AssociationClass"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "Artifact::nestedArtifact (§19.2) — artifacts contained inside this one.",
+      "fields": [],
+      "id": "uml:NestsArtifact",
+      "name": "nests_artifact",
+      "source_types": [
+        "uml:Artifact"
+      ],
+      "target_types": [
+        "uml:Artifact"
       ]
     },
     {
@@ -2614,6 +4154,14 @@
         "uml:Operation",
         "uml:Parameter",
         "uml:Association",
+        "uml:AssociationClass",
+        "uml:Component",
+        "uml:Port",
+        "uml:Connector",
+        "uml:ConnectorEnd",
+        "uml:Artifact",
+        "uml:Signal",
+        "uml:Reception",
         "uml:Constraint",
         "uml:Comment"
       ]
@@ -2640,6 +4188,14 @@
         "uml:Operation",
         "uml:Parameter",
         "uml:Association",
+        "uml:AssociationClass",
+        "uml:Component",
+        "uml:Port",
+        "uml:Connector",
+        "uml:ConnectorEnd",
+        "uml:Artifact",
+        "uml:Signal",
+        "uml:Reception",
         "uml:Constraint",
         "uml:Comment"
       ]

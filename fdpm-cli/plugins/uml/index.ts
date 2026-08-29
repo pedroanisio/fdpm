@@ -45,8 +45,20 @@ import {
   primitiveTypeId,
 } from "./sidecar.js";
 import { renderModelOutline } from "./renderers/model_outline.js";
+import { assertNoAbstractPrimitiveTypes } from "./abstract.js";
+import { UML_PROMPTS } from "./prompts.js";
 
 export { renderModelOutline } from "./renderers/model_outline.js";
+export { UML_PROMPTS, MODEL_A_DOMAIN_PROMPT } from "./prompts.js";
+export {
+  METACLASS_ABSTRACTNESS,
+  ABSTRACT_METACLASSES,
+  CONCRETE_METACLASSES,
+  isAbstractMetaclass,
+  concreteAlternativesFor,
+  assertNoAbstractPrimitiveTypes,
+  type MetaclassRecord,
+} from "./abstract.js";
 export {
   buildUmlWorkbook,
   parseUmlModel,
@@ -80,6 +92,8 @@ export {
 } from "./sidecar.js";
 export {
   Schemas,
+  Signal,
+  Reception,
   UmlId,
   UML_VERSION,
   UNLIMITED,
@@ -109,6 +123,11 @@ export async function activate(ctx: PluginContext): Promise<void> {
   }
 
   const profile = finalizeProfile(result.profile) as unknown as DomainProfile;
+  // UML 2.5.1 defines 26 of the source library's 110 metaclasses as
+  // abstract. Registering one as a primitive type would let the host
+  // accept instances the specification forbids, so the profile is
+  // checked before it is served — at load, not at first write.
+  assertNoAbstractPrimitiveTypes(profile);
   ctx.registerProfile(profile);
 
   for (const entityName of ENTITY_NAMES) {
@@ -186,8 +205,12 @@ export async function activate(ctx: PluginContext): Promise<void> {
     fn: renderModelOutline as RendererFn,
   });
 
+  // The how-to-think layer: which metaclass to reach for, how features
+  // and ends are wired, and which metaclasses are abstract (§13.5).
+  for (const prompt of UML_PROMPTS) ctx.registerPrompt(prompt);
+
   ctx.logger.info(
-    `${PLUGIN_ID} activated: ${profile.primitive_types.length} primitive types, ${profile.relation_types?.length ?? 0} relation types, ${ENTITY_NAMES.length} validators, ${ENTITY_NAMES.length + 1} renderers. Profile id: ${PROFILE_ID}.`,
+    `${PLUGIN_ID} activated: ${profile.primitive_types.length} primitive types, ${profile.relation_types?.length ?? 0} relation types, ${ENTITY_NAMES.length} validators, ${ENTITY_NAMES.length + 1} renderers, ${UML_PROMPTS.length} prompt. Profile id: ${PROFILE_ID}.`,
   );
 }
 

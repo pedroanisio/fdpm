@@ -1,7 +1,7 @@
 {
-  "hash": "3990a49be0617d7edfe87da1565734a7c57142bed025e9eed4da5ef67536d721",
+  "hash": "34862be1d1106f389a9b46ea11cd84d111fd9c561ef63d2e0524bab57a698727",
   "hash_algo": "sha256",
-  "pinned_plugin_version": "0.1.0",
+  "pinned_plugin_version": "0.3.0",
   "sources": [
     "schemas/uml-foundation.ts",
     "sidecar.ts"

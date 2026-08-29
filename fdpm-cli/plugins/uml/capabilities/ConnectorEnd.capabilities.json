@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "connectorEndMarkdownRenderer",
+    "local_name": "uml-connector-end",
+    "metadata": {
+      "primitive_type_id": "uml:ConnectorEnd",
+      "target": "text/markdown"
+    }
+  }
+}

@@ -29,6 +29,7 @@ import { z } from "zod";
 import type { Host } from "../../src/core/host.js";
 import { FDPMException } from "../../src/core/errors/fdpm-exception.js";
 import { defineProject, type PrimitiveSpec, type RelationSpec } from "../../src/sdk.js";
+import { concreteAlternativesFor, isAbstractMetaclass } from "./abstract.js";
 import {
   PROFILE_ID,
   REL,
@@ -39,6 +40,7 @@ import {
 import {
   AggregationKind,
   CallConcurrencyKind,
+  ConnectorKind,
   DependencyKind,
   ParameterDirectionKind,
   ParameterEffectKind,
@@ -127,6 +129,63 @@ const OperationIn = z
   })
   .strict();
 
+const PortIn = z
+  .object({
+    ...base,
+    ...multiplicity,
+    "xmi:type": z.literal("uml:Port").optional(),
+    type: UmlId.optional(),
+    aggregation: AggregationKind.optional(),
+    isReadOnly: z.boolean().optional(),
+    isDerived: z.boolean().optional(),
+    isStatic: z.boolean().optional(),
+    isBehavior: z.boolean().optional(),
+    isConjugated: z.boolean().optional(),
+    isService: z.boolean().optional(),
+    defaultValue: RawValue.optional(),
+    provided: z.array(UmlId).optional(),
+    required: z.array(UmlId).optional(),
+  })
+  .strict();
+
+const ConnectorEndIn = z
+  .object({
+    "xmi:id": UmlId,
+    ...multiplicity,
+    "xmi:type": z.literal("uml:ConnectorEnd").optional(),
+    role: UmlId.optional(),
+    partWithPort: UmlId.optional(),
+  })
+  .strict();
+
+const ConnectorIn = z
+  .object({
+    ...base,
+    "xmi:type": z.literal("uml:Connector").optional(),
+    kind: ConnectorKind.optional(),
+    isStatic: z.boolean().optional(),
+    type: UmlId.optional(),
+    end: z.array(ConnectorEndIn).optional(),
+  })
+  .strict();
+
+const ComponentRealizationIn = z
+  .object({
+    "xmi:id": UmlId,
+    "xmi:type": z.literal("uml:ComponentRealization").optional(),
+    realizingClassifier: UmlId,
+  })
+  .strict();
+
+const ReceptionIn = z
+  .object({
+    ...base,
+    "xmi:type": z.literal("uml:Reception").optional(),
+    signal: UmlId.optional(),
+    isStatic: z.boolean().optional(),
+  })
+  .strict();
+
 const GeneralizationIn = z
   .object({
     general: UmlId,
@@ -143,6 +202,10 @@ const CLASSIFIER_KINDS = [
   "uml:PrimitiveType",
   "uml:Enumeration",
   "uml:Association",
+  "uml:AssociationClass",
+  "uml:Signal",
+  "uml:Component",
+  "uml:Artifact",
 ] as const;
 
 /**
@@ -165,6 +228,16 @@ export interface PackagedElementInput {
   ownedAttribute?: PropertyInput[];
   ownedOperation?: OperationInput[];
   ownedLiteral?: Array<z.infer<typeof LiteralIn>>;
+  ownedReception?: Array<z.infer<typeof ReceptionIn>>;
+  ownedPort?: Array<z.infer<typeof PortIn>>;
+  ownedConnector?: Array<z.infer<typeof ConnectorIn>>;
+  realization?: Array<z.infer<typeof ComponentRealizationIn>>;
+  provided?: string[];
+  required?: string[];
+  isIndirectlyInstantiated?: boolean;
+  fileName?: string;
+  nestedArtifact?: string[];
+  manifestation?: string[];
   ownedEnd?: PropertyInput[];
   memberEnd?: string[];
   generalization?: Array<z.infer<typeof GeneralizationIn>>;
@@ -188,6 +261,16 @@ const PackagedElementIn: z.ZodType<PackagedElementInput> = z
     ownedAttribute: z.array(PropertyIn).optional(),
     ownedOperation: z.array(OperationIn).optional(),
     ownedLiteral: z.array(LiteralIn).optional(),
+    ownedReception: z.array(ReceptionIn).optional(),
+    ownedPort: z.array(PortIn).optional(),
+    ownedConnector: z.array(ConnectorIn).optional(),
+    realization: z.array(ComponentRealizationIn).optional(),
+    provided: z.array(UmlId).optional(),
+    required: z.array(UmlId).optional(),
+    isIndirectlyInstantiated: z.boolean().optional(),
+    fileName: z.string().max(1000).optional(),
+    nestedArtifact: z.array(UmlId).optional(),
+    manifestation: z.array(UmlId).optional(),
     ownedEnd: z.array(PropertyIn).optional(),
     memberEnd: z.array(UmlId).optional(),
     generalization: z.array(GeneralizationIn).optional(),
@@ -305,6 +388,42 @@ interface Finding {
  * `verification` FDPMException carrying every finding.
  */
 export function parseUmlModel(input: unknown): UmlModelInputType {
+  // An abstract metaclass would otherwise fail as a generic enum
+  // mismatch, which tells the author nothing. Name the rule and the
+  // concrete alternatives instead (UML 2.5.1; see ./abstract.ts).
+  const abstractUses: Array<{ path: string; metaclass: string }> = [];
+  const scanAbstract = (node: unknown, path: string): void => {
+    if (Array.isArray(node)) {
+      node.forEach((n, i) => scanAbstract(n, `${path}[${i}]`));
+      return;
+    }
+    if (typeof node !== "object" || node === null) return;
+    const rec = node as Record<string, unknown>;
+    const xmiType = rec["xmi:type"];
+    if (typeof xmiType === "string" && isAbstractMetaclass(xmiType.split(":").pop() ?? "")) {
+      abstractUses.push({ path: `${path}.xmi:type`, metaclass: xmiType });
+    }
+    for (const [k, v] of Object.entries(rec)) {
+      if (k !== "xmi:type") scanAbstract(v, path === "" ? k : `${path}.${k}`);
+    }
+  };
+  scanAbstract(input, "");
+  if (abstractUses.length > 0) {
+    const first = abstractUses[0]!;
+    const bare = first.metaclass.split(":").pop() ?? first.metaclass;
+    throw new FDPMException(
+      "verification",
+      `UML model uses ${abstractUses.length} abstract metaclass(es); first: ${first.path}: "${first.metaclass}" is abstract in UML 2.5.1 and has no instances — use ${concreteAlternativesFor(bare)}.`,
+      {
+        findings: abstractUses.map((u) => ({
+          path: u.path,
+          message: `"${u.metaclass}" is abstract in UML 2.5.1 — use ${concreteAlternativesFor(u.metaclass.split(":").pop() ?? u.metaclass)}.`,
+        })),
+        evidence: { abstract_metaclasses: abstractUses.map((u) => u.metaclass) },
+      },
+    );
+  }
+
   const parsed = UmlModelInput.safeParse(input);
   if (!parsed.success) {
     throw new FDPMException(
@@ -322,6 +441,10 @@ export function parseUmlModel(input: unknown): UmlModelInputType {
     else seen.set(id, kind);
   };
   const classifiers = new Set<string>();
+  const signals = new Set<string>();
+  const ports = new Set<string>();
+  const interfaces = new Set<string>();
+  const properties = new Set<string>();
 
   declare(model["xmi:id"], "xmi:id", "uml:Model");
   for (const c of model.ownedComment) declare(c["xmi:id"], `ownedComment.${c["xmi:id"]}`, "uml:Comment");
@@ -329,9 +452,30 @@ export function parseUmlModel(input: unknown): UmlModelInputType {
   const walk = (el: PackagedElement, path: string): void => {
     declare(el["xmi:id"], `${path}.xmi:id`, el["xmi:type"]);
     if ((CLASSIFIER_KINDS as readonly string[]).includes(el["xmi:type"])) classifiers.add(el["xmi:id"]);
+    if (el["xmi:type"] === "uml:Signal") signals.add(el["xmi:id"]);
+    if (el["xmi:type"] === "uml:Interface") interfaces.add(el["xmi:id"]);
+    for (const pr of [...(el.ownedAttribute ?? []), ...(el.ownedEnd ?? [])]) properties.add(pr["xmi:id"]);
     for (const [i, p] of (el.ownedAttribute ?? []).entries()) declare(p["xmi:id"], `${path}.ownedAttribute[${i}]`, "uml:Property");
     for (const [i, p] of (el.ownedEnd ?? []).entries()) declare(p["xmi:id"], `${path}.ownedEnd[${i}]`, "uml:Property");
     for (const [i, l] of (el.ownedLiteral ?? []).entries()) declare(l["xmi:id"], `${path}.ownedLiteral[${i}]`, "uml:EnumerationLiteral");
+    for (const [i, r] of (el.ownedReception ?? []).entries()) declare(r["xmi:id"], `${path}.ownedReception[${i}]`, "uml:Reception");
+    for (const [i, pt] of (el.ownedPort ?? []).entries()) {
+      declare(pt["xmi:id"], `${path}.ownedPort[${i}]`, "uml:Port");
+      ports.add(pt["xmi:id"]);
+    }
+    for (const [i, c] of (el.ownedConnector ?? []).entries()) {
+      declare(c["xmi:id"], `${path}.ownedConnector[${i}]`, "uml:Connector");
+      for (const [j, e] of (c.end ?? []).entries()) {
+        declare(e["xmi:id"], `${path}.ownedConnector[${i}].end[${j}]`, "uml:ConnectorEnd");
+      }
+      // UML 2.5.1 §11.2: a connector joins at least two ends.
+      if ((c.end?.length ?? 0) < 2) {
+        findings.push({
+          path: `${path}.ownedConnector[${i}].end`,
+          message: `connector "${c.name ?? c["xmi:id"]}" has ${c.end?.length ?? 0} end(s); UML 2.5.1 §11.2 requires at least 2`,
+        });
+      }
+    }
     for (const [i, o] of (el.ownedOperation ?? []).entries()) {
       declare(o["xmi:id"], `${path}.ownedOperation[${i}]`, "uml:Operation");
       for (const [j, prm] of (o.ownedParameter ?? []).entries()) {
@@ -358,11 +502,69 @@ export function parseUmlModel(input: unknown): UmlModelInputType {
       findings.push({ path, message: `"${id}" is a ${seen.get(id)}, not a classifier` });
     }
   };
+  const refInterface = (id: string, path: string): void => {
+    if (!seen.has(id)) findings.push({ path, message: `unresolved reference "${id}"` });
+    else if (!interfaces.has(id)) {
+      findings.push({
+        path,
+        message: `"${id}" is a ${seen.get(id)}, not an interface — provided/required name a uml:Interface (UML 2.5.1 §11.3)`,
+      });
+    }
+  };
   const checkRefs = (el: PackagedElement, path: string): void => {
     for (const [i, g] of (el.generalization ?? []).entries()) ref(g.general, `${path}.generalization[${i}].general`, true);
     for (const [i, r] of (el.interfaceRealization ?? []).entries()) ref(r.contract, `${path}.interfaceRealization[${i}].contract`, true);
     for (const [i, d] of (el.clientDependency ?? []).entries()) ref(d.supplier, `${path}.clientDependency[${i}].supplier`);
     for (const [i, m] of (el.memberEnd ?? []).entries()) ref(m, `${path}.memberEnd[${i}]`);
+    for (const [i, pt] of (el.ownedPort ?? []).entries()) {
+      if (pt.type) ref(pt.type, `${path}.ownedPort[${i}].type`, true);
+      for (const [j, iface] of (pt.provided ?? []).entries()) {
+        refInterface(iface, `${path}.ownedPort[${i}].provided[${j}]`);
+      }
+      for (const [j, iface] of (pt.required ?? []).entries()) {
+        refInterface(iface, `${path}.ownedPort[${i}].required[${j}]`);
+      }
+    }
+    for (const [j, iface] of (el.provided ?? []).entries()) refInterface(iface, `${path}.provided[${j}]`);
+    for (const [j, iface] of (el.required ?? []).entries()) refInterface(iface, `${path}.required[${j}]`);
+    for (const [i, c] of (el.ownedConnector ?? []).entries()) {
+      if (c.type) ref(c.type, `${path}.ownedConnector[${i}].type`, true);
+      for (const [j, e] of (c.end ?? []).entries()) {
+        const at = `${path}.ownedConnector[${i}].end[${j}]`;
+        if (e.role !== undefined) {
+          if (!seen.has(e.role)) findings.push({ path: `${at}.role`, message: `unresolved reference "${e.role}"` });
+          else if (!properties.has(e.role) && !ports.has(e.role)) {
+            findings.push({
+              path: `${at}.role`,
+              message: `"${e.role}" is a ${seen.get(e.role)}, not a role — a connector end attaches to a uml:Property or a uml:Port (UML 2.5.1 §11.2)`,
+            });
+          }
+        }
+        if (e.partWithPort !== undefined) {
+          if (!seen.has(e.partWithPort)) {
+            findings.push({ path: `${at}.partWithPort`, message: `unresolved reference "${e.partWithPort}"` });
+          } else if (!properties.has(e.partWithPort)) {
+            findings.push({
+              path: `${at}.partWithPort`,
+              message: `"${e.partWithPort}" is a ${seen.get(e.partWithPort)}, not a part — partWithPort names the containing uml:Property (§11.2)`,
+            });
+          }
+        }
+      }
+    }
+    for (const [i, r] of (el.realization ?? []).entries()) {
+      ref(r.realizingClassifier, `${path}.realization[${i}].realizingClassifier`, true);
+    }
+    for (const [i, m] of (el.manifestation ?? []).entries()) ref(m, `${path}.manifestation[${i}]`);
+    for (const [i, n] of (el.nestedArtifact ?? []).entries()) ref(n, `${path}.nestedArtifact[${i}]`);
+    for (const [i, r] of (el.ownedReception ?? []).entries()) {
+      if (r.signal === undefined) continue;
+      const at = `${path}.ownedReception[${i}].signal`;
+      if (!seen.has(r.signal)) findings.push({ path: at, message: `unresolved reference "${r.signal}"` });
+      else if (!signals.has(r.signal)) {
+        findings.push({ path: at, message: `"${r.signal}" is a ${seen.get(r.signal)}, not a signal — a reception reacts to a uml:Signal (UML 2.5.1 §11.4)` });
+      }
+    }
     for (const [i, c] of (el.constrainedElement ?? []).entries()) ref(c, `${path}.constrainedElement[${i}]`);
     for (const [i, p] of (el.ownedAttribute ?? []).entries()) {
       if (p.type) ref(p.type, `${path}.ownedAttribute[${i}].type`, true);
@@ -439,6 +641,13 @@ export async function buildUmlWorkbook(
 
   /** Deferred because a `type` may point forward to a classifier declared later. */
   const typeEdges: Array<{ from: string; toXmi: string }> = [];
+  /** Same, for Reception::signal. */
+  const receptionSignals: Array<{ from: string; toXmi: string }> = [];
+  /** Deferred edges whose target may be declared later in the tree. */
+  const deferred: Array<{ type: string; from: string; toXmi: string }> = [];
+  const later = (type: string, from: string, toXmi: string): void => {
+    deferred.push({ type, from, toXmi });
+  };
   const otherEdges: Array<() => void> = [];
 
   const addProperty = (p: PropertyInput, qualifiedPrefix: string): string => {
@@ -495,7 +704,13 @@ export async function buildUmlWorkbook(
       ...(el.isActive !== undefined ? { is_active: el.isActive } : {}),
       ...(el.isLeaf !== undefined ? { is_leaf: el.isLeaf } : {}),
       ...(el.isFinalSpecialization !== undefined ? { is_final_specialization: el.isFinalSpecialization } : {}),
-      ...(el.isDerived !== undefined && entity === "Association" ? { is_derived: el.isDerived } : {}),
+      ...(el.isDerived !== undefined && (entity === "Association" || entity === "AssociationClass")
+        ? { is_derived: el.isDerived }
+        : {}),
+      ...(el.isIndirectlyInstantiated !== undefined
+        ? { is_indirectly_instantiated: el.isIndirectlyInstantiated }
+        : {}),
+      ...(el.fileName !== undefined ? { file_name: el.fileName } : {}),
       ...(entity === "Constraint"
         ? { specification: toValueSpecification(el.specification) ?? { kind: "literal_string", body: "" } }
         : {}),
@@ -518,6 +733,54 @@ export async function buildUmlWorkbook(
       const oid = addOperation(o, qualified ?? "");
       rel(REL.OwnsOperation, id, oid, { position: i });
       if (o.type) typeEdges.push({ from: oid, toXmi: o.type });
+    });
+    (el.ownedPort ?? []).forEach((pt, i) => {
+      const pid = add("Port", pt["xmi:id"], {
+        ...namedFields(pt, pt.name && qualified ? `${qualified}::${pt.name}` : undefined),
+        ...multiplicityFields(pt),
+        ...(pt.aggregation !== undefined ? { aggregation: pt.aggregation } : {}),
+        ...(pt.isReadOnly !== undefined ? { is_read_only: pt.isReadOnly } : {}),
+        ...(pt.isDerived !== undefined ? { is_derived: pt.isDerived } : {}),
+        ...(pt.isStatic !== undefined ? { is_static: pt.isStatic } : {}),
+        ...(pt.isBehavior !== undefined ? { is_behavior: pt.isBehavior } : {}),
+        ...(pt.isConjugated !== undefined ? { is_conjugated: pt.isConjugated } : {}),
+        ...(pt.isService !== undefined ? { is_service: pt.isService } : {}),
+        ...(toValueSpecification(pt.defaultValue) !== undefined
+          ? { default_value: toValueSpecification(pt.defaultValue) }
+          : {}),
+      });
+      rel(REL.OwnsPort, id, pid, { position: i });
+      if (pt.type) typeEdges.push({ from: pid, toXmi: pt.type });
+      for (const iface of pt.provided ?? []) later(REL.Provides, pid, iface);
+      for (const iface of pt.required ?? []) later(REL.Requires, pid, iface);
+    });
+    (el.ownedConnector ?? []).forEach((c, i) => {
+      const cid = add("Connector", c["xmi:id"], {
+        ...namedFields(c, c.name && qualified ? `${qualified}::${c.name}` : undefined),
+        ...(c.kind !== undefined ? { kind: c.kind } : {}),
+        ...(c.isStatic !== undefined ? { is_static: c.isStatic } : {}),
+      });
+      rel(REL.OwnsConnector, id, cid, { position: i });
+      if (c.type) typeEdges.push({ from: cid, toXmi: c.type });
+      (c.end ?? []).forEach((e, j) => {
+        const eid = add("ConnectorEnd", e["xmi:id"], { ...multiplicityFields(e) });
+        rel(REL.OwnsConnectorEnd, cid, eid, { position: j });
+        if (e.role) later(REL.ConnectorRole, eid, e.role);
+        if (e.partWithPort) later(REL.PartWithPort, eid, e.partWithPort);
+      });
+    });
+    for (const iface of el.provided ?? []) later(REL.Provides, id, iface);
+    for (const iface of el.required ?? []) later(REL.Requires, id, iface);
+    for (const r of el.realization ?? []) later(REL.RealizesComponent, r.realizingClassifier, el["xmi:id"]);
+    for (const m of el.manifestation ?? []) later(REL.Manifests, id, m);
+    for (const n of el.nestedArtifact ?? []) later(REL.NestsArtifact, id, n);
+    (el.ownedReception ?? []).forEach((r, i) => {
+      const rid = add("Reception", r["xmi:id"], {
+        ...namedFields(r, r.name && qualified ? `${qualified}::${r.name}` : undefined),
+        ...(r.isStatic !== undefined ? { is_static: r.isStatic } : {}),
+      });
+      rel(REL.OwnsReception, id, rid, { position: i });
+      if (r.signal) receptionSignals.push({ from: rid, toXmi: r.signal });
     });
     (el.ownedLiteral ?? []).forEach((l, i) => {
       const lid = add("EnumerationLiteral", l["xmi:id"], {
@@ -555,6 +818,13 @@ export async function buildUmlWorkbook(
   }
 
   for (const edge of typeEdges) rel(REL.TypedBy, edge.from, idOf.get(edge.toXmi)!);
+  for (const edge of receptionSignals) rel(REL.Signals, edge.from, idOf.get(edge.toXmi)!);
+  for (const edge of deferred) {
+    // uml:RealizesComponent runs classifier → component, so its source is
+    // the realizing classifier's xmi:id rather than a primitive id.
+    const from = edge.type === REL.RealizesComponent ? idOf.get(edge.from)! : edge.from;
+    rel(edge.type, from, idOf.get(edge.toXmi)!);
+  }
   for (const emit of otherEdges) emit();
 
   await defineProject(host, {

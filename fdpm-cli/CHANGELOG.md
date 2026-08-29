@@ -23,6 +23,156 @@ upgrade.
 
 ### Added
 
+#### `fdpm.uml` 0.3.0 — components, ports and connectors (roadmap Phase 2)
+
+UML 2.5.1 StructuredClassifiers: the internal structure of a component,
+modelled as a graph rather than as fields.
+
+- Six metaclasses: **Component** (§11.6), **Port** (§11.3), **Connector**
+  and **ConnectorEnd** (§11.2), **Artifact** (§19.2) and
+  **AssociationClass** (§11.5). Profile grows 16 → 22 primitive types.
+- Ten edges: `uml:OwnsPort`, `uml:OwnsConnector`, `uml:OwnsConnectorEnd`,
+  `uml:ConnectorRole`, `uml:PartWithPort`, `uml:Provides`,
+  `uml:Requires`, `uml:RealizesComponent`, `uml:Manifests`,
+  `uml:NestsArtifact`. Profile grows 14 → 24 relation types.
+- `ComponentRealization` is a **relation**, not a primitive — the rule
+  Phase 1 set for `Dependency`, `Generalization` and
+  `InterfaceRealization`, asserted by test.
+- `uml:ConnectorRole` is one edge with two legal target types
+  (`uml:Property` or `uml:Port`), because in UML a port *is* a property
+  — the encapsulated kind.
+- Five existing edges were widened by naming the new types
+  (`uml:TypedBy` now accepts Port and Connector as sources;
+  `uml:MemberEnd` accepts AssociationClass; `uml:Realizes` and
+  `uml:OwnsReception` accept Component). A regression test asserts the
+  profile still contains **no wildcard endpoint anywhere**, and that a
+  port owned by an interface is still refused.
+- Ingest enforces UML's own rule that a connector joins **at least two
+  ends** (§11.2), that a connector end's role is a property or port, and
+  that provided/required name an interface — each with a message that
+  cites the clause.
+- The outline renderer prints the component contract, its ports with
+  provided/required interfaces, and each connector as the pair of roles
+  it joins.
+- **MCP:** `uml/model_a_domain` now teaches internal structure; its
+  drift test checks all 24 relation ids against the registered profile.
+- **Migration: none.** Purely additive — nothing renamed or removed, and
+  the Phase 0 library fixture ingests to the same 25 primitives and
+  validates 0/0/0 (asserted by regression test). Plugin 0.2.0 → 0.3.0.
+- 24 new tests (86 → 107 for the plugin); full suite 172 files / 1591
+  tests green.
+
+
+#### `fdpm.style` 0.1.0 — StyleDefinition 3.1.0 as a bridge-derived profile
+
+A visual style registry as a typed, event-sourced workbook.
+[`plugins/style/schemas/style.ts`](plugins/style/schemas/style.ts) is a
+**transcription**, not a copy, of `_ingest_bin/style-schema.ts` v3.1.0:
+the source is 3717 lines of type-level TypeScript — 36 `interface`s, 83
+`type` aliases, 30 smart constructors — and `@fdpm/zod-bridge` walks
+runtime Zod nodes, so nothing of the source survives erasure for the
+bridge to read.
+
+- **Fifteen entities as primitives** — `Style`, `Movement`, the ten
+  grammar sections (line, colour, form, space, surface, typography,
+  composition, contrast, iconography, motion), `Rule`,
+  `ComplianceCheck`, `CanonicalReference` — and **ten typed edges**
+  (`style:HasGrammar`, `style:DeclaresRule`, `style:DeclaresCheck`,
+  `style:TestsRule`, `style:CitesExemplar`, `style:HasReference`,
+  `style:BelongsToMovement`, `style:NegatesMovement`,
+  `style:InfluencesStyle`, `style:ParentMovement`). `HasGrammar` is
+  polymorphic over ten target types and `DeclaresRule` over ten *source*
+  types, which the sidecar's single-`target_type_id` `ReferenceSpec`
+  cannot express, so both are author-declared and merged by
+  `finalizeProfile`.
+- **A workbook is one `StyleRegistry`.** The source defines the registry
+  as the closed world for cross-document resolution; that is what a
+  workbook is. Every cross-reference is therefore a relation, and the §7
+  pipeline rejects a relation whose endpoint does not exist — the
+  registry's closed-world rule became an invariant of every write instead
+  of a function someone has to remember to call.
+- **Zero opaque fields.** The source carries 47 discriminated unions and
+  a `Record`-shaped token layer; both reach the host as opaque
+  `json-union` / `json-record` strings. Each union is flattened onto its
+  `kind` discriminant and each `Record` becomes a key-bearing entry list,
+  so all fifteen primitive types store typed, queryable values. Asserted
+  by test: the emitted profile contains no `json-union` and no
+  `json-record` field. Flattening widens the *storage* type, which is a
+  declared soundness loss closed by each entity's `superRefine`; every
+  entity is a `z.strictObject`, so an unknown field is a rejection rather
+  than the host's default `core:field:undeclared` warning.
+- **The 991-line cross-field validator is ported, split by scope.**
+  Invariants confined to one entity live in that entity's `superRefine`
+  and run on every host write. Those spanning entities — rule/check
+  weight alignment, defining-rule exemplar coverage, non-advisory check
+  coverage, rule-id namespace and P-form agreement, grammar↔token kind
+  agreement, the stroke-weight derivation, the WCAG contrast arithmetic,
+  forbidden-colour prohibition linkage, grammar-section completeness, the
+  movement forest — live in
+  [`plugins/style/invariants.ts`](plugins/style/invariants.ts), because a
+  `ValidatorFn` receives one instance and the relations, never the
+  sibling primitives. **Known gap, declared:** a workbook built by direct
+  primitive writes rather than through `buildStyleWorkbook()` is
+  field-valid but not invariant-checked until `validateStyleWorkbook()`
+  is run against it.
+- **Ingest** (`plugins/style/ingest.ts`) carries all five PALS's-LAW
+  controls: strict typed parse, referential validation of the closed
+  world, a `verification` `FDPMException` that writes nothing on failure,
+  a failure-path suite, and input-independent loop bounds.
+- **Renderer** `style:StyleOutlineRenderer` reassembles the graph the
+  ingest took apart into a reviewable document.
+- 123 tests; 95% statements / 80% branches over the plugin. Eight
+  declared losses are emitted into `generated/audit.json`.
+
+ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some form of error.
+Absence of output verification is a design defect, not a runtime bug.
+All LLM output must be treated as untrusted and validated explicitly.
+
+#### `fdpm.uml` 0.2.0 — abstract-metaclass policy, signals and receptions (roadmap Phase 1)
+
+The first of the eleven UML phases: the policy every later package
+profile inherits, plus the two concrete structural metaclasses the
+Foundation subset left behind.
+
+- **Abstract-metaclass policy.** UML 2.5.1 defines 26 of the source
+  library's 110 metaclasses as abstract — `Element`, `Classifier`,
+  `Feature`, `Vertex`, `ActivityNode` and their kind have no instances.
+  The library records that only in prose, so
+  [`plugins/uml/abstract.ts`](plugins/uml/abstract.ts) is the
+  machine-readable classification of all 110, each carrying the clause
+  the source cites. It is enforced at **activation**
+  (`assertNoAbstractPrimitiveTypes` refuses to serve a profile that
+  names one, listing every offender) and at **ingest** (a model whose
+  `xmi:type` is abstract is rejected with the concrete alternatives by
+  name, not a generic enum mismatch). Completeness is proved against a
+  pinned inventory of the source library with its sha256, so a
+  metaclass added upstream fails the suite until it is classified.
+- **`uml:Signal`** (§11.3) — a packageable classifier that may own
+  attributes, specialise another signal and type an element — and
+  **`uml:Reception`** (§11.4), joined by the new **`uml:OwnsReception`**
+  and **`uml:Signals`** edges. The outline renderer prints receptions in
+  UML's own notation (`` `«signal» OrderPlaced` ``).
+- `Dependency` and `InterfaceRealization`, the other concrete metaclasses
+  of these packages, remain **relations** (`uml:DependsOn`,
+  `uml:Realizes`) rather than primitives; modelling them twice would put
+  the same fact in two places. Asserted by test.
+- **MCP surface:** the plugin now ships the prompt
+  **`uml/model_a_domain`** (SPEC-MCP-SERVER §13.5) carrying what tool
+  descriptions cannot — which metaclass to reach for, how attributes,
+  operations, association ends and receptions are wired as relations,
+  that multiplicity is numeric (`-1`, never `"*"`), and which
+  metaclasses will be refused. `tests/plugins/uml/prompt.test.ts`
+  cross-checks every type and relation id in its body against the
+  registered profile, so it cannot drift from what it teaches.
+- Profile grows from 14 to 16 metaclasses and 12 to 14 relation types.
+  **Migration: none.** The change is additive — no field, type or
+  relation was renamed or removed, and existing `uml-library` workbooks
+  validate unchanged. Plugin version 0.1.0 → 0.2.0; the profile version
+  tracks the UML specification (2.5.1) and is unchanged.
+- 26 new tests (60 → 86 for the plugin); full suite 166 files / 1436
+  tests green.
+
+
 #### `fdpm.uml` — UML 2.5.1 Foundation subset as a bridge-derived profile
 
 Answers "can `schemas-lib/src/schemas/domains/uml` be mapped into an FDPM

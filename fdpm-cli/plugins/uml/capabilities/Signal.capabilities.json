@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "signalMarkdownRenderer",
+    "local_name": "uml-signal",
+    "metadata": {
+      "primitive_type_id": "uml:Signal",
+      "target": "text/markdown"
+    }
+  }
+}

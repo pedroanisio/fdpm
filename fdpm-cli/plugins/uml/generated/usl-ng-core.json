@@ -9,14 +9,32 @@
         "PrimitiveType",
         "Enumeration",
         "Association",
+        "AssociationClass",
+        "Signal",
+        "Component",
+        "Artifact",
         "Constraint"
       ],
       "root": "Package"
     },
     {
       "parts": [
+        "Port",
+        "Connector"
+      ],
+      "root": "Component"
+    },
+    {
+      "parts": [
+        "ConnectorEnd"
+      ],
+      "root": "Connector"
+    },
+    {
+      "parts": [
         "Property",
-        "Operation"
+        "Operation",
+        "Reception"
       ],
       "root": "Class"
     },
@@ -56,7 +74,7 @@
       "classification": "sound-but-not-complete",
       "feature": "uml.generalization-identity",
       "kind": "completeness-loss",
-      "reason": "Generalization, InterfaceRealization and Dependency are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn) carrying their attributes, so the relationship element's own identity and its comments are not preserved."
+      "reason": "Generalization, InterfaceRealization, Dependency and ComponentRealization are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn, uml:RealizesComponent) carrying their attributes, so the relationship element's own identity and its comments are not preserved."
     },
     {
       "classification": "sound-but-not-complete",
@@ -68,11 +86,19 @@
       "classification": "sound-but-not-complete",
       "feature": "uml.subset-scope",
       "kind": "completeness-loss",
-      "reason": "This profile realises the Foundation packages (CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers, Packages). StateMachines, Activities, Interactions, UseCases, Components, Deployments and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total."
+      "reason": "This profile realises the concrete structural metaclasses of CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers (including internal structure: ports, connectors and their ends) and part of Packages. StateMachines, Activities, Interactions, UseCases, Components and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total, of which 26 are abstract in UML 2.5.1 and are carried as shared field groups rather than types (plugins/uml/abstract.ts)."
     }
   ],
   "entities": {
+    "Artifact": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
     "Association": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "AssociationClass": {
       "idField": "xmi_id",
       "identityKind": "id-field"
     },
@@ -81,6 +107,18 @@
       "identityKind": "id-field"
     },
     "Comment": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Component": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Connector": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "ConnectorEnd": {
       "idField": "xmi_id",
       "identityKind": "id-field"
     },
@@ -120,11 +158,23 @@
       "idField": "xmi_id",
       "identityKind": "id-field"
     },
+    "Port": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
     "PrimitiveType": {
       "idField": "xmi_id",
       "identityKind": "id-field"
     },
     "Property": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Reception": {
+      "idField": "xmi_id",
+      "identityKind": "id-field"
+    },
+    "Signal": {
       "idField": "xmi_id",
       "identityKind": "id-field"
     }

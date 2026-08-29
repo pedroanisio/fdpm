@@ -7,7 +7,17 @@
   "classifications": [
     {
       "kind": "Entity",
+      "name": "Artifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
       "name": "Association",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "AssociationClass",
       "reason": "explicit-entities-list"
     },
     {
@@ -18,6 +28,21 @@
     {
       "kind": "Entity",
       "name": "Comment",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Component",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Connector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "ConnectorEnd",
       "reason": "explicit-entities-list"
     },
     {
@@ -67,12 +92,27 @@
     },
     {
       "kind": "Entity",
+      "name": "Port",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
       "name": "PrimitiveType",
       "reason": "explicit-entities-list"
     },
     {
       "kind": "Entity",
       "name": "Property",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Reception",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Signal",
       "reason": "explicit-entities-list"
     }
   ],
@@ -102,7 +142,7 @@
       "classification": "sound-but-not-complete",
       "feature": "uml.generalization-identity",
       "kind": "completeness-loss",
-      "reason": "Generalization, InterfaceRealization and Dependency are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn) carrying their attributes, so the relationship element's own identity and its comments are not preserved."
+      "reason": "Generalization, InterfaceRealization, Dependency and ComponentRealization are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn, uml:RealizesComponent) carrying their attributes, so the relationship element's own identity and its comments are not preserved."
     },
     {
       "classification": "sound-but-not-complete",
@@ -114,7 +154,7 @@
       "classification": "sound-but-not-complete",
       "feature": "uml.subset-scope",
       "kind": "completeness-loss",
-      "reason": "This profile realises the Foundation packages (CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers, Packages). StateMachines, Activities, Interactions, UseCases, Components, Deployments and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total."
+      "reason": "This profile realises the concrete structural metaclasses of CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers (including internal structure: ports, connectors and their ends) and part of Packages. StateMachines, Activities, Interactions, UseCases, Components and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total, of which 26 are abstract in UML 2.5.1 and are carried as shared field groups rather than types (plugins/uml/abstract.ts)."
     }
   ],
   "overrides": [],

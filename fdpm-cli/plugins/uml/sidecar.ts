@@ -24,7 +24,7 @@ import { Schemas, UmlId, UML_VERSION, DependencyKind } from "./schemas/uml-found
 
 export const PROFILE_ID = "profile:uml:2.5" as const;
 export const PLUGIN_ID = "fdpm.uml" as const;
-export const PLUGIN_VERSION = "0.1.0" as const;
+export const PLUGIN_VERSION = "0.3.0" as const;
 export const HOST_COMPATIBILITY = ">=1.2,<2" as const;
 export const VENDOR = "uml" as const;
 
@@ -50,6 +50,10 @@ export const CLASSIFIER_TYPES = [
   "uml:PrimitiveType",
   "uml:Enumeration",
   "uml:Association",
+  "uml:AssociationClass",
+  "uml:Signal",
+  "uml:Component",
+  "uml:Artifact",
 ] as const;
 
 /** PackageableElements a Package/Model may own (UML 2.5.1 §12.2.3). */
@@ -63,6 +67,9 @@ export const PACKAGEABLE_TYPES = [
 /** Everything — the target set for annotation, constraint and dependency. */
 export const ALL_TYPES = ENTITY_NAMES.map(primitiveTypeId);
 
+/** Classifiers with internal structure: they may own ports and connectors (§11.2). */
+export const STRUCTURED_TYPES = ["uml:Component", "uml:Class", "uml:AssociationClass"] as const;
+
 /** Feature owners: classifiers that may own attributes or operations. */
 export const FEATURE_OWNER_TYPES = [
   "uml:Class",
@@ -70,6 +77,10 @@ export const FEATURE_OWNER_TYPES = [
   "uml:DataType",
   "uml:PrimitiveType",
   "uml:Enumeration",
+  "uml:Signal",
+  "uml:Component",
+  "uml:Artifact",
+  "uml:AssociationClass",
 ] as const;
 
 export const REL = {
@@ -85,6 +96,18 @@ export const REL = {
   MemberEnd: "uml:MemberEnd",
   Annotates: "uml:Annotates",
   Constrains: "uml:Constrains",
+  OwnsReception: "uml:OwnsReception",
+  Signals: "uml:Signals",
+  OwnsPort: "uml:OwnsPort",
+  OwnsConnector: "uml:OwnsConnector",
+  OwnsConnectorEnd: "uml:OwnsConnectorEnd",
+  ConnectorRole: "uml:ConnectorRole",
+  PartWithPort: "uml:PartWithPort",
+  Provides: "uml:Provides",
+  Requires: "uml:Requires",
+  RealizesComponent: "uml:RealizesComponent",
+  Manifests: "uml:Manifests",
+  NestsArtifact: "uml:NestsArtifact",
 } as const;
 
 export type RelationName = keyof typeof REL;
@@ -206,7 +229,7 @@ export const RELATION_TYPES: readonly RelationTypeSpec[] = [
     id: REL.Realizes,
     name: "realizes",
     description: "InterfaceRealization (§10.4.4) — the classifier implements the interface's contract.",
-    source_types: ["uml:Class", "uml:DataType"],
+    source_types: ["uml:Class", "uml:DataType", "uml:Component", "uml:AssociationClass"],
     target_types: ["uml:Interface"],
     cardinality: "many-to-many",
     fields: [],
@@ -234,7 +257,7 @@ export const RELATION_TYPES: readonly RelationTypeSpec[] = [
     id: REL.TypedBy,
     name: "typed_by",
     description: "TypedElement::type (§7.7) — the classifier that types this property, parameter or result.",
-    source_types: ["uml:Property", "uml:Parameter", "uml:Operation"],
+    source_types: ["uml:Property", "uml:Parameter", "uml:Operation", "uml:Port", "uml:Connector"],
     target_types: CLASSIFIER_TYPES,
     cardinality: "many-to-one",
     fields: [],
@@ -244,7 +267,7 @@ export const RELATION_TYPES: readonly RelationTypeSpec[] = [
     name: "member_end",
     description:
       "Association::memberEnd (§11.5.3) — the two or more properties that are the association's ends.",
-    source_types: ["uml:Association"],
+    source_types: ["uml:Association", "uml:AssociationClass"],
     target_types: ["uml:Property"],
     cardinality: "one-to-many",
     fields: [
@@ -263,6 +286,134 @@ export const RELATION_TYPES: readonly RelationTypeSpec[] = [
         validations: [],
       },
     ],
+  },
+  {
+    id: REL.OwnsReception,
+    name: "owns_reception",
+    description:
+      "Class::ownedReception (§11.4) — the receptions declaring which signals the classifier reacts to.",
+    source_types: ["uml:Class", "uml:Interface", "uml:Component"],
+    target_types: ["uml:Reception"],
+    cardinality: "one-to-many",
+    fields: [
+      {
+        name: "position",
+        kind: "integer",
+        required: false,
+        description: "0-based declaration order inside the owner.",
+        validations: [],
+      },
+    ],
+  },
+  {
+    id: REL.Signals,
+    name: "signals",
+    description: "Reception::signal (§11.4) — the signal the reception reacts to.",
+    source_types: ["uml:Reception"],
+    target_types: ["uml:Signal"],
+    cardinality: "many-to-one",
+    fields: [],
+  },
+  {
+    id: REL.OwnsPort,
+    name: "owns_port",
+    description:
+      "EncapsulatedClassifier::ownedPort (§11.3) — the interaction points on the classifier's boundary. A port is an owned attribute of a particular kind, so it is listed here rather than under uml:OwnsAttribute.",
+    source_types: STRUCTURED_TYPES,
+    target_types: ["uml:Port"],
+    cardinality: "one-to-many",
+    fields: [
+      { name: "position", kind: "integer", required: false, description: "0-based declaration order.", validations: [] },
+    ],
+  },
+  {
+    id: REL.OwnsConnector,
+    name: "owns_connector",
+    description: "StructuredClassifier::ownedConnector (§11.2) — the links between the classifier's parts and ports.",
+    source_types: STRUCTURED_TYPES,
+    target_types: ["uml:Connector"],
+    cardinality: "one-to-many",
+    fields: [
+      { name: "position", kind: "integer", required: false, description: "0-based declaration order.", validations: [] },
+    ],
+  },
+  {
+    id: REL.OwnsConnectorEnd,
+    name: "owns_connector_end",
+    description: "Connector::end (§11.2) — the two or more endpoints the connector joins, in order.",
+    source_types: ["uml:Connector"],
+    target_types: ["uml:ConnectorEnd"],
+    cardinality: "one-to-many",
+    fields: [
+      { name: "position", kind: "integer", required: false, description: "0-based end order.", validations: [] },
+    ],
+  },
+  {
+    id: REL.ConnectorRole,
+    name: "connector_role",
+    description:
+      "ConnectorEnd::role (§11.2) — the part or port this end attaches to. Both are properties in UML; a port is the encapsulated kind.",
+    source_types: ["uml:ConnectorEnd"],
+    target_types: ["uml:Property", "uml:Port"],
+    cardinality: "many-to-one",
+    fields: [],
+  },
+  {
+    id: REL.PartWithPort,
+    name: "part_with_port",
+    description:
+      "ConnectorEnd::partWithPort (§11.2) — when the role is a port, the containing part whose port it is.",
+    source_types: ["uml:ConnectorEnd"],
+    target_types: ["uml:Property"],
+    cardinality: "many-to-one",
+    fields: [],
+  },
+  {
+    id: REL.Provides,
+    name: "provides",
+    description:
+      "The interfaces a port or component offers to its environment (§11.3, §11.6). Derived in UML from the realizations of the port's type; stored here because it is the contract a reader needs.",
+    source_types: ["uml:Port", "uml:Component"],
+    target_types: ["uml:Interface"],
+    cardinality: "many-to-many",
+    fields: [],
+  },
+  {
+    id: REL.Requires,
+    name: "requires",
+    description: "The interfaces a port or component needs from its environment (§11.3, §11.6).",
+    source_types: ["uml:Port", "uml:Component"],
+    target_types: ["uml:Interface"],
+    cardinality: "many-to-many",
+    fields: [],
+  },
+  {
+    id: REL.RealizesComponent,
+    name: "realizes_component",
+    description:
+      "ComponentRealization (§11.6): the classifier implements the component's contract. Modelled as an edge, like the other DirectedRelationships — the realization element's own identity is not preserved (see declaredLoss).",
+    source_types: ["uml:Class", "uml:Component", "uml:DataType", "uml:AssociationClass"],
+    target_types: ["uml:Component"],
+    cardinality: "many-to-many",
+    fields: [],
+  },
+  {
+    id: REL.Manifests,
+    name: "manifests",
+    description: "Artifact::manifestation (§19.2) — the model elements this physical artifact embodies.",
+    source_types: ["uml:Artifact"],
+    target_types: ["uml:Component", "uml:Class", "uml:Interface", "uml:Package", "uml:Signal", "uml:Enumeration", "uml:DataType", "uml:AssociationClass"],
+    cardinality: "many-to-many",
+    fields: [],
+  },
+  {
+    id: REL.NestsArtifact,
+    name: "nests_artifact",
+    description: "Artifact::nestedArtifact (§19.2) — artifacts contained inside this one.",
+    source_types: ["uml:Artifact"],
+    target_types: ["uml:Artifact"],
+    cardinality: "one-to-many",
+    fields: [],
   },
   {
     id: REL.Annotates,
@@ -287,7 +438,7 @@ export const RELATION_TYPES: readonly RelationTypeSpec[] = [
 export const PROFILE_NAME = "UML" as const;
 export const PROFILE_LABEL = "UML 2.5.1 (Foundation subset)" as const;
 export const PROFILE_DESCRIPTION =
-  "Bridge-generated from schemas/uml-foundation.ts — a normalisation of schemas-lib src/schemas/domains/uml (UML 2.5.1). Fourteen metaclasses as primitives (Package, Model, Class, Interface, DataType, PrimitiveType, Enumeration, EnumerationLiteral, Property, Operation, Parameter, Association, Constraint, Comment) and twelve typed edges for ownership, typing, generalisation, realisation, dependency, association ends, annotation and constraint." as const;
+  "Bridge-generated from schemas/uml-foundation.ts — a normalisation of schemas-lib src/schemas/domains/uml (UML 2.5.1). Twenty-two metaclasses as primitives (Package, Model, Class, Interface, DataType, PrimitiveType, Enumeration, EnumerationLiteral, Property, Operation, Parameter, Association, AssociationClass, Component, Port, Connector, ConnectorEnd, Artifact, Signal, Reception, Constraint, Comment) and twenty-four typed edges for ownership, typing, generalisation, realisation, dependency, association ends, annotation and constraint." as const;
 
 /**
  * The bridge emits id / primitive_types / relation_types (+ extras). This
@@ -328,6 +479,14 @@ const DOC: Record<EntityName, string> = {
   Operation: "A behavioral feature invocable on its classifier (§9.6).",
   Parameter: "One argument slot of an operation's signature (§9.4).",
   Association: "A classifier of links between typed instances; its ends are Properties (§11.5).",
+  Signal: "A classifier whose instances are asynchronous communications; its attributes are the payload (§11.3).",
+  Component: "A modular part of a system whose contents are replaceable in its environment (§11.6).",
+  Port: "An interaction point on a classifier's boundary, typed and carrying its own contract (§11.3).",
+  Connector: "A link between roles in a classifier's internal structure (§11.2).",
+  ConnectorEnd: "One endpoint of a connector, attached to the part or port it connects (§11.2).",
+  Artifact: "A physical piece of information produced or used by a development process (§19.2).",
+  AssociationClass: "Both an Association and a Class: its links carry their own features (§11.5).",
+  Reception: "A declaration that a classifier reacts to a signal (§11.4); the signal is joined by uml:Signals.",
   Constraint: "A condition the constrained elements must satisfy (§7.6).",
   Comment: "A textual annotation carrying no semantics (§7.3).",
 };
@@ -352,12 +511,22 @@ export function buildUmlSidecar() {
     aggregates: [
       {
         root: "Package",
-        parts: ["Class", "Interface", "DataType", "PrimitiveType", "Enumeration", "Association", "Constraint"],
+        parts: ["Class", "Interface", "DataType", "PrimitiveType", "Enumeration", "Association", "AssociationClass", "Signal", "Component", "Artifact", "Constraint"],
         doc: "A package owns its packaged elements; deleting the package deletes them.",
       },
       {
+        root: "Component",
+        parts: ["Port", "Connector"],
+        doc: "A structured classifier owns its ports and connectors.",
+      },
+      {
+        root: "Connector",
+        parts: ["ConnectorEnd"],
+        doc: "A connector owns its ends.",
+      },
+      {
         root: "Class",
-        parts: ["Property", "Operation"],
+        parts: ["Property", "Operation", "Reception"],
         doc: "A classifier owns its features; deleting the classifier deletes them.",
       },
       {
@@ -398,7 +567,7 @@ export function buildUmlSidecar() {
         kind: "completeness-loss",
         classification: "sound-but-not-complete",
         reason:
-          "Generalization, InterfaceRealization and Dependency are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn) carrying their attributes, so the relationship element's own identity and its comments are not preserved.",
+          "Generalization, InterfaceRealization, Dependency and ComponentRealization are Elements with their own xmi:id in UML. They are modelled as relations (uml:Specializes, uml:Realizes, uml:DependsOn, uml:RealizesComponent) carrying their attributes, so the relationship element's own identity and its comments are not preserved.",
       },
       {
         feature: "uml.derived-unions",
@@ -412,7 +581,7 @@ export function buildUmlSidecar() {
         kind: "completeness-loss",
         classification: "sound-but-not-complete",
         reason:
-          "This profile realises the Foundation packages (CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers, Packages). StateMachines, Activities, Interactions, UseCases, Components, Deployments and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total.",
+          "This profile realises the concrete structural metaclasses of CommonStructure, Classification, SimpleClassifiers, StructuredClassifiers (including internal structure: ports, connectors and their ends) and part of Packages. StateMachines, Activities, Interactions, UseCases, Components and Profiles/Stereotypes are out of scope; the source library carries 110 metaclasses in total, of which 26 are abstract in UML 2.5.1 and are carried as shared field groups rather than types (plugins/uml/abstract.ts).",
       },
     ],
     fdpm: {

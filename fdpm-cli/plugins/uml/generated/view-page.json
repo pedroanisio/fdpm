@@ -853,6 +853,535 @@
           "visual_hint": "enum-dropdown"
         },
         {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_active",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:AssociationClass",
+      "title": "AssociationClass"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_active",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_indirectly_instantiated",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:Component",
+      "title": "Component"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "lower",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "upper",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "none",
+            "shared",
+            "composite"
+          ],
+          "kind": "enum",
+          "name": "aggregation",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_read_only",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_derived",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_behavior",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_conjugated",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_service",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "default_value",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:Port",
+      "title": "Port"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "assembly",
+            "delegation"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:Connector",
+      "title": "Connector"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_ordered",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_unique",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "lower",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "upper",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:ConnectorEnd",
+      "title": "ConnectorEnd"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "file_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:Artifact",
+      "title": "Artifact"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_abstract",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_final_specialization",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_leaf",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:Signal",
+      "title": "Signal"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "is_static",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "uml:Reception",
+      "title": "Reception"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "xmi_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "xmi_type",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "qualified_name",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "public",
+            "private",
+            "protected",
+            "package"
+          ],
+          "kind": "enum",
+          "name": "visibility",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
           "kind": "struct",
           "name": "specification",
           "required": true

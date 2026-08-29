@@ -108,10 +108,32 @@ export function renderModelOutline(input: RendererInput): RendererOutput {
     const attrs = ordered(targetsOf(REL.OwnsAttribute, owner.id)).filter((r) => !asEnd.has(r.target_id));
     const ops = ordered(targetsOf(REL.OwnsOperation, owner.id));
     const literals = ordered(targetsOf(REL.OwnsLiteral, owner.id));
+    const receptions = ordered(targetsOf(REL.OwnsReception, owner.id));
+    const ports = ordered(targetsOf(REL.OwnsPort, owner.id));
 
     for (const edge of literals) {
       const lit = byId.get(edge.target_id);
       if (lit) lines.push(`${pad}- \`${displayName(lit)}\``);
+    }
+    // A port is an attribute on the classifier's boundary: type first,
+    // then the contract it publishes (§11.3).
+    for (const edge of ports) {
+      const pt = byId.get(edge.target_id);
+      if (!pt) continue;
+      const t = typeName(pt.id);
+      const provided = targetsOf(REL.Provides, pt.id).map((r) => displayName(byId.get(r.target_id)));
+      const required = targetsOf(REL.Requires, pt.id).map((r) => displayName(byId.get(r.target_id)));
+      const marks = [
+        bool(pt, "is_conjugated") ? "conjugated" : "",
+        bool(pt, "is_behavior") ? "behavior" : "",
+        pt.field_values["is_service"] === false ? "not a service" : "",
+      ].filter((m) => m !== "");
+      lines.push(
+        `${pad}- \`«port» ${displayName(pt)}${t ? ` : ${t}` : ""}${multiplicity(pt)}\`` +
+          (provided.length ? ` — provides: ${provided.join(", ")}` : "") +
+          (required.length ? `${provided.length ? ";" : " —"} requires: ${required.join(", ")}` : "") +
+          (marks.length ? ` _{${marks.join(", ")}}_` : ""),
+      );
     }
     for (const edge of attrs) {
       const a = byId.get(edge.target_id);
@@ -129,6 +151,19 @@ export function renderModelOutline(input: RendererInput): RendererOutput {
         `${pad}- \`${VIS[fv(a, "visibility")] ?? "+"} ${displayName(a)}${t ? ` : ${t}` : ""}${multiplicity(a)}\`` +
           (dflt?.body ? ` = \`${dflt.body}\`` : "") +
           (marks.length ? ` _{${marks.join(", ")}}_` : ""),
+      );
+    }
+    // UML prints a reception as a «signal»-stereotyped feature naming the
+    // signal it reacts to (§11.4).
+    for (const edge of receptions) {
+      const r = byId.get(edge.target_id);
+      if (!r) continue;
+      const sig = targetsOf(REL.Signals, r.id)[0];
+      const sigName = sig ? displayName(byId.get(sig.target_id)) : "";
+      lines.push(
+        `${pad}- \`«signal» ${displayName(r)}\`` +
+          (sigName && sigName !== displayName(r) ? ` → ${sigName}` : "") +
+          (bool(r, "is_static") ? " _{static}_" : ""),
       );
     }
     for (const edge of ops) {
@@ -210,7 +245,36 @@ export function renderModelOutline(input: RendererInput): RendererOutput {
         );
       }
     }
+    const provided = targetsOf(REL.Provides, p.id).map((r) => displayName(byId.get(r.target_id)));
+    const required = targetsOf(REL.Requires, p.id).map((r) => displayName(byId.get(r.target_id)));
+    if (provided.length > 0) lines.push(`_provides:_ ${provided.join(", ")}  `);
+    if (required.length > 0) lines.push(`_requires:_ ${required.join(", ")}  `);
+    const realizedBy = sourcesOf(REL.RealizesComponent, p.id).map((r) => displayName(byId.get(r.source_id)));
+    if (realizedBy.length > 0) lines.push(`_realized by:_ ${realizedBy.join(", ")}  `);
+    const manifests = targetsOf(REL.Manifests, p.id).map((r) => displayName(byId.get(r.target_id)));
+    if (manifests.length > 0) lines.push(`_manifests:_ ${manifests.join(", ")}  `);
+    const fileName = fv(p, "file_name");
+    if (fileName !== "") lines.push(`_file:_ \`${fileName}\`  `);
+
     renderFeatures(p, 0);
+
+    // Connectors: each reads as the pair of roles it joins (§11.2).
+    for (const edge of ordered(targetsOf(REL.OwnsConnector, p.id))) {
+      const conn = byId.get(edge.target_id);
+      if (!conn) continue;
+      const ends = ordered(targetsOf(REL.OwnsConnectorEnd, conn.id)).map((e) => {
+        const end = byId.get(e.target_id);
+        if (!end) return "?";
+        const role = targetsOf(REL.ConnectorRole, end.id)[0];
+        const part = targetsOf(REL.PartWithPort, end.id)[0];
+        const roleName = role ? displayName(byId.get(role.target_id)) : "?";
+        const partName = part ? displayName(byId.get(part.target_id)) : "";
+        return `${partName ? `${partName}.` : ""}${roleName}${multiplicity(end)}`;
+      });
+      lines.push(
+        `- \`«connector» ${displayName(conn)}\` (${fv(conn, "kind") || "assembly"}): ${ends.join(" ↔ ")}`,
+      );
+    }
 
     const children = targetsOf(REL.Owns, p.id)
       .map((r) => byId.get(r.target_id))

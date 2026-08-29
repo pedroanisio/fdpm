@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "artifactMarkdownRenderer",
+    "local_name": "uml-artifact",
+    "metadata": {
+      "primitive_type_id": "uml:Artifact",
+      "target": "text/markdown"
+    }
+  }
+}

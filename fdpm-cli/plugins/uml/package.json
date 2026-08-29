@@ -1,6 +1,6 @@
 {
   "name": "@fdpm-plugins/uml",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "UML 2.5.1 Foundation subset — derived from schemas-lib src/schemas/domains/uml via @fdpm/zod-bridge.",
