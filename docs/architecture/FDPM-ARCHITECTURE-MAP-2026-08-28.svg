@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 820" width="1260" height="820" role="img" aria-label="FDPM architecture map: five fronts feed one Host whose write path is verification gate, validation pipeline, Store.append, projection; plugins contribute profiles and validators; the JSONL log on disk is the source of truth and its stat tuple is the cross-process change signal. Tension hotspots T1, T2, T3, T5, T6 and invariants I1, I2, I3, I9, I13 are marked.">
+  <style>
+    svg { font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: #1a2129; background: #f4f6f8; }
+    .bg { fill: #f4f6f8; }
+    .box { stroke-width: 1.2; }
+    .n-domain { fill: #d9e7f7; stroke: #2a4b8d; }
+    .n-control { fill: #dff0e4; stroke: #2e7d4f; }
+    .n-platform { fill: #f6e8cc; stroke: #a8701c; }
+    .n-integration { fill: #e9def3; stroke: #6b4a9e; }
+    .region { fill: none; stroke: #c9d2db; stroke-width: 1; }
+    .region-title { font-size: 12px; font-weight: 600; fill: #5b6873; letter-spacing: 0.02em; }
+    .title { font-size: 12.5px; font-weight: 600; fill: currentColor; }
+    .sub { font-size: 11px; fill: #5b6873; }
+    .edge { stroke: currentColor; fill: none; stroke-width: 1.3; }
+    .dash { stroke-dasharray: 5 4; }
+    .lbl { font-size: 10.5px; fill: #5b6873; }
+    .tension { fill: none; stroke: #b23a3a; stroke-dasharray: 6 4; stroke-width: 1.4; }
+    .ttag { font-size: 10.5px; font-weight: 600; fill: #b23a3a; }
+    .badge { fill: #ffffff; stroke: #2a4b8d; stroke-width: 1; }
+    .badge-t { font-size: 10px; font-weight: 600; fill: #2a4b8d; }
+  </style>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1260" height="820"/>
+
+  <!-- ===== Fronts ===== -->
+  <text class="region-title" x="40" y="122">Fronts (integration)</text>
+  <g>
+    <rect class="box n-integration" x="40" y="130" width="250" height="52" rx="4"/>
+    <text class="title" x="52" y="150">CLI one-shot — fdpm</text>
+    <text class="sub" x="52" y="168">Commander tree · 20 subcommands</text>
+  </g>
+  <g>
+    <rect class="box n-integration" x="40" y="205" width="250" height="52" rx="4"/>
+    <text class="title" x="52" y="225">REPL — fdpm repl</text>
+    <text class="sub" x="52" y="243">same tree per line · NDJSON out</text>
+  </g>
+  <g>
+    <rect class="box n-integration" x="40" y="280" width="250" height="76" rx="4"/>
+    <text class="title" x="52" y="300">MCP server — fdpm-mcp (stdio)</text>
+    <text class="sub" x="52" y="317">30 tools · 3 tiers · rate limit · audit</text>
+    <text class="sub" x="52" y="334">resources: render · profile</text>
+    <rect class="badge" x="150" y="346" width="134" height="18" rx="9"/>
+    <text class="badge-t" x="217" y="359" text-anchor="middle">I9 · classification gate</text>
+  </g>
+  <g>
+    <rect class="box n-integration" x="40" y="385" width="250" height="52" rx="4"/>
+    <text class="title" x="52" y="405">Web bridge (web/server)</text>
+    <text class="sub" x="52" y="423">spawns fdpm --json per request</text>
+  </g>
+  <g>
+    <rect class="box n-integration" x="40" y="460" width="250" height="52" rx="4"/>
+    <text class="title" x="52" y="480">SDK · spec-build scripts</text>
+    <text class="sub" x="52" y="498">defineProject · commit · render</text>
+  </g>
+  <!-- bus -->
+  <path class="edge" d="M290 156 H318 M290 231 H318 M290 318 H318 M290 486 H318"/>
+  <path class="edge" d="M320 156 V486"/>
+  <path class="edge" d="M320 166 H366" marker-end="url(#arr)"/>
+  <text class="lbl" x="343" y="160" text-anchor="middle">Host.* calls</text>
+  <path class="edge" d="M40 411 C10 411 10 156 36 156" marker-end="url(#arr)"/>
+  <text class="lbl" transform="translate(16 290) rotate(-90)" text-anchor="middle">spawn fdpm --json</text>
+  <!-- T1 -->
+  <rect class="tension" x="32" y="272" width="266" height="92" rx="5"/>
+  <text class="ttag" x="40" y="268">T1 · generic CRUD; verbs, prompts absent</text>
+
+  <!-- ===== Host ===== -->
+  <rect class="region" x="340" y="100" width="500" height="520" rx="6"/>
+  <text class="region-title" x="352" y="122">Host — composition root</text>
+  <text class="ttag" x="828" y="122" text-anchor="end">T6 · internals are public fields</text>
+
+  <g>
+    <rect class="box n-control" x="370" y="140" width="300" height="52" rx="4"/>
+    <text class="title" x="382" y="160">Verification gate (§8)</text>
+    <text class="sub" x="382" y="178">payload schema per kind · closed set of 23</text>
+    <rect class="badge" x="548" y="182" width="116" height="18" rx="9"/>
+    <text class="badge-t" x="606" y="195" text-anchor="middle">I1 · closed kinds</text>
+  </g>
+  <g>
+    <rect class="box n-control" x="370" y="230" width="300" height="52" rx="4"/>
+    <text class="title" x="382" y="250">Validation pipeline (§7)</text>
+    <text class="sub" x="382" y="268">7 steps · CEL rules · plugin validators</text>
+    <rect class="badge" x="520" y="272" width="144" height="18" rx="9"/>
+    <text class="badge-t" x="592" y="285" text-anchor="middle">I2 · validate before append</text>
+  </g>
+  <g>
+    <rect class="box n-control" x="370" y="320" width="300" height="52" rx="4"/>
+    <text class="title" x="382" y="340">Store.append (§6)</text>
+    <text class="sub" x="382" y="358">revision · try-apply / rollback · snapshot</text>
+  </g>
+  <g>
+    <rect class="box n-control" x="370" y="410" width="300" height="52" rx="4"/>
+    <text class="title" x="382" y="430">Projection — StoreState</text>
+    <text class="sub" x="382" y="448">replay(log): pure, Core-owned, no plugins</text>
+    <rect class="badge" x="548" y="452" width="116" height="18" rx="9"/>
+    <text class="badge-t" x="606" y="465" text-anchor="middle">I3 · replay is pure</text>
+  </g>
+  <g>
+    <rect class="box n-domain" x="370" y="500" width="150" height="44" rx="4"/>
+    <text class="title" x="382" y="518">Workbook · Primitive</text>
+    <text class="sub" x="382" y="534">Relation · uid_index</text>
+  </g>
+  <g>
+    <rect class="box n-platform" x="700" y="230" width="120" height="52" rx="4"/>
+    <text class="title" x="710" y="250">ProfileRegistry</text>
+    <text class="sub" x="710" y="268">compile · extends</text>
+  </g>
+  <path class="edge" d="M520 192 V228" marker-end="url(#arr)"/>
+  <text class="lbl" x="527" y="214">payload ok</text>
+  <path class="edge" d="M520 282 V318" marker-end="url(#arr)"/>
+  <text class="lbl" x="527" y="304">report.accepted</text>
+  <path class="edge" d="M520 372 V408" marker-end="url(#arr)"/>
+  <text class="lbl" x="527" y="394">applyOperation</text>
+  <path class="edge" d="M445 462 V498" marker-end="url(#arr)"/>
+  <text class="lbl" x="452" y="484">sliceProject</text>
+  <path class="edge" d="M700 256 H672" marker-end="url(#arr)"/>
+  <!-- T2 -->
+  <rect class="tension" x="692" y="222" width="136" height="68" rx="5"/>
+  <text class="ttag" x="694" y="218">T2 · silent shadowing</text>
+
+  <!-- ===== Plugins ===== -->
+  <rect class="region" x="880" y="100" width="350" height="560" rx="6"/>
+  <text class="region-title" x="892" y="122">Plugins (src/plugin · plugins/)</text>
+  <g>
+    <rect class="box n-platform" x="900" y="140" width="310" height="60" rx="4"/>
+    <text class="title" x="912" y="158">PluginRuntime</text>
+    <text class="sub" x="912" y="174">discover → verify → activate</text>
+    <text class="sub" x="912" y="190">throw ⇒ quarantine; host stays up</text>
+  </g>
+  <g>
+    <rect class="box n-platform" x="900" y="222" width="310" height="44" rx="4"/>
+    <text class="title" x="912" y="240">PluginContext</text>
+    <text class="sub" x="912" y="256">capability + permission gates</text>
+  </g>
+  <g>
+    <rect class="box n-platform" x="900" y="290" width="310" height="64" rx="4"/>
+    <text class="title" x="912" y="308">Contributions (revocable)</text>
+    <text class="sub" x="912" y="324">profile · validators · renderers</text>
+    <text class="sub" x="912" y="340">expr-helpers · importers · exporters</text>
+  </g>
+  <g>
+    <rect class="box n-platform" x="900" y="400" width="310" height="52" rx="4"/>
+    <text class="title" x="912" y="420">14 in-tree plugins</text>
+    <text class="sub" x="912" y="438">path under plugins/ ⇒ core trust</text>
+  </g>
+  <g>
+    <rect class="box n-platform" x="900" y="490" width="310" height="60" rx="4"/>
+    <text class="title" x="912" y="508">zod-bridge (packages/)</text>
+    <text class="sub" x="912" y="524">Zod + sidecar → generated/*</text>
+    <text class="sub" x="912" y="540">4 plugins · 2 CI drift-gated</text>
+  </g>
+  <g>
+    <rect class="box n-platform" x="900" y="580" width="310" height="52" rx="4"/>
+    <text class="title" x="912" y="600">software_requirements</text>
+    <text class="sub" x="912" y="618">profile.json hand-assembled · no generator</text>
+  </g>
+  <path class="edge" d="M1055 200 V220" marker-end="url(#arr)"/>
+  <text class="lbl" x="1062" y="214">activate(ctx)</text>
+  <path class="edge" d="M1055 266 V288" marker-end="url(#arr)"/>
+  <text class="lbl" x="1062" y="282">register*</text>
+  <path class="edge" d="M1055 490 V454" marker-end="url(#arr)"/>
+  <text class="lbl" x="1062" y="476">emits</text>
+  <path class="edge dash" d="M900 606 H890 V426 H898" marker-end="url(#arr)"/>
+  <text class="lbl" transform="translate(884 520) rotate(-90)" text-anchor="middle">hand-edited in tandem</text>
+  <path class="edge" d="M1210 426 H1222 V170 H1212" marker-end="url(#arr)"/>
+  <text class="lbl" transform="translate(1230 300) rotate(-90)" text-anchor="middle">fdpm-plugin.json</text>
+  <path class="edge" d="M900 322 L822 258" marker-end="url(#arr)"/>
+  <text class="lbl" x="830" y="250">registerProfile</text>
+  <path class="edge" d="M900 340 H860 V300 H640 V284" marker-end="url(#arr)"/>
+  <text class="lbl" x="750" y="313" text-anchor="middle">validator fn — scoped to own profiles</text>
+  <!-- T3 -->
+  <rect class="tension" x="892" y="480" width="326" height="160" rx="5"/>
+  <text class="ttag" x="894" y="476">T3 · two provenance regimes</text>
+
+  <!-- ===== Disk ===== -->
+  <rect class="region" x="340" y="650" width="500" height="110" rx="6"/>
+  <text class="region-title" x="828" y="668" text-anchor="end">On disk — $FDPM_DATA_DIR</text>
+  <g>
+    <rect class="box n-platform" x="370" y="680" width="260" height="56" rx="4"/>
+    <text class="title" x="382" y="700">workbooks/&lt;id&gt;/log.jsonl</text>
+    <text class="sub" x="382" y="718">append-only · no lock · one line per op</text>
+    <rect class="badge" x="470" y="726" width="150" height="18" rx="9"/>
+    <text class="badge-t" x="545" y="739" text-anchor="middle">I13 · freshness gate</text>
+  </g>
+  <g>
+    <rect class="box n-platform" x="660" y="680" width="160" height="56" rx="4"/>
+    <text class="title" x="672" y="700">profiles/*.json</text>
+    <text class="sub" x="672" y="718">operator-persisted</text>
+  </g>
+  <path class="edge" d="M370 346 H356 V708 H368" marker-end="url(#arr)"/>
+  <text class="lbl" transform="translate(351 540) rotate(-90)" text-anchor="middle">appendOp — 1 JSONL line</text>
+  <path class="edge" d="M600 680 V464" marker-end="url(#arr)"/>
+  <text class="lbl" x="608" y="600">replay at load · tail-replay on drift</text>
+  <path class="edge dash" d="M800 680 V284" marker-end="url(#arr)"/>
+  <text class="lbl" transform="translate(795 480) rotate(-90)" text-anchor="middle">loaded first · wins id collision</text>
+  <path class="edge dash" d="M165 356 V748 H500 V738" marker-end="url(#arr)"/>
+  <text class="lbl" x="172" y="741">stat (mtime_ns, size) before every REPL / MCP call</text>
+  <!-- T5 -->
+  <rect class="tension" x="362" y="672" width="276" height="72" rx="5"/>
+  <text class="ttag" x="364" y="668">T5 · detection, not exclusion</text>
+
+  <!-- ===== Legend ===== -->
+  <g>
+    <rect class="box n-domain" x="40" y="786" width="14" height="14" rx="2"/><text class="lbl" x="60" y="797">domain</text>
+    <rect class="box n-control" x="150" y="786" width="14" height="14" rx="2"/><text class="lbl" x="170" y="797">control</text>
+    <rect class="box n-platform" x="260" y="786" width="14" height="14" rx="2"/><text class="lbl" x="280" y="797">platform</text>
+    <rect class="box n-integration" x="380" y="786" width="14" height="14" rx="2"/><text class="lbl" x="400" y="797">integration</text>
+    <rect class="tension" x="520" y="786" width="14" height="14" rx="2"/><text class="lbl" x="540" y="797">tension hotspot</text>
+    <rect class="badge" x="660" y="786" width="30" height="14" rx="7"/><text class="lbl" x="696" y="797">executable invariant</text>
+    <path class="edge dash" d="M840 793 H880" marker-end="url(#arr)"/><text class="lbl" x="888" y="797">out-of-band / detection</text>
+    <path class="edge" d="M1040 793 H1080" marker-end="url(#arr)"/><text class="lbl" x="1088" y="797">data flow</text>
+  </g>
+</svg>
