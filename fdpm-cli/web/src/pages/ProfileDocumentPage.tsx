@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import type { ProfileDetail } from "../types";
 import { ProfileDocument } from "../print/ProfileDocument";
 import { buildProfileDocumentModel, documentTitle } from "../print/profileDocument";
+import { DetailSkeleton, ErrorState } from "../components/AsyncState";
 
 interface Props {
   id: string;
@@ -21,14 +22,16 @@ export function ProfileDocumentPage({ id }: Props) {
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setProfile(null);
     setError(null);
-    api
+    void api
       .getProfile(id)
       .then(setProfile)
       .catch((e: Error) => setError(e.message));
   }, [id]);
+
+  useEffect(load, [load]);
 
   // Set the document title while this page is mounted so the browser's
   // "Save as PDF" dialog suggests a meaningful filename; restore on unmount.
@@ -48,15 +51,15 @@ export function ProfileDocumentPage({ id }: Props) {
 
   if (error) {
     return (
-      <div className="error">
-        <a href={`#/profile/${encodeURIComponent(id)}`} className="back">
-          ← Profile
-        </a>
-        <strong>Failed to load profile {id}:</strong> {error}
-      </div>
+      <ErrorState
+        title="Profile document could not be loaded"
+        error={error}
+        onRetry={load}
+        context={<a href={`#/profile/${encodeURIComponent(id)}`} className="back">← Profile</a>}
+      />
     );
   }
-  if (!model) return <div className="loading">Loading {id}…</div>;
+  if (!model) return <DetailSkeleton label={`profile document ${id}`} />;
 
   return (
     <div className="doc-page">

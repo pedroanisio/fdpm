@@ -8,8 +8,8 @@ interface Props {
 export function WorkbookList({ workbooks, onSelect }: Props) {
   if (workbooks.length === 0) {
     return (
-      <div className="empty">
-        No workbooks found. Create one with <code>fdpm workbook create</code>.
+      <div className="empty compact-empty">
+        <strong>No workbooks yet.</strong> Create the first one with <code>fdpm workbook create</code>.
       </div>
     );
   }
@@ -17,7 +17,11 @@ export function WorkbookList({ workbooks, onSelect }: Props) {
     <ul className="workbook-list">
       {workbooks.map((w) => (
         <li key={w.id}>
-          <button className="workbook-card" onClick={() => onSelect(w.id)}>
+          <button
+            className="workbook-card"
+            onClick={() => onSelect(w.id)}
+            aria-label={`Open ${w.name}, ${w.profile_id}, revision ${w.revision}`}
+          >
             <div className="workbook-card-name">{w.name}</div>
             <div className="workbook-card-meta">
               <code>{w.id}</code>

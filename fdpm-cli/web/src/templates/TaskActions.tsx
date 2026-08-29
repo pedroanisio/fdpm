@@ -15,7 +15,7 @@
  * The strict-by-default rules in the planning SDK still fire on the
  * server. The client-side gate is a UX nicety, not a security check.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type SyntheticEvent } from "react";
 import { api, type PlanningVerb } from "../api";
 import type { Primitive, Relation, WorkbookDetailResponse } from "../types";
 
@@ -111,6 +111,9 @@ export function TaskActions({ task, data, onRefresh }: Props) {
   const [pending, setPending] = useState<Verb | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const dialogTitleId = `task-actions-dialog-${task.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
   // Close menu on outside click.
   useEffect(() => {
@@ -120,6 +123,11 @@ export function TaskActions({ task, data, onRefresh }: Props) {
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    itemRefs.current.find((item) => item && !item.disabled)?.focus();
   }, [open]);
 
   // Open dialog when a confirmation-required verb is staged.
@@ -153,7 +161,7 @@ export function TaskActions({ task, data, onRefresh }: Props) {
     }
   }
 
-  function handleDialogClose(e: React.SyntheticEvent<HTMLDialogElement>) {
+  function handleDialogClose(e: SyntheticEvent<HTMLDialogElement>) {
     const dialog = e.currentTarget;
     const confirmed = dialog.returnValue === "confirm";
     const verb = pending;
@@ -161,9 +169,33 @@ export function TaskActions({ task, data, onRefresh }: Props) {
     if (confirmed && verb) void execute(verb.id);
   }
 
+  function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const enabledItems = itemRefs.current.filter(
+      (item): item is HTMLButtonElement => Boolean(item && !item.disabled),
+    );
+    const currentIndex = enabledItems.indexOf(document.activeElement as HTMLButtonElement);
+    let nextIndex: number | null = null;
+
+    if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % enabledItems.length;
+    if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + enabledItems.length) % enabledItems.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = enabledItems.length - 1;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+      return;
+    }
+    if (nextIndex != null && enabledItems[nextIndex]) {
+      event.preventDefault();
+      enabledItems[nextIndex].focus();
+    }
+  }
+
   return (
     <div className="task-actions" ref={menuRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="task-actions-trigger"
         aria-haspopup="menu"
@@ -175,12 +207,13 @@ export function TaskActions({ task, data, onRefresh }: Props) {
         {busy ? "…" : "⋯"}
       </button>
       {open && (
-        <div className="task-actions-menu" role="menu">
-          {VERBS.map((v) => {
+        <div className="task-actions-menu" role="menu" onKeyDown={handleMenuKeyDown}>
+          {VERBS.map((v, index) => {
             const reason = disabledReason(v.id, task, data);
             return (
               <button
                 key={v.id}
+                ref={(element) => { itemRefs.current[index] = element; }}
                 type="button"
                 role="menuitem"
                 className="task-actions-item"
@@ -195,19 +228,22 @@ export function TaskActions({ task, data, onRefresh }: Props) {
         </div>
       )}
       {error && (
-        <div className="task-actions-error" role="alert" onClick={() => setError(null)}>
-          {error}
-          <span className="task-actions-error-dismiss"> · click to dismiss</span>
+        <div className="task-actions-error" role="alert">
+          <span>{error}</span>
+          <button type="button" className="task-actions-error-dismiss" onClick={() => setError(null)}>
+            Dismiss
+          </button>
         </div>
       )}
       <dialog
         ref={dialogRef}
         className="task-actions-dialog"
+        aria-labelledby={dialogTitleId}
         onClose={handleDialogClose}
       >
         {pending && (
           <form method="dialog">
-            <h4 className="task-actions-dialog-title">{pending.label}</h4>
+            <h4 className="task-actions-dialog-title" id={dialogTitleId}>{pending.label}</h4>
             <p className="task-actions-dialog-body">{pending.confirm}</p>
             <p className="task-actions-dialog-target">
               <code>{task.id}</code> in <code>{workbook}</code>

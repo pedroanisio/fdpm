@@ -12,6 +12,7 @@ export function ThemeToggle() {
       title={`Switch to ${next} theme`}
     >
       {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      <span className="theme-toggle-label">{theme === "dark" ? "Light" : "Dark"}</span>
     </button>
   );
 }

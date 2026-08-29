@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
 import type {
   CapabilityDecl,
@@ -8,6 +8,7 @@ import type {
   WorkbookSummary,
 } from "../types";
 import { Markdown } from "../components/Markdown";
+import { DetailSkeleton, ErrorState } from "../components/AsyncState";
 
 interface Props {
   id: string;
@@ -78,10 +79,10 @@ export function PluginDetailPage({ id }: Props) {
   const [bundle, setBundle] = useState<Bundle | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setBundle(null);
     setError(null);
-    Promise.all([
+    void Promise.all([
       api.getPlugin(id),
       api.getPluginManifest(id),
       api.getPluginReadme(id),
@@ -100,15 +101,19 @@ export function PluginDetailPage({ id }: Props) {
       .catch((e: Error) => setError(e.message));
   }, [id]);
 
+  useEffect(load, [load]);
+
   if (error) {
     return (
-      <div className="error">
-        <a href="#/plugins" className="back">← Plugins</a>
-        <strong>Failed to load plugin {id}:</strong> {error}
-      </div>
+      <ErrorState
+        title="Plugin could not be loaded"
+        error={error}
+        onRetry={load}
+        context={<a href="#/plugins" className="back">← Plugins</a>}
+      />
     );
   }
-  if (!bundle) return <div className="loading">Loading {id}…</div>;
+  if (!bundle) return <DetailSkeleton label={`plugin ${id}`} />;
 
   const { record, manifest, readme, profiles, workbooks } = bundle;
   const groups = groupCapabilities(record.capabilities);

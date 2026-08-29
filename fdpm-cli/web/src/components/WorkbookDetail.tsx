@@ -3,6 +3,7 @@ import { api } from "../api";
 import type { Primitive, WorkbookDetailResponse } from "../types";
 import { PrimitiveCard } from "./PrimitiveCard";
 import { pickTemplate } from "../templates";
+import { DetailSkeleton, ErrorState } from "./AsyncState";
 
 interface Props {
   id: string;
@@ -27,6 +28,7 @@ export function WorkbookDetail({ id, onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    setError(null);
     try {
       const fresh = await api.getWorkbook(id);
       setData(fresh);
@@ -43,13 +45,15 @@ export function WorkbookDetail({ id, onBack }: Props) {
 
   if (error) {
     return (
-      <div className="error">
-        <button onClick={onBack} className="back">← Back</button>
-        <strong>Failed to load workbook {id}:</strong> {error}
-      </div>
+      <ErrorState
+        title="Workbook could not be loaded"
+        error={error}
+        onRetry={() => { setData(null); void refresh(); }}
+        context={<button onClick={onBack} className="back">← Workbooks</button>}
+      />
     );
   }
-  if (!data) return <div className="loading">Loading {id}…</div>;
+  if (!data) return <DetailSkeleton label={`workbook ${id}`} />;
 
   const total = Object.keys(data.primitives).length;
   const relCount = Array.isArray(data.relations)

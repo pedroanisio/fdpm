@@ -1,11 +1,25 @@
-import { useEffect, useState } from "react";
-import { WorkbooksPage } from "./pages/WorkbooksPage";
-import { PluginsPage } from "./pages/PluginsPage";
-import { PluginDetailPage } from "./pages/PluginDetailPage";
-import { ProfileDetailPage } from "./pages/ProfileDetailPage";
-import { ProfileDocumentPage } from "./pages/ProfileDocumentPage";
-import { WorkbookDetail } from "./components/WorkbookDetail";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { RouteSkeleton } from "./components/AsyncState";
+
+const WorkbooksPage = lazy(() =>
+  import("./pages/WorkbooksPage").then((module) => ({ default: module.WorkbooksPage })),
+);
+const PluginsPage = lazy(() =>
+  import("./pages/PluginsPage").then((module) => ({ default: module.PluginsPage })),
+);
+const PluginDetailPage = lazy(() =>
+  import("./pages/PluginDetailPage").then((module) => ({ default: module.PluginDetailPage })),
+);
+const ProfileDetailPage = lazy(() =>
+  import("./pages/ProfileDetailPage").then((module) => ({ default: module.ProfileDetailPage })),
+);
+const ProfileDocumentPage = lazy(() =>
+  import("./pages/ProfileDocumentPage").then((module) => ({ default: module.ProfileDocumentPage })),
+);
+const WorkbookDetail = lazy(() =>
+  import("./components/WorkbookDetail").then((module) => ({ default: module.WorkbookDetail })),
+);
 
 type Route =
   | { kind: "home" }
@@ -43,8 +57,14 @@ export function navigate(hash: string): void {
   window.location.hash = hash;
 }
 
+function routeKey(route: Route): string {
+  return "id" in route ? `${route.kind}:${route.id}` : route.kind;
+}
+
 export function App() {
   const [route, setRoute] = useState<Route>(parseHash());
+  const mainRef = useRef<HTMLElement>(null);
+  const previousRouteKey = useRef(routeKey(route));
 
   useEffect(() => {
     const onHash = () => setRoute(parseHash());
@@ -52,42 +72,60 @@ export function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
+  useEffect(() => {
+    const nextRouteKey = routeKey(route);
+    if (previousRouteKey.current !== nextRouteKey) mainRef.current?.focus();
+    previousRouteKey.current = nextRouteKey;
+  }, [route]);
+
   const navActive = (kind: "workbooks" | "plugins") =>
     (kind === "workbooks" && (route.kind === "home" || route.kind === "workbooks" || route.kind === "workbook")) ||
     (kind === "plugins" && (route.kind === "plugins" || route.kind === "plugin" || route.kind === "profile" || route.kind === "profile-doc"));
 
   return (
     <div className="layout">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="topbar">
         <a href="#/" className="brand" aria-label="FDPM home">
-          FDPM
+          <span className="brand-mark">FDPM</span>
+          <span className="brand-name">Workbench</span>
         </a>
         <div className="topbar-end">
           <nav className="topnav" aria-label="Primary">
-            <a href="#/" className={navActive("workbooks") ? "active" : ""}>
+            <a
+              href="#/"
+              className={navActive("workbooks") ? "active" : ""}
+              aria-current={navActive("workbooks") ? "page" : undefined}
+            >
               Workbooks
             </a>
-            <a href="#/plugins" className={navActive("plugins") ? "active" : ""}>
+            <a
+              href="#/plugins"
+              className={navActive("plugins") ? "active" : ""}
+              aria-current={navActive("plugins") ? "page" : undefined}
+            >
               Plugins
             </a>
           </nav>
           <ThemeToggle />
         </div>
       </header>
-      <main>
-        {route.kind === "home" || route.kind === "workbooks" ? (
-          <WorkbooksPage />
-        ) : route.kind === "workbook" ? (
-          <WorkbookDetail id={route.id} onBack={() => navigate("#/")} />
-        ) : route.kind === "plugins" ? (
-          <PluginsPage />
-        ) : route.kind === "plugin" ? (
-          <PluginDetailPage id={route.id} />
-        ) : route.kind === "profile" ? (
-          <ProfileDetailPage id={route.id} />
-        ) : route.kind === "profile-doc" ? (
-          <ProfileDocumentPage id={route.id} />
-        ) : null}
+      <main id="main-content" ref={mainRef} tabIndex={-1}>
+        <Suspense fallback={<RouteSkeleton />}>
+          {route.kind === "home" || route.kind === "workbooks" ? (
+            <WorkbooksPage />
+          ) : route.kind === "workbook" ? (
+            <WorkbookDetail id={route.id} onBack={() => navigate("#/")} />
+          ) : route.kind === "plugins" ? (
+            <PluginsPage />
+          ) : route.kind === "plugin" ? (
+            <PluginDetailPage id={route.id} />
+          ) : route.kind === "profile" ? (
+            <ProfileDetailPage id={route.id} />
+          ) : route.kind === "profile-doc" ? (
+            <ProfileDocumentPage id={route.id} />
+          ) : null}
+        </Suspense>
       </main>
     </div>
   );

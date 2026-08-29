@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
 import type { ProfileDetail, WorkbookSummary } from "../types";
+import { DetailSkeleton, ErrorState } from "../components/AsyncState";
 
 interface Props {
   id: string;
@@ -20,23 +21,27 @@ export function ProfileDetailPage({ id }: Props) {
   const [bundle, setBundle] = useState<Bundle | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setBundle(null);
     setError(null);
-    Promise.all([api.getProfile(id), api.listWorkbooks()])
+    void Promise.all([api.getProfile(id), api.listWorkbooks()])
       .then(([profile, wbs]) => setBundle({ profile, workbooks: wbs.workbooks }))
       .catch((e: Error) => setError(e.message));
   }, [id]);
 
+  useEffect(load, [load]);
+
   if (error) {
     return (
-      <div className="error">
-        <a href="#/plugins" className="back">← Plugins</a>
-        <strong>Failed to load profile {id}:</strong> {error}
-      </div>
+      <ErrorState
+        title="Profile could not be loaded"
+        error={error}
+        onRetry={load}
+        context={<a href="#/plugins" className="back">← Plugins</a>}
+      />
     );
   }
-  if (!bundle) return <div className="loading">Loading {id}…</div>;
+  if (!bundle) return <DetailSkeleton label={`profile ${id}`} />;
   const { profile, workbooks } = bundle;
   const using = workbooks.filter((w) => w.profile_id === profile.id);
 
