@@ -130,7 +130,12 @@ import {
 // `profile_id` field-by-field once a workbook is on v0.4.1.
 export const PROFILE_ID = "profile:academic-paper:0.4.1" as const;
 export const PLUGIN_ID = "fdpm.academic-paper-v0-4-1" as const;
-export const PLUGIN_VERSION = "0.4.1" as const;
+/*
+ * `PROFILE_ID` stays at 0.4.1: no primitive type, relation type or field
+ * changed. `PLUGIN_VERSION` moves because the plugin gained three renderers
+ * — the argument graph, the BibTeX bibliography and the typeset PDF.
+ */
+export const PLUGIN_VERSION = "0.5.0" as const;
 export const HOST_COMPATIBILITY = ">=1.1,<2" as const;
 // Vendor controls the bridge's primitive_type_id prefix and the
 // expr-helper function namespace. This was "acad041" while the v0.3

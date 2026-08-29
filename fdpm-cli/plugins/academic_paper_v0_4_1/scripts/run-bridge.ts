@@ -128,6 +128,38 @@ function buildPlanned(): { files: Map<string, string> } {
     entry: "renderPaperHtml",
     metadata: { renderer_id: "acad:PaperHtmlRenderer", target: "text/html" },
   });
+  // The argument the prose views cannot show: claims ranked by derivation
+  // depth, with support, rebuttal and supersession drawn as distinct edges.
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "paper-argument-svg",
+    entry: "renderArgumentGraph",
+    metadata: { renderer_id: "acad:ArgumentGraphRenderer", target: "image/svg+xml" },
+  });
+  // The one output that leaves the toolchain intact: BibTeX goes straight
+  // into LaTeX or a reference manager.
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "paper-bibliography-bibtex",
+    entry: "renderBibliography",
+    metadata: { renderer_id: "acad:BibliographyRenderer", target: "application/x-bibtex" },
+  });
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "paper-document-pdf",
+    entry: "renderPaperPdf",
+    metadata: { renderer_id: "acad:PaperPdfRenderer", target: "application/pdf" },
+  });
+  // The submittable form. The pdf-lib PDF cannot typeset mathematics; LaTeX
+  // hands that to a real engine and is the only renderer that uses
+  // `acad:Equation.tex` as TeX rather than printing it as a string. Pairs
+  // with the BibTeX renderer, which supplies the keys it cites.
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "paper-document-latex",
+    entry: "renderPaperLatex",
+    metadata: { renderer_id: "acad:LatexRenderer", target: "application/x-tex" },
+  });
 
 
   // Paper-coherence cross-workbook validator entry. Targets acad:Paper

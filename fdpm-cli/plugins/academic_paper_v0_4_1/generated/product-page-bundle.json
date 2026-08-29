@@ -2341,5 +2341,5 @@
     "fdpm.academic-paper-v0-4-1:zod.work.too_small.year",
     "fdpm.academic-paper-v0-4-1:zod.work.unrecognized_keys"
   ],
-  "version": "0.4.1"
+  "version": "0.5.0"
 }

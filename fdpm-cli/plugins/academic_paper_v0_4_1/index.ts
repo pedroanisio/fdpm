@@ -75,6 +75,10 @@ import {
   VENDOR,
 } from "./sidecar.js";
 import { renderPaperMarkdown, renderPaperHtml } from "./renderers/paper_document.js";
+import { renderArgumentGraph } from "./renderers/argument_graph.js";
+import { renderBibliography } from "./renderers/bibliography.js";
+import { renderPaperPdf } from "./renderers/paper_pdf.js";
+import { renderPaperLatex } from "./renderers/paper_latex.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -989,6 +993,10 @@ function findingsForPaper(
 
 export const PAPER_MARKDOWN_RENDERER_ID = "acad:PaperDocumentRenderer" as const;
 export const PAPER_HTML_RENDERER_ID = "acad:PaperHtmlRenderer" as const;
+export const PAPER_ARGUMENT_RENDERER_ID = "acad:ArgumentGraphRenderer" as const;
+export const PAPER_BIBLIOGRAPHY_RENDERER_ID = "acad:BibliographyRenderer" as const;
+export const PAPER_PDF_RENDERER_ID = "acad:PaperPdfRenderer" as const;
+export const PAPER_LATEX_RENDERER_ID = "acad:LatexRenderer" as const;
 
 export async function activate(ctx: PluginContext): Promise<void> {
   const sidecar = buildAcademicPaperSidecar();
@@ -1112,12 +1120,17 @@ export async function activate(ctx: PluginContext): Promise<void> {
   // none rendered the argument they describe.
   ctx.registerRenderer({ target: "text/markdown", rendererId: PAPER_MARKDOWN_RENDERER_ID, fn: renderPaperMarkdown as RendererFn });
   ctx.registerRenderer({ target: "text/html", rendererId: PAPER_HTML_RENDERER_ID, fn: renderPaperHtml as RendererFn });
+  // The argument, drawn. Five relation types carry derivation, rebuttal,
+  // supersession, support and hypothesis-testing, and a bulleted list of
+  // claims hides every one of them.
+  ctx.registerRenderer({ target: "image/svg+xml", rendererId: PAPER_ARGUMENT_RENDERER_ID, fn: renderArgumentGraph as RendererFn });
+  ctx.registerRenderer({ target: "application/x-bibtex", rendererId: PAPER_BIBLIOGRAPHY_RENDERER_ID, fn: renderBibliography as RendererFn });
+  ctx.registerRenderer({ target: "application/pdf", rendererId: PAPER_PDF_RENDERER_ID, fn: renderPaperPdf as RendererFn });
+  ctx.registerRenderer({ target: "application/x-tex", rendererId: PAPER_LATEX_RENDERER_ID, fn: renderPaperLatex as RendererFn });
   ctx.logger.info(
     `fdpm.academic-paper activated: ${result.profile.primitive_types.length} primitive types, ${result.profile.relation_types.length} relation types, ${
       (result.profile.constraints ?? []).length
-    } CEL rules + ${result.profile.primitive_types.length} per-primitive validators + 1 paper-coherence validator + ${
-      Object.keys(sidecar.entities).length
-    } renderers + ${Object.keys(sidecar.entities).length} importers + ${
+    } CEL rules + ${result.profile.primitive_types.length} per-primitive validators + 1 paper-coherence validator + 6 renderers (md, html, svg, bibtex, pdf, tex) + ${Object.keys(sidecar.entities).length} importers + ${
       Object.keys(sidecar.entities).length
     } exporters. Profile id: ${PROFILE_ID}.`,
   );

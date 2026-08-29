@@ -10,6 +10,24 @@
     },
     {
       "capability_id": "cap:renderer",
+      "entry": "renderArgumentGraph",
+      "local_name": "paper-argument-svg",
+      "metadata": {
+        "renderer_id": "acad:ArgumentGraphRenderer",
+        "target": "image/svg+xml"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "renderBibliography",
+      "local_name": "paper-bibliography-bibtex",
+      "metadata": {
+        "renderer_id": "acad:BibliographyRenderer",
+        "target": "application/x-bibtex"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
       "entry": "renderPaperHtml",
       "local_name": "paper-document-html",
       "metadata": {
@@ -19,11 +37,29 @@
     },
     {
       "capability_id": "cap:renderer",
+      "entry": "renderPaperLatex",
+      "local_name": "paper-document-latex",
+      "metadata": {
+        "renderer_id": "acad:LatexRenderer",
+        "target": "application/x-tex"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
       "entry": "renderPaperMarkdown",
       "local_name": "paper-document-md",
       "metadata": {
         "renderer_id": "acad:PaperDocumentRenderer",
         "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "renderPaperPdf",
+      "local_name": "paper-document-pdf",
+      "metadata": {
+        "renderer_id": "acad:PaperPdfRenderer",
+        "target": "application/pdf"
       }
     },
     {
@@ -1071,5 +1107,5 @@
     "render:server"
   ],
   "spec_version": "1.0.0",
-  "version": "0.4.1"
+  "version": "0.5.0"
 }
