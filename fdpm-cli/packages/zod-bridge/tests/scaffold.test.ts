@@ -333,18 +333,19 @@ describe("zodSchemaToMarkdownRenderer — cap:renderer derivation", () => {
       type_id: "acme:Customer",
       field_values: { id: "cust-001", name: "Alice", tier: "pro" },
     });
-    expect(md).toMatch(/^# /m);
+    // The heading names the entity (`name` is a conventional name field,
+    // so it leads and is not repeated as a row); the type is the
+    // subtitle; labels read as words. See renderer-quality.test.ts for
+    // the full contract.
+    expect(md).toMatch(/^## Alice$/m);
+    expect(md).toContain("`acme:Customer`");
     expect(md).toContain("| Field");
-    expect(md).toContain("| name");
-    expect(md).toContain("| Alice");
-    expect(md).toContain("| tier");
-    // schema field order: id, name, tier — id appears before name appears before tier
-    const iId = md.indexOf("| id ");
-    const iName = md.indexOf("| name ");
-    const iTier = md.indexOf("| tier ");
+    expect(md).toContain("| Tier | pro |");
+    // Declared field order is preserved among the rows that remain.
+    const iId = md.indexOf("| Id ");
+    const iTier = md.indexOf("| Tier ");
     expect(iId).toBeGreaterThan(0);
-    expect(iName).toBeGreaterThan(iId);
-    expect(iTier).toBeGreaterThan(iName);
+    expect(iTier).toBeGreaterThan(iId);
   });
 
   it("supports alphabetical fieldOrder and explicit array order", () => {
@@ -357,8 +358,9 @@ describe("zodSchemaToMarkdownRenderer — cap:renderer derivation", () => {
       type_id: "acme:Customer",
       field_values: { id: "x", name: "a", tier: "free" },
     });
-    // alpha order: id, name, tier (already alpha)
-    expect(mdA.indexOf("| id ")).toBeLessThan(mdA.indexOf("| name "));
+    // alpha order: id, name, tier (already alpha). `name` leads the
+    // heading rather than a row, so ordering is checked on what remains.
+    expect(mdA.indexOf("| Id ")).toBeLessThan(mdA.indexOf("| Tier "));
 
     const { renderer: explicit } = zodSchemaToMarkdownRenderer(Customer, {
       primitive_type_id: "acme:Customer",
@@ -369,8 +371,7 @@ describe("zodSchemaToMarkdownRenderer — cap:renderer derivation", () => {
       type_id: "acme:Customer",
       field_values: { id: "x", name: "a", tier: "free" },
     });
-    expect(mdE.indexOf("| tier ")).toBeLessThan(mdE.indexOf("| name "));
-    expect(mdE.indexOf("| name ")).toBeLessThan(mdE.indexOf("| id "));
+    expect(mdE.indexOf("| Tier ")).toBeLessThan(mdE.indexOf("| Id "));
   });
 
   it("is deterministic", () => {

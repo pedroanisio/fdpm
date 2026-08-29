@@ -77,17 +77,11 @@ function buildPlanned(): { files: Map<string, string> } {
   // per entity) extended with one cap:renderer per entity plus the
   // style-outline renderer.
   const baseManifest = buildBaseManifest(result);
-  // ONE generic renderer, not 712. A per-class renderer would mean 712
-  // capability descriptors and 712 registrations at activation for what is
-  // the same field table each time; `uixo:ClassMarkdownRenderer` dispatches
-  // on the primitive's own type_id instead.
+  // No generic per-class field table. It was ONE renderer rather than 712,
+  // which was the right call against the alternative, but it still
+  // described records instead of the model they make; the outline renderer
+  // below is what a reader wants from an interaction ontology.
   const extendedCaps: CapabilityEntry[] = [...(baseManifest.capabilities as CapabilityEntry[])];
-  extendedCaps.push({
-    capability_id: "cap:renderer",
-    local_name: "class-md",
-    entry: "renderClassTable",
-    metadata: { target: "text/markdown", renderer_id: `${VENDOR}:ClassMarkdownRenderer` },
-  });
   extendedCaps.push({
     capability_id: "cap:renderer",
     local_name: "document-outline-md",

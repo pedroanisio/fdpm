@@ -115,55 +115,22 @@ function buildPlanned(): {
   // the optional caps and one extra cap:validator for deck-coherence.
   const baseManifest = buildBaseManifest(result);
   const extendedCaps: CapabilityEntry[] = [...(baseManifest.capabilities as CapabilityEntry[])];
+  // Document renderers, declared explicitly. The per-entity field
+  // tables this loop emitted were removed: they described records, not
+  // the thing the records make.
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "pitch-running-order-md",
+    entry: "renderPitchDeckMarkdown",
+    metadata: { renderer_id: "acme.pitch-deck:RunningOrderRenderer", target: "text/markdown" },
+  });
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "pitch-phase-map-svg",
+    entry: "renderPitchDeckPhaseMap",
+    metadata: { renderer_id: "acme.pitch-deck:PhaseMapRenderer", target: "image/svg+xml" },
+  });
 
-  for (const entityName of Object.keys(sidecar.entities)) {
-    const primitiveTypeId = `acme:${entityName}`;
-    const lower = lowerTail(primitiveTypeId);
-    const tail = entityName;
-
-    extendedCaps.push({
-      capability_id: "cap:renderer",
-      local_name: `${lower}-md`,
-      entry: `${camelCaseLast(primitiveTypeId)}MarkdownRenderer`,
-      metadata: {
-        primitive_type_id: primitiveTypeId,
-        // Bare mime; disambiguation is via the rendererId on
-        // ctx.registerRenderer at activate time, not in metadata.
-        target: "text/markdown",
-      },
-    });
-    extendedCaps.push({
-      capability_id: "cap:importer",
-      local_name: `${lower}-json`,
-      entry: `${camelCaseLast(primitiveTypeId)}Importer`,
-      metadata: {
-        format_id: `${PLUGIN_ID}:${lower}-json`,
-        accepts_mime: ["application/json"],
-        file_extensions: [".json"],
-      },
-    });
-    extendedCaps.push({
-      capability_id: "cap:exporter",
-      local_name: `${lower}-json`,
-      entry: `${camelCaseLast(primitiveTypeId)}Exporter`,
-      metadata: {
-        format_id: `${PLUGIN_ID}:${lower}-json`,
-        produces_mime: "application/json",
-      },
-    });
-    extendedCaps.push({
-      capability_id: "cap:expr-helper",
-      local_name: `is-valid-${lower}`,
-      entry: `isValid${tail}`,
-      metadata: {
-        function_name: `acme.isValid${tail}`,
-        arity: 1,
-        arg_types: ["object"],
-        return_type: "boolean",
-        pure: true,
-      },
-    });
-  }
 
   // One extra cap:validator entry for the deck-coherence cross-deck
   // validator the plugin registers in addition to per-entity validators.

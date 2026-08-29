@@ -33,6 +33,33 @@ Every claim the package makes — sidecar validation, soundness, determinism,
 validator-Zod equivalence, round-trip I/O, and scaffold path safety — is
 covered by tests in the `tests/` directory.
 
+### `SPEC-DOMAIN-SIDECAR` and `SPEC-FDPM-BRIDGE(-ZOD)` are not in this repository
+
+Source comments, tests and this package's CHANGELOG cite three specification
+documents by section number — `SPEC-DOMAIN-SIDECAR`, `SPEC-FDPM-BRIDGE` and
+`SPEC-FDPM-BRIDGE-ZOD`. **None of them has ever existed under `docs/specs/`.**
+They were authored outside this tree and the citations were kept as written.
+
+Do not go looking for them, and do not treat a section reference such as
+"SPEC-DOMAIN-SIDECAR §11.3" as something you can open and check. Where the
+contract matters, the executable statement of it is:
+
+- [`src/sidecar-types.ts`](./src/sidecar-types.ts) — the sidecar manifest shape
+- [`src/sidecar-validator.ts`](./src/sidecar-validator.ts) — parse-time rules
+- [`src/sidecar-hash.ts`](./src/sidecar-hash.ts) — the `zod-ast-canonical-v1` hash
+- this README's *What gets emitted*, *The 23 CEL translation rules* and
+  *Feature flags* sections
+- the suites under [`tests/`](./tests/)
+
+A 2026-08-29 doc-hygiene audit found one of these citations rendered as a
+Markdown link to a file that does not exist, and a peer-SPEC reference in
+`SPEC-DOCUMENT-PLAN.md` marked `verified` against an absent locator. Both are
+corrected; the remaining plain-text citations are left in place because they
+carry real section numbers from documents that exist somewhere — but a reader
+of this repository cannot verify them, and per
+[`DISCLAIMER.md`](../../../DISCLAIMER.md) that limitation is stated rather
+than hidden.
+
 ## Install
 
 ```bash

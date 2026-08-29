@@ -44,6 +44,7 @@ import {
   VENDOR,
   primitiveTypeId,
 } from "./sidecar.js";
+import { renderPlanBrief } from "./renderers/plan_brief.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -74,6 +75,8 @@ export {
 
 /** Pinned so activate() and run-bridge.ts derive byte-equal artefacts. */
 const GENERATED_AT = "1970-01-01T00:00:00.000Z";
+
+export const PLAN_BRIEF_RENDERER_ID = "docplan:PlanBriefRenderer" as const;
 
 export async function activate(ctx: PluginContext): Promise<void> {
   const sidecar = buildDocumentPlanSidecar();
@@ -132,43 +135,11 @@ export async function activate(ctx: PluginContext): Promise<void> {
   // One field-table markdown renderer per Entity (bridge-derived).
   // Namespaced by PLUGIN_ID so (target, rendererId) cannot collide with
   // another plugin's Entity of the same name (SPEC-PLUGGABLE §7.4).
-  for (const entityName of ENTITY_NAMES) {
-    const typeId = primitiveTypeId(entityName);
-    const schema = ENTITY_SCHEMAS[entityName] as unknown as z.ZodObject<z.ZodRawShape>;
-    const { renderer: perPrimitive } = zodSchemaToMarkdownRenderer(schema, {
-      primitive_type_id: typeId,
-      fieldOrder: "schema",
-    });
-    const rendererFn: RendererFn = (input: RendererInput): RendererOutput => {
-      const matching = input.primitives
-        .filter((p) => p.type_id === typeId)
-        .slice()
-        .sort((a, b) => a.id.localeCompare(b.id));
-      const body =
-        matching.length === 0
-          ? `_(no ${typeId} primitives)_\n`
-          : matching
-              .map((p) =>
-                perPrimitive({
-                  id: p.id,
-                  type_id: p.type_id,
-                  field_values: p.field_values as Record<string, unknown>,
-                }),
-              )
-              .join("\n\n");
-      return {
-        bytes: new TextEncoder().encode(body),
-        contentType: "text/markdown",
-        filename: `${entityName.toLowerCase()}.md`,
-      };
-    };
-    ctx.registerRenderer({
-      target: "text/markdown",
-      rendererId: `${PLUGIN_ID}:${entityName}MarkdownRenderer`,
-      fn: rendererFn,
-    });
-  }
 
+  // The header as a brief — the commitment made before writing. The
+  // section tree is rendered by docplan:PlanOutlineRenderer on the DNIS
+  // composition; this profile alone had nothing.
+  ctx.registerRenderer({ target: "text/markdown", rendererId: PLAN_BRIEF_RENDERER_ID, fn: renderPlanBrief as RendererFn });
   ctx.logger.info(
     `${PLUGIN_ID} activated: ${profile.primitive_types.length} primitive types, ${ENTITY_NAMES.length} validators, ${ENTITY_NAMES.length} renderers. Profile id: ${PROFILE_ID}.`,
   );

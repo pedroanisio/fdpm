@@ -121,12 +121,14 @@ describe("bridge determinism", () => {
     expect(out).toContain("no drift");
   });
 
-  it("advertises two renderers, not 712", () => {
+  it("advertises the document outline alone — not 712, and not a field table", () => {
+    // It was one generic class table rather than 712, which was the right
+    // call against that alternative; it still described records instead of
+    // the model, so it went with the rest of the generic renderers.
     const renderers = manifest.capabilities.filter((c) => c.capability_id === "cap:renderer");
-    expect(renderers).toHaveLength(2);
+    expect(renderers).toHaveLength(1);
     const ids = renderers.map((c) => (c.metadata as { renderer_id?: string } | undefined)?.renderer_id);
-    expect(ids).toContain("uixo:ClassMarkdownRenderer");
-    expect(ids).toContain("uixo:DocumentOutlineRenderer");
+        expect(ids).toContain("uixo:DocumentOutlineRenderer");
   });
 });
 

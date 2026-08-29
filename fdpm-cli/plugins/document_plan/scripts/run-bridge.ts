@@ -98,19 +98,16 @@ function buildPlanned(): { files: Map<string, string> } {
   // per Entity) extended with one cap:renderer per Entity.
   const baseManifest = buildBaseManifest(result);
   const extendedCaps: CapabilityEntry[] = [...(baseManifest.capabilities as CapabilityEntry[])];
-  for (const entityName of ENTITY_NAMES) {
-    const typeId = primitiveTypeId(entityName);
-    extendedCaps.push({
-      capability_id: "cap:renderer",
-      local_name: `${lowerTail(typeId)}-md`,
-      entry: `${camelCaseLast(typeId)}MarkdownRenderer`,
-      metadata: {
-        primitive_type_id: typeId,
-        target: "text/markdown",
-        renderer_id: `${PLUGIN_ID}:${entityName}MarkdownRenderer`,
-      },
-    });
-  }
+  // Document renderers, declared explicitly. The per-entity field
+  // tables this loop used to emit were removed: they described records,
+  // not the thing the records make.
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "plan-brief-md",
+    entry: "renderPlanBrief",
+    metadata: { renderer_id: "docplan:PlanBriefRenderer", target: "text/markdown" },
+  });
+
   const permissions = ["read:primitives", "read:relations", "read:workbooks", "render:server"].sort();
   const extendedManifest = {
     ...baseManifest,

@@ -113,53 +113,22 @@ function buildPlanned(): { files: Map<string, string> } {
   const extendedCaps: CapabilityEntry[] = [
     ...(baseManifest.capabilities as CapabilityEntry[]),
   ];
+  // Document renderers, declared explicitly. The per-entity field
+  // tables this loop emitted were removed: they described records, not
+  // the thing the records make.
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "paper-document-md",
+    entry: "renderPaperMarkdown",
+    metadata: { renderer_id: "acad:PaperDocumentRenderer", target: "text/markdown" },
+  });
+  extendedCaps.push({
+    capability_id: "cap:renderer",
+    local_name: "paper-document-html",
+    entry: "renderPaperHtml",
+    metadata: { renderer_id: "acad:PaperHtmlRenderer", target: "text/html" },
+  });
 
-  for (const entityName of Object.keys(sidecar.entities)) {
-    const primitiveTypeId = `${TYPE_PREFIX}:${entityName}`;
-    const lower = lowerTail(primitiveTypeId);
-    const tail = entityName;
-
-    extendedCaps.push({
-      capability_id: "cap:renderer",
-      local_name: `${lower}-md`,
-      entry: `${camelCaseLast(primitiveTypeId)}MarkdownRenderer`,
-      metadata: {
-        primitive_type_id: primitiveTypeId,
-        target: "text/markdown",
-      },
-    });
-    extendedCaps.push({
-      capability_id: "cap:importer",
-      local_name: `${lower}-json`,
-      entry: `${camelCaseLast(primitiveTypeId)}Importer`,
-      metadata: {
-        format_id: `${PLUGIN_ID}:${lower}-json`,
-        accepts_mime: ["application/json"],
-        file_extensions: [".json"],
-      },
-    });
-    extendedCaps.push({
-      capability_id: "cap:exporter",
-      local_name: `${lower}-json`,
-      entry: `${camelCaseLast(primitiveTypeId)}Exporter`,
-      metadata: {
-        format_id: `${PLUGIN_ID}:${lower}-json`,
-        produces_mime: "application/json",
-      },
-    });
-    extendedCaps.push({
-      capability_id: "cap:expr-helper",
-      local_name: `is-valid-${lower}`,
-      entry: `isValid${tail}`,
-      metadata: {
-        function_name: `${VENDOR}.isValid${tail}`,
-        arity: 1,
-        arg_types: ["object"],
-        return_type: "boolean",
-        pure: true,
-      },
-    });
-  }
 
   // Paper-coherence cross-workbook validator entry. Targets acad:Paper
   // because Paper is the entity whose existence frames the workbook —

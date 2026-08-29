@@ -87,7 +87,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifestRaw = readFileSync(join(__dirname, "fdpm-plugin.json"), "utf8");
 export const manifest: PluginManifest = JSON.parse(manifestRaw) as PluginManifest;
 
-export const CLASS_RENDERER_ID = `${VENDOR}:ClassMarkdownRenderer` as const;
 export const DOCUMENT_RENDERER_ID = `${VENDOR}:DocumentOutlineRenderer` as const;
 
 /** Pinned so activate() and run-bridge.ts derive byte-equal artefacts. */
@@ -141,11 +140,6 @@ export async function activate(ctx: PluginContext): Promise<void> {
     });
   }
 
-  ctx.registerRenderer({
-    target: "text/markdown",
-    rendererId: CLASS_RENDERER_ID,
-    fn: renderClassTable as RendererFn,
-  });
   ctx.registerRenderer({
     target: "text/markdown",
     rendererId: DOCUMENT_RENDERER_ID,

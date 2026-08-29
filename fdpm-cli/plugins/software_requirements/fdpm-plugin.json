@@ -5,21 +5,42 @@
   "kind": "server",
   "name": "Software Requirements",
   "description": "Software Requirements Specification profile generated from plugins/software_requirements/schemas/software-requirements.ts. Registers SRS primitives, traceability relations, provenance, agreement, change-control, and baseline validation rules.",
-  "authors": ["FDPM Maintainers"],
+  "authors": [
+    "FDPM Maintainers"
+  ],
   "license": "MIT",
   "host_compatibility": {
     "fdpm": ">=1.2,<2"
   },
   "permissions": [
-    "read:workbooks",
     "read:primitives",
-    "read:relations"
+    "read:relations",
+    "read:workbooks",
+    "render:server"
   ],
   "capabilities": [
     {
       "capability_id": "cap:profile",
       "local_name": "software-requirements",
       "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "srs-document-md",
+      "entry": "renderSrsMarkdown",
+      "metadata": {
+        "renderer_id": "srs:SrsDocumentRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "srs-document-html",
+      "entry": "renderSrsHtml",
+      "metadata": {
+        "renderer_id": "srs:SrsHtmlRenderer",
+        "target": "text/html"
+      }
     }
   ]
 }

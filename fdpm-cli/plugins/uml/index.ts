@@ -159,42 +159,6 @@ export async function activate(ctx: PluginContext): Promise<void> {
     });
   }
 
-  for (const entityName of ENTITY_NAMES) {
-    const typeId = primitiveTypeId(entityName);
-    const schema = ENTITY_SCHEMAS[entityName] as unknown as z.ZodObject<z.ZodRawShape>;
-    const { renderer: perPrimitive } = zodSchemaToMarkdownRenderer(schema, {
-      primitive_type_id: typeId,
-      fieldOrder: "schema",
-    });
-    const rendererFn: RendererFn = (input: RendererInput): RendererOutput => {
-      const matching = input.primitives
-        .filter((p) => p.type_id === typeId)
-        .slice()
-        .sort((a, b) => a.id.localeCompare(b.id));
-      const body =
-        matching.length === 0
-          ? `_(no ${typeId} primitives)_\n`
-          : matching
-              .map((p) =>
-                perPrimitive({
-                  id: p.id,
-                  type_id: p.type_id,
-                  field_values: p.field_values as Record<string, unknown>,
-                }),
-              )
-              .join("\n\n");
-      return {
-        bytes: new TextEncoder().encode(body),
-        contentType: "text/markdown",
-        filename: `${entityName.toLowerCase()}.md`,
-      };
-    };
-    ctx.registerRenderer({
-      target: "text/markdown",
-      rendererId: `${PLUGIN_ID}:${entityName}MarkdownRenderer`,
-      fn: rendererFn,
-    });
-  }
 
   // The document view: containment tree with features inlined, in UML
   // notation. This is the renderer a reader wants; the per-entity ones

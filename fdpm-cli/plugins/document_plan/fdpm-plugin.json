@@ -10,61 +10,10 @@
     },
     {
       "capability_id": "cap:renderer",
-      "entry": "assetMarkdownRenderer",
-      "local_name": "asset-md",
+      "entry": "renderPlanBrief",
+      "local_name": "plan-brief-md",
       "metadata": {
-        "primitive_type_id": "docplan:Asset",
-        "renderer_id": "fdpm.document-plan:AssetMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "conceptMarkdownRenderer",
-      "local_name": "concept-md",
-      "metadata": {
-        "primitive_type_id": "docplan:Concept",
-        "renderer_id": "fdpm.document-plan:ConceptMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "contentSourceMarkdownRenderer",
-      "local_name": "content-source-md",
-      "metadata": {
-        "primitive_type_id": "docplan:ContentSource",
-        "renderer_id": "fdpm.document-plan:ContentSourceMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "documentPlanMarkdownRenderer",
-      "local_name": "document-plan-md",
-      "metadata": {
-        "primitive_type_id": "docplan:DocumentPlan",
-        "renderer_id": "fdpm.document-plan:DocumentPlanMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "personMarkdownRenderer",
-      "local_name": "person-md",
-      "metadata": {
-        "primitive_type_id": "docplan:Person",
-        "renderer_id": "fdpm.document-plan:PersonMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "threadMarkdownRenderer",
-      "local_name": "thread-md",
-      "metadata": {
-        "primitive_type_id": "docplan:Thread",
-        "renderer_id": "fdpm.document-plan:ThreadMarkdownRenderer",
+        "renderer_id": "docplan:PlanBriefRenderer",
         "target": "text/markdown"
       }
     },

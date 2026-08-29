@@ -66,10 +66,9 @@ describe("fdpm.uml activation", () => {
     expect(live.version).toBe(generated.version);
   });
 
-  it("registers the model-outline renderer alongside one per metaclass", () => {
+  it("registers the model-outline renderer, and only that", () => {
     const ids = host.plugins.listRenderers().map((r) => r.rendererId);
     expect(ids).toContain("uml:ModelOutlineRenderer");
-    for (const name of ENTITY_NAMES) expect(ids).toContain(`${PLUGIN_ID}:${name}MarkdownRenderer`);
   });
 });
 

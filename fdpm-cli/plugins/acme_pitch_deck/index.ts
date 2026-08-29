@@ -71,6 +71,7 @@ import {
   validatorSchemaFor,
   variantFieldsByEntity,
 } from "./sidecar.js";
+import { renderPitchDeckMarkdown, renderPitchDeckPhaseMap } from "./renderers/deck_document.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -391,6 +392,9 @@ function findingsForDeck(
 // read it (the schema is the source of truth).
 // ───────────────────────────────────────────────────────────────────
 
+export const PITCH_MARKDOWN_RENDERER_ID = "acme.pitch-deck:RunningOrderRenderer" as const;
+export const PITCH_PHASE_MAP_RENDERER_ID = "acme.pitch-deck:PhaseMapRenderer" as const;
+
 export async function activate(ctx: PluginContext): Promise<void> {
   const sidecar = buildPitchDeckSidecar();
   const result = assembleDomainProfileFromSidecar({
@@ -598,121 +602,11 @@ export async function activate(ctx: PluginContext): Promise<void> {
   // ─────────────────────────────────────────────────────────────────
 
   const SPEC_CORE_VERSION = "1.0";
-  for (const [entityName, entity] of Object.entries(sidecar.entities)) {
-    const primitiveTypeId = `acme:${entityName}`;
-    const lower = entityName.toLowerCase();
 
-    const { renderer: perPrimitiveRenderer } = zodSchemaToMarkdownRenderer(
-      entity.schema,
-      {
-        primitive_type_id: primitiveTypeId,
-        fieldOrder: "schema",
-      },
-    );
-    const rendererFn: RendererFn = (input: RendererInput): RendererOutput => {
-      const matching = input.primitives.filter((p) => p.type_id === primitiveTypeId);
-      const sections = matching
-        .map((p) =>
-          perPrimitiveRenderer({
-            id: p.id,
-            type_id: p.type_id,
-            field_values: p.field_values as Record<string, unknown>,
-          }),
-        )
-        .join("\n\n");
-      const body = sections.length > 0 ? sections : `_(no ${entityName} primitives)_\n`;
-      return {
-        bytes: new TextEncoder().encode(body),
-        contentType: "text/markdown",
-        filename: `${lower}.md`,
-      };
-    };
-    ctx.registerRenderer({
-      // Pure mime type — disambiguation between renderers sharing a
-      // target is the rendererId's job. The MCP resource layer (see
-      // tests/mcp/resources-render.test.ts) requires Resource.mimeType
-      // to be a parseable mime, not a fragment URI.
-      // Namespace by PLUGIN_ID: pitch-deck and business-deck both
-      // export Risk and Slide entities, so a bare `acme:` prefix would
-      // collide on (target, rendererId) and quarantine whichever
-      // activates second (SPEC-PLUGGABLE §7.4).
-      target: "text/markdown",
-      rendererId: `${PLUGIN_ID}:${entityName}MarkdownRenderer`,
-      fn: rendererFn,
-    });
-
-    const { importer: bridgeImporter } = zodSchemaToImporter(entity.schema, {
-      primitive_type_id: primitiveTypeId,
-      idFrom: (parsed) => `${primitiveTypeId}:${(parsed as { id: string }).id}`,
-      pluginId: PLUGIN_ID,
-      typeName: lower,
-    });
-    const importerFn: ImporterFn = (raw, opts): ProjectTransfer => {
-      const body = typeof raw === "string" ? raw : JSON.stringify(raw);
-      const result = bridgeImporter(body);
-      if (result.kind === "error") {
-        throw new Error(
-          `import failed (${entityName}): ${result.warnings.map((w) => w.message).join("; ")}`,
-        );
-      }
-      const workbookId = opts?.workbookId ?? `${PLUGIN_ID}-${lower}-import`;
-      const projectName = opts?.projectName ?? `${entityName} import`;
-      const projectDescription =
-        opts?.projectDescription ??
-        `Imported ${result.intents.length} ${entityName} primitives via cap:importer.`;
-      const now = "1970-01-01T00:00:00.000Z";
-      const transfer: ProjectTransfer = {
-        spec_core: SPEC_CORE_VERSION,
-        workbook: {
-          id: workbookId,
-          name: projectName,
-          description: projectDescription,
-          profile_id: PROFILE_ID,
-          created_at: now,
-          revision: 0,
-        },
-        primitives: result.intents.map((it) => ({
-          id: it.id,
-          uid: mintUid(),
-          type_id: it.type_id,
-          field_values: it.field_values,
-          revision: 0,
-          scope_id: workbookId,
-        })),
-        relations: [],
-        templates: [],
-        test_suites: [],
-      };
-      return transfer;
-    };
-    ctx.registerImporter({
-      format: `${PLUGIN_ID}:${lower}-json`,
-      fn: importerFn,
-    });
-
-    const { exporter: bridgeExporter } = zodSchemaToExporter(entity.schema, {
-      primitive_type_id: primitiveTypeId,
-      filename: () => `${lower}.json`,
-      pluginId: PLUGIN_ID,
-    });
-    const exporterFn: ExporterFn = (transfer): Uint8Array => {
-      const view = {
-        id: transfer.workbook.id,
-        primitives: transfer.primitives.map((p) => ({
-          id: p.id,
-          type_id: p.type_id,
-          field_values: p.field_values as Record<string, unknown>,
-        })),
-      };
-      const { body } = bridgeExporter(view);
-      return new TextEncoder().encode(body);
-    };
-    ctx.registerExporter({
-      format: `${PLUGIN_ID}:${lower}-json`,
-      fn: exporterFn,
-    });
-  }
-
+  // The running order, and a phase map where pacing is visible: block
+  // width is the speaking budget, so a phase that eats the meeting shows.
+  ctx.registerRenderer({ target: "text/markdown", rendererId: PITCH_MARKDOWN_RENDERER_ID, fn: renderPitchDeckMarkdown as RendererFn });
+  ctx.registerRenderer({ target: "image/svg+xml", rendererId: PITCH_PHASE_MAP_RENDERER_ID, fn: renderPitchDeckPhaseMap as RendererFn });
   ctx.logger.info(
     `acme.pitch-deck activated: ${result.profile.primitive_types.length} primitive types, ${result.profile.relation_types.length} relation types, ${(result.profile.constraints ?? []).length} CEL rules + ${result.profile.primitive_types.length} per-primitive validators (entities + variant arms) + 1 deck-coherence validator + ${Object.keys(sidecar.entities).length} renderers + ${Object.keys(sidecar.entities).length} importers + ${Object.keys(sidecar.entities).length} exporters. Profile id: ${PROFILE_ID}.`,
   );

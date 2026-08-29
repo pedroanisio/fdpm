@@ -87,7 +87,7 @@ describe("fdpm.document-plan — activation", () => {
     ).rejects.toMatchObject({ category: "validation" });
   });
 
-  it("the per-entity markdown renderers are registered under namespaced ids", async () => {
+  it("the plan brief renders the header and its registries", async () => {
     const host = await freshHost();
     await host.createProject({ workbook_id: "docplan-render", name: "renderer probe", profile_id: PROFILE_ID });
     await host.createPrimitive("docplan-render", {
@@ -105,10 +105,14 @@ describe("fdpm.document-plan — activation", () => {
         relations: Object.values(slice.relations),
         profile: host.profiles.getResolved(PROFILE_ID),
       },
-      { rendererId: `${PLUGIN_ID}:ConceptMarkdownRenderer` },
+      { rendererId: "docplan:PlanBriefRenderer" },
     );
     const text = new TextDecoder().decode(out.bytes);
+    // The concept appears in the brief's Concepts registry, with its
+    // definition — not as a bare field table.
     expect(text).toContain("operation log");
-    expect(out.rendererId).toBe(`${PLUGIN_ID}:ConceptMarkdownRenderer`);
+    expect(text).toContain("The ledger.");
+    expect(text).toContain("## Concepts");
+    expect(out.rendererId).toBe("docplan:PlanBriefRenderer");
   });
 });

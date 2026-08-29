@@ -10,15 +10,6 @@
     },
     {
       "capability_id": "cap:renderer",
-      "entry": "renderClassTable",
-      "local_name": "class-md",
-      "metadata": {
-        "renderer_id": "uixo:ClassMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
       "entry": "renderDocumentOutline",
       "local_name": "document-outline-md",
       "metadata": {

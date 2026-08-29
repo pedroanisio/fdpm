@@ -69,6 +69,7 @@ import {
   validatorSchemaFor,
   variantFieldsByEntity,
 } from "./sidecar.js";
+import { renderDeckMarkdown, renderDeckContactSheet } from "./renderers/deck_document.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -396,6 +397,9 @@ function findingsForDeck(
 // at build time via scripts/run-bridge.ts --check.
 // ───────────────────────────────────────────────────────────────────
 
+export const DECK_MARKDOWN_RENDERER_ID = "acme:DeckRunningOrderRenderer" as const;
+export const DECK_SHEET_RENDERER_ID = "acme:DeckContactSheetRenderer" as const;
+
 export async function activate(ctx: PluginContext): Promise<void> {
   const sidecar = buildBusinessDeckSidecar();
   const result = assembleDomainProfileFromSidecar({
@@ -485,121 +489,12 @@ export async function activate(ctx: PluginContext): Promise<void> {
   // ─────────────────────────────────────────────────────────────────
 
   const SPEC_CORE_VERSION = "1.0";
-  for (const [entityName, entity] of Object.entries(sidecar.entities)) {
-    const primitiveTypeId = `acme:${entityName}`;
-    const lower = entityName.toLowerCase();
 
-    const { renderer: perPrimitiveRenderer } = zodSchemaToMarkdownRenderer(
-      entity.schema,
-      {
-        primitive_type_id: primitiveTypeId,
-        fieldOrder: "schema",
-      },
-    );
-    const rendererFn: RendererFn = (input: RendererInput): RendererOutput => {
-      const matching = input.primitives.filter((p) => p.type_id === primitiveTypeId);
-      const sections = matching
-        .map((p) =>
-          perPrimitiveRenderer({
-            id: p.id,
-            type_id: p.type_id,
-            field_values: p.field_values as Record<string, unknown>,
-          }),
-        )
-        .join("\n\n");
-      const body = sections.length > 0 ? sections : `_(no ${entityName} primitives)_\n`;
-      return {
-        bytes: new TextEncoder().encode(body),
-        contentType: "text/markdown",
-        filename: `${lower}.md`,
-      };
-    };
-    ctx.registerRenderer({
-      target: "text/markdown",
-      rendererId: `acme:${entityName}MarkdownRenderer`,
-      fn: rendererFn,
-    });
-
-    const { importer: bridgeImporter } = zodSchemaToImporter(entity.schema, {
-      primitive_type_id: primitiveTypeId,
-      idFrom: (parsed) => {
-        // Slide identity is the integer slide_number; everything
-        // else uses field_values.id.
-        if (entityName === "Slide") {
-          const n = (parsed as { slide_number: number }).slide_number;
-          return `${primitiveTypeId}:${n}`;
-        }
-        return `${primitiveTypeId}:${(parsed as { id: string }).id}`;
-      },
-      pluginId: PLUGIN_ID,
-      typeName: lower,
-    });
-    const importerFn: ImporterFn = (raw, opts): ProjectTransfer => {
-      const body = typeof raw === "string" ? raw : JSON.stringify(raw);
-      const result = bridgeImporter(body);
-      if (result.kind === "error") {
-        throw new Error(
-          `import failed (${entityName}): ${result.warnings.map((w) => w.message).join("; ")}`,
-        );
-      }
-      const workbookId = opts?.workbookId ?? `${PLUGIN_ID}-${lower}-import`;
-      const projectName = opts?.projectName ?? `${entityName} import`;
-      const projectDescription =
-        opts?.projectDescription ??
-        `Imported ${result.intents.length} ${entityName} primitives via cap:importer.`;
-      const now = "1970-01-01T00:00:00.000Z";
-      const transfer: ProjectTransfer = {
-        spec_core: SPEC_CORE_VERSION,
-        workbook: {
-          id: workbookId,
-          name: projectName,
-          description: projectDescription,
-          profile_id: PROFILE_ID,
-          created_at: now,
-          revision: 0,
-        },
-        primitives: result.intents.map((it) => ({
-          id: it.id,
-          uid: mintUid(),
-          type_id: it.type_id,
-          field_values: it.field_values,
-          revision: 0,
-          scope_id: workbookId,
-        })),
-        relations: [],
-        templates: [],
-        test_suites: [],
-      };
-      return transfer;
-    };
-    ctx.registerImporter({
-      format: `${PLUGIN_ID}:${lower}-json`,
-      fn: importerFn,
-    });
-
-    const { exporter: bridgeExporter } = zodSchemaToExporter(entity.schema, {
-      primitive_type_id: primitiveTypeId,
-      filename: () => `${lower}.json`,
-      pluginId: PLUGIN_ID,
-    });
-    const exporterFn: ExporterFn = (transfer): Uint8Array => {
-      const view = {
-        id: transfer.workbook.id,
-        primitives: transfer.primitives.map((p) => ({
-          id: p.id,
-          type_id: p.type_id,
-          field_values: p.field_values as Record<string, unknown>,
-        })),
-      };
-      const { body } = bridgeExporter(view);
-      return new TextEncoder().encode(body);
-    };
-    ctx.registerExporter({
-      format: `${PLUGIN_ID}:${lower}-json`,
-      fn: exporterFn,
-    });
-  }
-
+  // A deck is a sequence with an argument: the running order to rehearse
+  // from, and a contact sheet where the shape of the deck — and where it
+  // crowds — is visible without reading a word.
+  ctx.registerRenderer({ target: "text/markdown", rendererId: DECK_MARKDOWN_RENDERER_ID, fn: renderDeckMarkdown as RendererFn });
+  ctx.registerRenderer({ target: "image/svg+xml", rendererId: DECK_SHEET_RENDERER_ID, fn: renderDeckContactSheet as RendererFn });
   ctx.logger.info(
     `acme.business-deck activated: ${result.profile.primitive_types.length} primitive types, ${result.profile.relation_types.length} relation types, ${(result.profile.constraints ?? []).length} CEL rules + ${result.profile.primitive_types.length} per-primitive validators + 1 deck-coherence validator + ${Object.keys(sidecar.entities).length} renderers + ${Object.keys(sidecar.entities).length} importers + ${Object.keys(sidecar.entities).length} exporters. Profile id: ${PROFILE_ID}.`,
   );

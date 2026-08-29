@@ -74,6 +74,7 @@ import {
   variantFieldsByEntity,
   VENDOR,
 } from "./sidecar.js";
+import { renderPaperMarkdown, renderPaperHtml } from "./renderers/paper_document.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -986,6 +987,9 @@ function findingsForPaper(
  * activate(ctx) — host calls this once per session per plugin.
  * ──────────────────────────────────────────────────────────────────── */
 
+export const PAPER_MARKDOWN_RENDERER_ID = "acad:PaperDocumentRenderer" as const;
+export const PAPER_HTML_RENDERER_ID = "acad:PaperHtmlRenderer" as const;
+
 export async function activate(ctx: PluginContext): Promise<void> {
   const sidecar = buildAcademicPaperSidecar();
   const result = assembleDomainProfileFromSidecar({
@@ -1102,119 +1106,12 @@ export async function activate(ctx: PluginContext): Promise<void> {
   // ─────────────────────────────────────────────────────────────────
 
   const SPEC_CORE_VERSION = "1.0";
-  for (const [entityName, entity] of Object.entries(sidecar.entities)) {
-    const primitiveTypeId = `${TYPE_PREFIX}:${entityName}`;
-    const lower = entityName.toLowerCase();
 
-    const { renderer: perPrimitiveRenderer } = zodSchemaToMarkdownRenderer(
-      entity.schema,
-      {
-        primitive_type_id: primitiveTypeId,
-        fieldOrder: "schema",
-      },
-    );
-    const rendererFn: RendererFn = (input: RendererInput): RendererOutput => {
-      const matching = input.primitives.filter(
-        (p) => p.type_id === primitiveTypeId,
-      );
-      const sections = matching
-        .map((p) =>
-          perPrimitiveRenderer({
-            id: p.id,
-            type_id: p.type_id,
-            field_values: p.field_values as Record<string, unknown>,
-          }),
-        )
-        .join("\n\n");
-      const body =
-        sections.length > 0 ? sections : `_(no ${entityName} primitives)_\n`;
-      return {
-        bytes: new TextEncoder().encode(body),
-        contentType: "text/markdown",
-        filename: `${lower}.md`,
-      };
-    };
-    ctx.registerRenderer({
-      target: "text/markdown",
-      rendererId: `${VENDOR}:${entityName}MarkdownRenderer`,
-      fn: rendererFn,
-    });
-
-    const { importer: bridgeImporter } = zodSchemaToImporter(entity.schema, {
-      primitive_type_id: primitiveTypeId,
-      idFrom: (parsed) =>
-        `${primitiveTypeId}:${(parsed as { id: string }).id}`,
-      pluginId: PLUGIN_ID,
-      typeName: lower,
-    });
-    const importerFn: ImporterFn = (raw, opts): ProjectTransfer => {
-      const body = typeof raw === "string" ? raw : JSON.stringify(raw);
-      const result = bridgeImporter(body);
-      if (result.kind === "error") {
-        throw new Error(
-          `import failed (${entityName}): ${result.warnings
-            .map((w) => w.message)
-            .join("; ")}`,
-        );
-      }
-      const workbookId = opts?.workbookId ?? `${PLUGIN_ID}-${lower}-import`;
-      const projectName = opts?.projectName ?? `${entityName} import`;
-      const projectDescription =
-        opts?.projectDescription ??
-        `Imported ${result.intents.length} ${entityName} primitives via cap:importer.`;
-      const now = "1970-01-01T00:00:00.000Z";
-      const transfer: ProjectTransfer = {
-        spec_core: SPEC_CORE_VERSION,
-        workbook: {
-          id: workbookId,
-          name: projectName,
-          description: projectDescription,
-          profile_id: PROFILE_ID,
-          created_at: now,
-          revision: 0,
-        },
-        primitives: result.intents.map((it) => ({
-          id: it.id,
-          uid: mintUid(),
-          type_id: it.type_id,
-          field_values: it.field_values,
-          revision: 0,
-          scope_id: workbookId,
-        })),
-        relations: [],
-        templates: [],
-        test_suites: [],
-      };
-      return transfer;
-    };
-    ctx.registerImporter({
-      format: `${PLUGIN_ID}:${lower}-json`,
-      fn: importerFn,
-    });
-
-    const { exporter: bridgeExporter } = zodSchemaToExporter(entity.schema, {
-      primitive_type_id: primitiveTypeId,
-      filename: () => `${lower}.json`,
-      pluginId: PLUGIN_ID,
-    });
-    const exporterFn: ExporterFn = (transfer): Uint8Array => {
-      const view = {
-        id: transfer.workbook.id,
-        primitives: transfer.primitives.map((p) => ({
-          id: p.id,
-          type_id: p.type_id,
-          field_values: p.field_values as Record<string, unknown>,
-        })),
-      };
-      const { body } = bridgeExporter(view);
-      return new TextEncoder().encode(body);
-    };
-    ctx.registerExporter({
-      format: `${PLUGIN_ID}:${lower}-json`,
-      fn: exporterFn,
-    });
-  }
-
+  // The paper as a paper: sections in order, claims with their evidence,
+  // findings, references. Twenty-four field tables described the records;
+  // none rendered the argument they describe.
+  ctx.registerRenderer({ target: "text/markdown", rendererId: PAPER_MARKDOWN_RENDERER_ID, fn: renderPaperMarkdown as RendererFn });
+  ctx.registerRenderer({ target: "text/html", rendererId: PAPER_HTML_RENDERER_ID, fn: renderPaperHtml as RendererFn });
   ctx.logger.info(
     `fdpm.academic-paper activated: ${result.profile.primitive_types.length} primitive types, ${result.profile.relation_types.length} relation types, ${
       (result.profile.constraints ?? []).length

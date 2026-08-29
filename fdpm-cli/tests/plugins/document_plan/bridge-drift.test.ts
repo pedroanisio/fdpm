@@ -84,7 +84,7 @@ describe("fdpm.document-plan — manifest ↔ sidecar parity", () => {
     expect(hashRecord.sources).toEqual(["schemas/document-plan.ts", "sidecar.ts"]);
   });
 
-  it("emits one primitive type, one validator and one renderer per Entity", () => {
+  it("emits one primitive type and one validator per Entity, and one document renderer", () => {
     const profile = JSON.parse(readFileSync(join(PLUGIN_DIR, "generated", "profile.json"), "utf8"));
     expect(profile.id).toBe(PROFILE_ID);
     expect(profile.version).toBe("3.1.0");
@@ -96,9 +96,9 @@ describe("fdpm.document-plan — manifest ↔ sidecar parity", () => {
     const renderers = manifest.capabilities.filter((c) => c.capability_id === "cap:renderer");
     expect(validators.map((c) => c.metadata?.target_type_id).sort()).toEqual(typeIds);
     for (const v of validators) expect((v.metadata?.rule_ids ?? []).length).toBeGreaterThan(0);
-    expect(renderers.map((c) => c.metadata?.renderer_id).sort()).toEqual(
-      ENTITY_NAMES.map((n) => `${PLUGIN_ID}:${n}MarkdownRenderer`).sort(),
-    );
+    // One document renderer, not one field table per entity: the brief is
+    // what a reader wants from a plan header.
+    expect(renderers.map((c) => c.metadata?.renderer_id)).toEqual(["docplan:PlanBriefRenderer"]);
     expect(manifest.permissions).toEqual(["read:primitives", "read:relations", "read:workbooks", "render:server"]);
   });
 

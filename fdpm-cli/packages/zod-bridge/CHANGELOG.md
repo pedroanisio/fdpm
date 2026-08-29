@@ -119,9 +119,9 @@ emission path.
 ## [0.3.0] — 2026-05-06
 
 Minor release. **Sidecar consumer.** Adds the
-[`SPEC-DOMAIN-SIDECAR`](../../docs/specs/SPEC-DOMAIN-SIDECAR.md) v0.1.3
+`SPEC-DOMAIN-SIDECAR` v0.1.3
 input surface and a sidecar-driven orchestrator that emits the seven
-artefacts mandated by [`SPEC-FDPM-BRIDGE`](../../docs/specs/SPEC-FDPM-BRIDGE.md)
+artefacts mandated by `SPEC-FDPM-BRIDGE`
 §2.2.
 
 The legacy `assembleDomainProfile` entrypoint from v0.2.0 is unchanged.
