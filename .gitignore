@@ -13,3 +13,4 @@ docs/hygiene/doc-hygiene-report.md
 docs/hygiene/doc-quarantine.sh
 docs/hygiene/quarantine-manifest.json
 docs/hygiene/quarantine-summaries.md
+.repo/
