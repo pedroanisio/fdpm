@@ -21,6 +21,46 @@ upgrade.
 
 ## [Unreleased]
 
+### Fixed
+
+#### `fdpm-mcp` — connected clients never heard about workbooks created after connect (SPEC-MCP-SERVER §10.1, §15.4)
+
+`resources/list` and `prompts/list` are computed from the live `Host` on
+every request, but the server declared neither `resources.listChanged`
+nor `prompts.listChanged` and sent no notification after a SIGHUP
+reload. MCP clients cache both lists, so a workbook built while a client
+was connected stayed invisible in its resource list — readable by URI,
+missing from the listing. Observed against the live server after
+building the `spec-document-plan` workbook: `fdpm.workbook.list` and
+`fdpm.workbook.get` saw it; the client's `resources/list` showed 20 of
+21 workbooks.
+
+- Capabilities now declare `resources: { listChanged: true }` and
+  `prompts: { listChanged: true }`. `tools.listChanged` stays
+  undeclared: the advertised tool array is frozen at boot (it is the
+  array the §8.5 byte budget was measured against), so a reload cannot
+  change it.
+- The SIGHUP handler moved out of the binary into
+  [`src/mcp/reload.ts`](src/mcp/reload.ts) (`handleReload`), which after
+  a successful `Host.reload()` clears the freshness map, writes the
+  `reload` audit entry, then sends
+  `notifications/resources/list_changed` and
+  `notifications/prompts/list_changed`.
+- A rejected reload (`host_compat` / `internal`) notifies nothing and
+  leaves the freshness map intact — the pre-reload Host is still what
+  the server serves, so the client's cached lists are still correct.
+  A notification that cannot be delivered (transport closed mid-reload)
+  is reported on stderr and never fails the reload or the process.
+- SPEC-MCP-SERVER 0.1.8 adds §10.1 and §15.4 and corrects §15.3, which
+  claimed SIGHUP drained and exited; §20 now lists the invariants it
+  always declared it would, including
+  `spec:inv:reload-notifies-list-changed`.
+- Tests: [`tests/mcp/reload-notify.test.ts`](tests/mcp/reload-notify.test.ts)
+  — a workbook created out-of-band becomes enumerable and both
+  notifications fire; both failure paths notify nothing; a throwing
+  notifier does not fail the reload; and the wire-level `initialize`
+  response declares the two `listChanged` capabilities and not a third.
+
 ### Added
 
 #### `fdpm-mcp` — plugin-shipped prompts as skills; `planning/triage_iteration` (SPEC-MCP-SERVER §13.5)

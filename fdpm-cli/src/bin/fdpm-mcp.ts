@@ -55,6 +55,7 @@ import {
 import { createSession } from "../mcp/session.js";
 import { createDispatcher } from "../mcp/dispatch.js";
 import type { DispatchCtx } from "../mcp/types.js";
+import { handleReload } from "../mcp/reload.js";
 import { McpAuditLog } from "../persistence/mcp-audit-log.js";
 import { HOST_VERSION } from "../core/version/spec.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
@@ -278,14 +279,21 @@ async function main(): Promise<void> {
     serverInfo as { name: string; version: string },
     {
       capabilities: {
+        // The advertised tool array is frozen at boot (it is the array
+        // the catalog budget was measured against), so no `listChanged`
+        // here: a reload cannot change it.
         tools: {},
         // Resources surface (slice 1: render only). `subscribe: false`
         // is implicit via omission — slice 2 will add it once the
-        // freshness-watcher polling loop is in place.
-        resources: {},
+        // freshness-watcher polling loop is in place. `listChanged` is
+        // declared because `resources/list` is computed from the live
+        // Host: an operator reload can add or drop whole workbooks, and
+        // a client that caches the list would never see them.
+        resources: { listChanged: true },
         // Plugin-shipped prompts (§13.5): metadata on prompts/list, the
-        // validated body on prompts/get.
-        prompts: {},
+        // validated body on prompts/get. Also live-computed from the
+        // Host's plugin runtime, hence `listChanged`.
+        prompts: { listChanged: true },
       },
       // SPEC-MCP-SERVER §8.6: static cold-start orientation, also served
       // at fdpm://guide for clients that ignore this field.
@@ -406,7 +414,15 @@ async function main(): Promise<void> {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGHUP", () => {
-    void handleSighup(host, audit, session);
+    void handleReload({
+      host,
+      audit,
+      session,
+      notifier: {
+        sendResourceListChanged: () => server.sendResourceListChanged(),
+        sendPromptListChanged: () => server.sendPromptListChanged(),
+      },
+    });
   });
 
   const transport = new StdioServerTransport();
@@ -415,65 +431,6 @@ async function main(): Promise<void> {
   process.stderr.write(
     `fdpm-mcp: ready on stdio with ${advertised.length} tool(s) (${catalog.measurement.total_bytes} B of ${catalog.budget.total_bytes} B catalog budget), ${resourceCount} resource(s), ${host.plugins.listPrompts().length} prompt(s), instructions ${instructionsBytes()} B\n`,
   );
-}
-
-/**
- * SIGHUP handler — operator-triggered Host reload. Replaces the live
- * Host atomically (Host.reload's contract: either pre or post state,
- * never half-swapped) and clears the session's freshness map so the
- * next tool call re-seeds against the freshly-loaded data dir.
- *
- * If `Host.reload()` rejects with `host_compat` (truncated/rewritten
- * log), the previous Host stays intact per Host.reload's contract;
- * we record the outcome in the MCP audit log and the server keeps
- * serving against the pre-reload state.
- */
-async function handleSighup(
-  host: Host,
-  audit: McpAuditLog,
-  session: ReturnType<typeof createSession>,
-): Promise<void> {
-  process.stderr.write("fdpm-mcp: SIGHUP received — invoking host.reload()\n");
-  try {
-    const result = await host.reload();
-    process.stderr.write(
-      `fdpm-mcp: reloaded at ${result.reloadedAt}, ${result.workbooks.length} workbooks\n`,
-    );
-    session.clearFreshnessMap();
-    audit.write({
-      ts: new Date().toISOString(),
-      phase: "reload",
-      reloaded_at: result.reloadedAt,
-      project_count: result.workbooks.length,
-      outcome: "ok",
-    });
-  } catch (err) {
-    if (err instanceof FDPMException && err.category === "host_compat") {
-      process.stderr.write(
-        `fdpm-mcp: reload failed (host_compat): ${err.message}\n`,
-      );
-      audit.write({
-        ts: new Date().toISOString(),
-        phase: "reload",
-        reloaded_at: Date.now(),
-        project_count: host.listProjects().length,
-        outcome: "host_compat",
-        error_message: err.message,
-      });
-    } else {
-      const msg = err instanceof Error ? err.message : String(err);
-      process.stderr.write(`fdpm-mcp: reload failed (internal): ${msg}\n`);
-      audit.write({
-        ts: new Date().toISOString(),
-        phase: "reload",
-        reloaded_at: Date.now(),
-        project_count: host.listProjects().length,
-        outcome: "internal",
-        error_message: msg,
-      });
-    }
-    // Old Host stays intact per Host.reload() contract — server keeps running.
-  }
 }
 
 main().catch((err) => {

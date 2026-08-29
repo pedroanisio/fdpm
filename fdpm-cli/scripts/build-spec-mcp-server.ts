@@ -1097,6 +1097,17 @@ const invariants: PrimitiveSpec[] = [
     },
   },
   {
+    id: "spec:inv:reload-notifies-list-changed",
+    type: "spec:Invariant",
+    fields: {
+      label: "A successful reload tells the client its cached lists are stale.",
+      statement:
+        "Every successful `Host.reload()` MUST be followed by `notifications/resources/list_changed` and `notifications/prompts/list_changed`, and the corresponding `listChanged` capabilities MUST be declared at `initialize`. A reload that rejects MUST emit neither and MUST NOT clear the freshness map.",
+      enforcement: "ci_check",
+      scope_ref: "fdpm-cli/tests/mcp/reload-notify.test.ts",
+    },
+  },
+  {
     id: "spec:inv:validation-report-mandatory",
     type: "spec:Invariant",
     fields: {
@@ -1833,7 +1844,7 @@ const futureWork: PrimitiveSpec[] = [
     fields: {
       label: "MCP `resources` and `prompts` surfaces",
       description:
-        "Delivered ahead of v0.2: resources in 0.1.2 (render, profile, schema, guide, audit families) and prompts in 0.1.7 (§13.5, plugin-shipped skills). Remaining: subscriptions/list_changed notifications.",
+        "Delivered ahead of v0.2: resources in 0.1.2 (render, profile, schema, guide, audit families), prompts in 0.1.7 (§13.5, plugin-shipped skills), and list_changed notifications on reload in 0.1.8 (§10.1). Remaining: subscriptions (resources/subscribe + notifications/resources/updated).",
       target_version: "0.2",
     },
   },
@@ -2090,6 +2101,19 @@ const revisions: PrimitiveSpec[] = [
       kind: "patch",
     },
   },
+  {
+    id: "spec:rev:0-1-8",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.8",
+      date: "2026-08-28",
+      title: "Reload-notification amendment.",
+      notes:
+        "Adds §10.1 and §15.4: resources/list and prompts/list are computed from the live Host, so the server declares resources.listChanged and prompts.listChanged and sends notifications/resources/list_changed and notifications/prompts/list_changed after every successful Host.reload(); tools.listChanged stays undeclared because the advertised tool array is frozen at boot. A rejected reload notifies nothing and leaves the freshness map intact (the pre-reload Host is still what is served); a notification that cannot be delivered is reported on stderr and never fails the reload. §15.3 corrected: SIGHUP is the reload signal, not a shutdown signal — only stdin EOF, SIGTERM and SIGINT drain and exit. Handler extracted to src/mcp/reload.ts with invariant spec:inv:reload-notifies-list-changed covered by tests/mcp/reload-notify.test.ts. Found while verifying a workbook built after the client connected: readable by URI, missing from the client's resource list. Authored by Claude Fable 5 via Claude Code.",
+      affected_sections: ["10", "15", "17"],
+      kind: "patch",
+    },
+  },
 ];
 
 // ── §0..§N Sections (the document tree) ────────────────────────────────────
@@ -2321,6 +2345,14 @@ const sections: PrimitiveSpec[] = [
         "Strict mode for Tier 2 / Tier 3 tools: refuse with the `permission` error envelope carrying `evidence.reason: \"stale_state\"` if any addressed workbook's log has changed out-of-band. Lenient mode for Tier 1: incremental tail-replay then dispatch. Operators trigger `Host.reload()` via SIGHUP or process restart.",
         "",
         "The server MUST NOT silently background-reload Tier 2/3 calls. Staleness is surfaced; the LLM and the client can react.",
+        "",
+        "### 10.1 Reload notifications (v0.1.8)",
+        "",
+        "`resources/list` and `prompts/list` are computed from the live `Host` on every request, so a workbook (or plugin prompt) that appeared on disk after a client connected becomes enumerable the instant `Host.reload()` returns. MCP clients cache both lists and re-fetch only on a `list_changed` notification, so the server MUST declare `resources.listChanged` and `prompts.listChanged` in its `initialize` capabilities and MUST send `notifications/resources/list_changed` and `notifications/prompts/list_changed` after every successful reload. Without them a workbook created after connect is readable by URI and invisible in the client's list.",
+        "",
+        "`tools.listChanged` is deliberately NOT declared: the advertised tool array is frozen at boot — it is the array the §8.5 byte budget was measured against — so a reload cannot change it.",
+        "",
+        "A reload that rejects MUST NOT notify and MUST NOT clear the freshness map: `Host.reload()` either swaps wholesale or leaves the previous `Host` serving, so the client's cached lists still describe what the server serves. Failure to deliver a notification (a transport closed mid-reload) MUST NOT fail the reload or terminate the server; it is reported on stderr, and the reload outcome (`ok` | `host_compat` | `internal`) is recorded in the audit log as a `reload` entry either way.",
       ].join("\n"),
     },
   },
@@ -2453,7 +2485,11 @@ const sections: PrimitiveSpec[] = [
         "",
         "### 15.3 Shutdown",
         "",
-        "On stdin EOF, SIGTERM, or SIGHUP: drain in-flight calls, flush persistence, flush audit log, exit 0. SIGINT is treated as SIGTERM. The MCP server is not interactive.",
+        "On stdin EOF or SIGTERM: drain in-flight calls, flush persistence, flush audit log, exit 0. SIGINT is treated as SIGTERM. The MCP server is not interactive.",
+        "",
+        "### 15.4 Reload (SIGHUP) (v0.1.8)",
+        "",
+        "SIGHUP is the operator's reload signal, not a shutdown: `Host.reload()` → clear the session freshness map → append a `reload` audit entry → emit the §10.1 `list_changed` notifications. The process keeps serving throughout, on the post-reload state when the reload succeeded and on the pre-reload state when it did not.",
       ].join("\n"),
     },
   },
@@ -2507,8 +2543,14 @@ const sections: PrimitiveSpec[] = [
       number: "20",
       title: "Invariants",
       kind: "prose",
-      body_md:
+      body_md: [
         "Invariants are the non-negotiable properties the implementation MUST preserve. CI and runtime checks each carry a `scope_ref` to the file that enforces them.",
+        "",
+        ...invariants.map((i) => {
+          const f = i.fields as Record<string, string>;
+          return `- **${f.label}** — ${f.statement} *(${f.enforcement}: \`${f.scope_ref}\`)*`;
+        }),
+      ].join("\n"),
     },
   },
   {
