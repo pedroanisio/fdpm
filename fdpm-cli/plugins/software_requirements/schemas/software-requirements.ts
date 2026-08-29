@@ -98,8 +98,16 @@ export const RequirementStatus = z.enum([
   "proposed", "analyzed", "agreed", "baselined", "implemented", "verified", "rejected",
 ]);
 
-/** [STD-3] standard V&V methods. */
-export const VerificationMethod = z.enum(["test", "inspection", "analysis", "demonstration"]);
+/** [STD-3] standard V&V methods, including combined methods where closure
+ *  requires both executable evidence and human review. */
+export const VerificationMethod = z.enum([
+  "test",
+  "inspection",
+  "analysis",
+  "demonstration",
+  "test_inspection",
+  "test_analysis",
+]);
 
 /**
  * First-class provenance ranking for requirement origin.
@@ -111,6 +119,49 @@ export const VerificationMethod = z.enum(["test", "inspection", "analysis", "dem
  */
 export const RequirementOriginClass = z.enum(["operator", "ai_generated", "derived"]);
 export const ProvenanceRank = z.enum(["primary", "secondary"]);
+
+/* ---------------------------------- scope --------------------------------- */
+
+export const ScopeBoundaryId = z
+  .string()
+  .regex(/^SB-[A-Z0-9]+-\d{3,}$/, "e.g. SB-CORE-001")
+  .describe("Stable scope-boundary identifier; separates positive scope from explicit exclusions and non-goals.");
+
+export const ScopePolarity = z.enum(["in_scope", "out_of_scope"]);
+
+export const ScopeBoundary = z
+  .object({
+    id: ScopeBoundaryId,
+    title: z.string().min(3).max(200),
+    polarity: ScopePolarity
+      .describe("Whether this boundary includes capability in scope or excludes it from scope."),
+    statement: z.string().min(10)
+      .describe("Verifiable statement of the inclusion, exclusion, non-goal, or scope edge."),
+    rationale: z.string().min(1)
+      .describe("Why this boundary exists; prevents negative scope from being an unmanaged note."),
+    priority: Priority.default("must"),
+    status: RequirementStatus.default("proposed"),
+    acceptanceCriteria: z.array(z.string().min(5)).min(1)
+      .describe("Evidence needed to confirm the boundary is respected."),
+    verification: VerificationMethod.default("inspection"),
+    sourceReference: z.string().optional()
+      .describe("Originating document, regulation, decision, or operator instruction."),
+    affectedRequirementIds: z.array(RequirementId).default([])
+      .describe("Requirements or requirement-candidates constrained or excluded by this boundary."),
+    attributes: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+      .default({})
+      .describe("Managed project-specific scope attributes; intentional extension point."),
+    openIssues: z.array(z.string().min(5)).default([])
+      .describe("Unresolved ambiguity about the scope boundary."),
+    notes: z.array(z.string()).default([]),
+    version: z.number().int().min(1).default(1),
+  })
+  .superRefine((b, ctx) => {
+    if (["baselined", "verified"].includes(b.status) && b.openIssues.length > 0)
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["openIssues"],
+        message: "resolve boundary open issues before baselining/verifying" });
+  })
+  .describe("A first-class scope boundary, including negative scope and non-goals.");
 
 /* ------------------------------ traceability ----------------------------- */
 
@@ -304,6 +355,10 @@ export const SoftwareRequirementsSpecification = z
         .describe("'1.1 Purpose — Specify the purpose of the SRS and the intended audience' (OOSE, s2519)"),
       intendedAudience: z.array(z.string().min(1)).min(1),   // (OOSE, s2519)
       scope: z.string().min(10),
+      outOfScope: z.array(z.string().min(5)).default([])
+        .describe("Document-level negative scope statements: capabilities, behaviors, or concerns explicitly excluded from this SRS."),
+      nonGoals: z.array(z.string().min(5)).default([])
+        .describe("Document-level non-goals that prevent readers from inferring unstated requirements."),
       overview: z.string().optional(),
       references: z.array(z.string()).default([]),
     }),
@@ -314,6 +369,7 @@ export const SoftwareRequirementsSpecification = z
       .describe("Assumed properties outside the system's control (RE covers desired properties AND constraints, MRK s94)"),
 
     requirements: z.array(Requirement).min(1),               // (MRK, s93, s138)
+    scopeBoundaries: z.array(ScopeBoundary).default([]),
 
     glossary: z.array(GlossaryEntry).default([]),            // (MRK, s93)
     baselines: z.array(Baseline).default([]),                // (MRK, s23)
@@ -328,6 +384,12 @@ export const SoftwareRequirementsSpecification = z
         message: `duplicate requirement ids: ${[...new Set(dup)].join(", ")} (identity is the unit of change control, MRK s5021)` });
 
     const idset = new Set(ids);
+    const boundaryIds = doc.scopeBoundaries.map(b => b.id);
+    const duplicateBoundaryIds = boundaryIds.filter((x, i) => boundaryIds.indexOf(x) !== i);
+    if (duplicateBoundaryIds.length)
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scopeBoundaries"],
+        message: `duplicate scope boundary ids: ${[...new Set(duplicateBoundaryIds)].join(", ")}` });
+
     doc.requirements.forEach((r, i) =>
       r.traces.forEach((t, j) => {
         if (!idset.has(t.target))
@@ -354,6 +416,14 @@ export const SoftwareRequirementsSpecification = z
           ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["baselines", i, "requirementIds", j],
             message: `baseline references unknown requirement ${rid} (MRK, s23)` });
       }));
+
+    doc.scopeBoundaries.forEach((b, i) =>
+      b.affectedRequirementIds.forEach((rid, j) => {
+        if (!idset.has(rid))
+          ctx.addIssue({ code: z.ZodIssueCode.custom,
+            path: ["scopeBoundaries", i, "affectedRequirementIds", j],
+            message: `scope boundary references unknown requirement ${rid}` });
+      }));
   });
 
 /* -------------------------------- types ---------------------------------- */
@@ -362,6 +432,7 @@ export type TRequirement = z.infer<typeof Requirement>;
 export type TSRS = z.infer<typeof SoftwareRequirementsSpecification>;
 export type TSRSInput = z.input<typeof SoftwareRequirementsSpecification>;
 export type TStakeholder = z.infer<typeof Stakeholder>;
+export type TScopeBoundary = z.infer<typeof ScopeBoundary>;
 export type TTraceLink = z.infer<typeof TraceLink>;
 export type TChangeRequest = z.infer<typeof ChangeRequest>;
 export type TBaseline = z.infer<typeof Baseline>;

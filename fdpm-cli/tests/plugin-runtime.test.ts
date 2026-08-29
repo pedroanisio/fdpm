@@ -5,6 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PROFILE_ID } from "../plugins/formal_specification/index.js";
+import { TEST_PROFILE } from "./fixtures.js";
 
 /**
  * Plugin runtime conformance tests, adapted from SPEC-PLUGGABLE §13:
@@ -48,6 +49,92 @@ describe("plugin runtime — formal_specification (in-tree built-in)", () => {
     expect(fs!.state).toBe("active");
     expect(fs!.trust).toBe("core");
     expect(host.profiles.has(PROFILE_ID)).toBe(true);
+  });
+});
+
+describe("plugin runtime — persisted profile migration collision", () => {
+  it("auto-activates a plugin when the identical contributed profile was already persisted", async () => {
+    const dataDir = tmpPluginDir();
+    const pluginDir = tmpPluginDir();
+    const pluginId = "test.persisted-profile";
+    const manifest = {
+      id: pluginId,
+      version: "0.1.0",
+      spec_version: "1.1.0",
+      kind: "server",
+      host_compatibility: { fdpm: ">=1.0,<2" },
+      capabilities: [{ capability_id: "cap:profile", local_name: "demo" }],
+    };
+
+    const seedingHost = new Host({ dataDir, noPlugins: true });
+    await seedingHost.load();
+    await seedingHost.registerProfile(TEST_PROFILE, { persist: true });
+
+    writePlugin(
+      pluginDir,
+      pluginId,
+      manifest,
+      `
+const manifest = ${JSON.stringify(manifest)};
+const profile = ${JSON.stringify(TEST_PROFILE)};
+export default {
+  manifest,
+  activate: (ctx) => { ctx.registerProfile(profile); },
+};
+`,
+    );
+
+    const host = new Host({ dataDir, builtinDirs: [pluginDir], pluginPaths: [] });
+    await expect(host.load()).resolves.not.toThrow();
+    const record = host.plugins.get(pluginId);
+    expect(record?.state).toBe("active");
+    expect(record?.errorMessage).toBeUndefined();
+    expect(host.profiles.has(TEST_PROFILE.id)).toBe(true);
+
+    rmSync(dataDir, { recursive: true, force: true });
+    rmSync(pluginDir, { recursive: true, force: true });
+  });
+
+  it("does not replace an existing persisted profile with the same id", async () => {
+    const dataDir = tmpPluginDir();
+    const pluginDir = tmpPluginDir();
+    const pluginId = "test.divergent-profile";
+    const manifest = {
+      id: pluginId,
+      version: "0.1.0",
+      spec_version: "1.1.0",
+      kind: "server",
+      host_compatibility: { fdpm: ">=1.0,<2" },
+      capabilities: [{ capability_id: "cap:profile", local_name: "demo" }],
+    };
+    const divergentProfile = { ...TEST_PROFILE, version: "9.9.9" };
+
+    const seedingHost = new Host({ dataDir, noPlugins: true });
+    await seedingHost.load();
+    await seedingHost.registerProfile(TEST_PROFILE, { persist: true });
+
+    writePlugin(
+      pluginDir,
+      pluginId,
+      manifest,
+      `
+const manifest = ${JSON.stringify(manifest)};
+const profile = ${JSON.stringify(divergentProfile)};
+export default {
+  manifest,
+  activate: (ctx) => { ctx.registerProfile(profile); },
+};
+`,
+    );
+
+    const host = new Host({ dataDir, builtinDirs: [pluginDir], pluginPaths: [] });
+    await expect(host.load()).resolves.not.toThrow();
+    const record = host.plugins.get(pluginId);
+    expect(record?.state).toBe("active");
+    expect(host.profiles.getRaw(TEST_PROFILE.id).version).toBe(TEST_PROFILE.version);
+
+    rmSync(dataDir, { recursive: true, force: true });
+    rmSync(pluginDir, { recursive: true, force: true });
   });
 });
 
