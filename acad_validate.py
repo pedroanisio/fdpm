@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """acad_validate.py — automated validation for FDPM academic-paper workbooks.
 
-Runs two passes over a workbook registered to ``profile:academic-paper:0.3``:
+Runs two passes over a workbook registered to ``profile:academic-paper:0.4.1``
+(the sole academic-paper profile since the v0.3 plugin was withdrawn on
+2026-08-29; the ``acad:`` type prefixes below are unchanged by that move):
 
   1. Native profile validation, by shelling out to ``fdpm validate
      <workbook> --json``.
@@ -50,7 +52,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
-ACADEMIC_PAPER_PROFILE = "profile:academic-paper:0.3"
+ACADEMIC_PAPER_PROFILE = "profile:academic-paper:0.4.1"
 
 # ---------------------------------------------------------------------------
 # Reference schema

@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidCitation",
+      "function_name": "acad.isValidCitation",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "citationMarkdownRenderer",
-    "local_name": "acad041-citation",
+    "local_name": "acad-citation",
     "metadata": {
-      "primitive_type_id": "acad041:Citation",
+      "primitive_type_id": "acad:Citation",
       "target": "text/markdown"
     }
   }

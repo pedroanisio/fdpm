@@ -1,9 +1,0 @@
-{
-  "hash": "9e5424134c26f2e08dae7c8f1444262a7305b642668b9e2b1e80acf66f5a44b1",
-  "hash_algo": "sha256",
-  "pinned_plugin_version": "0.4.0",
-  "sources": [
-    "schemas/academic-paper.ts",
-    "sidecar.ts"
-  ]
-}

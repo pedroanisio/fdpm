@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidErratum",
+      "function_name": "acad.isValidErratum",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "erratumMarkdownRenderer",
-    "local_name": "acad041-erratum",
+    "local_name": "acad-erratum",
     "metadata": {
-      "primitive_type_id": "acad041:Erratum",
+      "primitive_type_id": "acad:Erratum",
       "target": "text/markdown"
     }
   }

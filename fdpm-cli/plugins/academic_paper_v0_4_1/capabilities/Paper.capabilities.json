@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidPaper",
+      "function_name": "acad.isValidPaper",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "paperMarkdownRenderer",
-    "local_name": "acad041-paper",
+    "local_name": "acad-paper",
     "metadata": {
-      "primitive_type_id": "acad041:Paper",
+      "primitive_type_id": "acad:Paper",
       "target": "text/markdown"
     }
   }

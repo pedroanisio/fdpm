@@ -48,7 +48,7 @@ def _wb(primitives: list[dict], relations: list[dict] | None = None) -> Workbook
     return Workbook(
         id="test-wb",
         revision=1,
-        profile_id="profile:academic-paper:0.3",
+        profile_id="profile:academic-paper:0.4.1",
         primitives=primitives,
         relations=relations or [],
     )
@@ -509,7 +509,7 @@ def test_run_validation_aggregates_native_and_acad():
         wb_meta={
             "id": "x",
             "revision": 1,
-            "profile_id": "profile:academic-paper:0.3",
+            "profile_id": "profile:academic-paper:0.4.1",
         },
         primitives=[
             _prim("acad:Concept:c", "acad:Concept", id="concept-c", label="C"),

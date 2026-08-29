@@ -3,1402 +3,1402 @@
     {
       "expression": "self.field_values.id.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.paper.id.regex"
+      "name": "acad.paper.id.regex"
     },
     {
       "expression": "size(self.field_values.title) >= 1",
       "level": "error",
-      "name": "acad041.paper.title.min_length"
+      "name": "acad.paper.title.min_length"
     },
     {
       "expression": "size(self.field_values.title) <= 280",
       "level": "error",
-      "name": "acad041.paper.title.max_length"
+      "name": "acad.paper.title.max_length"
     },
     {
       "expression": "size(self.field_values.subtitle) >= 1",
       "level": "error",
-      "name": "acad041.paper.subtitle.min_length"
+      "name": "acad.paper.subtitle.min_length"
     },
     {
       "expression": "size(self.field_values.subtitle) <= 280",
       "level": "error",
-      "name": "acad041.paper.subtitle.max_length"
+      "name": "acad.paper.subtitle.max_length"
     },
     {
       "expression": "size(self.field_values.abstract) >= 1",
       "level": "error",
-      "name": "acad041.paper.abstract.min_length"
+      "name": "acad.paper.abstract.min_length"
     },
     {
       "expression": "size(self.field_values.abstract) <= 20000",
       "level": "error",
-      "name": "acad041.paper.abstract.max_length"
+      "name": "acad.paper.abstract.max_length"
     },
     {
       "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
       "level": "error",
-      "name": "acad041.paper.language.regex"
+      "name": "acad.paper.language.regex"
     },
     {
       "expression": "self.field_values.epistemicMethod in [\"empirical\", \"descriptive\", \"theoretical\", \"methodological\", \"literary-critical\", \"review\", \"historical\"]",
       "level": "error",
-      "name": "acad041.paper.epistemicMethod.enum"
+      "name": "acad.paper.epistemicMethod.enum"
     },
     {
       "expression": "self.field_values.format in [\"article\", \"essay\", \"monograph\", \"thesis\", \"chapter\", \"letter\", \"editorial\", \"commentary\"]",
       "level": "error",
-      "name": "acad041.paper.format.enum"
+      "name": "acad.paper.format.enum"
     },
     {
       "expression": "size(self.field_values.venue) >= 1",
       "level": "error",
-      "name": "acad041.paper.venue.min_length"
+      "name": "acad.paper.venue.min_length"
     },
     {
       "expression": "size(self.field_values.venue) <= 280",
       "level": "error",
-      "name": "acad041.paper.venue.max_length"
+      "name": "acad.paper.venue.max_length"
     },
     {
       "expression": "size(self.field_values.publisher) >= 1",
       "level": "error",
-      "name": "acad041.paper.publisher.min_length"
+      "name": "acad.paper.publisher.min_length"
     },
     {
       "expression": "size(self.field_values.publisher) <= 280",
       "level": "error",
-      "name": "acad041.paper.publisher.max_length"
+      "name": "acad.paper.publisher.max_length"
     },
     {
       "expression": "self.field_values.year >= 0",
       "level": "error",
-      "name": "acad041.paper.year.gt"
+      "name": "acad.paper.year.gt"
     },
     {
       "expression": "self.field_values.year <= 2100",
       "level": "error",
-      "name": "acad041.paper.year.lt"
+      "name": "acad.paper.year.lt"
     },
     {
       "expression": "int(self.field_values.year) == self.field_values.year",
       "level": "error",
-      "name": "acad041.paper.year.int"
+      "name": "acad.paper.year.int"
     },
     {
       "expression": "self.field_values.publicationDate.matches(\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\")",
       "level": "error",
-      "name": "acad041.paper.publicationDate.regex"
+      "name": "acad.paper.publicationDate.regex"
     },
     {
       "expression": "self.field_values.version in [\"author-original\", \"submitted-manuscript-under-review\", \"accepted-manuscript\", \"proof\", \"version-of-record\", \"corrected-version-of-record\", \"enhanced-version-of-record\"]",
       "level": "error",
-      "name": "acad041.paper.version.enum"
+      "name": "acad.paper.version.enum"
     },
     {
       "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
       "level": "error",
-      "name": "acad041.paper.doi.regex"
+      "name": "acad.paper.doi.regex"
     },
     {
       "expression": "self.field_values.isbn.matches(\"^(?:\\\\d[- ]?){9}[\\\\dX]$|^(?:\\\\d[- ]?){13}$\")",
       "level": "error",
-      "name": "acad041.paper.isbn.regex"
+      "name": "acad.paper.isbn.regex"
     },
     {
       "expression": "size(self.field_values.license) >= 1",
       "level": "error",
-      "name": "acad041.paper.license.min_length"
+      "name": "acad.paper.license.min_length"
     },
     {
       "expression": "size(self.field_values.license) <= 80",
       "level": "error",
-      "name": "acad041.paper.license.max_length"
+      "name": "acad.paper.license.max_length"
     },
     {
       "expression": "self.field_values.pageCount > 0",
       "level": "error",
-      "name": "acad041.paper.pageCount.gt"
+      "name": "acad.paper.pageCount.gt"
     },
     {
       "expression": "int(self.field_values.pageCount) == self.field_values.pageCount",
       "level": "error",
-      "name": "acad041.paper.pageCount.int"
+      "name": "acad.paper.pageCount.int"
     },
     {
       "expression": "size(self.field_values.sourceDocument) >= 1",
       "level": "error",
-      "name": "acad041.paper.sourceDocument.min_length"
+      "name": "acad.paper.sourceDocument.min_length"
     },
     {
       "expression": "size(self.field_values.keywords) <= 20",
       "level": "error",
-      "name": "acad041.paper.keywords.max_items"
+      "name": "acad.paper.keywords.max_items"
     },
     {
       "expression": "self.field_values.keywords.all(t, size(t) >= 1)",
       "level": "error",
-      "name": "acad041.paper.keywords.item.min_length"
+      "name": "acad.paper.keywords.item.min_length"
     },
     {
       "expression": "self.field_values.keywords.all(t, size(t) <= 280)",
       "level": "error",
-      "name": "acad041.paper.keywords.item.max_length"
+      "name": "acad.paper.keywords.item.max_length"
     },
     {
       "expression": "self.field_values.id.matches(\"^author-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.author.id.regex"
+      "name": "acad.author.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.author.paper.regex"
+      "name": "acad.author.paper.regex"
     },
     {
       "expression": "size(self.field_values.fullName) >= 1",
       "level": "error",
-      "name": "acad041.author.fullName.min_length"
+      "name": "acad.author.fullName.min_length"
     },
     {
       "expression": "size(self.field_values.fullName) <= 280",
       "level": "error",
-      "name": "acad041.author.fullName.max_length"
+      "name": "acad.author.fullName.max_length"
     },
     {
       "expression": "size(self.field_values.familyName) >= 1",
       "level": "error",
-      "name": "acad041.author.familyName.min_length"
+      "name": "acad.author.familyName.min_length"
     },
     {
       "expression": "size(self.field_values.familyName) <= 280",
       "level": "error",
-      "name": "acad041.author.familyName.max_length"
+      "name": "acad.author.familyName.max_length"
     },
     {
       "expression": "size(self.field_values.givenNames) >= 1",
       "level": "error",
-      "name": "acad041.author.givenNames.min_length"
+      "name": "acad.author.givenNames.min_length"
     },
     {
       "expression": "size(self.field_values.givenNames) <= 280",
       "level": "error",
-      "name": "acad041.author.givenNames.max_length"
+      "name": "acad.author.givenNames.max_length"
     },
     {
       "expression": "self.field_values.orcid.matches(\"^\\\\d{4}-\\\\d{4}-\\\\d{4}-\\\\d{3}[\\\\dX]$\")",
       "level": "error",
-      "name": "acad041.author.orcid.regex"
+      "name": "acad.author.orcid.regex"
     },
     {
       "expression": "self.field_values.role in [\"lead\", \"co-author\", \"corresponding\", \"supervisor\", \"translator\"]",
       "level": "error",
-      "name": "acad041.author.role.enum"
+      "name": "acad.author.role.enum"
     },
     {
       "expression": "self.field_values.position in [\"first\", \"middle\", \"last\"]",
       "level": "error",
-      "name": "acad041.author.position.enum"
+      "name": "acad.author.position.enum"
     },
     {
       "expression": "self.field_values.affiliations.all(t, t.matches(\"^affil-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.author.affiliations.item.regex"
+      "name": "acad.author.affiliations.item.regex"
     },
     {
       "expression": "self.field_values.contributions.all(t, t in [\"conceptualization\", \"methodology\", \"software\", \"validation\", \"formal-analysis\", \"investigation\", \"resources\", \"data-curation\", \"writing-original-draft\", \"writing-review-editing\", \"visualization\", \"supervision\", \"project-administration\", \"funding-acquisition\"])",
       "level": "error",
-      "name": "acad041.author.contributions.item.enum"
+      "name": "acad.author.contributions.item.enum"
     },
     {
       "expression": "self.field_values.id.matches(\"^affil-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.affiliation.id.regex"
+      "name": "acad.affiliation.id.regex"
     },
     {
       "expression": "size(self.field_values.institution) >= 1",
       "level": "error",
-      "name": "acad041.affiliation.institution.min_length"
+      "name": "acad.affiliation.institution.min_length"
     },
     {
       "expression": "size(self.field_values.institution) <= 280",
       "level": "error",
-      "name": "acad041.affiliation.institution.max_length"
+      "name": "acad.affiliation.institution.max_length"
     },
     {
       "expression": "size(self.field_values.department) >= 1",
       "level": "error",
-      "name": "acad041.affiliation.department.min_length"
+      "name": "acad.affiliation.department.min_length"
     },
     {
       "expression": "size(self.field_values.department) <= 280",
       "level": "error",
-      "name": "acad041.affiliation.department.max_length"
+      "name": "acad.affiliation.department.max_length"
     },
     {
       "expression": "self.field_values.country.matches(\"^[A-Z]{2}$\")",
       "level": "error",
-      "name": "acad041.affiliation.country.regex"
+      "name": "acad.affiliation.country.regex"
     },
     {
       "expression": "self.field_values.rorId.matches(\"^https:\\\\/\\\\/ror\\\\.org\\\\/0[a-z0-9]{6}\\\\d{2}$\")",
       "level": "error",
-      "name": "acad041.affiliation.rorId.regex"
+      "name": "acad.affiliation.rorId.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.section.id.regex"
+      "name": "acad.section.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.section.paper.regex"
+      "name": "acad.section.paper.regex"
     },
     {
       "expression": "self.field_values.parent.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.section.parent.regex"
+      "name": "acad.section.parent.regex"
     },
     {
       "expression": "size(self.field_values.label) >= 1",
       "level": "error",
-      "name": "acad041.section.label.min_length"
+      "name": "acad.section.label.min_length"
     },
     {
       "expression": "size(self.field_values.label) <= 280",
       "level": "error",
-      "name": "acad041.section.label.max_length"
+      "name": "acad.section.label.max_length"
     },
     {
       "expression": "size(self.field_values.title) >= 1",
       "level": "error",
-      "name": "acad041.section.title.min_length"
+      "name": "acad.section.title.min_length"
     },
     {
       "expression": "size(self.field_values.title) <= 280",
       "level": "error",
-      "name": "acad041.section.title.max_length"
+      "name": "acad.section.title.max_length"
     },
     {
       "expression": "self.field_values.order >= 0",
       "level": "error",
-      "name": "acad041.section.order.gt"
+      "name": "acad.section.order.gt"
     },
     {
       "expression": "int(self.field_values.order) == self.field_values.order",
       "level": "error",
-      "name": "acad041.section.order.int"
+      "name": "acad.section.order.int"
     },
     {
       "expression": "self.field_values.role in [\"preface\", \"introduction\", \"body\", \"methods\", \"results\", \"discussion\", \"conclusion\", \"appendix\", \"footnotes\", \"bibliography\", \"other\"]",
       "level": "error",
-      "name": "acad041.section.role.enum"
+      "name": "acad.section.role.enum"
     },
     {
       "expression": "size(self.field_values.bodyText) >= 1",
       "level": "error",
-      "name": "acad041.section.bodyText.min_length"
+      "name": "acad.section.bodyText.min_length"
     },
     {
       "expression": "size(self.field_values.bodyText) <= 20000",
       "level": "error",
-      "name": "acad041.section.bodyText.max_length"
+      "name": "acad.section.bodyText.max_length"
     },
     {
       "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
       "level": "error",
-      "name": "acad041.section.language.regex"
+      "name": "acad.section.language.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^claim-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.claim.id.regex"
+      "name": "acad.claim.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.claim.paper.regex"
+      "name": "acad.claim.paper.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.claim.section.regex"
+      "name": "acad.claim.section.regex"
     },
     {
       "expression": "self.field_values.kind in [\"descriptive\", \"interpretive\", \"normative\", \"methodological\", \"empirical\", \"definitional\", \"postulate\", \"hypothesis\"]",
       "level": "error",
-      "name": "acad041.claim.kind.enum"
+      "name": "acad.claim.kind.enum"
     },
     {
       "expression": "size(self.field_values.statement) >= 1",
       "level": "error",
-      "name": "acad041.claim.statement.min_length"
+      "name": "acad.claim.statement.min_length"
     },
     {
       "expression": "size(self.field_values.statement) <= 2000",
       "level": "error",
-      "name": "acad041.claim.statement.max_length"
+      "name": "acad.claim.statement.max_length"
     },
     {
       "expression": "self.field_values.derivesFrom.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.claim.derivesFrom.item.regex"
+      "name": "acad.claim.derivesFrom.item.regex"
     },
     {
       "expression": "self.field_values.counterReads.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.claim.counterReads.item.regex"
+      "name": "acad.claim.counterReads.item.regex"
     },
     {
       "expression": "self.field_values.lifecycleStatus in [\"asserted\", \"assumed\", \"proven\", \"refuted\", \"superseded\"]",
       "level": "error",
-      "name": "acad041.claim.lifecycleStatus.enum"
+      "name": "acad.claim.lifecycleStatus.enum"
     },
     {
       "expression": "self.field_values.supersededBy.matches(\"^claim-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.claim.supersededBy.regex"
+      "name": "acad.claim.supersededBy.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^evidence-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.evidence.id.regex"
+      "name": "acad.evidence.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.evidence.paper.regex"
+      "name": "acad.evidence.paper.regex"
     },
     {
       "expression": "size(self.field_values.supports) >= 1",
       "level": "error",
-      "name": "acad041.evidence.supports.min_items"
+      "name": "acad.evidence.supports.min_items"
     },
     {
       "expression": "self.field_values.supports.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.evidence.supports.item.regex"
+      "name": "acad.evidence.supports.item.regex"
     },
     {
       "expression": "self.field_values.kind in [\"data\", \"derivation\", \"citation\", \"observation\", \"exemplar\", \"textual-passage\", \"thought-experiment\"]",
       "level": "error",
-      "name": "acad041.evidence.kind.enum"
+      "name": "acad.evidence.kind.enum"
     },
     {
       "expression": "size(self.field_values.summary) >= 1",
       "level": "error",
-      "name": "acad041.evidence.summary.min_length"
+      "name": "acad.evidence.summary.min_length"
     },
     {
       "expression": "size(self.field_values.summary) <= 2000",
       "level": "error",
-      "name": "acad041.evidence.summary.max_length"
+      "name": "acad.evidence.summary.max_length"
     },
     {
       "expression": "self.field_values.quotation.matches(\"^quote-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.evidence.quotation.regex"
+      "name": "acad.evidence.quotation.regex"
     },
     {
       "expression": "self.field_values.work.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.evidence.work.regex"
+      "name": "acad.evidence.work.regex"
     },
     {
       "expression": "size(self.field_values.locator) >= 1",
       "level": "error",
-      "name": "acad041.evidence.locator.min_length"
+      "name": "acad.evidence.locator.min_length"
     },
     {
       "expression": "size(self.field_values.locator) <= 120",
       "level": "error",
-      "name": "acad041.evidence.locator.max_length"
+      "name": "acad.evidence.locator.max_length"
     },
     {
       "expression": "self.field_values.id.matches(\"^quote-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.quotation.id.regex"
+      "name": "acad.quotation.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.quotation.paper.regex"
+      "name": "acad.quotation.paper.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.quotation.section.regex"
+      "name": "acad.quotation.section.regex"
     },
     {
       "expression": "self.field_values.quotesFrom.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.quotation.quotesFrom.regex"
+      "name": "acad.quotation.quotesFrom.regex"
     },
     {
       "expression": "size(self.field_values.locator) >= 1",
       "level": "error",
-      "name": "acad041.quotation.locator.min_length"
+      "name": "acad.quotation.locator.min_length"
     },
     {
       "expression": "size(self.field_values.locator) <= 120",
       "level": "error",
-      "name": "acad041.quotation.locator.max_length"
+      "name": "acad.quotation.locator.max_length"
     },
     {
       "expression": "size(self.field_values.body) >= 1",
       "level": "error",
-      "name": "acad041.quotation.body.min_length"
+      "name": "acad.quotation.body.min_length"
     },
     {
       "expression": "size(self.field_values.body) <= 2000",
       "level": "error",
-      "name": "acad041.quotation.body.max_length"
+      "name": "acad.quotation.body.max_length"
     },
     {
       "expression": "self.field_values.bodyLanguage.matches(\"^[a-z]{2}$\")",
       "level": "error",
-      "name": "acad041.quotation.bodyLanguage.regex"
+      "name": "acad.quotation.bodyLanguage.regex"
     },
     {
       "expression": "self.field_values.emphasis in [\"none\", \"original\", \"added-by-citing-author\"]",
       "level": "error",
-      "name": "acad041.quotation.emphasis.enum"
+      "name": "acad.quotation.emphasis.enum"
     },
     {
       "expression": "self.field_values.translatedFrom.matches(\"^quote-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.quotation.translatedFrom.regex"
+      "name": "acad.quotation.translatedFrom.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.work.id.regex"
+      "name": "acad.work.id.regex"
     },
     {
       "expression": "self.field_values.kind in [\"journal-article\", \"book\", \"book-chapter\", \"thesis\", \"report\", \"preprint\", \"conference-paper\", \"newspaper-article\", \"archival-document\", \"film\", \"audio-recording\", \"website\", \"dataset\", \"software\", \"other\"]",
       "level": "error",
-      "name": "acad041.work.kind.enum"
+      "name": "acad.work.kind.enum"
     },
     {
       "expression": "size(self.field_values.title) >= 1",
       "level": "error",
-      "name": "acad041.work.title.min_length"
+      "name": "acad.work.title.min_length"
     },
     {
       "expression": "size(self.field_values.title) <= 280",
       "level": "error",
-      "name": "acad041.work.title.max_length"
+      "name": "acad.work.title.max_length"
     },
     {
       "expression": "self.field_values.authorsFreeText.all(t, size(t) >= 1)",
       "level": "error",
-      "name": "acad041.work.authorsFreeText.item.min_length"
+      "name": "acad.work.authorsFreeText.item.min_length"
     },
     {
       "expression": "self.field_values.authorsFreeText.all(t, size(t) <= 280)",
       "level": "error",
-      "name": "acad041.work.authorsFreeText.item.max_length"
+      "name": "acad.work.authorsFreeText.item.max_length"
     },
     {
       "expression": "self.field_values.year >= 0",
       "level": "error",
-      "name": "acad041.work.year.gt"
+      "name": "acad.work.year.gt"
     },
     {
       "expression": "self.field_values.year <= 2100",
       "level": "error",
-      "name": "acad041.work.year.lt"
+      "name": "acad.work.year.lt"
     },
     {
       "expression": "int(self.field_values.year) == self.field_values.year",
       "level": "error",
-      "name": "acad041.work.year.int"
+      "name": "acad.work.year.int"
     },
     {
       "expression": "size(self.field_values.venue) >= 1",
       "level": "error",
-      "name": "acad041.work.venue.min_length"
+      "name": "acad.work.venue.min_length"
     },
     {
       "expression": "size(self.field_values.venue) <= 280",
       "level": "error",
-      "name": "acad041.work.venue.max_length"
+      "name": "acad.work.venue.max_length"
     },
     {
       "expression": "size(self.field_values.publisher) >= 1",
       "level": "error",
-      "name": "acad041.work.publisher.min_length"
+      "name": "acad.work.publisher.min_length"
     },
     {
       "expression": "size(self.field_values.publisher) <= 280",
       "level": "error",
-      "name": "acad041.work.publisher.max_length"
+      "name": "acad.work.publisher.max_length"
     },
     {
       "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
       "level": "error",
-      "name": "acad041.work.doi.regex"
+      "name": "acad.work.doi.regex"
     },
     {
       "expression": "self.field_values.isbn.matches(\"^(?:\\\\d[- ]?){9}[\\\\dX]$|^(?:\\\\d[- ]?){13}$\")",
       "level": "error",
-      "name": "acad041.work.isbn.regex"
+      "name": "acad.work.isbn.regex"
     },
     {
       "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
       "level": "error",
-      "name": "acad041.work.language.regex"
+      "name": "acad.work.language.regex"
     },
     {
       "expression": "self.field_values.translationOf.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.work.translationOf.regex"
+      "name": "acad.work.translationOf.regex"
     },
     {
       "expression": "self.field_values.editionOf.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.work.editionOf.regex"
+      "name": "acad.work.editionOf.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^concept-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.concept.id.regex"
+      "name": "acad.concept.id.regex"
     },
     {
       "expression": "size(self.field_values.label) >= 1",
       "level": "error",
-      "name": "acad041.concept.label.min_length"
+      "name": "acad.concept.label.min_length"
     },
     {
       "expression": "size(self.field_values.label) <= 280",
       "level": "error",
-      "name": "acad041.concept.label.max_length"
+      "name": "acad.concept.label.max_length"
     },
     {
       "expression": "size(self.field_values.canonicalForm) >= 1",
       "level": "error",
-      "name": "acad041.concept.canonicalForm.min_length"
+      "name": "acad.concept.canonicalForm.min_length"
     },
     {
       "expression": "size(self.field_values.canonicalForm) <= 280",
       "level": "error",
-      "name": "acad041.concept.canonicalForm.max_length"
+      "name": "acad.concept.canonicalForm.max_length"
     },
     {
       "expression": "size(self.field_values.domain) >= 1",
       "level": "error",
-      "name": "acad041.concept.domain.min_length"
+      "name": "acad.concept.domain.min_length"
     },
     {
       "expression": "size(self.field_values.domain) <= 280",
       "level": "error",
-      "name": "acad041.concept.domain.max_length"
+      "name": "acad.concept.domain.max_length"
     },
     {
       "expression": "self.field_values.wikidataId.matches(\"^Q[1-9]\\\\d*$\")",
       "level": "error",
-      "name": "acad041.concept.wikidataId.regex"
+      "name": "acad.concept.wikidataId.regex"
     },
     {
       "expression": "self.field_values.borrowsFrom.all(t, t.matches(\"^theorist-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.concept.borrowsFrom.item.regex"
+      "name": "acad.concept.borrowsFrom.item.regex"
     },
     {
       "expression": "self.field_values.extends.all(t, t.matches(\"^concept-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.concept.extends.item.regex"
+      "name": "acad.concept.extends.item.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^defn-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.definition.id.regex"
+      "name": "acad.definition.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.definition.paper.regex"
+      "name": "acad.definition.paper.regex"
     },
     {
       "expression": "self.field_values.concept.matches(\"^concept-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.definition.concept.regex"
+      "name": "acad.definition.concept.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.definition.section.regex"
+      "name": "acad.definition.section.regex"
     },
     {
       "expression": "size(self.field_values.body) >= 1",
       "level": "error",
-      "name": "acad041.definition.body.min_length"
+      "name": "acad.definition.body.min_length"
     },
     {
       "expression": "size(self.field_values.body) <= 2000",
       "level": "error",
-      "name": "acad041.definition.body.max_length"
+      "name": "acad.definition.body.max_length"
     },
     {
       "expression": "self.field_values.provenance in [\"stipulated\", \"derived\", \"borrowed\"]",
       "level": "error",
-      "name": "acad041.definition.provenance.enum"
+      "name": "acad.definition.provenance.enum"
     },
     {
       "expression": "self.field_values.citedFrom.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.definition.citedFrom.regex"
+      "name": "acad.definition.citedFrom.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^theorist-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.theorist.id.regex"
+      "name": "acad.theorist.id.regex"
     },
     {
       "expression": "size(self.field_values.fullName) >= 1",
       "level": "error",
-      "name": "acad041.theorist.fullName.min_length"
+      "name": "acad.theorist.fullName.min_length"
     },
     {
       "expression": "size(self.field_values.fullName) <= 280",
       "level": "error",
-      "name": "acad041.theorist.fullName.max_length"
+      "name": "acad.theorist.fullName.max_length"
     },
     {
       "expression": "size(self.field_values.familyName) >= 1",
       "level": "error",
-      "name": "acad041.theorist.familyName.min_length"
+      "name": "acad.theorist.familyName.min_length"
     },
     {
       "expression": "size(self.field_values.familyName) <= 280",
       "level": "error",
-      "name": "acad041.theorist.familyName.max_length"
+      "name": "acad.theorist.familyName.max_length"
     },
     {
       "expression": "self.field_values.birthYear >= 0",
       "level": "error",
-      "name": "acad041.theorist.birthYear.gt"
+      "name": "acad.theorist.birthYear.gt"
     },
     {
       "expression": "self.field_values.birthYear <= 2100",
       "level": "error",
-      "name": "acad041.theorist.birthYear.lt"
+      "name": "acad.theorist.birthYear.lt"
     },
     {
       "expression": "int(self.field_values.birthYear) == self.field_values.birthYear",
       "level": "error",
-      "name": "acad041.theorist.birthYear.int"
+      "name": "acad.theorist.birthYear.int"
     },
     {
       "expression": "self.field_values.deathYear >= 0",
       "level": "error",
-      "name": "acad041.theorist.deathYear.gt"
+      "name": "acad.theorist.deathYear.gt"
     },
     {
       "expression": "self.field_values.deathYear <= 2100",
       "level": "error",
-      "name": "acad041.theorist.deathYear.lt"
+      "name": "acad.theorist.deathYear.lt"
     },
     {
       "expression": "int(self.field_values.deathYear) == self.field_values.deathYear",
       "level": "error",
-      "name": "acad041.theorist.deathYear.int"
+      "name": "acad.theorist.deathYear.int"
     },
     {
       "expression": "size(self.field_values.primaryAffiliation) >= 1",
       "level": "error",
-      "name": "acad041.theorist.primaryAffiliation.min_length"
+      "name": "acad.theorist.primaryAffiliation.min_length"
     },
     {
       "expression": "size(self.field_values.primaryAffiliation) <= 280",
       "level": "error",
-      "name": "acad041.theorist.primaryAffiliation.max_length"
+      "name": "acad.theorist.primaryAffiliation.max_length"
     },
     {
       "expression": "self.field_values.wikidataId.matches(\"^Q[1-9]\\\\d*$\")",
       "level": "error",
-      "name": "acad041.theorist.wikidataId.regex"
+      "name": "acad.theorist.wikidataId.regex"
     },
     {
       "expression": "self.field_values.viafId.matches(\"^\\\\d+$\")",
       "level": "error",
-      "name": "acad041.theorist.viafId.regex"
+      "name": "acad.theorist.viafId.regex"
     },
     {
       "expression": "self.field_values.notableTheories.all(t, t.matches(\"^theory-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.theorist.notableTheories.item.regex"
+      "name": "acad.theorist.notableTheories.item.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^theory-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.theory.id.regex"
+      "name": "acad.theory.id.regex"
     },
     {
       "expression": "size(self.field_values.name) >= 1",
       "level": "error",
-      "name": "acad041.theory.name.min_length"
+      "name": "acad.theory.name.min_length"
     },
     {
       "expression": "size(self.field_values.name) <= 280",
       "level": "error",
-      "name": "acad041.theory.name.max_length"
+      "name": "acad.theory.name.max_length"
     },
     {
       "expression": "size(self.field_values.summary) >= 1",
       "level": "error",
-      "name": "acad041.theory.summary.min_length"
+      "name": "acad.theory.summary.min_length"
     },
     {
       "expression": "size(self.field_values.summary) <= 2000",
       "level": "error",
-      "name": "acad041.theory.summary.max_length"
+      "name": "acad.theory.summary.max_length"
     },
     {
       "expression": "self.field_values.primaryTheorist.matches(\"^theorist-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.theory.primaryTheorist.regex"
+      "name": "acad.theory.primaryTheorist.regex"
     },
     {
       "expression": "self.field_values.extendsTheory.all(t, t.matches(\"^theory-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.theory.extendsTheory.item.regex"
+      "name": "acad.theory.extendsTheory.item.regex"
     },
     {
       "expression": "self.field_values.respondsTo.all(t, t.matches(\"^theory-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.theory.respondsTo.item.regex"
+      "name": "acad.theory.respondsTo.item.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^method-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.method.id.regex"
+      "name": "acad.method.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.method.paper.regex"
+      "name": "acad.method.paper.regex"
     },
     {
       "expression": "size(self.field_values.name) >= 1",
       "level": "error",
-      "name": "acad041.method.name.min_length"
+      "name": "acad.method.name.min_length"
     },
     {
       "expression": "size(self.field_values.name) <= 280",
       "level": "error",
-      "name": "acad041.method.name.max_length"
+      "name": "acad.method.name.max_length"
     },
     {
       "expression": "self.field_values.kind in [\"qualitative\", \"quantitative\", \"mixed\", \"theoretical\", \"literary\", \"historical\", \"computational\", \"experimental\"]",
       "level": "error",
-      "name": "acad041.method.kind.enum"
+      "name": "acad.method.kind.enum"
     },
     {
       "expression": "size(self.field_values.procedure) >= 1",
       "level": "error",
-      "name": "acad041.method.procedure.min_length"
+      "name": "acad.method.procedure.min_length"
     },
     {
       "expression": "size(self.field_values.procedure) <= 20000",
       "level": "error",
-      "name": "acad041.method.procedure.max_length"
+      "name": "acad.method.procedure.max_length"
     },
     {
       "expression": "self.field_values.id.matches(\"^finding-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.finding.id.regex"
+      "name": "acad.finding.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.finding.paper.regex"
+      "name": "acad.finding.paper.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.finding.section.regex"
+      "name": "acad.finding.section.regex"
     },
     {
       "expression": "size(self.field_values.statement) >= 1",
       "level": "error",
-      "name": "acad041.finding.statement.min_length"
+      "name": "acad.finding.statement.min_length"
     },
     {
       "expression": "size(self.field_values.statement) <= 2000",
       "level": "error",
-      "name": "acad041.finding.statement.max_length"
+      "name": "acad.finding.statement.max_length"
     },
     {
       "expression": "self.field_values.supportedBy.all(t, t.matches(\"^evidence-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.finding.supportedBy.item.regex"
+      "name": "acad.finding.supportedBy.item.regex"
     },
     {
       "expression": "self.field_values.testsHypothesis.matches(\"^claim-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.finding.testsHypothesis.regex"
+      "name": "acad.finding.testsHypothesis.regex"
     },
     {
       "expression": "self.field_values.outcome in [\"supports\", \"refutes\", \"inconclusive\", \"partial\"]",
       "level": "error",
-      "name": "acad041.finding.outcome.enum"
+      "name": "acad.finding.outcome.enum"
     },
     {
       "expression": "self.field_values.id.matches(\"^limit-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.limitation.id.regex"
+      "name": "acad.limitation.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.limitation.paper.regex"
+      "name": "acad.limitation.paper.regex"
     },
     {
       "expression": "size(self.field_values.statement) >= 1",
       "level": "error",
-      "name": "acad041.limitation.statement.min_length"
+      "name": "acad.limitation.statement.min_length"
     },
     {
       "expression": "size(self.field_values.statement) <= 2000",
       "level": "error",
-      "name": "acad041.limitation.statement.max_length"
+      "name": "acad.limitation.statement.max_length"
     },
     {
       "expression": "self.field_values.scope in [\"methodological\", \"empirical\", \"interpretive\", \"applicability\"]",
       "level": "error",
-      "name": "acad041.limitation.scope.enum"
+      "name": "acad.limitation.scope.enum"
     },
     {
       "expression": "self.field_values.id.matches(\"^note-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.footnote.id.regex"
+      "name": "acad.footnote.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.footnote.paper.regex"
+      "name": "acad.footnote.paper.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.footnote.section.regex"
+      "name": "acad.footnote.section.regex"
     },
     {
       "expression": "size(self.field_values.label) >= 1",
       "level": "error",
-      "name": "acad041.footnote.label.min_length"
+      "name": "acad.footnote.label.min_length"
     },
     {
       "expression": "size(self.field_values.label) <= 280",
       "level": "error",
-      "name": "acad041.footnote.label.max_length"
+      "name": "acad.footnote.label.max_length"
     },
     {
       "expression": "size(self.field_values.body) >= 1",
       "level": "error",
-      "name": "acad041.footnote.body.min_length"
+      "name": "acad.footnote.body.min_length"
     },
     {
       "expression": "size(self.field_values.body) <= 2000",
       "level": "error",
-      "name": "acad041.footnote.body.max_length"
+      "name": "acad.footnote.body.max_length"
     },
     {
       "expression": "self.field_values.language.matches(\"^[a-z]{2}$\")",
       "level": "error",
-      "name": "acad041.footnote.language.regex"
+      "name": "acad.footnote.language.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^eq-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.equation.id.regex"
+      "name": "acad.equation.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.equation.paper.regex"
+      "name": "acad.equation.paper.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.equation.section.regex"
+      "name": "acad.equation.section.regex"
     },
     {
       "expression": "size(self.field_values.label) >= 1",
       "level": "error",
-      "name": "acad041.equation.label.min_length"
+      "name": "acad.equation.label.min_length"
     },
     {
       "expression": "size(self.field_values.label) <= 280",
       "level": "error",
-      "name": "acad041.equation.label.max_length"
+      "name": "acad.equation.label.max_length"
     },
     {
       "expression": "size(self.field_values.tex) >= 1",
       "level": "error",
-      "name": "acad041.equation.tex.min_length"
+      "name": "acad.equation.tex.min_length"
     },
     {
       "expression": "size(self.field_values.tex) <= 2000",
       "level": "error",
-      "name": "acad041.equation.tex.max_length"
+      "name": "acad.equation.tex.max_length"
     },
     {
       "expression": "size(self.field_values.mathml) >= 1",
       "level": "error",
-      "name": "acad041.equation.mathml.min_length"
+      "name": "acad.equation.mathml.min_length"
     },
     {
       "expression": "size(self.field_values.mathml) <= 20000",
       "level": "error",
-      "name": "acad041.equation.mathml.max_length"
+      "name": "acad.equation.mathml.max_length"
     },
     {
       "expression": "self.field_values.role in [\"axiom\", \"postulate\", \"definition\", \"derived\", \"empirical-law\", \"transformation\", \"identity\"]",
       "level": "error",
-      "name": "acad041.equation.role.enum"
+      "name": "acad.equation.role.enum"
     },
     {
       "expression": "self.field_values.derivesFrom.all(t, t.matches(\"^eq-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.equation.derivesFrom.item.regex"
+      "name": "acad.equation.derivesFrom.item.regex"
     },
     {
       "expression": "self.field_values.fromPostulates.all(t, t.matches(\"^claim-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.equation.fromPostulates.item.regex"
+      "name": "acad.equation.fromPostulates.item.regex"
     },
     {
       "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
       "level": "error",
-      "name": "acad041.equation.doi.regex"
+      "name": "acad.equation.doi.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^fig-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.figure.id.regex"
+      "name": "acad.figure.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.figure.paper.regex"
+      "name": "acad.figure.paper.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.figure.section.regex"
+      "name": "acad.figure.section.regex"
     },
     {
       "expression": "size(self.field_values.label) >= 1",
       "level": "error",
-      "name": "acad041.figure.label.min_length"
+      "name": "acad.figure.label.min_length"
     },
     {
       "expression": "size(self.field_values.label) <= 280",
       "level": "error",
-      "name": "acad041.figure.label.max_length"
+      "name": "acad.figure.label.max_length"
     },
     {
       "expression": "size(self.field_values.caption) >= 1",
       "level": "error",
-      "name": "acad041.figure.caption.min_length"
+      "name": "acad.figure.caption.min_length"
     },
     {
       "expression": "size(self.field_values.caption) <= 2000",
       "level": "error",
-      "name": "acad041.figure.caption.max_length"
+      "name": "acad.figure.caption.max_length"
     },
     {
       "expression": "self.field_values.captionLanguage.matches(\"^[a-z]{2}$\")",
       "level": "error",
-      "name": "acad041.figure.captionLanguage.regex"
+      "name": "acad.figure.captionLanguage.regex"
     },
     {
       "expression": "self.field_values.page > 0",
       "level": "error",
-      "name": "acad041.figure.page.gt"
+      "name": "acad.figure.page.gt"
     },
     {
       "expression": "int(self.field_values.page) == self.field_values.page",
       "level": "error",
-      "name": "acad041.figure.page.int"
+      "name": "acad.figure.page.int"
     },
     {
       "expression": "size(self.field_values.altText) >= 1",
       "level": "error",
-      "name": "acad041.figure.altText.min_length"
+      "name": "acad.figure.altText.min_length"
     },
     {
       "expression": "size(self.field_values.altText) <= 2000",
       "level": "error",
-      "name": "acad041.figure.altText.max_length"
+      "name": "acad.figure.altText.max_length"
     },
     {
       "expression": "size(self.field_values.imageRef) >= 1",
       "level": "error",
-      "name": "acad041.figure.imageRef.min_length"
+      "name": "acad.figure.imageRef.min_length"
     },
     {
       "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
       "level": "error",
-      "name": "acad041.figure.doi.regex"
+      "name": "acad.figure.doi.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^citation-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.citation.id.regex"
+      "name": "acad.citation.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.citation.paper.regex"
+      "name": "acad.citation.paper.regex"
     },
     {
       "expression": "self.field_values.citingClaim.matches(\"^claim-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.citation.citingClaim.regex"
+      "name": "acad.citation.citingClaim.regex"
     },
     {
       "expression": "self.field_values.citingFinding.matches(\"^finding-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.citation.citingFinding.regex"
+      "name": "acad.citation.citingFinding.regex"
     },
     {
       "expression": "self.field_values.citingSection.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.citation.citingSection.regex"
+      "name": "acad.citation.citingSection.regex"
     },
     {
       "expression": "size(self.field_values.citingLocator) >= 1",
       "level": "error",
-      "name": "acad041.citation.citingLocator.min_length"
+      "name": "acad.citation.citingLocator.min_length"
     },
     {
       "expression": "size(self.field_values.citingLocator) <= 120",
       "level": "error",
-      "name": "acad041.citation.citingLocator.max_length"
+      "name": "acad.citation.citingLocator.max_length"
     },
     {
       "expression": "self.field_values.citedWork.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.citation.citedWork.regex"
+      "name": "acad.citation.citedWork.regex"
     },
     {
       "expression": "self.field_values.citedQuotation.matches(\"^quote-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.citation.citedQuotation.regex"
+      "name": "acad.citation.citedQuotation.regex"
     },
     {
       "expression": "self.field_values.kind in [\"extends\", \"disagrees-with\", \"agrees-with\", \"confirms\", \"refutes\", \"uses-method-of\", \"uses-data-of\", \"obtains-background-from\", \"obtains-support-from\", \"uses-conclusions-from\", \"qualifies\", \"reviews\", \"critiques\", \"compiles\", \"supports\", \"cites-as-authority\", \"cites-as-data-source\", \"cites-as-evidence\", \"cites-as-related\", \"cites-for-information\", \"replies-to\", \"updates\", \"retracts\"]",
       "level": "error",
-      "name": "acad041.citation.kind.enum"
+      "name": "acad.citation.kind.enum"
     },
     {
       "expression": "size(self.field_values.rationale) >= 1",
       "level": "error",
-      "name": "acad041.citation.rationale.min_length"
+      "name": "acad.citation.rationale.min_length"
     },
     {
       "expression": "size(self.field_values.rationale) <= 2000",
       "level": "error",
-      "name": "acad041.citation.rationale.max_length"
+      "name": "acad.citation.rationale.max_length"
     },
     {
       "expression": "self.field_values.id.matches(\"^funding-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.funding.id.regex"
+      "name": "acad.funding.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.funding.paper.regex"
+      "name": "acad.funding.paper.regex"
     },
     {
       "expression": "self.field_values.funder.matches(\"^funder-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.funding.funder.regex"
+      "name": "acad.funding.funder.regex"
     },
     {
       "expression": "size(self.field_values.awardId) >= 1",
       "level": "error",
-      "name": "acad041.funding.awardId.min_length"
+      "name": "acad.funding.awardId.min_length"
     },
     {
       "expression": "size(self.field_values.awardId) <= 280",
       "level": "error",
-      "name": "acad041.funding.awardId.max_length"
+      "name": "acad.funding.awardId.max_length"
     },
     {
       "expression": "size(self.field_values.awardTitle) >= 1",
       "level": "error",
-      "name": "acad041.funding.awardTitle.min_length"
+      "name": "acad.funding.awardTitle.min_length"
     },
     {
       "expression": "size(self.field_values.awardTitle) <= 280",
       "level": "error",
-      "name": "acad041.funding.awardTitle.max_length"
+      "name": "acad.funding.awardTitle.max_length"
     },
     {
       "expression": "self.field_values.recipients.all(t, t.matches(\"^author-[a-z0-9-]+$\"))",
       "level": "error",
-      "name": "acad041.funding.recipients.item.regex"
+      "name": "acad.funding.recipients.item.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^funder-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.funder.id.regex"
+      "name": "acad.funder.id.regex"
     },
     {
       "expression": "size(self.field_values.name) >= 1",
       "level": "error",
-      "name": "acad041.funder.name.min_length"
+      "name": "acad.funder.name.min_length"
     },
     {
       "expression": "size(self.field_values.name) <= 280",
       "level": "error",
-      "name": "acad041.funder.name.max_length"
+      "name": "acad.funder.name.max_length"
     },
     {
       "expression": "self.field_values.registryId.matches(\"^(?:https:\\\\/\\\\/ror\\\\.org\\\\/0[a-z0-9]{6}\\\\d{2}|10\\\\.13039\\\\/[0-9]+)$\")",
       "level": "error",
-      "name": "acad041.funder.registryId.regex"
+      "name": "acad.funder.registryId.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^table-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.table.id.regex"
+      "name": "acad.table.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.table.paper.regex"
+      "name": "acad.table.paper.regex"
     },
     {
       "expression": "self.field_values.section.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.table.section.regex"
+      "name": "acad.table.section.regex"
     },
     {
       "expression": "size(self.field_values.label) >= 1",
       "level": "error",
-      "name": "acad041.table.label.min_length"
+      "name": "acad.table.label.min_length"
     },
     {
       "expression": "size(self.field_values.label) <= 280",
       "level": "error",
-      "name": "acad041.table.label.max_length"
+      "name": "acad.table.label.max_length"
     },
     {
       "expression": "size(self.field_values.caption) >= 1",
       "level": "error",
-      "name": "acad041.table.caption.min_length"
+      "name": "acad.table.caption.min_length"
     },
     {
       "expression": "size(self.field_values.caption) <= 2000",
       "level": "error",
-      "name": "acad041.table.caption.max_length"
+      "name": "acad.table.caption.max_length"
     },
     {
       "expression": "self.field_values.captionLanguage.matches(\"^[a-z]{2}$\")",
       "level": "error",
-      "name": "acad041.table.captionLanguage.regex"
+      "name": "acad.table.captionLanguage.regex"
     },
     {
       "expression": "self.field_values.page > 0",
       "level": "error",
-      "name": "acad041.table.page.gt"
+      "name": "acad.table.page.gt"
     },
     {
       "expression": "int(self.field_values.page) == self.field_values.page",
       "level": "error",
-      "name": "acad041.table.page.int"
+      "name": "acad.table.page.int"
     },
     {
       "expression": "size(self.field_values.altText) >= 1",
       "level": "error",
-      "name": "acad041.table.altText.min_length"
+      "name": "acad.table.altText.min_length"
     },
     {
       "expression": "size(self.field_values.altText) <= 2000",
       "level": "error",
-      "name": "acad041.table.altText.max_length"
+      "name": "acad.table.altText.max_length"
     },
     {
       "expression": "size(self.field_values.contentRef) >= 1",
       "level": "error",
-      "name": "acad041.table.contentRef.min_length"
+      "name": "acad.table.contentRef.min_length"
     },
     {
       "expression": "self.field_values.rowCount >= 0",
       "level": "error",
-      "name": "acad041.table.rowCount.gt"
+      "name": "acad.table.rowCount.gt"
     },
     {
       "expression": "int(self.field_values.rowCount) == self.field_values.rowCount",
       "level": "error",
-      "name": "acad041.table.rowCount.int"
+      "name": "acad.table.rowCount.int"
     },
     {
       "expression": "self.field_values.columnCount >= 0",
       "level": "error",
-      "name": "acad041.table.columnCount.gt"
+      "name": "acad.table.columnCount.gt"
     },
     {
       "expression": "int(self.field_values.columnCount) == self.field_values.columnCount",
       "level": "error",
-      "name": "acad041.table.columnCount.int"
+      "name": "acad.table.columnCount.int"
     },
     {
       "expression": "self.field_values.headerRows >= 0",
       "level": "error",
-      "name": "acad041.table.headerRows.gt"
+      "name": "acad.table.headerRows.gt"
     },
     {
       "expression": "int(self.field_values.headerRows) == self.field_values.headerRows",
       "level": "error",
-      "name": "acad041.table.headerRows.int"
+      "name": "acad.table.headerRows.int"
     },
     {
       "expression": "self.field_values.doi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
       "level": "error",
-      "name": "acad041.table.doi.regex"
+      "name": "acad.table.doi.regex"
     },
     {
       "expression": "self.field_values.id.matches(\"^prel-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.paperrelation.id.regex"
+      "name": "acad.paperrelation.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.paperrelation.paper.regex"
+      "name": "acad.paperrelation.paper.regex"
     },
     {
       "expression": "self.field_values.relatedWork.matches(\"^work-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.paperrelation.relatedWork.regex"
+      "name": "acad.paperrelation.relatedWork.regex"
     },
     {
       "expression": "self.field_values.kind in [\"companion-of\", \"commentary-on\", \"correction-of\", \"response-to\", \"reply-to-letter\", \"retraction-of\", \"republication-of\", \"translation-of\", \"addendum-to\"]",
       "level": "error",
-      "name": "acad041.paperrelation.kind.enum"
+      "name": "acad.paperrelation.kind.enum"
     },
     {
       "expression": "size(self.field_values.rationale) >= 1",
       "level": "error",
-      "name": "acad041.paperrelation.rationale.min_length"
+      "name": "acad.paperrelation.rationale.min_length"
     },
     {
       "expression": "size(self.field_values.rationale) <= 2000",
       "level": "error",
-      "name": "acad041.paperrelation.rationale.max_length"
+      "name": "acad.paperrelation.rationale.max_length"
     },
     {
       "expression": "self.field_values.id.matches(\"^erratum-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.erratum.id.regex"
+      "name": "acad.erratum.id.regex"
     },
     {
       "expression": "self.field_values.paper.matches(\"^paper-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.erratum.paper.regex"
+      "name": "acad.erratum.paper.regex"
     },
     {
       "expression": "self.field_values.kind in [\"correction\", \"erratum\", \"retraction\", \"expression-of-concern\", \"addendum\"]",
       "level": "error",
-      "name": "acad041.erratum.kind.enum"
+      "name": "acad.erratum.kind.enum"
     },
     {
       "expression": "size(self.field_values.title) >= 1",
       "level": "error",
-      "name": "acad041.erratum.title.min_length"
+      "name": "acad.erratum.title.min_length"
     },
     {
       "expression": "size(self.field_values.title) <= 280",
       "level": "error",
-      "name": "acad041.erratum.title.max_length"
+      "name": "acad.erratum.title.max_length"
     },
     {
       "expression": "size(self.field_values.body) >= 1",
       "level": "error",
-      "name": "acad041.erratum.body.min_length"
+      "name": "acad.erratum.body.min_length"
     },
     {
       "expression": "size(self.field_values.body) <= 2000",
       "level": "error",
-      "name": "acad041.erratum.body.max_length"
+      "name": "acad.erratum.body.max_length"
     },
     {
       "expression": "self.field_values.issuedDate.matches(\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\")",
       "level": "error",
-      "name": "acad041.erratum.issuedDate.regex"
+      "name": "acad.erratum.issuedDate.regex"
     },
     {
       "expression": "self.field_values.noticeDoi.matches(\"^10\\\\.\\\\d{4,9}\\\\/[-._;()/:A-Za-z0-9]+$\")",
       "level": "error",
-      "name": "acad041.erratum.noticeDoi.regex"
+      "name": "acad.erratum.noticeDoi.regex"
     },
     {
       "expression": "self.field_values.correctsSection.matches(\"^section-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.erratum.correctsSection.regex"
+      "name": "acad.erratum.correctsSection.regex"
     },
     {
       "expression": "self.field_values.correctsClaim.matches(\"^claim-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.erratum.correctsClaim.regex"
+      "name": "acad.erratum.correctsClaim.regex"
     },
     {
       "expression": "self.field_values.correctsFinding.matches(\"^finding-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.erratum.correctsFinding.regex"
+      "name": "acad.erratum.correctsFinding.regex"
     },
     {
       "expression": "self.field_values.correctsEquation.matches(\"^eq-[a-z0-9-]+$\")",
       "level": "error",
-      "name": "acad041.erratum.correctsEquation.regex"
+      "name": "acad.erratum.correctsEquation.regex"
     },
     {
-      "expression": "graph.acyclic(\"acad041:SectionParent\")",
+      "expression": "graph.acyclic(\"acad:SectionParent\")",
       "level": "error",
-      "name": "acad041.section.acyclic-parent"
+      "name": "acad.section.acyclic-parent"
     },
     {
-      "expression": "graph.acyclic(\"acad041:ClaimDerivesFrom\")",
+      "expression": "graph.acyclic(\"acad:ClaimDerivesFrom\")",
       "level": "error",
-      "name": "acad041.claim.acyclic-derivesFrom"
+      "name": "acad.claim.acyclic-derivesFrom"
     },
     {
-      "expression": "graph.acyclic(\"acad041:ConceptExtends\")",
+      "expression": "graph.acyclic(\"acad:ConceptExtends\")",
       "level": "error",
-      "name": "acad041.concept.acyclic-extends"
+      "name": "acad.concept.acyclic-extends"
     },
     {
-      "expression": "graph.acyclic(\"acad041:TheoryExtendsTheory\")",
+      "expression": "graph.acyclic(\"acad:TheoryExtendsTheory\")",
       "level": "error",
-      "name": "acad041.theory.acyclic-extendsTheory"
+      "name": "acad.theory.acyclic-extendsTheory"
     },
     {
-      "expression": "graph.acyclic(\"acad041:EquationDerivesFrom\")",
+      "expression": "graph.acyclic(\"acad:EquationDerivesFrom\")",
       "level": "error",
-      "name": "acad041.equation.acyclic-derivesFrom"
+      "name": "acad.equation.acyclic-derivesFrom"
     },
     {
-      "expression": "graph.acyclic(\"acad041:WorkTranslationOf\")",
+      "expression": "graph.acyclic(\"acad:WorkTranslationOf\")",
       "level": "error",
-      "name": "acad041.work.acyclic-translationOf"
+      "name": "acad.work.acyclic-translationOf"
     },
     {
-      "expression": "graph.acyclic(\"acad041:WorkEditionOf\")",
+      "expression": "graph.acyclic(\"acad:WorkEditionOf\")",
       "level": "error",
-      "name": "acad041.work.acyclic-editionOf"
+      "name": "acad.work.acyclic-editionOf"
     }
   ],
   "enum_defs": [
     {
-      "description": "Enum derived from Author.contributionsItem",
+      "description": "Enum derived from Author.contributions_item",
       "id": "enum:AuthorContributionsItem",
       "name": "AuthorContributionsItem",
       "values": [
@@ -1724,6 +1724,7 @@
     }
   ],
   "id": "profile:academic-paper:0.4.1",
+  "label": "Academic Paper 0.4.1",
   "primitive_types": [
     {
       "fields": [
@@ -1982,7 +1983,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "keywordsItem",
+            "name": "keywords_item",
             "required": true,
             "validations": [
               {
@@ -2009,9 +2010,9 @@
           ]
         }
       ],
-      "id": "acad041:Paper",
+      "id": "acad:Paper",
       "id_format": {
-        "pattern": "acad041:Paper:{slug}",
+        "pattern": "acad:Paper:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -2173,7 +2174,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "affiliationsItem",
+            "name": "affiliations_item",
             "required": true,
             "validations": [
               {
@@ -2208,7 +2209,7 @@
               "funding-acquisition"
             ],
             "kind": "enum",
-            "name": "contributionsItem",
+            "name": "contributions_item",
             "required": true,
             "validations": []
           },
@@ -2218,9 +2219,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Author",
+      "id": "acad:Author",
       "id_format": {
-        "pattern": "acad041:Author:{slug}",
+        "pattern": "acad:Author:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -2331,9 +2332,9 @@
           ]
         }
       ],
-      "id": "acad041:Affiliation",
+      "id": "acad:Affiliation",
       "id_format": {
-        "pattern": "acad041:Affiliation:{slug}",
+        "pattern": "acad:Affiliation:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -2505,9 +2506,9 @@
           ]
         }
       ],
-      "id": "acad041:Section",
+      "id": "acad:Section",
       "id_format": {
-        "pattern": "acad041:Section:{slug}",
+        "pattern": "acad:Section:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -2620,7 +2621,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "derivesFromItem",
+            "name": "derivesFrom_item",
             "required": true,
             "validations": [
               {
@@ -2639,7 +2640,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "counterReadsItem",
+            "name": "counterReads_item",
             "required": true,
             "validations": [
               {
@@ -2688,9 +2689,9 @@
           ]
         }
       ],
-      "id": "acad041:Claim",
+      "id": "acad:Claim",
       "id_format": {
-        "pattern": "acad041:Claim:{slug}",
+        "pattern": "acad:Claim:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -2792,7 +2793,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "supportsItem",
+            "name": "supports_item",
             "required": true,
             "validations": [
               {
@@ -2890,7 +2891,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "struct",
-            "name": "provenanceItem",
+            "name": "provenance_item",
             "required": true,
             "struct_id": "EvidenceProvenanceItem",
             "validations": []
@@ -2901,9 +2902,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Evidence",
+      "id": "acad:Evidence",
       "id_format": {
-        "pattern": "acad041:Evidence:{slug}",
+        "pattern": "acad:Evidence:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -3127,9 +3128,9 @@
           ]
         }
       ],
-      "id": "acad041:Quotation",
+      "id": "acad:Quotation",
       "id_format": {
-        "pattern": "acad041:Quotation:{slug}",
+        "pattern": "acad:Quotation:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -3225,7 +3226,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "authorsFreeTextItem",
+            "name": "authorsFreeText_item",
             "required": true,
             "validations": [
               {
@@ -3363,9 +3364,9 @@
           ]
         }
       ],
-      "id": "acad041:Work",
+      "id": "acad:Work",
       "id_format": {
-        "pattern": "acad041:Work:{slug}",
+        "pattern": "acad:Work:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -3484,7 +3485,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "closeMatchItem",
+            "name": "closeMatch_item",
             "required": true,
             "validations": []
           },
@@ -3497,7 +3498,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "borrowsFromItem",
+            "name": "borrowsFrom_item",
             "required": true,
             "validations": [
               {
@@ -3516,7 +3517,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "extendsItem",
+            "name": "extends_item",
             "required": true,
             "validations": [
               {
@@ -3532,9 +3533,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Concept",
+      "id": "acad:Concept",
       "id_format": {
-        "pattern": "acad041:Concept:{slug}",
+        "pattern": "acad:Concept:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -3663,9 +3664,9 @@
           ]
         }
       ],
-      "id": "acad041:Definition",
+      "id": "acad:Definition",
       "id_format": {
-        "pattern": "acad041:Definition:{slug}",
+        "pattern": "acad:Definition:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -3830,7 +3831,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "notableTheoriesItem",
+            "name": "notableTheories_item",
             "required": true,
             "validations": [
               {
@@ -3846,9 +3847,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Theorist",
+      "id": "acad:Theorist",
       "id_format": {
-        "pattern": "acad041:Theorist:{slug}",
+        "pattern": "acad:Theorist:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -3950,7 +3951,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "extendsTheoryItem",
+            "name": "extendsTheory_item",
             "required": true,
             "validations": [
               {
@@ -3969,7 +3970,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "respondsToItem",
+            "name": "respondsTo_item",
             "required": true,
             "validations": [
               {
@@ -3985,9 +3986,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Theory",
+      "id": "acad:Theory",
       "id_format": {
-        "pattern": "acad041:Theory:{slug}",
+        "pattern": "acad:Theory:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -4102,9 +4103,9 @@
           ]
         }
       ],
-      "id": "acad041:Method",
+      "id": "acad:Method",
       "id_format": {
-        "pattern": "acad041:Method:{slug}",
+        "pattern": "acad:Method:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -4201,7 +4202,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "supportedByItem",
+            "name": "supportedBy_item",
             "required": true,
             "validations": [
               {
@@ -4241,9 +4242,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Finding",
+      "id": "acad:Finding",
       "id_format": {
-        "pattern": "acad041:Finding:{slug}",
+        "pattern": "acad:Finding:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -4338,9 +4339,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Limitation",
+      "id": "acad:Limitation",
       "id_format": {
-        "pattern": "acad041:Limitation:{slug}",
+        "pattern": "acad:Limitation:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -4463,9 +4464,9 @@
           ]
         }
       ],
-      "id": "acad041:Footnote",
+      "id": "acad:Footnote",
       "id_format": {
-        "pattern": "acad041:Footnote:{slug}",
+        "pattern": "acad:Footnote:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -4611,7 +4612,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "derivesFromItem",
+            "name": "derivesFrom_item",
             "required": true,
             "validations": [
               {
@@ -4630,7 +4631,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "fromPostulatesItem",
+            "name": "fromPostulates_item",
             "required": true,
             "validations": [
               {
@@ -4658,9 +4659,9 @@
           ]
         }
       ],
-      "id": "acad041:Equation",
+      "id": "acad:Equation",
       "id_format": {
-        "pattern": "acad041:Equation:{slug}",
+        "pattern": "acad:Equation:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -4830,9 +4831,9 @@
           ]
         }
       ],
-      "id": "acad041:Figure",
+      "id": "acad:Figure",
       "id_format": {
-        "pattern": "acad041:Figure:{slug}",
+        "pattern": "acad:Figure:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -5022,9 +5023,9 @@
           ]
         }
       ],
-      "id": "acad041:Citation",
+      "id": "acad:Citation",
       "id_format": {
-        "pattern": "acad041:Citation:{slug}",
+        "pattern": "acad:Citation:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -5138,7 +5139,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "recipientsItem",
+            "name": "recipients_item",
             "required": true,
             "validations": [
               {
@@ -5154,9 +5155,9 @@
           "validations": []
         }
       ],
-      "id": "acad041:Funding",
+      "id": "acad:Funding",
       "id_format": {
-        "pattern": "acad041:Funding:{slug}",
+        "pattern": "acad:Funding:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -5238,9 +5239,9 @@
           ]
         }
       ],
-      "id": "acad041:Funder",
+      "id": "acad:Funder",
       "id_format": {
-        "pattern": "acad041:Funder:{slug}",
+        "pattern": "acad:Funder:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -5446,9 +5447,9 @@
           ]
         }
       ],
-      "id": "acad041:Table",
+      "id": "acad:Table",
       "id_format": {
-        "pattern": "acad041:Table:{slug}",
+        "pattern": "acad:Table:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -5559,9 +5560,9 @@
           ]
         }
       ],
-      "id": "acad041:PaperRelation",
+      "id": "acad:PaperRelation",
       "id_format": {
-        "pattern": "acad041:PaperRelation:{slug}",
+        "pattern": "acad:PaperRelation:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -5745,9 +5746,9 @@
           ]
         }
       ],
-      "id": "acad041:Erratum",
+      "id": "acad:Erratum",
       "id_format": {
-        "pattern": "acad041:Erratum:{slug}",
+        "pattern": "acad:Erratum:{slug}",
         "pattern_kind": "template",
         "uniqueness": "global"
       },
@@ -5782,429 +5783,430 @@
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:AuthorPaper",
-      "source_type_id": "acad041:Author",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:AuthorPaper",
+      "source_type_id": "acad:Author",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:AuthorAffiliations",
-      "source_type_id": "acad041:Author",
-      "target_type_id": "acad041:Affiliation"
+      "id": "acad:AuthorAffiliations",
+      "source_type_id": "acad:Author",
+      "target_type_id": "acad:Affiliation"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:SectionPaper",
-      "source_type_id": "acad041:Section",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:SectionPaper",
+      "source_type_id": "acad:Section",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:SectionParent",
-      "source_type_id": "acad041:Section",
-      "target_type_id": "acad041:Section"
+      "id": "acad:SectionParent",
+      "source_type_id": "acad:Section",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ClaimPaper",
-      "source_type_id": "acad041:Claim",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:ClaimPaper",
+      "source_type_id": "acad:Claim",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ClaimSection",
-      "source_type_id": "acad041:Claim",
-      "target_type_id": "acad041:Section"
+      "id": "acad:ClaimSection",
+      "source_type_id": "acad:Claim",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:ClaimDerivesFrom",
-      "source_type_id": "acad041:Claim",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:ClaimDerivesFrom",
+      "source_type_id": "acad:Claim",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:ClaimCounterReads",
-      "source_type_id": "acad041:Claim",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:ClaimCounterReads",
+      "source_type_id": "acad:Claim",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:EvidencePaper",
-      "source_type_id": "acad041:Evidence",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:EvidencePaper",
+      "source_type_id": "acad:Evidence",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:EvidenceSupports",
-      "source_type_id": "acad041:Evidence",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:EvidenceSupports",
+      "source_type_id": "acad:Evidence",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:EvidenceQuotation",
-      "source_type_id": "acad041:Evidence",
-      "target_type_id": "acad041:Quotation"
+      "id": "acad:EvidenceQuotation",
+      "source_type_id": "acad:Evidence",
+      "target_type_id": "acad:Quotation"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:EvidenceWork",
-      "source_type_id": "acad041:Evidence",
-      "target_type_id": "acad041:Work"
+      "id": "acad:EvidenceWork",
+      "source_type_id": "acad:Evidence",
+      "target_type_id": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:QuotationPaper",
-      "source_type_id": "acad041:Quotation",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:QuotationPaper",
+      "source_type_id": "acad:Quotation",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:QuotationSection",
-      "source_type_id": "acad041:Quotation",
-      "target_type_id": "acad041:Section"
+      "id": "acad:QuotationSection",
+      "source_type_id": "acad:Quotation",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:QuotationQuotesFrom",
-      "source_type_id": "acad041:Quotation",
-      "target_type_id": "acad041:Work"
+      "id": "acad:QuotationQuotesFrom",
+      "source_type_id": "acad:Quotation",
+      "target_type_id": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:QuotationTranslatedFrom",
-      "source_type_id": "acad041:Quotation",
-      "target_type_id": "acad041:Quotation"
+      "id": "acad:QuotationTranslatedFrom",
+      "source_type_id": "acad:Quotation",
+      "target_type_id": "acad:Quotation"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:ConceptBorrowsFrom",
-      "source_type_id": "acad041:Concept",
-      "target_type_id": "acad041:Theorist"
+      "id": "acad:ConceptBorrowsFrom",
+      "source_type_id": "acad:Concept",
+      "target_type_id": "acad:Theorist"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:ConceptExtends",
-      "source_type_id": "acad041:Concept",
-      "target_type_id": "acad041:Concept"
+      "id": "acad:ConceptExtends",
+      "source_type_id": "acad:Concept",
+      "target_type_id": "acad:Concept"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:DefinitionPaper",
-      "source_type_id": "acad041:Definition",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:DefinitionPaper",
+      "source_type_id": "acad:Definition",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:DefinitionConcept",
-      "source_type_id": "acad041:Definition",
-      "target_type_id": "acad041:Concept"
+      "id": "acad:DefinitionConcept",
+      "source_type_id": "acad:Definition",
+      "target_type_id": "acad:Concept"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:DefinitionSection",
-      "source_type_id": "acad041:Definition",
-      "target_type_id": "acad041:Section"
+      "id": "acad:DefinitionSection",
+      "source_type_id": "acad:Definition",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:DefinitionCitedFrom",
-      "source_type_id": "acad041:Definition",
-      "target_type_id": "acad041:Work"
+      "id": "acad:DefinitionCitedFrom",
+      "source_type_id": "acad:Definition",
+      "target_type_id": "acad:Work"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:TheoristNotableTheories",
-      "source_type_id": "acad041:Theorist",
-      "target_type_id": "acad041:Theory"
+      "id": "acad:TheoristNotableTheories",
+      "source_type_id": "acad:Theorist",
+      "target_type_id": "acad:Theory"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:TheoryPrimaryTheorist",
-      "source_type_id": "acad041:Theory",
-      "target_type_id": "acad041:Theorist"
+      "id": "acad:TheoryPrimaryTheorist",
+      "source_type_id": "acad:Theory",
+      "target_type_id": "acad:Theorist"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:TheoryExtendsTheory",
-      "source_type_id": "acad041:Theory",
-      "target_type_id": "acad041:Theory"
+      "id": "acad:TheoryExtendsTheory",
+      "source_type_id": "acad:Theory",
+      "target_type_id": "acad:Theory"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:TheoryRespondsTo",
-      "source_type_id": "acad041:Theory",
-      "target_type_id": "acad041:Theory"
+      "id": "acad:TheoryRespondsTo",
+      "source_type_id": "acad:Theory",
+      "target_type_id": "acad:Theory"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:MethodPaper",
-      "source_type_id": "acad041:Method",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:MethodPaper",
+      "source_type_id": "acad:Method",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FindingPaper",
-      "source_type_id": "acad041:Finding",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:FindingPaper",
+      "source_type_id": "acad:Finding",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FindingSection",
-      "source_type_id": "acad041:Finding",
-      "target_type_id": "acad041:Section"
+      "id": "acad:FindingSection",
+      "source_type_id": "acad:Finding",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:FindingSupportedBy",
-      "source_type_id": "acad041:Finding",
-      "target_type_id": "acad041:Evidence"
+      "id": "acad:FindingSupportedBy",
+      "source_type_id": "acad:Finding",
+      "target_type_id": "acad:Evidence"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:LimitationPaper",
-      "source_type_id": "acad041:Limitation",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:LimitationPaper",
+      "source_type_id": "acad:Limitation",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FootnotePaper",
-      "source_type_id": "acad041:Footnote",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:FootnotePaper",
+      "source_type_id": "acad:Footnote",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FootnoteSection",
-      "source_type_id": "acad041:Footnote",
-      "target_type_id": "acad041:Section"
+      "id": "acad:FootnoteSection",
+      "source_type_id": "acad:Footnote",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:EquationPaper",
-      "source_type_id": "acad041:Equation",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:EquationPaper",
+      "source_type_id": "acad:Equation",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:EquationSection",
-      "source_type_id": "acad041:Equation",
-      "target_type_id": "acad041:Section"
+      "id": "acad:EquationSection",
+      "source_type_id": "acad:Equation",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:EquationDerivesFrom",
-      "source_type_id": "acad041:Equation",
-      "target_type_id": "acad041:Equation"
+      "id": "acad:EquationDerivesFrom",
+      "source_type_id": "acad:Equation",
+      "target_type_id": "acad:Equation"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:EquationFromPostulates",
-      "source_type_id": "acad041:Equation",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:EquationFromPostulates",
+      "source_type_id": "acad:Equation",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FigurePaper",
-      "source_type_id": "acad041:Figure",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:FigurePaper",
+      "source_type_id": "acad:Figure",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FigureSection",
-      "source_type_id": "acad041:Figure",
-      "target_type_id": "acad041:Section"
+      "id": "acad:FigureSection",
+      "source_type_id": "acad:Figure",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:WorkTranslationOf",
-      "source_type_id": "acad041:Work",
-      "target_type_id": "acad041:Work"
+      "id": "acad:WorkTranslationOf",
+      "source_type_id": "acad:Work",
+      "target_type_id": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:WorkEditionOf",
-      "source_type_id": "acad041:Work",
-      "target_type_id": "acad041:Work"
+      "id": "acad:WorkEditionOf",
+      "source_type_id": "acad:Work",
+      "target_type_id": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:CitationPaper",
-      "source_type_id": "acad041:Citation",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:CitationPaper",
+      "source_type_id": "acad:Citation",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:CitationCitingClaim",
-      "source_type_id": "acad041:Citation",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:CitationCitingClaim",
+      "source_type_id": "acad:Citation",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:CitationCitingFinding",
-      "source_type_id": "acad041:Citation",
-      "target_type_id": "acad041:Finding"
+      "id": "acad:CitationCitingFinding",
+      "source_type_id": "acad:Citation",
+      "target_type_id": "acad:Finding"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:CitationCitingSection",
-      "source_type_id": "acad041:Citation",
-      "target_type_id": "acad041:Section"
+      "id": "acad:CitationCitingSection",
+      "source_type_id": "acad:Citation",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:CitationCitedWork",
-      "source_type_id": "acad041:Citation",
-      "target_type_id": "acad041:Work"
+      "id": "acad:CitationCitedWork",
+      "source_type_id": "acad:Citation",
+      "target_type_id": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:CitationCitedQuotation",
-      "source_type_id": "acad041:Citation",
-      "target_type_id": "acad041:Quotation"
+      "id": "acad:CitationCitedQuotation",
+      "source_type_id": "acad:Citation",
+      "target_type_id": "acad:Quotation"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FundingPaper",
-      "source_type_id": "acad041:Funding",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:FundingPaper",
+      "source_type_id": "acad:Funding",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FundingFunder",
-      "source_type_id": "acad041:Funding",
-      "target_type_id": "acad041:Funder"
+      "id": "acad:FundingFunder",
+      "source_type_id": "acad:Funding",
+      "target_type_id": "acad:Funder"
     },
     {
       "cardinality": "many-to-many",
       "fields": [],
-      "id": "acad041:FundingRecipients",
-      "source_type_id": "acad041:Funding",
-      "target_type_id": "acad041:Author"
+      "id": "acad:FundingRecipients",
+      "source_type_id": "acad:Funding",
+      "target_type_id": "acad:Author"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:TablePaper",
-      "source_type_id": "acad041:Table",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:TablePaper",
+      "source_type_id": "acad:Table",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:TableSection",
-      "source_type_id": "acad041:Table",
-      "target_type_id": "acad041:Section"
+      "id": "acad:TableSection",
+      "source_type_id": "acad:Table",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:PaperRelationPaper",
-      "source_type_id": "acad041:PaperRelation",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:PaperRelationPaper",
+      "source_type_id": "acad:PaperRelation",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:PaperRelationRelatedWork",
-      "source_type_id": "acad041:PaperRelation",
-      "target_type_id": "acad041:Work"
+      "id": "acad:PaperRelationRelatedWork",
+      "source_type_id": "acad:PaperRelation",
+      "target_type_id": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ClaimSupersededBy",
-      "source_type_id": "acad041:Claim",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:ClaimSupersededBy",
+      "source_type_id": "acad:Claim",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:FindingTestsHypothesis",
-      "source_type_id": "acad041:Finding",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:FindingTestsHypothesis",
+      "source_type_id": "acad:Finding",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ErratumPaper",
-      "source_type_id": "acad041:Erratum",
-      "target_type_id": "acad041:Paper"
+      "id": "acad:ErratumPaper",
+      "source_type_id": "acad:Erratum",
+      "target_type_id": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ErratumCorrectsSection",
-      "source_type_id": "acad041:Erratum",
-      "target_type_id": "acad041:Section"
+      "id": "acad:ErratumCorrectsSection",
+      "source_type_id": "acad:Erratum",
+      "target_type_id": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ErratumCorrectsClaim",
-      "source_type_id": "acad041:Erratum",
-      "target_type_id": "acad041:Claim"
+      "id": "acad:ErratumCorrectsClaim",
+      "source_type_id": "acad:Erratum",
+      "target_type_id": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ErratumCorrectsFinding",
-      "source_type_id": "acad041:Erratum",
-      "target_type_id": "acad041:Finding"
+      "id": "acad:ErratumCorrectsFinding",
+      "source_type_id": "acad:Erratum",
+      "target_type_id": "acad:Finding"
     },
     {
       "cardinality": "many-to-one",
       "fields": [],
-      "id": "acad041:ErratumCorrectsEquation",
-      "source_type_id": "acad041:Erratum",
-      "target_type_id": "acad041:Equation"
+      "id": "acad:ErratumCorrectsEquation",
+      "source_type_id": "acad:Erratum",
+      "target_type_id": "acad:Equation"
     }
-  ]
+  ],
+  "version": "0.4.1"
 }

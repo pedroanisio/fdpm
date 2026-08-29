@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidAffiliation",
+      "function_name": "acad.isValidAffiliation",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "affiliationMarkdownRenderer",
-    "local_name": "acad041-affiliation",
+    "local_name": "acad-affiliation",
     "metadata": {
-      "primitive_type_id": "acad041:Affiliation",
+      "primitive_type_id": "acad:Affiliation",
       "target": "text/markdown"
     }
   }

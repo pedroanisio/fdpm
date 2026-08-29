@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidFigure",
+      "function_name": "acad.isValidFigure",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "figureMarkdownRenderer",
-    "local_name": "acad041-figure",
+    "local_name": "acad-figure",
     "metadata": {
-      "primitive_type_id": "acad041:Figure",
+      "primitive_type_id": "acad:Figure",
       "target": "text/markdown"
     }
   }

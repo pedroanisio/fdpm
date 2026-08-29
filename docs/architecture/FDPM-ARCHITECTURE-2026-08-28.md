@@ -7,7 +7,7 @@ disclaimer:
   generated_by: "Claude Fable 5 via Claude Code (conceptual-codebase-analysis skill)"
   date: "2026-08-28"
 status: "Architectural snapshot — branch ingest/sr-profile-plugin @ 78c7ff7 + uncommitted working tree"
-scope: "fdpm-cli repository, ≈107K LOC of TypeScript (src 24K · plugins 36K · tests 29K · spec-build scripts 39K · zod-bridge 7K · web 6K)"
+scope: "fdpm-cli repository, ≈101K LOC of TypeScript (src 24K · plugins 36K · tests 29K · spec-build scripts 39K · zod-bridge 7K) — the 6K `web` front counted in the August snapshot has since been retired"
 ---
 
 # How FDPM Thinks — conceptual architecture, August 2026
@@ -32,7 +32,7 @@ This is the second conceptual snapshot of the repository. The first ([docs/archi
 
 ## 1. System thesis
 
-> **FDPM is a single-writer, event-sourced ledger for typed graphs.** Every mutation — from the CLI, the REPL, the MCP server, the SDK, or a plugin transformer — becomes one immutable `Operation` drawn from a *closed* set of 23 kinds, is verified against a payload schema, validated against the workbook's `DomainProfile` on the proposed post-state, and only then appended to a per-workbook JSONL log from which all in-memory state is a pure, plugin-free replay. Plugins do not add write paths; they add *vocabulary* (profiles) and *judges* (validators, CEL rules) that the same pipeline consults. The three long-lived fronts (REPL, `fdpm-mcp`, web bridge) share no process, so concurrency is handled by *detecting* out-of-band appends via `(mtime_ns, size)` of the log file, not by locking. The LLM reaches the ledger only through a hand-curated, three-tier MCP tool manifest whose authorization happens at dispatch, not at advertisement.
+> **FDPM is a single-writer, event-sourced ledger for typed graphs.** Every mutation — from the CLI, the REPL, the MCP server, the SDK, or a plugin transformer — becomes one immutable `Operation` drawn from a *closed* set of 23 kinds, is verified against a payload schema, validated against the workbook's `DomainProfile` on the proposed post-state, and only then appended to a per-workbook JSONL log from which all in-memory state is a pure, plugin-free replay. Plugins do not add write paths; they add *vocabulary* (profiles) and *judges* (validators, CEL rules) that the same pipeline consults. The two long-lived fronts (REPL, `fdpm-mcp`) share no process, so concurrency is handled by *detecting* out-of-band appends via `(mtime_ns, size)` of the log file, not by locking. The LLM reaches the ledger only through a hand-curated, three-tier MCP tool manifest whose authorization happens at dispatch, not at advertisement.
 
 A reader who holds that paragraph can predict: a plugin cannot introduce `planning.task.complete` as an op kind today (closed set — [src/core/operations/kinds.ts:3-6](../../fdpm-cli/src/core/operations/kinds.ts#L3-L6)); an invalid primitive never reaches the log (validate-before-append — [src/core/host.ts:997-1011](../../fdpm-cli/src/core/host.ts#L997-L1011)); two MCP sessions against one data dir will refuse writes after the other's append until the operator SIGHUPs ([src/mcp/dispatch.ts:230-262](../../fdpm-cli/src/mcp/dispatch.ts#L230-L262)); and adding any public method to `Host` breaks the build until it is classified ([tests/mcp-classification.test.ts](../../fdpm-cli/tests/mcp-classification.test.ts) — observed live in this run).
 
@@ -42,12 +42,13 @@ A reader who holds that paragraph can predict: a plugin cannot introduce `planni
 
 ## 2. Boundary artifacts ingested, boilerplate subtracted
 
-**Read first (contracts):** `src/core/operations/{kinds,operation,payloads}.ts`, `src/core/models/{meta,instance}.ts`, `src/plugin/manifest.ts` (plugin manifest Zod schema), `src/mcp/{manifest,not-exposed,types}.ts`, `src/core/errors/fdpm-exception.ts` (10-category taxonomy → exit codes/HTTP), `src/core/config/env.ts` (21 `FDPM_*` variables), `src/commands/index.ts` + `src/bin/program.ts` (20 Commander subcommands), `packages/zod-bridge/src/index.ts`, `web/server/bridge.ts` (9 HTTP endpoints), 13 SPECs under `docs/specs/`.
+**Read first (contracts):** `src/core/operations/{kinds,operation,payloads}.ts`, `src/core/models/{meta,instance}.ts`, `src/plugin/manifest.ts` (plugin manifest Zod schema), `src/mcp/{manifest,not-exposed,types}.ts`, `src/core/errors/fdpm-exception.ts` (10-category taxonomy → exit codes/HTTP), `src/core/config/env.ts` (21 `FDPM_*` variables), `src/commands/index.ts` + `src/bin/program.ts` (20 Commander subcommands), `packages/zod-bridge/src/index.ts`, 13 SPECs under `docs/specs/`.
 
 **Subtracted as plumbing/data (≈60% of LOC):**
 - `fdpm-cli/scripts/build-spec-*.ts` (≈39K LOC): SPEC documents encoded as `defineProject` calls. They are *content*, regenerated into `docs/specs/*.md` — dogfooding, not logic. Drift between them and shared constants is tested ([tests/spec-builds-determinism.test.ts](../../fdpm-cli/tests/spec-builds-determinism.test.ts)).
 - `plugins/*/generated/*.json`, `plugins/*/capabilities/*.json`: bridge outputs.
 - `plugins/academic_paper_v0_4_1/`: a directory copy of `academic_paper` with `VENDOR = "acad041"` so the two can co-activate ([plugins/academic_paper_v0_4_1/sidecar.ts:141](../../fdpm-cli/plugins/academic_paper_v0_4_1/sidecar.ts#L141)).
+  > **Update 2026-08-29:** `plugins/academic_paper/` (which registered `profile:academic-paper:0.3`) has been removed — the two profiles were identical apart from the namespace, and no workbook was bound to 0.3. `acad041` survives as the sole academic-paper vendor, so the discriminator now discriminates nothing.
 - `src/commands/*.ts` and `src/mcp/tools/*.ts`: thin adapters over `Host.*` (Commander wiring, Zod I/O schemas).
 - Root-level `acad_validate.py`, `price_quote.py`, `scripts/fdpm_to_latex.py`, `.repo/skills/` (119 tracked files), `static/`: out-of-band tooling; `price_quote.py` is a BRL pricing model unrelated to FDPM.
 
@@ -81,7 +82,7 @@ A reader who holds that paragraph can predict: a plugin cannot introduce `planni
 - **Verb** — a plugin-namespaced operation kind. PURPOSE's central noun; the code's op-kind set is closed and the transformer emission type says `kind: string // must be in Core's closed set` ([plugin/types.ts:109](../../fdpm-cli/src/plugin/types.ts#L109)). *(High confidence.)*
 - **Prompt** — no `registerPrompt` anywhere in `src/` (grep). *(High.)*
 - **Actor identity** — `actor` is a free string defaulting to `"cli:operator"` ([store.ts:103](../../fdpm-cli/src/core/store/store.ts#L103)); the MCP audit log records a session id, not a principal. *(High.)*
-- **Plugin-version migration** — payload upcasting exists ([operations/upcast.ts](../../fdpm-cli/src/core/operations/upcast.ts)) but there is no migration between profile versions; the workaround is a parallel plugin directory (`academic_paper_v0_4_1`). *(High.)*
+- **Plugin-version migration** — payload upcasting exists ([operations/upcast.ts](../../fdpm-cli/src/core/operations/upcast.ts)) but there is no migration between profile versions; the workaround is a parallel plugin directory (`academic_paper_v0_4_1`). *(High.)* **Update 2026-08-29:** the parallel copy was collapsed by deleting the older plugin rather than by migrating anything, which is evidence for the tension rather than against it — the gap it names is still open.
 - **Lock / lease** — only detection (`stale_state`), no exclusion. *(High.)*
 - **Provenance link schema → profile** for hand-maintained profiles (see T3). *(High.)*
 
@@ -96,11 +97,10 @@ A reader who holds that paragraph can predict: a plugin cannot introduce `planni
 | Plugin runtime | Lifecycle state machine: `discovered → registered → active | disabled | rejected | quarantined` | [plugin/types.ts:148-155](../../fdpm-cli/src/plugin/types.ts#L148-L155) |
 | MCP server | Request-response over stdio with a 9-stage middleware chain; one session per process | [dispatch.ts:1-25](../../fdpm-cli/src/mcp/dispatch.ts#L1-L25) |
 | REPL | Request-response; rebuilds the Commander tree per input line, NDJSON out | [bin/program.ts:1-24](../../fdpm-cli/src/bin/program.ts#L1-L24), [AGENTS.md](../../AGENTS.md) |
-| Web bridge | Process-per-request: `spawn fdpm … --json`; one allow-listed write verb family (`planning/*`) | [web/server/bridge.ts:1-25](../../fdpm-cli/web/server/bridge.ts#L1-L25) |
 | zod-bridge | Pure compiler; byte-stable output gated by `--check` in CI | [packages/zod-bridge/README.md](../../fdpm-cli/packages/zod-bridge/README.md), `.github/workflows/plugin-acme-*.yml` |
 | DNIS | Adapter between two op models (batch with shared `causation_op_id`) | [dnis/adapter.ts:1-40](../../fdpm-cli/src/core/dnis/adapter.ts#L1-L40) |
 
-**Paradigm seams that cost something:** (a) three long-lived fronts share only the file system, so coordination is freshness-by-stat rather than a lock or a daemon; (b) the pipeline is synchronous, so a plugin that registers an async validator gets an `async-not-supported` *error finding* injected instead of its result ([context.ts:139-151](../../fdpm-cli/src/plugin/context.ts#L139-L151)); (c) Zod refinements outside the bridge's 23 CEL translation rows silently fall back to `safeParse` validators, i.e. the same constraint may be enforced at two different steps with two different `rule_id`s.
+**Paradigm seams that cost something:** (a) two long-lived fronts share only the file system, so coordination is freshness-by-stat rather than a lock or a daemon; (b) the pipeline is synchronous, so a plugin that registers an async validator gets an `async-not-supported` *error finding* injected instead of its result ([context.ts:139-151](../../fdpm-cli/src/plugin/context.ts#L139-L151)); (c) Zod refinements outside the bridge's 23 CEL translation rows silently fall back to `safeParse` validators, i.e. the same constraint may be enforced at two different steps with two different `rule_id`s.
 
 ---
 
@@ -137,7 +137,7 @@ A reader who holds that paragraph can predict: a plugin cannot introduce `planni
 
 **What each layer knows:**
 
-- **Fronts** (CLI/REPL/MCP/web/SDK) know `Host.*` signatures and the error taxonomy. MCP additionally knows tier + freshness metadata per tool. The web bridge knows only the CLI's JSON envelope and exit codes (`4 → 404`, else `500`).
+- **Fronts** (CLI/REPL/MCP/SDK) know `Host.*` signatures and the error taxonomy. MCP additionally knows tier + freshness metadata per tool.
 - **Host** knows everything and hides nothing structurally (`store`, `persistence`, `profiles`, `pipeline` are public fields, [host.ts:145-150](../../fdpm-cli/src/core/host.ts#L145-L150)); `host-extra.ts` is a bag of free functions that reach into `host.store` directly.
 - **Plugins** know their own manifest, config, and the read views their permissions allow; they never see the log or other plugins.
 - **zod-bridge** knows Zod ASTs and the profile shape; it never calls the host.
@@ -147,7 +147,7 @@ A reader who holds that paragraph can predict: a plugin cannot introduce `planni
 1. Payload → `Operation`: [store.ts:100-113](../../fdpm-cli/src/core/store/store.ts#L100-L113) (mint ULID, revision, timestamp, request_id).
 2. Legacy Python profile spelling → structured profile: [profile/compile.ts](../../fdpm-cli/src/core/profile/compile.ts) at registration.
 3. Instance → CEL value: [expr/types.ts:33-70](../../fdpm-cli/src/core/expr/types.ts#L33-L70) (`field_values` → `fields`, Dates → ISO strings).
-4. `FDPMException` → transport envelope: MCP ([dispatch.ts:439-470](../../fdpm-cli/src/mcp/dispatch.ts#L439-L470) — a `validation` throw on a Tier-2 tool becomes `{ok:false, validation_report}` with `isError:false`), REPL (`stderr` envelope + exit code), web bridge (HTTP status).
+4. `FDPMException` → transport envelope: MCP ([dispatch.ts:439-470](../../fdpm-cli/src/mcp/dispatch.ts#L439-L470) — a `validation` throw on a Tier-2 tool becomes `{ok:false, validation_report}` with `isError:false`), REPL (`stderr` envelope + exit code).
 5. Zod schema → `DomainProfile` + validator: [packages/zod-bridge/src/orchestrator.ts](../../fdpm-cli/packages/zod-bridge/src/orchestrator.ts).
 6. DNIS operation → 1..n core operations under one `causation_op_id`: [dnis/adapter.ts](../../fdpm-cli/src/core/dnis/adapter.ts).
 
@@ -168,9 +168,8 @@ A reader who holds that paragraph can predict: a plugin cannot introduce `planni
 | **C7 Drive from an LLM** | `fdpm-mcp` (stdio only; HTTP flags refuse to start) | 30 tools / 3 tiers; `FDPM_MCP_ENABLE_DESTRUCTIVE`; rate limit; audit log (args hashed by default) | `permission` with `evidence.reason ∈ {destructive_disabled, rate_limited, stale_state, confirmation_required}` |
 | **C8 Drive from scripts** | `fdpm repl --json --script`, `src/sdk.ts` | NDJSON contract; exit code = highest category seen | per-line envelopes on stderr |
 | **C9 Author SPECs as workbooks** | 13 `scripts/build-spec-*.ts` → `docs/specs/*.md` | spec-authoring-dnis profile; DNIS section tree | drift test vs shared constants |
-| **C10 Browse in a browser** | `web/` (Vite + bridge) | read-only except allow-listed planning verbs | HTTP 404/500 mapping |
-| **C11 Workspace identity, backup, restore** | `fdpm workspace *` | precedence `--data-dir > FDPM_DATA_DIR > FDPM_WORKSPACE > registry.current > default` | `host_compat` on profile drift |
-| **C12 Generate a plugin from a Zod schema** | `plugins/<x>/scripts/run-bridge.ts` (+ `--check`) | sidecar `defineDomain()`; 23 CEL rows; feature flags | `BridgeError`, CI drift gate |
+| **C10 Workspace identity, backup, restore** | `fdpm workspace *` | precedence `--data-dir > FDPM_DATA_DIR > FDPM_WORKSPACE > registry.current > default` | `host_compat` on profile drift |
+| **C11 Generate a plugin from a Zod schema** | `plugins/<x>/scripts/run-bridge.ts` (+ `--check`) | sidecar `defineDomain()`; 23 CEL rows; feature flags | `BridgeError`, CI drift gate |
 
 ---
 
@@ -203,7 +202,7 @@ An operator has `fdpm-mcp` running and, in another terminal, runs `fdpm primitiv
 | `Host` public surface ↔ MCP manifest | I9 | **Broken in the working tree** (`registerPluginProfile`). |
 | Zod schema ↔ `generated/profile.json` | Byte-stable via `run-bridge --check` | Enforced for `acme_*` only (2 CI workflows); `academic_paper*` have the script but no workflow; `software_requirements` has **no generator at all** — schema (+75 lines) and profile.json (+1551 lines) were edited in tandem by hand on this branch. |
 | `docs/specs/*.md` ↔ build scripts | Regenerated from workbooks; drift-tested | Consistent per `spec-builds-determinism.test.ts`. |
-| CLI JSON ↔ web bridge | exit code → HTTP | Only `4 → 404`; every other category (2,3,5,6,…) collapses to 500. |
+| `ErrorCategory` ↔ `HTTP_STATUS_FOR_CATEGORY` | 10 categories → HTTP status | Mapping is exported ([fdpm-exception.ts:55](../../fdpm-cli/src/core/errors/fdpm-exception.ts#L55)) but has had no consumer since the `web/` bridge was retired; it is dead until an HTTP front returns. |
 | Manifest `trust.signature` ↔ runtime | Signed plugins become `verified` | Signature is never verified; only `signed_by ∈ FDPM_TRUSTED_KEYS` string match ([runtime.ts:760-766](../../fdpm-cli/src/plugin/runtime.ts#L760-L766)). PURPOSE documents trust as deferred; the *field* still implies more than it does. |
 | `docs/architecture/FDPM-ARCHITECTURE.md` (May) ↔ tree | 7 plugins, 76K LOC | Now 14 plugin directories, 107K LOC, `workspace`, `quality/`, bridge v0.4.0, 4 generated plugins; T2 (extends gate) and T3 (rename) from May are still open. |
 
@@ -237,13 +236,13 @@ Ops are `workbook.*`, MCP tools are `fdpm.workbook.*`, but `Host` still exposes 
 
 ### T5 — Concurrency by detection, not exclusion (design bet with an unguarded corner)
 
-The JSONL append has no lock; the stat tuple detects *that* someone wrote, after the fact. For the REPL/MCP the refusal is loud and documented. The corner: two one-shot processes (or the web bridge, which spawns a fresh `fdpm` per request, plus anything else) can each compute `revision = last+1` from their own in-memory log and both append — `loadFromOperations` then sorts by revision and silently keeps duplicates. The May doc did not list this. *Confidence:* medium — reasoned from code ([store.ts:270-285](../../fdpm-cli/src/core/store/store.ts#L270-L285)), not reproduced.
+The JSONL append has no lock; the stat tuple detects *that* someone wrote, after the fact. For the REPL/MCP the refusal is loud and documented. The corner: two one-shot processes can each compute `revision = last+1` from their own in-memory log and both append — `loadFromOperations` then sorts by revision and silently keeps duplicates. The May doc did not list this. *Confidence:* medium — reasoned from code ([store.ts:270-285](../../fdpm-cli/src/core/store/store.ts#L270-L285)), not reproduced.
 
 *Direction:* assert revision uniqueness in `loadFromOperations` (turn a silent corruption into `host_compat`), and take an advisory `flock` (or `O_EXCL` lock file) around `appendOp`.
 
 ### T6 — `Host` is the boundary in prose but not in type (leaky abstraction)
 
-"The Host is the only object commands should hold," yet `store`, `persistence`, `profiles`, `pipeline` are public mutable fields (needed by `reload()`'s atomic swap), `host-extra.ts` reaches into them as free functions, and the July self-review (`web/*-weakness.json`) already flagged "broad package-root exports". The only executable guard is `tests/mcp-source-imports.test.ts`, scoped to `src/mcp`. *Confidence:* high.
+"The Host is the only object commands should hold," yet `store`, `persistence`, `profiles`, `pipeline` are public mutable fields (needed by `reload()`'s atomic swap), `host-extra.ts` reaches into them as free functions, and the July self-review ([docs/reviews/repo-review-20260713-weaknesses.json](../reviews/repo-review-20260713-weaknesses.json)) already flagged "broad package-root exports". The only executable guard is `tests/mcp-source-imports.test.ts`, scoped to `src/mcp`. *Confidence:* high.
 
 ### T7 — CI does not run on core changes (process gap)
 
@@ -251,7 +250,7 @@ The only workflows are `plugin-acme-business-deck.yml` and `plugin-acme-pitch-de
 
 ### T8 — Root-level accretion (hygiene)
 
-The repository root carries an unrelated pricing model (`price_quote.py`), Python academic tooling for a profile version (`0.3`) that the TS plugin has moved past (`0.4.1`), a 119-file `.repo/skills` mirror, a `GEMINI.md`, 1.4 MB of `docs/drafts` JSON/TS, and a **tracked symlink** `static/schemas/node_modules → /home/admin/codebases/fdpm-cli/fdpm-cli/node_modules` (absolute, machine-specific). Untracked review artefacts (`web/*-strenght.json`, `web/*-weakness.json`) and the operator directive `docs/goal-repo.md` sit in the working tree. None of this breaks the build; all of it raises the cost of the "cold agent, first contact" test PURPOSE sets. *Confidence:* high.
+The repository root carries an unrelated pricing model (`price_quote.py`), Python academic tooling for a profile version (`0.3`) that the TS plugin has moved past (`0.4.1`), a 119-file `.repo/skills` mirror, a `GEMINI.md`, 1.4 MB of `docs/drafts` JSON/TS, and a **tracked symlink** `static/schemas/node_modules → /home/admin/codebases/fdpm-cli/fdpm-cli/node_modules` (absolute, machine-specific). The operator directive `docs/goal-repo.md` sits untracked in the working tree. None of this breaks the build; all of it raises the cost of the "cold agent, first contact" test PURPOSE sets. *Confidence:* high.
 
 ### T9 — Trust tier is a label (misleading abstraction, acknowledged)
 
@@ -269,7 +268,7 @@ The repository root carries an unrelated pricing model (`price_quote.py`), Pytho
 | `@fdpm/zod-bridge` | trial journals | v0.4.0 with sidecar, scaffold, CI drift gate; 12 test files |
 | Quality scoring | rubric draft | `src/quality/score-workbook.ts` + scoreboard (most plugins `weak`/`adequate` on minimal fixtures) |
 | Workspace | new | `SPEC-WORKSPACE` v1.0 wired; registry + backup/restore |
-| Web | 2 views | plugins/profiles pages, print document, planning verbs write surface |
+| Web | 2 views | **retired** — the `web/` Vite browser and its Node bridge were removed; FDPM ships no HTTP front |
 | Open from May | T2 extends gate, T3 rename | both still open (extends still "rubber-stamped"; rename residue 66 `getProject`) |
 
 ---
@@ -287,7 +286,7 @@ The repository root carries an unrelated pricing model (`price_quote.py`), Pytho
 9. [tests/mcp-classification.test.ts](../../fdpm-cli/tests/mcp-classification.test.ts), [tests/mcp-source-imports.test.ts](../../fdpm-cli/tests/mcp-source-imports.test.ts), [tests/_meta/command-metadata-presence.test.ts](../../fdpm-cli/tests/_meta/command-metadata-presence.test.ts) — the invariants that are *executable*.
 10. One plugin: [plugins/_starter](../../fdpm-cli/plugins/_starter) (hand-written) and [plugins/acme_pitch_deck](../../fdpm-cli/plugins/acme_pitch_deck) (bridge-generated), then [packages/zod-bridge/README.md](../../fdpm-cli/packages/zod-bridge/README.md).
 
-Skip on first pass: `scripts/build-spec-*.ts`, `src/commands/*`, `src/mcp/tools/*`, `web/`, everything at the repository root except PURPOSE/CLAUDE/AGENTS.
+Skip on first pass: `scripts/build-spec-*.ts`, `src/commands/*`, `src/mcp/tools/*`, everything at the repository root except PURPOSE/CLAUDE/AGENTS.
 
 ---
 

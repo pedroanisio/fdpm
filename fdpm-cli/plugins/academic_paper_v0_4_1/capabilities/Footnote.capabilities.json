@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidFootnote",
+      "function_name": "acad.isValidFootnote",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "footnoteMarkdownRenderer",
-    "local_name": "acad041-footnote",
+    "local_name": "acad-footnote",
     "metadata": {
-      "primitive_type_id": "acad041:Footnote",
+      "primitive_type_id": "acad:Footnote",
       "target": "text/markdown"
     }
   }

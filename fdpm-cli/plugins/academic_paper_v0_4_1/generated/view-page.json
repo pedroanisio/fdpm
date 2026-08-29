@@ -143,7 +143,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Paper",
+      "primitive_type_id": "acad:Paper",
       "title": "Paper"
     },
     {
@@ -231,7 +231,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Author",
+      "primitive_type_id": "acad:Author",
       "title": "Author"
     },
     {
@@ -271,7 +271,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Affiliation",
+      "primitive_type_id": "acad:Affiliation",
       "title": "Affiliation"
     },
     {
@@ -345,7 +345,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Section",
+      "primitive_type_id": "acad:Section",
       "title": "Section"
     },
     {
@@ -432,7 +432,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Claim",
+      "primitive_type_id": "acad:Claim",
       "title": "Claim"
     },
     {
@@ -505,7 +505,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Evidence",
+      "primitive_type_id": "acad:Evidence",
       "title": "Evidence"
     },
     {
@@ -576,7 +576,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Quotation",
+      "primitive_type_id": "acad:Quotation",
       "title": "Quotation"
     },
     {
@@ -682,7 +682,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Work",
+      "primitive_type_id": "acad:Work",
       "title": "Work"
     },
     {
@@ -743,7 +743,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Concept",
+      "primitive_type_id": "acad:Concept",
       "title": "Concept"
     },
     {
@@ -797,7 +797,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Definition",
+      "primitive_type_id": "acad:Definition",
       "title": "Definition"
     },
     {
@@ -861,7 +861,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Theorist",
+      "primitive_type_id": "acad:Theorist",
       "title": "Theorist"
     },
     {
@@ -909,7 +909,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Theory",
+      "primitive_type_id": "acad:Theory",
       "title": "Theory"
     },
     {
@@ -958,7 +958,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Method",
+      "primitive_type_id": "acad:Method",
       "title": "Method"
     },
     {
@@ -1015,7 +1015,7 @@
           "visual_hint": "enum-dropdown"
         }
       ],
-      "primitive_type_id": "acad041:Finding",
+      "primitive_type_id": "acad:Finding",
       "title": "Finding"
     },
     {
@@ -1054,7 +1054,7 @@
           "visual_hint": "enum-dropdown"
         }
       ],
-      "primitive_type_id": "acad041:Limitation",
+      "primitive_type_id": "acad:Limitation",
       "title": "Limitation"
     },
     {
@@ -1097,7 +1097,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Footnote",
+      "primitive_type_id": "acad:Footnote",
       "title": "Footnote"
     },
     {
@@ -1178,7 +1178,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Equation",
+      "primitive_type_id": "acad:Equation",
       "title": "Equation"
     },
     {
@@ -1246,7 +1246,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Figure",
+      "primitive_type_id": "acad:Figure",
       "title": "Figure"
     },
     {
@@ -1340,7 +1340,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Citation",
+      "primitive_type_id": "acad:Citation",
       "title": "Citation"
     },
     {
@@ -1386,7 +1386,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Funding",
+      "primitive_type_id": "acad:Funding",
       "title": "Funding"
     },
     {
@@ -1414,7 +1414,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Funder",
+      "primitive_type_id": "acad:Funder",
       "title": "Funder"
     },
     {
@@ -1500,7 +1500,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Table",
+      "primitive_type_id": "acad:Table",
       "title": "Table"
     },
     {
@@ -1550,7 +1550,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:PaperRelation",
+      "primitive_type_id": "acad:PaperRelation",
       "title": "PaperRelation"
     },
     {
@@ -1631,7 +1631,7 @@
           "visual_hint": "optional-dim"
         }
       ],
-      "primitive_type_id": "acad041:Erratum",
+      "primitive_type_id": "acad:Erratum",
       "title": "Erratum"
     }
   ],

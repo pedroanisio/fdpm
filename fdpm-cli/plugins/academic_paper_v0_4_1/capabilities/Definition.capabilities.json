@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidDefinition",
+      "function_name": "acad.isValidDefinition",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "definitionMarkdownRenderer",
-    "local_name": "acad041-definition",
+    "local_name": "acad-definition",
     "metadata": {
-      "primitive_type_id": "acad041:Definition",
+      "primitive_type_id": "acad:Definition",
       "target": "text/markdown"
     }
   }

@@ -4,7 +4,7 @@
 fdpm_to_latex.py
 ================
 
-Render an FDPM academic-paper instance (JSON, profile:academic-paper:0.3)
+Render an FDPM academic-paper instance (JSON, profile:academic-paper:0.4.1)
 into a self-contained LaTeX document.
 
 DISCLAIMER

@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidMethod",
+      "function_name": "acad.isValidMethod",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "methodMarkdownRenderer",
-    "local_name": "acad041-method",
+    "local_name": "acad-method",
     "metadata": {
-      "primitive_type_id": "acad041:Method",
+      "primitive_type_id": "acad:Method",
       "target": "text/markdown"
     }
   }

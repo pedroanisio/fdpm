@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidConcept",
+      "function_name": "acad.isValidConcept",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "conceptMarkdownRenderer",
-    "local_name": "acad041-concept",
+    "local_name": "acad-concept",
     "metadata": {
-      "primitive_type_id": "acad041:Concept",
+      "primitive_type_id": "acad:Concept",
       "target": "text/markdown"
     }
   }

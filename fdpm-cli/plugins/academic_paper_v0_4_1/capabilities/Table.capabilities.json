@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidTable",
+      "function_name": "acad.isValidTable",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "tableMarkdownRenderer",
-    "local_name": "acad041-table",
+    "local_name": "acad-table",
     "metadata": {
-      "primitive_type_id": "acad041:Table",
+      "primitive_type_id": "acad:Table",
       "target": "text/markdown"
     }
   }

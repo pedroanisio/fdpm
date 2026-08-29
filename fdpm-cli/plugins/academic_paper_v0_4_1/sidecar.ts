@@ -133,12 +133,16 @@ export const PLUGIN_ID = "fdpm.academic-paper-v0-4-1" as const;
 export const PLUGIN_VERSION = "0.4.1" as const;
 export const HOST_COMPATIBILITY = ">=1.1,<2" as const;
 // Vendor controls the bridge's primitive_type_id prefix and the
-// expr-helper function namespace. The v0.4.1 plugin uses "acad041" so
-// its primitives appear as `acad041:Paper`, `acad041:Author`, etc. —
-// distinct from v0.3's `acad:Paper`. Without the differing vendor the
-// host would reject the second plugin at registration with "duplicate
-// primitive_type_id" because both would otherwise declare `acad:Paper`.
-export const VENDOR = "acad041" as const;
+// expr-helper function namespace. This was "acad041" while the v0.3
+// plugin still existed: two plugins declaring `acad:Paper` collide at
+// registration with "duplicate primitive_type_id", so the newer one
+// carried a discriminator. The v0.3 plugin was withdrawn on 2026-08-29
+// (the two profiles were identical apart from this prefix, and no
+// workbook was bound to it), so the discriminator no longer
+// discriminates and the namespace is reclaimed. Downstream tooling —
+// acad_validate.py, scripts/fdpm_to_latex.py — addresses primitives as
+// `acad:Paper`, and now matches again.
+export const VENDOR = "acad" as const;
 
 /**
  * Build the domain definition consumed by `assembleDomainProfileFromSidecar`.

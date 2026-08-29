@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidEvidence",
+      "function_name": "acad.isValidEvidence",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "evidenceMarkdownRenderer",
-    "local_name": "acad041-evidence",
+    "local_name": "acad-evidence",
     "metadata": {
-      "primitive_type_id": "acad041:Evidence",
+      "primitive_type_id": "acad:Evidence",
       "target": "text/markdown"
     }
   }

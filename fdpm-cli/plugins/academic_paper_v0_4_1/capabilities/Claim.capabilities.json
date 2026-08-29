@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidClaim",
+      "function_name": "acad.isValidClaim",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "claimMarkdownRenderer",
-    "local_name": "acad041-claim",
+    "local_name": "acad-claim",
     "metadata": {
-      "primitive_type_id": "acad041:Claim",
+      "primitive_type_id": "acad:Claim",
       "target": "text/markdown"
     }
   }

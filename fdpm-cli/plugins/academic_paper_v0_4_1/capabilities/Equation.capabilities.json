@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidEquation",
+      "function_name": "acad.isValidEquation",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "equationMarkdownRenderer",
-    "local_name": "acad041-equation",
+    "local_name": "acad-equation",
     "metadata": {
-      "primitive_type_id": "acad041:Equation",
+      "primitive_type_id": "acad:Equation",
       "target": "text/markdown"
     }
   }

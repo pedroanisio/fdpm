@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidAuthor",
+      "function_name": "acad.isValidAuthor",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "authorMarkdownRenderer",
-    "local_name": "acad041-author",
+    "local_name": "acad-author",
     "metadata": {
-      "primitive_type_id": "acad041:Author",
+      "primitive_type_id": "acad:Author",
       "target": "text/markdown"
     }
   }

@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidFunder",
+      "function_name": "acad.isValidFunder",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "funderMarkdownRenderer",
-    "local_name": "acad041-funder",
+    "local_name": "acad-funder",
     "metadata": {
-      "primitive_type_id": "acad041:Funder",
+      "primitive_type_id": "acad:Funder",
       "target": "text/markdown"
     }
   }

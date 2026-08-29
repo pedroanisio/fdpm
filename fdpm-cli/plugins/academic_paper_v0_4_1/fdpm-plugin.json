@@ -228,7 +228,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidAffiliation",
+        "function_name": "acad.isValidAffiliation",
         "pure": true,
         "return_type": "boolean"
       }
@@ -242,7 +242,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidAuthor",
+        "function_name": "acad.isValidAuthor",
         "pure": true,
         "return_type": "boolean"
       }
@@ -256,7 +256,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidCitation",
+        "function_name": "acad.isValidCitation",
         "pure": true,
         "return_type": "boolean"
       }
@@ -270,7 +270,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidClaim",
+        "function_name": "acad.isValidClaim",
         "pure": true,
         "return_type": "boolean"
       }
@@ -284,7 +284,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidConcept",
+        "function_name": "acad.isValidConcept",
         "pure": true,
         "return_type": "boolean"
       }
@@ -298,7 +298,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidDefinition",
+        "function_name": "acad.isValidDefinition",
         "pure": true,
         "return_type": "boolean"
       }
@@ -312,7 +312,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidEquation",
+        "function_name": "acad.isValidEquation",
         "pure": true,
         "return_type": "boolean"
       }
@@ -326,7 +326,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidErratum",
+        "function_name": "acad.isValidErratum",
         "pure": true,
         "return_type": "boolean"
       }
@@ -340,7 +340,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidEvidence",
+        "function_name": "acad.isValidEvidence",
         "pure": true,
         "return_type": "boolean"
       }
@@ -354,7 +354,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidFigure",
+        "function_name": "acad.isValidFigure",
         "pure": true,
         "return_type": "boolean"
       }
@@ -368,7 +368,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidFinding",
+        "function_name": "acad.isValidFinding",
         "pure": true,
         "return_type": "boolean"
       }
@@ -382,7 +382,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidFootnote",
+        "function_name": "acad.isValidFootnote",
         "pure": true,
         "return_type": "boolean"
       }
@@ -396,7 +396,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidFunder",
+        "function_name": "acad.isValidFunder",
         "pure": true,
         "return_type": "boolean"
       }
@@ -410,7 +410,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidFunding",
+        "function_name": "acad.isValidFunding",
         "pure": true,
         "return_type": "boolean"
       }
@@ -424,7 +424,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidLimitation",
+        "function_name": "acad.isValidLimitation",
         "pure": true,
         "return_type": "boolean"
       }
@@ -438,7 +438,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidMethod",
+        "function_name": "acad.isValidMethod",
         "pure": true,
         "return_type": "boolean"
       }
@@ -452,7 +452,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidPaper",
+        "function_name": "acad.isValidPaper",
         "pure": true,
         "return_type": "boolean"
       }
@@ -466,7 +466,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidPaperRelation",
+        "function_name": "acad.isValidPaperRelation",
         "pure": true,
         "return_type": "boolean"
       }
@@ -480,7 +480,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidQuotation",
+        "function_name": "acad.isValidQuotation",
         "pure": true,
         "return_type": "boolean"
       }
@@ -494,7 +494,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidSection",
+        "function_name": "acad.isValidSection",
         "pure": true,
         "return_type": "boolean"
       }
@@ -508,7 +508,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidTable",
+        "function_name": "acad.isValidTable",
         "pure": true,
         "return_type": "boolean"
       }
@@ -522,7 +522,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidTheorist",
+        "function_name": "acad.isValidTheorist",
         "pure": true,
         "return_type": "boolean"
       }
@@ -536,7 +536,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidTheory",
+        "function_name": "acad.isValidTheory",
         "pure": true,
         "return_type": "boolean"
       }
@@ -550,7 +550,7 @@
           "object"
         ],
         "arity": 1,
-        "function_name": "acad041.isValidWork",
+        "function_name": "acad.isValidWork",
         "pure": true,
         "return_type": "boolean"
       }
@@ -901,7 +901,7 @@
       "entry": "affiliationMarkdownRenderer",
       "local_name": "affiliation-md",
       "metadata": {
-        "primitive_type_id": "acad041:Affiliation",
+        "primitive_type_id": "acad:Affiliation",
         "target": "text/markdown"
       }
     },
@@ -910,7 +910,7 @@
       "entry": "authorMarkdownRenderer",
       "local_name": "author-md",
       "metadata": {
-        "primitive_type_id": "acad041:Author",
+        "primitive_type_id": "acad:Author",
         "target": "text/markdown"
       }
     },
@@ -919,7 +919,7 @@
       "entry": "citationMarkdownRenderer",
       "local_name": "citation-md",
       "metadata": {
-        "primitive_type_id": "acad041:Citation",
+        "primitive_type_id": "acad:Citation",
         "target": "text/markdown"
       }
     },
@@ -928,7 +928,7 @@
       "entry": "claimMarkdownRenderer",
       "local_name": "claim-md",
       "metadata": {
-        "primitive_type_id": "acad041:Claim",
+        "primitive_type_id": "acad:Claim",
         "target": "text/markdown"
       }
     },
@@ -937,7 +937,7 @@
       "entry": "conceptMarkdownRenderer",
       "local_name": "concept-md",
       "metadata": {
-        "primitive_type_id": "acad041:Concept",
+        "primitive_type_id": "acad:Concept",
         "target": "text/markdown"
       }
     },
@@ -946,7 +946,7 @@
       "entry": "definitionMarkdownRenderer",
       "local_name": "definition-md",
       "metadata": {
-        "primitive_type_id": "acad041:Definition",
+        "primitive_type_id": "acad:Definition",
         "target": "text/markdown"
       }
     },
@@ -955,7 +955,7 @@
       "entry": "equationMarkdownRenderer",
       "local_name": "equation-md",
       "metadata": {
-        "primitive_type_id": "acad041:Equation",
+        "primitive_type_id": "acad:Equation",
         "target": "text/markdown"
       }
     },
@@ -964,7 +964,7 @@
       "entry": "erratumMarkdownRenderer",
       "local_name": "erratum-md",
       "metadata": {
-        "primitive_type_id": "acad041:Erratum",
+        "primitive_type_id": "acad:Erratum",
         "target": "text/markdown"
       }
     },
@@ -973,7 +973,7 @@
       "entry": "evidenceMarkdownRenderer",
       "local_name": "evidence-md",
       "metadata": {
-        "primitive_type_id": "acad041:Evidence",
+        "primitive_type_id": "acad:Evidence",
         "target": "text/markdown"
       }
     },
@@ -982,7 +982,7 @@
       "entry": "figureMarkdownRenderer",
       "local_name": "figure-md",
       "metadata": {
-        "primitive_type_id": "acad041:Figure",
+        "primitive_type_id": "acad:Figure",
         "target": "text/markdown"
       }
     },
@@ -991,7 +991,7 @@
       "entry": "findingMarkdownRenderer",
       "local_name": "finding-md",
       "metadata": {
-        "primitive_type_id": "acad041:Finding",
+        "primitive_type_id": "acad:Finding",
         "target": "text/markdown"
       }
     },
@@ -1000,7 +1000,7 @@
       "entry": "footnoteMarkdownRenderer",
       "local_name": "footnote-md",
       "metadata": {
-        "primitive_type_id": "acad041:Footnote",
+        "primitive_type_id": "acad:Footnote",
         "target": "text/markdown"
       }
     },
@@ -1009,7 +1009,7 @@
       "entry": "funderMarkdownRenderer",
       "local_name": "funder-md",
       "metadata": {
-        "primitive_type_id": "acad041:Funder",
+        "primitive_type_id": "acad:Funder",
         "target": "text/markdown"
       }
     },
@@ -1018,7 +1018,7 @@
       "entry": "fundingMarkdownRenderer",
       "local_name": "funding-md",
       "metadata": {
-        "primitive_type_id": "acad041:Funding",
+        "primitive_type_id": "acad:Funding",
         "target": "text/markdown"
       }
     },
@@ -1027,7 +1027,7 @@
       "entry": "limitationMarkdownRenderer",
       "local_name": "limitation-md",
       "metadata": {
-        "primitive_type_id": "acad041:Limitation",
+        "primitive_type_id": "acad:Limitation",
         "target": "text/markdown"
       }
     },
@@ -1036,7 +1036,7 @@
       "entry": "methodMarkdownRenderer",
       "local_name": "method-md",
       "metadata": {
-        "primitive_type_id": "acad041:Method",
+        "primitive_type_id": "acad:Method",
         "target": "text/markdown"
       }
     },
@@ -1045,7 +1045,7 @@
       "entry": "paperMarkdownRenderer",
       "local_name": "paper-md",
       "metadata": {
-        "primitive_type_id": "acad041:Paper",
+        "primitive_type_id": "acad:Paper",
         "target": "text/markdown"
       }
     },
@@ -1054,7 +1054,7 @@
       "entry": "paperRelationMarkdownRenderer",
       "local_name": "paper-relation-md",
       "metadata": {
-        "primitive_type_id": "acad041:PaperRelation",
+        "primitive_type_id": "acad:PaperRelation",
         "target": "text/markdown"
       }
     },
@@ -1063,7 +1063,7 @@
       "entry": "quotationMarkdownRenderer",
       "local_name": "quotation-md",
       "metadata": {
-        "primitive_type_id": "acad041:Quotation",
+        "primitive_type_id": "acad:Quotation",
         "target": "text/markdown"
       }
     },
@@ -1072,7 +1072,7 @@
       "entry": "sectionMarkdownRenderer",
       "local_name": "section-md",
       "metadata": {
-        "primitive_type_id": "acad041:Section",
+        "primitive_type_id": "acad:Section",
         "target": "text/markdown"
       }
     },
@@ -1081,7 +1081,7 @@
       "entry": "tableMarkdownRenderer",
       "local_name": "table-md",
       "metadata": {
-        "primitive_type_id": "acad041:Table",
+        "primitive_type_id": "acad:Table",
         "target": "text/markdown"
       }
     },
@@ -1090,7 +1090,7 @@
       "entry": "theoristMarkdownRenderer",
       "local_name": "theorist-md",
       "metadata": {
-        "primitive_type_id": "acad041:Theorist",
+        "primitive_type_id": "acad:Theorist",
         "target": "text/markdown"
       }
     },
@@ -1099,7 +1099,7 @@
       "entry": "theoryMarkdownRenderer",
       "local_name": "theory-md",
       "metadata": {
-        "primitive_type_id": "acad041:Theory",
+        "primitive_type_id": "acad:Theory",
         "target": "text/markdown"
       }
     },
@@ -1108,7 +1108,7 @@
       "entry": "workMarkdownRenderer",
       "local_name": "work-md",
       "metadata": {
-        "primitive_type_id": "acad041:Work",
+        "primitive_type_id": "acad:Work",
         "target": "text/markdown"
       }
     },
@@ -1137,7 +1137,7 @@
           "fdpm.academic-paper-v0-4-1:zod.affiliation.too_small.institution",
           "fdpm.academic-paper-v0-4-1:zod.affiliation.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Affiliation",
+        "target_type_id": "acad:Affiliation",
         "triggers": [
           "create",
           "patch",
@@ -1181,7 +1181,7 @@
           "fdpm.academic-paper-v0-4-1:zod.author.too_small.givenNames",
           "fdpm.academic-paper-v0-4-1:zod.author.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Author",
+        "target_type_id": "acad:Author",
         "triggers": [
           "create",
           "patch",
@@ -1223,7 +1223,7 @@
           "fdpm.academic-paper-v0-4-1:zod.citation.too_small.rationale",
           "fdpm.academic-paper-v0-4-1:zod.citation.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Citation",
+        "target_type_id": "acad:Citation",
         "triggers": [
           "create",
           "patch",
@@ -1267,7 +1267,7 @@
           "fdpm.academic-paper-v0-4-1:zod.claim.too_small.statement",
           "fdpm.academic-paper-v0-4-1:zod.claim.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Claim",
+        "target_type_id": "acad:Claim",
         "triggers": [
           "create",
           "patch",
@@ -1307,7 +1307,7 @@
           "fdpm.academic-paper-v0-4-1:zod.concept.too_small.label",
           "fdpm.academic-paper-v0-4-1:zod.concept.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Concept",
+        "target_type_id": "acad:Concept",
         "triggers": [
           "create",
           "patch",
@@ -1343,7 +1343,7 @@
           "fdpm.academic-paper-v0-4-1:zod.definition.too_small.body",
           "fdpm.academic-paper-v0-4-1:zod.definition.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Definition",
+        "target_type_id": "acad:Definition",
         "triggers": [
           "create",
           "patch",
@@ -1387,7 +1387,7 @@
           "fdpm.academic-paper-v0-4-1:zod.equation.too_small.tex",
           "fdpm.academic-paper-v0-4-1:zod.equation.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Equation",
+        "target_type_id": "acad:Equation",
         "triggers": [
           "create",
           "patch",
@@ -1432,7 +1432,7 @@
           "fdpm.academic-paper-v0-4-1:zod.erratum.too_small.title",
           "fdpm.academic-paper-v0-4-1:zod.erratum.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Erratum",
+        "target_type_id": "acad:Erratum",
         "triggers": [
           "create",
           "patch",
@@ -1480,7 +1480,7 @@
           "fdpm.academic-paper-v0-4-1:zod.evidence.too_small.supports",
           "fdpm.academic-paper-v0-4-1:zod.evidence.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Evidence",
+        "target_type_id": "acad:Evidence",
         "triggers": [
           "create",
           "patch",
@@ -1525,7 +1525,7 @@
           "fdpm.academic-paper-v0-4-1:zod.figure.too_small.page",
           "fdpm.academic-paper-v0-4-1:zod.figure.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Figure",
+        "target_type_id": "acad:Figure",
         "triggers": [
           "create",
           "patch",
@@ -1561,7 +1561,7 @@
           "fdpm.academic-paper-v0-4-1:zod.finding.too_small.statement",
           "fdpm.academic-paper-v0-4-1:zod.finding.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Finding",
+        "target_type_id": "acad:Finding",
         "triggers": [
           "create",
           "patch",
@@ -1596,7 +1596,7 @@
           "fdpm.academic-paper-v0-4-1:zod.footnote.too_small.label",
           "fdpm.academic-paper-v0-4-1:zod.footnote.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Footnote",
+        "target_type_id": "acad:Footnote",
         "triggers": [
           "create",
           "patch",
@@ -1624,7 +1624,7 @@
           "fdpm.academic-paper-v0-4-1:zod.funder.too_small.name",
           "fdpm.academic-paper-v0-4-1:zod.funder.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Funder",
+        "target_type_id": "acad:Funder",
         "triggers": [
           "create",
           "patch",
@@ -1659,7 +1659,7 @@
           "fdpm.academic-paper-v0-4-1:zod.funding.too_small.awardTitle",
           "fdpm.academic-paper-v0-4-1:zod.funding.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Funding",
+        "target_type_id": "acad:Funding",
         "triggers": [
           "create",
           "patch",
@@ -1688,7 +1688,7 @@
           "fdpm.academic-paper-v0-4-1:zod.limitation.too_small.statement",
           "fdpm.academic-paper-v0-4-1:zod.limitation.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Limitation",
+        "target_type_id": "acad:Limitation",
         "triggers": [
           "create",
           "patch",
@@ -1720,7 +1720,7 @@
           "fdpm.academic-paper-v0-4-1:zod.method.too_small.procedure",
           "fdpm.academic-paper-v0-4-1:zod.method.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Method",
+        "target_type_id": "acad:Method",
         "triggers": [
           "create",
           "patch",
@@ -1764,7 +1764,7 @@
           "fdpm.academic-paper-v0-4-1:paper.section-parent-resolves",
           "fdpm.academic-paper-v0-4-1:paper.table-references-resolve"
         ],
-        "target_type_id": "acad041:Paper",
+        "target_type_id": "acad:Paper",
         "triggers": [
           "create",
           "patch",
@@ -1795,7 +1795,7 @@
           "fdpm.academic-paper-v0-4-1:zod.paperrelation.too_small.rationale",
           "fdpm.academic-paper-v0-4-1:zod.paperrelation.unrecognized_keys"
         ],
-        "target_type_id": "acad041:PaperRelation",
+        "target_type_id": "acad:PaperRelation",
         "triggers": [
           "create",
           "patch",
@@ -1859,7 +1859,7 @@
           "fdpm.academic-paper-v0-4-1:zod.paper.too_small.year",
           "fdpm.academic-paper-v0-4-1:zod.paper.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Paper",
+        "target_type_id": "acad:Paper",
         "triggers": [
           "create",
           "patch",
@@ -1901,7 +1901,7 @@
           "fdpm.academic-paper-v0-4-1:zod.quotation.too_small.locator",
           "fdpm.academic-paper-v0-4-1:zod.quotation.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Quotation",
+        "target_type_id": "acad:Quotation",
         "triggers": [
           "create",
           "patch",
@@ -1943,7 +1943,7 @@
           "fdpm.academic-paper-v0-4-1:zod.section.too_small.title",
           "fdpm.academic-paper-v0-4-1:zod.section.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Section",
+        "target_type_id": "acad:Section",
         "triggers": [
           "create",
           "patch",
@@ -1997,7 +1997,7 @@
           "fdpm.academic-paper-v0-4-1:zod.table.too_small.rowCount",
           "fdpm.academic-paper-v0-4-1:zod.table.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Table",
+        "target_type_id": "acad:Table",
         "triggers": [
           "create",
           "patch",
@@ -2044,7 +2044,7 @@
           "fdpm.academic-paper-v0-4-1:zod.theorist.too_small.primaryAffiliation",
           "fdpm.academic-paper-v0-4-1:zod.theorist.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Theorist",
+        "target_type_id": "acad:Theorist",
         "triggers": [
           "create",
           "patch",
@@ -2079,7 +2079,7 @@
           "fdpm.academic-paper-v0-4-1:zod.theory.too_small.summary",
           "fdpm.academic-paper-v0-4-1:zod.theory.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Theory",
+        "target_type_id": "acad:Theory",
         "triggers": [
           "create",
           "patch",
@@ -2131,7 +2131,7 @@
           "fdpm.academic-paper-v0-4-1:zod.work.too_small.year",
           "fdpm.academic-paper-v0-4-1:zod.work.unrecognized_keys"
         ],
-        "target_type_id": "acad041:Work",
+        "target_type_id": "acad:Work",
         "triggers": [
           "create",
           "patch",

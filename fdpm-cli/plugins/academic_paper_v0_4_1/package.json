@@ -3,7 +3,7 @@
   "version": "0.4.1",
   "private": true,
   "type": "module",
-  "description": "Academic paper plugin v0.4.1 — side-by-side registration of profile:academic-paper:0.4.1 alongside the v0.3 plugin. Adds two transitive cycle-detection rules (Claim.supersededBy + Quotation.translatedFrom) on top of v0.3's 33 rules, bringing the typed-graph integrity layer to parity with the rev3 SHACL mirror. Primitives prefixed `acad041:` to avoid collision with v0.3's `acad:`.",
+  "description": "Academic paper plugin v0.4.1 \u2014 the sole academic-paper profile since the v0.3 plugin was withdrawn (2026-08-29). Adds two transitive cycle-detection rules (Claim.supersededBy + Quotation.translatedFrom) and a translatedFrom self-loop check on top of the 33 declared rules, bringing the typed-graph integrity layer to parity with the rev3 SHACL mirror. Primitives are prefixed `acad:`.",
   "scripts": {
     "bridge": "tsx scripts/run-bridge.ts",
     "bridge:check": "tsx scripts/run-bridge.ts --check",

@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidTheory",
+      "function_name": "acad.isValidTheory",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "theoryMarkdownRenderer",
-    "local_name": "acad041-theory",
+    "local_name": "acad-theory",
     "metadata": {
-      "primitive_type_id": "acad041:Theory",
+      "primitive_type_id": "acad:Theory",
       "target": "text/markdown"
     }
   }

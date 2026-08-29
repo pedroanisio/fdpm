@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidTheorist",
+      "function_name": "acad.isValidTheorist",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "theoristMarkdownRenderer",
-    "local_name": "acad041-theorist",
+    "local_name": "acad-theorist",
     "metadata": {
-      "primitive_type_id": "acad041:Theorist",
+      "primitive_type_id": "acad:Theorist",
       "target": "text/markdown"
     }
   }

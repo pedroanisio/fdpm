@@ -17,7 +17,7 @@
         "object"
       ],
       "arity": 1,
-      "function_name": "acad041.isValidSection",
+      "function_name": "acad.isValidSection",
       "pure": true,
       "return_type": "boolean"
     }
@@ -39,9 +39,9 @@
   "renderer": {
     "capability_id": "cap:renderer",
     "entry": "sectionMarkdownRenderer",
-    "local_name": "acad041-section",
+    "local_name": "acad-section",
     "metadata": {
-      "primitive_type_id": "acad041:Section",
+      "primitive_type_id": "acad:Section",
       "target": "text/markdown"
     }
   }

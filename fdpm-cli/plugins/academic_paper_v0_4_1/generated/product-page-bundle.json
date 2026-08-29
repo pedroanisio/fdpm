@@ -60,369 +60,369 @@
   "relation_types": [
     {
       "cardinality": "many-to-one",
-      "id": "acad041:AuthorPaper",
-      "source": "acad041:Author",
-      "target": "acad041:Paper"
+      "id": "acad:AuthorPaper",
+      "source": "acad:Author",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:AuthorAffiliations",
-      "source": "acad041:Author",
-      "target": "acad041:Affiliation"
+      "id": "acad:AuthorAffiliations",
+      "source": "acad:Author",
+      "target": "acad:Affiliation"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:SectionPaper",
-      "source": "acad041:Section",
-      "target": "acad041:Paper"
+      "id": "acad:SectionPaper",
+      "source": "acad:Section",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:SectionParent",
-      "source": "acad041:Section",
-      "target": "acad041:Section"
+      "id": "acad:SectionParent",
+      "source": "acad:Section",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ClaimPaper",
-      "source": "acad041:Claim",
-      "target": "acad041:Paper"
+      "id": "acad:ClaimPaper",
+      "source": "acad:Claim",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ClaimSection",
-      "source": "acad041:Claim",
-      "target": "acad041:Section"
+      "id": "acad:ClaimSection",
+      "source": "acad:Claim",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:ClaimDerivesFrom",
-      "source": "acad041:Claim",
-      "target": "acad041:Claim"
+      "id": "acad:ClaimDerivesFrom",
+      "source": "acad:Claim",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:ClaimCounterReads",
-      "source": "acad041:Claim",
-      "target": "acad041:Claim"
+      "id": "acad:ClaimCounterReads",
+      "source": "acad:Claim",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:EvidencePaper",
-      "source": "acad041:Evidence",
-      "target": "acad041:Paper"
+      "id": "acad:EvidencePaper",
+      "source": "acad:Evidence",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:EvidenceSupports",
-      "source": "acad041:Evidence",
-      "target": "acad041:Claim"
+      "id": "acad:EvidenceSupports",
+      "source": "acad:Evidence",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:EvidenceQuotation",
-      "source": "acad041:Evidence",
-      "target": "acad041:Quotation"
+      "id": "acad:EvidenceQuotation",
+      "source": "acad:Evidence",
+      "target": "acad:Quotation"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:EvidenceWork",
-      "source": "acad041:Evidence",
-      "target": "acad041:Work"
+      "id": "acad:EvidenceWork",
+      "source": "acad:Evidence",
+      "target": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:QuotationPaper",
-      "source": "acad041:Quotation",
-      "target": "acad041:Paper"
+      "id": "acad:QuotationPaper",
+      "source": "acad:Quotation",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:QuotationSection",
-      "source": "acad041:Quotation",
-      "target": "acad041:Section"
+      "id": "acad:QuotationSection",
+      "source": "acad:Quotation",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:QuotationQuotesFrom",
-      "source": "acad041:Quotation",
-      "target": "acad041:Work"
+      "id": "acad:QuotationQuotesFrom",
+      "source": "acad:Quotation",
+      "target": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:QuotationTranslatedFrom",
-      "source": "acad041:Quotation",
-      "target": "acad041:Quotation"
+      "id": "acad:QuotationTranslatedFrom",
+      "source": "acad:Quotation",
+      "target": "acad:Quotation"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:ConceptBorrowsFrom",
-      "source": "acad041:Concept",
-      "target": "acad041:Theorist"
+      "id": "acad:ConceptBorrowsFrom",
+      "source": "acad:Concept",
+      "target": "acad:Theorist"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:ConceptExtends",
-      "source": "acad041:Concept",
-      "target": "acad041:Concept"
+      "id": "acad:ConceptExtends",
+      "source": "acad:Concept",
+      "target": "acad:Concept"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:DefinitionPaper",
-      "source": "acad041:Definition",
-      "target": "acad041:Paper"
+      "id": "acad:DefinitionPaper",
+      "source": "acad:Definition",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:DefinitionConcept",
-      "source": "acad041:Definition",
-      "target": "acad041:Concept"
+      "id": "acad:DefinitionConcept",
+      "source": "acad:Definition",
+      "target": "acad:Concept"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:DefinitionSection",
-      "source": "acad041:Definition",
-      "target": "acad041:Section"
+      "id": "acad:DefinitionSection",
+      "source": "acad:Definition",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:DefinitionCitedFrom",
-      "source": "acad041:Definition",
-      "target": "acad041:Work"
+      "id": "acad:DefinitionCitedFrom",
+      "source": "acad:Definition",
+      "target": "acad:Work"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:TheoristNotableTheories",
-      "source": "acad041:Theorist",
-      "target": "acad041:Theory"
+      "id": "acad:TheoristNotableTheories",
+      "source": "acad:Theorist",
+      "target": "acad:Theory"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:TheoryPrimaryTheorist",
-      "source": "acad041:Theory",
-      "target": "acad041:Theorist"
+      "id": "acad:TheoryPrimaryTheorist",
+      "source": "acad:Theory",
+      "target": "acad:Theorist"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:TheoryExtendsTheory",
-      "source": "acad041:Theory",
-      "target": "acad041:Theory"
+      "id": "acad:TheoryExtendsTheory",
+      "source": "acad:Theory",
+      "target": "acad:Theory"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:TheoryRespondsTo",
-      "source": "acad041:Theory",
-      "target": "acad041:Theory"
+      "id": "acad:TheoryRespondsTo",
+      "source": "acad:Theory",
+      "target": "acad:Theory"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:MethodPaper",
-      "source": "acad041:Method",
-      "target": "acad041:Paper"
+      "id": "acad:MethodPaper",
+      "source": "acad:Method",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FindingPaper",
-      "source": "acad041:Finding",
-      "target": "acad041:Paper"
+      "id": "acad:FindingPaper",
+      "source": "acad:Finding",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FindingSection",
-      "source": "acad041:Finding",
-      "target": "acad041:Section"
+      "id": "acad:FindingSection",
+      "source": "acad:Finding",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:FindingSupportedBy",
-      "source": "acad041:Finding",
-      "target": "acad041:Evidence"
+      "id": "acad:FindingSupportedBy",
+      "source": "acad:Finding",
+      "target": "acad:Evidence"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:LimitationPaper",
-      "source": "acad041:Limitation",
-      "target": "acad041:Paper"
+      "id": "acad:LimitationPaper",
+      "source": "acad:Limitation",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FootnotePaper",
-      "source": "acad041:Footnote",
-      "target": "acad041:Paper"
+      "id": "acad:FootnotePaper",
+      "source": "acad:Footnote",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FootnoteSection",
-      "source": "acad041:Footnote",
-      "target": "acad041:Section"
+      "id": "acad:FootnoteSection",
+      "source": "acad:Footnote",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:EquationPaper",
-      "source": "acad041:Equation",
-      "target": "acad041:Paper"
+      "id": "acad:EquationPaper",
+      "source": "acad:Equation",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:EquationSection",
-      "source": "acad041:Equation",
-      "target": "acad041:Section"
+      "id": "acad:EquationSection",
+      "source": "acad:Equation",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:EquationDerivesFrom",
-      "source": "acad041:Equation",
-      "target": "acad041:Equation"
+      "id": "acad:EquationDerivesFrom",
+      "source": "acad:Equation",
+      "target": "acad:Equation"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:EquationFromPostulates",
-      "source": "acad041:Equation",
-      "target": "acad041:Claim"
+      "id": "acad:EquationFromPostulates",
+      "source": "acad:Equation",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FigurePaper",
-      "source": "acad041:Figure",
-      "target": "acad041:Paper"
+      "id": "acad:FigurePaper",
+      "source": "acad:Figure",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FigureSection",
-      "source": "acad041:Figure",
-      "target": "acad041:Section"
+      "id": "acad:FigureSection",
+      "source": "acad:Figure",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:WorkTranslationOf",
-      "source": "acad041:Work",
-      "target": "acad041:Work"
+      "id": "acad:WorkTranslationOf",
+      "source": "acad:Work",
+      "target": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:WorkEditionOf",
-      "source": "acad041:Work",
-      "target": "acad041:Work"
+      "id": "acad:WorkEditionOf",
+      "source": "acad:Work",
+      "target": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:CitationPaper",
-      "source": "acad041:Citation",
-      "target": "acad041:Paper"
+      "id": "acad:CitationPaper",
+      "source": "acad:Citation",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:CitationCitingClaim",
-      "source": "acad041:Citation",
-      "target": "acad041:Claim"
+      "id": "acad:CitationCitingClaim",
+      "source": "acad:Citation",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:CitationCitingFinding",
-      "source": "acad041:Citation",
-      "target": "acad041:Finding"
+      "id": "acad:CitationCitingFinding",
+      "source": "acad:Citation",
+      "target": "acad:Finding"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:CitationCitingSection",
-      "source": "acad041:Citation",
-      "target": "acad041:Section"
+      "id": "acad:CitationCitingSection",
+      "source": "acad:Citation",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:CitationCitedWork",
-      "source": "acad041:Citation",
-      "target": "acad041:Work"
+      "id": "acad:CitationCitedWork",
+      "source": "acad:Citation",
+      "target": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:CitationCitedQuotation",
-      "source": "acad041:Citation",
-      "target": "acad041:Quotation"
+      "id": "acad:CitationCitedQuotation",
+      "source": "acad:Citation",
+      "target": "acad:Quotation"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FundingPaper",
-      "source": "acad041:Funding",
-      "target": "acad041:Paper"
+      "id": "acad:FundingPaper",
+      "source": "acad:Funding",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FundingFunder",
-      "source": "acad041:Funding",
-      "target": "acad041:Funder"
+      "id": "acad:FundingFunder",
+      "source": "acad:Funding",
+      "target": "acad:Funder"
     },
     {
       "cardinality": "many-to-many",
-      "id": "acad041:FundingRecipients",
-      "source": "acad041:Funding",
-      "target": "acad041:Author"
+      "id": "acad:FundingRecipients",
+      "source": "acad:Funding",
+      "target": "acad:Author"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:TablePaper",
-      "source": "acad041:Table",
-      "target": "acad041:Paper"
+      "id": "acad:TablePaper",
+      "source": "acad:Table",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:TableSection",
-      "source": "acad041:Table",
-      "target": "acad041:Section"
+      "id": "acad:TableSection",
+      "source": "acad:Table",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:PaperRelationPaper",
-      "source": "acad041:PaperRelation",
-      "target": "acad041:Paper"
+      "id": "acad:PaperRelationPaper",
+      "source": "acad:PaperRelation",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:PaperRelationRelatedWork",
-      "source": "acad041:PaperRelation",
-      "target": "acad041:Work"
+      "id": "acad:PaperRelationRelatedWork",
+      "source": "acad:PaperRelation",
+      "target": "acad:Work"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ClaimSupersededBy",
-      "source": "acad041:Claim",
-      "target": "acad041:Claim"
+      "id": "acad:ClaimSupersededBy",
+      "source": "acad:Claim",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:FindingTestsHypothesis",
-      "source": "acad041:Finding",
-      "target": "acad041:Claim"
+      "id": "acad:FindingTestsHypothesis",
+      "source": "acad:Finding",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ErratumPaper",
-      "source": "acad041:Erratum",
-      "target": "acad041:Paper"
+      "id": "acad:ErratumPaper",
+      "source": "acad:Erratum",
+      "target": "acad:Paper"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ErratumCorrectsSection",
-      "source": "acad041:Erratum",
-      "target": "acad041:Section"
+      "id": "acad:ErratumCorrectsSection",
+      "source": "acad:Erratum",
+      "target": "acad:Section"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ErratumCorrectsClaim",
-      "source": "acad041:Erratum",
-      "target": "acad041:Claim"
+      "id": "acad:ErratumCorrectsClaim",
+      "source": "acad:Erratum",
+      "target": "acad:Claim"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ErratumCorrectsFinding",
-      "source": "acad041:Erratum",
-      "target": "acad041:Finding"
+      "id": "acad:ErratumCorrectsFinding",
+      "source": "acad:Erratum",
+      "target": "acad:Finding"
     },
     {
       "cardinality": "many-to-one",
-      "id": "acad041:ErratumCorrectsEquation",
-      "source": "acad041:Erratum",
-      "target": "acad041:Equation"
+      "id": "acad:ErratumCorrectsEquation",
+      "source": "acad:Erratum",
+      "target": "acad:Equation"
     }
   ],
   "schemas": [
@@ -525,7 +525,7 @@
         }
       ],
       "name": "Paper",
-      "primitive_type_id": "acad041:Paper",
+      "primitive_type_id": "acad:Paper",
       "source_path": "domain.entities.Paper.schema"
     },
     {
@@ -592,7 +592,7 @@
         }
       ],
       "name": "Author",
-      "primitive_type_id": "acad041:Author",
+      "primitive_type_id": "acad:Author",
       "source_path": "domain.entities.Author.schema"
     },
     {
@@ -629,7 +629,7 @@
         }
       ],
       "name": "Affiliation",
-      "primitive_type_id": "acad041:Affiliation",
+      "primitive_type_id": "acad:Affiliation",
       "source_path": "domain.entities.Affiliation.schema"
     },
     {
@@ -686,7 +686,7 @@
         }
       ],
       "name": "Section",
-      "primitive_type_id": "acad041:Section",
+      "primitive_type_id": "acad:Section",
       "source_path": "domain.entities.Section.schema"
     },
     {
@@ -748,7 +748,7 @@
         }
       ],
       "name": "Claim",
-      "primitive_type_id": "acad041:Claim",
+      "primitive_type_id": "acad:Claim",
       "source_path": "domain.entities.Claim.schema"
     },
     {
@@ -805,7 +805,7 @@
         }
       ],
       "name": "Evidence",
-      "primitive_type_id": "acad041:Evidence",
+      "primitive_type_id": "acad:Evidence",
       "source_path": "domain.entities.Evidence.schema"
     },
     {
@@ -867,7 +867,7 @@
         }
       ],
       "name": "Quotation",
-      "primitive_type_id": "acad041:Quotation",
+      "primitive_type_id": "acad:Quotation",
       "source_path": "domain.entities.Quotation.schema"
     },
     {
@@ -944,7 +944,7 @@
         }
       ],
       "name": "Work",
-      "primitive_type_id": "acad041:Work",
+      "primitive_type_id": "acad:Work",
       "source_path": "domain.entities.Work.schema"
     },
     {
@@ -996,7 +996,7 @@
         }
       ],
       "name": "Concept",
-      "primitive_type_id": "acad041:Concept",
+      "primitive_type_id": "acad:Concept",
       "source_path": "domain.entities.Concept.schema"
     },
     {
@@ -1043,7 +1043,7 @@
         }
       ],
       "name": "Definition",
-      "primitive_type_id": "acad041:Definition",
+      "primitive_type_id": "acad:Definition",
       "source_path": "domain.entities.Definition.schema"
     },
     {
@@ -1100,7 +1100,7 @@
         }
       ],
       "name": "Theorist",
-      "primitive_type_id": "acad041:Theorist",
+      "primitive_type_id": "acad:Theorist",
       "source_path": "domain.entities.Theorist.schema"
     },
     {
@@ -1142,7 +1142,7 @@
         }
       ],
       "name": "Theory",
-      "primitive_type_id": "acad041:Theory",
+      "primitive_type_id": "acad:Theory",
       "source_path": "domain.entities.Theory.schema"
     },
     {
@@ -1179,7 +1179,7 @@
         }
       ],
       "name": "Method",
-      "primitive_type_id": "acad041:Method",
+      "primitive_type_id": "acad:Method",
       "source_path": "domain.entities.Method.schema"
     },
     {
@@ -1226,7 +1226,7 @@
         }
       ],
       "name": "Finding",
-      "primitive_type_id": "acad041:Finding",
+      "primitive_type_id": "acad:Finding",
       "source_path": "domain.entities.Finding.schema"
     },
     {
@@ -1258,7 +1258,7 @@
         }
       ],
       "name": "Limitation",
-      "primitive_type_id": "acad041:Limitation",
+      "primitive_type_id": "acad:Limitation",
       "source_path": "domain.entities.Limitation.schema"
     },
     {
@@ -1300,7 +1300,7 @@
         }
       ],
       "name": "Footnote",
-      "primitive_type_id": "acad041:Footnote",
+      "primitive_type_id": "acad:Footnote",
       "source_path": "domain.entities.Footnote.schema"
     },
     {
@@ -1362,7 +1362,7 @@
         }
       ],
       "name": "Equation",
-      "primitive_type_id": "acad041:Equation",
+      "primitive_type_id": "acad:Equation",
       "source_path": "domain.entities.Equation.schema"
     },
     {
@@ -1424,7 +1424,7 @@
         }
       ],
       "name": "Figure",
-      "primitive_type_id": "acad041:Figure",
+      "primitive_type_id": "acad:Figure",
       "source_path": "domain.entities.Figure.schema"
     },
     {
@@ -1486,7 +1486,7 @@
         }
       ],
       "name": "Citation",
-      "primitive_type_id": "acad041:Citation",
+      "primitive_type_id": "acad:Citation",
       "source_path": "domain.entities.Citation.schema"
     },
     {
@@ -1528,7 +1528,7 @@
         }
       ],
       "name": "Funding",
-      "primitive_type_id": "acad041:Funding",
+      "primitive_type_id": "acad:Funding",
       "source_path": "domain.entities.Funding.schema"
     },
     {
@@ -1555,7 +1555,7 @@
         }
       ],
       "name": "Funder",
-      "primitive_type_id": "acad041:Funder",
+      "primitive_type_id": "acad:Funder",
       "source_path": "domain.entities.Funder.schema"
     },
     {
@@ -1632,7 +1632,7 @@
         }
       ],
       "name": "Table",
-      "primitive_type_id": "acad041:Table",
+      "primitive_type_id": "acad:Table",
       "source_path": "domain.entities.Table.schema"
     },
     {
@@ -1669,7 +1669,7 @@
         }
       ],
       "name": "PaperRelation",
-      "primitive_type_id": "acad041:PaperRelation",
+      "primitive_type_id": "acad:PaperRelation",
       "source_path": "domain.entities.PaperRelation.schema"
     },
     {
@@ -1736,7 +1736,7 @@
         }
       ],
       "name": "Erratum",
-      "primitive_type_id": "acad041:Erratum",
+      "primitive_type_id": "acad:Erratum",
       "source_path": "domain.entities.Erratum.schema"
     }
   ],
