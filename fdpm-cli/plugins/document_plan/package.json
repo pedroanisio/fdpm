@@ -1,0 +1,22 @@
+{
+  "name": "@fdpm-plugins/document-plan",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Document-plan plugin — derived from schemas/document-plan.ts (DocumentPlan v3.1.0) via @fdpm/zod-bridge. The section tree is materialised as dnis:Node primitives by the companion plugin fdpm.document-plan-dnis.",
+  "scripts": {
+    "bridge": "tsx scripts/run-bridge.ts",
+    "bridge:check": "tsx scripts/run-bridge.ts --check",
+    "test": "vitest run --root ../../ tests/plugins/document_plan",
+    "typecheck": "tsc -p ../../tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0",
+    "@fdpm/zod-bridge": "^0.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

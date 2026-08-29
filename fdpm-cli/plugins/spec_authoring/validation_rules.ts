@@ -65,8 +65,10 @@ export const VALIDATION_RULES: ValidationRuleDef[] = [
     "Document should have at least one revision entry",
     "warning",
     ["spec:Document"],
-    "has_outgoing(spec:HasSection) and has_outgoing(spec:RevisedIn)",
-    "Every SPEC should declare at least one spec:RevisedIn edge to a §24 Revision entry.",
+    // SPEC-SECTIONS-TREE v0.2: the section tree may be dnis:Node primitives
+    // (no spec:HasSection edges at all), so only the revision edge is checked.
+    "has_outgoing(spec:RevisedIn)",
+    "Every SPEC should declare at least one spec:RevisedIn edge to a Revision entry.",
   ),
 
   // ── Section tree ────────────────────────────────────────────────

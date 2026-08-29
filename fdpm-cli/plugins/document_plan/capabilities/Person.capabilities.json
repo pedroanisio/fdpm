@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "personMarkdownRenderer",
+    "local_name": "docplan-person",
+    "metadata": {
+      "primitive_type_id": "docplan:Person",
+      "target": "text/markdown"
+    }
+  }
+}

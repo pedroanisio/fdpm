@@ -116,7 +116,20 @@ const SPECS = [
   },
 ];
 
-describe.each(SPECS)("$name — build + validate + determinism", (spec) => {
+/**
+ * SPECs that share the build + validate + determinism gate but do NOT
+ * carry the expression-runtime shared constants (so they are excluded
+ * from the "Shared constants" block below).
+ */
+const STANDALONE_SPECS = [
+  {
+    name: "SPEC-DOCUMENT-PLAN",
+    script: "scripts/build-spec-document-plan.ts",
+    workbookId: "spec-document-plan",
+  },
+];
+
+describe.each([...SPECS, ...STANDALONE_SPECS])("$name — build + validate + determinism", (spec) => {
   it("validates with zero findings at every level", () => {
     const { dataDir, summary } = buildAndValidate(spec.script, spec.workbookId);
     try {

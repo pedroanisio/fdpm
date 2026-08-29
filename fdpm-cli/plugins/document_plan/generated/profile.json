@@ -1,0 +1,2247 @@
+{
+  "constraints": [
+    {
+      "expression": "self.field_values.schema_version == \"3.1.0\"",
+      "level": "error",
+      "name": "docplan.documentplan.schema_version.literal"
+    },
+    {
+      "expression": "self.field_values.work_type in [\"essay\", \"article\", \"long_form_feature\", \"report\", \"whitepaper\", \"thesis\", \"book\", \"edited_volume\", \"series_volume\"]",
+      "level": "error",
+      "name": "docplan.documentplan.work_type.enum"
+    },
+    {
+      "expression": "size(self.field_values.title) >= 1",
+      "level": "error",
+      "name": "docplan.documentplan.title.min_length"
+    },
+    {
+      "expression": "size(self.field_values.title) <= 200",
+      "level": "error",
+      "name": "docplan.documentplan.title.max_length"
+    },
+    {
+      "expression": "size(self.field_values.subtitle) >= 1",
+      "level": "error",
+      "name": "docplan.documentplan.subtitle.min_length"
+    },
+    {
+      "expression": "size(self.field_values.subtitle) <= 300",
+      "level": "error",
+      "name": "docplan.documentplan.subtitle.max_length"
+    },
+    {
+      "expression": "size(self.field_values.description) >= 1",
+      "level": "error",
+      "name": "docplan.documentplan.description.min_length"
+    },
+    {
+      "expression": "size(self.field_values.description) <= 1000",
+      "level": "error",
+      "name": "docplan.documentplan.description.max_length"
+    },
+    {
+      "expression": "self.field_values.language.matches(\"^[a-z]{2,3}(-[A-Z]{2})?$\")",
+      "level": "error",
+      "name": "docplan.documentplan.language.regex"
+    },
+    {
+      "expression": "size(self.field_values.thesis) >= 1",
+      "level": "error",
+      "name": "docplan.documentplan.thesis.min_length"
+    },
+    {
+      "expression": "size(self.field_values.thesis) <= 500",
+      "level": "error",
+      "name": "docplan.documentplan.thesis.max_length"
+    },
+    {
+      "expression": "self.field_values.purpose in [\"inform\", \"persuade\", \"decide\", \"explain\", \"report\", \"propose\", \"other\"]",
+      "level": "error",
+      "name": "docplan.documentplan.purpose.enum"
+    },
+    {
+      "expression": "size(self.field_values.purpose_other) >= 1",
+      "level": "error",
+      "name": "docplan.documentplan.purpose_other.min_length"
+    },
+    {
+      "expression": "size(self.field_values.purpose_other) <= 200",
+      "level": "error",
+      "name": "docplan.documentplan.purpose_other.max_length"
+    },
+    {
+      "expression": "size(self.field_values.success_criteria) >= 1",
+      "level": "error",
+      "name": "docplan.documentplan.success_criteria.min_items"
+    },
+    {
+      "expression": "size(self.field_values.success_criteria) <= 20",
+      "level": "error",
+      "name": "docplan.documentplan.success_criteria.max_items"
+    },
+    {
+      "expression": "self.field_values.success_criteria.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "docplan.documentplan.success_criteria.item.min_length"
+    },
+    {
+      "expression": "self.field_values.success_criteria.all(t, size(t) <= 300)",
+      "level": "error",
+      "name": "docplan.documentplan.success_criteria.item.max_length"
+    },
+    {
+      "expression": "size(self.field_values.out_of_scope) <= 30",
+      "level": "error",
+      "name": "docplan.documentplan.out_of_scope.max_items"
+    },
+    {
+      "expression": "self.field_values.out_of_scope.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "docplan.documentplan.out_of_scope.item.min_length"
+    },
+    {
+      "expression": "self.field_values.out_of_scope.all(t, size(t) <= 300)",
+      "level": "error",
+      "name": "docplan.documentplan.out_of_scope.item.max_length"
+    },
+    {
+      "expression": "size(self.field_values.milestones) <= 100",
+      "level": "error",
+      "name": "docplan.documentplan.milestones.max_items"
+    },
+    {
+      "expression": "size(self.field_values.dependencies) <= 500",
+      "level": "error",
+      "name": "docplan.documentplan.dependencies.max_items"
+    },
+    {
+      "expression": "size(self.field_values.citation_key) >= 1",
+      "level": "error",
+      "name": "docplan.contentsource.citation_key.min_length"
+    },
+    {
+      "expression": "size(self.field_values.citation_key) <= 64",
+      "level": "error",
+      "name": "docplan.contentsource.citation_key.max_length"
+    },
+    {
+      "expression": "self.field_values.citation_key.matches(\"^[A-Za-z0-9][A-Za-z0-9:_-]*$\")",
+      "level": "error",
+      "name": "docplan.contentsource.citation_key.regex"
+    },
+    {
+      "expression": "size(self.field_values.title) >= 1",
+      "level": "error",
+      "name": "docplan.contentsource.title.min_length"
+    },
+    {
+      "expression": "size(self.field_values.title) <= 300",
+      "level": "error",
+      "name": "docplan.contentsource.title.max_length"
+    },
+    {
+      "expression": "size(self.field_values.authors) <= 50",
+      "level": "error",
+      "name": "docplan.contentsource.authors.max_items"
+    },
+    {
+      "expression": "self.field_values.authors.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "docplan.contentsource.authors.item.min_length"
+    },
+    {
+      "expression": "self.field_values.authors.all(t, size(t) <= 200)",
+      "level": "error",
+      "name": "docplan.contentsource.authors.item.max_length"
+    },
+    {
+      "expression": "self.field_values.publication_date.matches(\"^\\\\d{4}(-\\\\d{2}(-\\\\d{2})?)?$\")",
+      "level": "error",
+      "name": "docplan.contentsource.publication_date.regex"
+    },
+    {
+      "expression": "size(self.field_values.publisher) >= 1",
+      "level": "error",
+      "name": "docplan.contentsource.publisher.min_length"
+    },
+    {
+      "expression": "size(self.field_values.publisher) <= 200",
+      "level": "error",
+      "name": "docplan.contentsource.publisher.max_length"
+    },
+    {
+      "expression": "self.field_values.authority_level in [\"primary\", \"secondary\", \"tertiary\"]",
+      "level": "error",
+      "name": "docplan.contentsource.authority_level.enum"
+    },
+    {
+      "expression": "size(self.field_values.excerpt) <= 1000",
+      "level": "error",
+      "name": "docplan.contentsource.excerpt.max_length"
+    },
+    {
+      "expression": "timestamp(self.field_values.retrieved_at).getFullYear() > 0",
+      "level": "error",
+      "name": "docplan.contentsource.retrieved_at.iso_datetime"
+    },
+    {
+      "expression": "size(self.field_values.term) >= 1",
+      "level": "error",
+      "name": "docplan.concept.term.min_length"
+    },
+    {
+      "expression": "size(self.field_values.term) <= 120",
+      "level": "error",
+      "name": "docplan.concept.term.max_length"
+    },
+    {
+      "expression": "size(self.field_values.definition) >= 1",
+      "level": "error",
+      "name": "docplan.concept.definition.min_length"
+    },
+    {
+      "expression": "size(self.field_values.definition) <= 1000",
+      "level": "error",
+      "name": "docplan.concept.definition.max_length"
+    },
+    {
+      "expression": "size(self.field_values.aliases) <= 20",
+      "level": "error",
+      "name": "docplan.concept.aliases.max_items"
+    },
+    {
+      "expression": "self.field_values.aliases.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "docplan.concept.aliases.item.min_length"
+    },
+    {
+      "expression": "self.field_values.aliases.all(t, size(t) <= 120)",
+      "level": "error",
+      "name": "docplan.concept.aliases.item.max_length"
+    },
+    {
+      "expression": "size(self.field_values.introduced_in) >= 1",
+      "level": "error",
+      "name": "docplan.concept.introduced_in.min_length"
+    },
+    {
+      "expression": "size(self.field_values.introduced_in) <= 64",
+      "level": "error",
+      "name": "docplan.concept.introduced_in.max_length"
+    },
+    {
+      "expression": "self.field_values.introduced_in.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "docplan.concept.introduced_in.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"figure\", \"table\", \"chart\", \"photograph\", \"illustration\", \"code_listing\", \"epigraph\"]",
+      "level": "error",
+      "name": "docplan.asset.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.caption) >= 1",
+      "level": "error",
+      "name": "docplan.asset.caption.min_length"
+    },
+    {
+      "expression": "size(self.field_values.caption) <= 500",
+      "level": "error",
+      "name": "docplan.asset.caption.max_length"
+    },
+    {
+      "expression": "size(self.field_values.node_id) >= 1",
+      "level": "error",
+      "name": "docplan.asset.node_id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.node_id) <= 64",
+      "level": "error",
+      "name": "docplan.asset.node_id.max_length"
+    },
+    {
+      "expression": "self.field_values.node_id.matches(\"^[a-z0-9][a-z0-9-]*$\")",
+      "level": "error",
+      "name": "docplan.asset.node_id.regex"
+    },
+    {
+      "expression": "self.field_values.rights_status in [\"original\", \"public_domain\", \"licensed\", \"permission_pending\", \"permission_denied\"]",
+      "level": "error",
+      "name": "docplan.asset.rights_status.enum"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "docplan.thread.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "docplan.thread.name.max_length"
+    },
+    {
+      "expression": "size(self.field_values.description) >= 1",
+      "level": "error",
+      "name": "docplan.thread.description.min_length"
+    },
+    {
+      "expression": "size(self.field_values.description) <= 1000",
+      "level": "error",
+      "name": "docplan.thread.description.max_length"
+    },
+    {
+      "expression": "size(self.field_values.resolution) <= 500",
+      "level": "error",
+      "name": "docplan.thread.resolution.max_length"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "docplan.person.name.min_length"
+    },
+    {
+      "expression": "size(self.field_values.name) <= 200",
+      "level": "error",
+      "name": "docplan.person.name.max_length"
+    },
+    {
+      "expression": "self.field_values.role in [\"author\", \"co_author\", \"editor\", \"researcher\", \"translator\", \"illustrator\", \"reviewer\", \"other\"]",
+      "level": "error",
+      "name": "docplan.person.role.enum"
+    },
+    {
+      "expression": "size(self.field_values.role_other) >= 1",
+      "level": "error",
+      "name": "docplan.person.role_other.min_length"
+    },
+    {
+      "expression": "size(self.field_values.role_other) <= 120",
+      "level": "error",
+      "name": "docplan.person.role_other.max_length"
+    }
+  ],
+  "description": "Bridge-generated from schemas/document-plan.ts (DocumentPlan v3.1.0): the plan header and its registries (ContentSource, Concept, Asset, Thread, Person). The section tree lives as dnis:Node primitives under profile:document-plan-dnis:3.1.",
+  "enum_defs": [
+    {
+      "description": "Enum derived from Asset.kind",
+      "id": "enum:AssetKind",
+      "name": "AssetKind",
+      "values": [
+        "figure",
+        "table",
+        "chart",
+        "photograph",
+        "illustration",
+        "code_listing",
+        "epigraph"
+      ]
+    },
+    {
+      "description": "Enum derived from Asset.rights_status",
+      "id": "enum:AssetRightsStatus",
+      "name": "AssetRightsStatus",
+      "values": [
+        "original",
+        "public_domain",
+        "licensed",
+        "permission_pending",
+        "permission_denied"
+      ]
+    },
+    {
+      "description": "Enum derived from ContentSource.authority_level",
+      "id": "enum:ContentSourceAuthorityLevel",
+      "name": "ContentSourceAuthorityLevel",
+      "values": [
+        "primary",
+        "secondary",
+        "tertiary"
+      ]
+    },
+    {
+      "description": "Enum derived from ContentSource.Identifier.kind",
+      "id": "enum:ContentSourceIdentifierKind",
+      "name": "ContentSourceIdentifierKind",
+      "values": [
+        "doi",
+        "isbn",
+        "issn",
+        "arxiv",
+        "url",
+        "archive",
+        "internal"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.Audience.knowledge_level",
+      "id": "enum:DocumentPlanAudienceKnowledgeLevel",
+      "name": "DocumentPlanAudienceKnowledgeLevel",
+      "values": [
+        "expert",
+        "intermediate",
+        "novice"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.Constraints.format",
+      "id": "enum:DocumentPlanConstraintsFormat",
+      "name": "DocumentPlanConstraintsFormat",
+      "values": [
+        "markdown",
+        "docx",
+        "pdf",
+        "html",
+        "plaintext",
+        "latex",
+        "epub",
+        "indesign"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.DependenciesItem.reason",
+      "id": "enum:DocumentPlanDependenciesItemReason",
+      "name": "DocumentPlanDependenciesItemReason",
+      "values": [
+        "context",
+        "argument_buildup",
+        "evidence_introduction",
+        "logical_prerequisite"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.Metadata.status",
+      "id": "enum:DocumentPlanMetadataStatus",
+      "name": "DocumentPlanMetadataStatus",
+      "values": [
+        "draft",
+        "outline_complete",
+        "research",
+        "writing",
+        "review",
+        "final"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.MilestonesItem.target_status",
+      "id": "enum:DocumentPlanMilestonesItemTargetStatus",
+      "name": "DocumentPlanMilestonesItemTargetStatus",
+      "values": [
+        "draft",
+        "outline_complete",
+        "research",
+        "writing",
+        "review",
+        "final"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.purpose",
+      "id": "enum:DocumentPlanPurpose",
+      "name": "DocumentPlanPurpose",
+      "values": [
+        "inform",
+        "persuade",
+        "decide",
+        "explain",
+        "report",
+        "propose",
+        "other"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.Style.citation_style",
+      "id": "enum:DocumentPlanStyleCitationStyle",
+      "name": "DocumentPlanStyleCitationStyle",
+      "values": [
+        "none",
+        "chicago_notes",
+        "chicago_author_date",
+        "apa",
+        "mla",
+        "harvard",
+        "ieee",
+        "abnt",
+        "numeric"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.Style.reading_level",
+      "id": "enum:DocumentPlanStyleReadingLevel",
+      "name": "DocumentPlanStyleReadingLevel",
+      "values": [
+        "academic",
+        "professional",
+        "general"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.Style.tone",
+      "id": "enum:DocumentPlanStyleTone",
+      "name": "DocumentPlanStyleTone",
+      "values": [
+        "formal",
+        "conversational",
+        "technical",
+        "narrative",
+        "advisory"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.Style.voice",
+      "id": "enum:DocumentPlanStyleVoice",
+      "name": "DocumentPlanStyleVoice",
+      "values": [
+        "first_person",
+        "second_person",
+        "third_person",
+        "passive"
+      ]
+    },
+    {
+      "description": "Enum derived from DocumentPlan.work_type",
+      "id": "enum:DocumentPlanWorkType",
+      "name": "DocumentPlanWorkType",
+      "values": [
+        "essay",
+        "article",
+        "long_form_feature",
+        "report",
+        "whitepaper",
+        "thesis",
+        "book",
+        "edited_volume",
+        "series_volume"
+      ]
+    },
+    {
+      "description": "Enum derived from Person.role",
+      "id": "enum:PersonRole",
+      "name": "PersonRole",
+      "values": [
+        "author",
+        "co_author",
+        "editor",
+        "researcher",
+        "translator",
+        "illustrator",
+        "reviewer",
+        "other"
+      ]
+    }
+  ],
+  "id": "profile:document-plan:3.1",
+  "label": "Document Plan (v3.1.0)",
+  "name": "Document Plan",
+  "primitive_types": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "schema_version",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "essay",
+            "article",
+            "long_form_feature",
+            "report",
+            "whitepaper",
+            "thesis",
+            "book",
+            "edited_volume",
+            "series_volume"
+          ],
+          "kind": "enum",
+          "name": "work_type",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "subtitle",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 300
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2,3}(-[A-Z]{2})?$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "translation_of",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "series",
+          "required": false,
+          "struct_id": "DocumentPlanSeries",
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "audience",
+          "required": true,
+          "struct_id": "DocumentPlanAudience",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "thesis",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 500
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "inform",
+            "persuade",
+            "decide",
+            "explain",
+            "report",
+            "propose",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "purpose",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "purpose_other",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "success_criteriaItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 300
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "success_criteria",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "out_of_scopeItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 300
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "out_of_scope",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 30
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "style",
+          "required": true,
+          "struct_id": "DocumentPlanStyle",
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "constraints",
+          "required": true,
+          "struct_id": "DocumentPlanConstraints",
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "milestonesItem",
+            "required": true,
+            "struct_id": "DocumentPlanMilestonesItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "milestones",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 100
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "review",
+          "required": false,
+          "struct_id": "DocumentPlanReview",
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "review_requirements",
+          "required": false,
+          "struct_id": "DocumentPlanReviewRequirements",
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "dependenciesItem",
+            "required": true,
+            "struct_id": "DocumentPlanDependenciesItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "dependencies",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 500
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "metadata",
+          "required": true,
+          "struct_id": "DocumentPlanMetadata",
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "content",
+          "required": true,
+          "struct_id": "DocumentPlanContent",
+          "validations": []
+        }
+      ],
+      "id": "docplan:DocumentPlan",
+      "id_format": {
+        "pattern": "docplan:DocumentPlan:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "title",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "volume_number",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "previous_volume_id",
+              "required": false,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "carried_concept_idsItem",
+                "required": true,
+                "validations": []
+              },
+              "kind": "list",
+              "name": "carried_concept_ids",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanSeries"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "primary",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "secondaryItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max_length",
+                    "level": "error",
+                    "value": 200
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "secondary",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "enum_values": [
+                "expert",
+                "intermediate",
+                "novice"
+              ],
+              "kind": "enum",
+              "name": "knowledge_level",
+              "required": true,
+              "validations": []
+            },
+            {
+              "description": "default: false",
+              "kind": "boolean",
+              "name": "includes_decision_makers",
+              "required": false,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "prior_reading_assumedItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max_length",
+                    "level": "error",
+                    "value": 200
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "prior_reading_assumed",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 20
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanAudience"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "formal",
+                "conversational",
+                "technical",
+                "narrative",
+                "advisory"
+              ],
+              "kind": "enum",
+              "name": "tone",
+              "required": true,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "first_person",
+                "second_person",
+                "third_person",
+                "passive"
+              ],
+              "kind": "enum",
+              "name": "voice",
+              "required": false,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "academic",
+                "professional",
+                "general"
+              ],
+              "kind": "enum",
+              "name": "reading_level",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: \"none\"",
+              "enum_values": [
+                "none",
+                "chicago_notes",
+                "chicago_author_date",
+                "apa",
+                "mla",
+                "harvard",
+                "ieee",
+                "abnt",
+                "numeric"
+              ],
+              "kind": "enum",
+              "name": "citation_style",
+              "required": false,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "prohibited_patternsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max_length",
+                    "level": "error",
+                    "value": 200
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "prohibited_patterns",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 30
+                }
+              ]
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "required_patternsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max_length",
+                    "level": "error",
+                    "value": 200
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "required_patterns",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 30
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanStyle"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "role",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 100
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanConstraintsReviewersItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "number",
+              "name": "min_words",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 2000000
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "max_words",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 2000000
+                }
+              ]
+            },
+            {
+              "description": "default: 0.1",
+              "kind": "number",
+              "name": "word_budget_tolerance",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "format": "iso-8601",
+              "kind": "string",
+              "name": "deadline",
+              "required": false,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "markdown",
+                "docx",
+                "pdf",
+                "html",
+                "plaintext",
+                "latex",
+                "epub",
+                "indesign"
+              ],
+              "kind": "enum",
+              "name": "format",
+              "required": false,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "struct",
+                "name": "reviewersItem",
+                "required": true,
+                "struct_id": "DocumentPlanConstraintsReviewersItem",
+                "validations": []
+              },
+              "kind": "list",
+              "name": "reviewers",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 20
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanConstraints"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "id",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 64
+                },
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^[a-z0-9][a-z0-9-]*$"
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "label",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "format": "iso-8601",
+              "kind": "string",
+              "name": "due",
+              "required": true,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "node_idsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max_length",
+                    "level": "error",
+                    "value": 64
+                  },
+                  {
+                    "kind": "regex",
+                    "level": "error",
+                    "value": "^[a-z0-9][a-z0-9-]*$"
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "node_ids",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_items",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "enum_values": [
+                "draft",
+                "outline_complete",
+                "research",
+                "writing",
+                "review",
+                "final"
+              ],
+              "kind": "enum",
+              "name": "target_status",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "DocumentPlanMilestonesItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "person_id",
+              "required": true,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "scope_node_idsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max_length",
+                    "level": "error",
+                    "value": 64
+                  },
+                  {
+                    "kind": "regex",
+                    "level": "error",
+                    "value": "^[a-z0-9][a-z0-9-]*$"
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "scope_node_ids",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "required",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "DocumentPlanReviewAssignmentsItem"
+        },
+        {
+          "fields": [
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_coherence_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_completeness_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_self_contained_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_substantive_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: false",
+              "kind": "boolean",
+              "name": "require_thread_continuity_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: false",
+              "kind": "boolean",
+              "name": "require_concept_introduction_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: false",
+              "kind": "boolean",
+              "name": "require_budget_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "struct",
+                "name": "assignmentsItem",
+                "required": true,
+                "struct_id": "DocumentPlanReviewAssignmentsItem",
+                "validations": []
+              },
+              "kind": "list",
+              "name": "assignments",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 50
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanReview"
+        },
+        {
+          "fields": [
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_coherence_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_completeness_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_self_contained_test",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: true",
+              "kind": "boolean",
+              "name": "require_substantive_test",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "DocumentPlanReviewRequirements"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "section_id",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 64
+                },
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^[a-z0-9][a-z0-9-]*$"
+                }
+              ]
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "depends_onItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max_length",
+                    "level": "error",
+                    "value": 64
+                  },
+                  {
+                    "kind": "regex",
+                    "level": "error",
+                    "value": "^[a-z0-9][a-z0-9-]*$"
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "depends_on",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_items",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 50
+                }
+              ]
+            },
+            {
+              "enum_values": [
+                "context",
+                "argument_buildup",
+                "evidence_introduction",
+                "logical_prerequisite"
+              ],
+              "kind": "enum",
+              "name": "reason",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "DocumentPlanDependenciesItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "number",
+              "name": "revision",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "created_by",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "format": "iso-8601",
+              "kind": "string",
+              "name": "created_at",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "modified_by",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "format": "iso-8601",
+              "kind": "string",
+              "name": "modified_at",
+              "required": false,
+              "validations": []
+            },
+            {
+              "description": "default: \"draft\"",
+              "enum_values": [
+                "draft",
+                "outline_complete",
+                "research",
+                "writing",
+                "review",
+                "final"
+              ],
+              "kind": "enum",
+              "name": "status",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "DocumentPlanMetadata"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "description",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 500
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "section_id",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 64
+                },
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^[a-z0-9][a-z0-9-]*$"
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanContentExamplesItem"
+        },
+        {
+          "fields": [
+            {
+              "item_field": {
+                "kind": "struct",
+                "name": "examplesItem",
+                "required": true,
+                "struct_id": "DocumentPlanContentExamplesItem",
+                "validations": []
+              },
+              "kind": "list",
+              "name": "examples",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "max_items",
+                  "level": "error",
+                  "value": 200
+                }
+              ]
+            }
+          ],
+          "id": "DocumentPlanContent"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "citation_key",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 64
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[A-Za-z0-9][A-Za-z0-9:_-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 300
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "authorsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 200
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "authors",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 50
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "publication_date",
+          "required": false,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d{4}(-\\d{2}(-\\d{2})?)?$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "identifier",
+          "required": false,
+          "struct_id": "ContentSourceIdentifier",
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "primary",
+            "secondary",
+            "tertiary"
+          ],
+          "kind": "enum",
+          "name": "authority_level",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "excerpt",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "format": "iso-8601",
+          "kind": "string",
+          "name": "retrieved_at",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "docplan:ContentSource",
+      "id_format": {
+        "pattern": "docplan:ContentSource:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "doi",
+                "isbn",
+                "issn",
+                "arxiv",
+                "url",
+                "archive",
+                "internal"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_length",
+                  "level": "error",
+                  "value": 300
+                }
+              ]
+            }
+          ],
+          "id": "ContentSourceIdentifier"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "term",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "definition",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "aliasesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              },
+              {
+                "kind": "max_length",
+                "level": "error",
+                "value": 120
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "aliases",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_items",
+              "level": "error",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "introduced_in",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 64
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        }
+      ],
+      "id": "docplan:Concept",
+      "id_format": {
+        "pattern": "docplan:Concept:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "figure",
+            "table",
+            "chart",
+            "photograph",
+            "illustration",
+            "code_listing",
+            "epigraph"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 500
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "node_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 64
+            },
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z0-9][a-z0-9-]*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "source_id",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: \"original\"",
+          "enum_values": [
+            "original",
+            "public_domain",
+            "licensed",
+            "permission_pending",
+            "permission_denied"
+          ],
+          "kind": "enum",
+          "name": "rights_status",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "docplan:Asset",
+      "id_format": {
+        "pattern": "docplan:Asset:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "resolution",
+          "required": false,
+          "validations": [
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 500
+            }
+          ]
+        }
+      ],
+      "id": "docplan:Thread",
+      "id_format": {
+        "pattern": "docplan:Thread:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 200
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "author",
+            "co_author",
+            "editor",
+            "researcher",
+            "translator",
+            "illustrator",
+            "reviewer",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "role_other",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            },
+            {
+              "kind": "max_length",
+              "level": "error",
+              "value": 120
+            }
+          ]
+        }
+      ],
+      "id": "docplan:Person",
+      "id_format": {
+        "pattern": "docplan:Person:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    }
+  ],
+  "relation_types": [],
+  "version": "3.1.0"
+}

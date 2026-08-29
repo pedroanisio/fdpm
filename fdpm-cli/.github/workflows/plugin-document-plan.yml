@@ -1,0 +1,57 @@
+name: plugin/document-plan
+
+# Mirrors plugin-acme-pitch-deck.yml (howto-zod-to-fdpm-plugin §11,
+# `example:ci-snapshot-gate`). Three gates in dependency order:
+#   1. run-bridge.ts --check — schema/sidecar changed without
+#      regenerating generated/* fails the build.
+#   2. The plugin's vitest suite (bridge drift, profile activation,
+#      build + render end-to-end on the fixture plan).
+#   3. Host typecheck + the full host suite.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/document_plan/**"
+      - "plugins/document_plan_dnis/**"
+      - "packages/zod-bridge/**"
+      - "tests/plugins/document_plan/**"
+      - ".github/workflows/plugin-document-plan.yml"
+  pull_request:
+    paths:
+      - "plugins/document_plan/**"
+      - "plugins/document_plan_dnis/**"
+      - "packages/zod-bridge/**"
+      - "tests/plugins/document_plan/**"
+      - ".github/workflows/plugin-document-plan.yml"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build @fdpm/zod-bridge
+        working-directory: packages/zod-bridge
+        run: npm run build
+
+      - name: Bridge drift gate
+        run: npx tsx plugins/document_plan/scripts/run-bridge.ts --check
+
+      - name: Plugin tests (bridge drift, profile activation, build + render)
+        run: npx vitest run tests/plugins/document_plan
+
+      - name: Host typecheck (plugins/** is included)
+        run: npx tsc -p tsconfig.json --noEmit
+
+      - name: Full host test suite
+        run: npx vitest run

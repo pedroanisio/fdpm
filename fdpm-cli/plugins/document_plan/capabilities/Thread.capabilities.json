@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "threadMarkdownRenderer",
+    "local_name": "docplan-thread",
+    "metadata": {
+      "primitive_type_id": "docplan:Thread",
+      "target": "text/markdown"
+    }
+  }
+}

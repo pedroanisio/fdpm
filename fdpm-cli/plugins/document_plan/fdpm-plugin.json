@@ -1,0 +1,426 @@
+{
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "entry": "profile",
+      "local_name": "fdpm-document-plan"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "assetMarkdownRenderer",
+      "local_name": "asset-md",
+      "metadata": {
+        "primitive_type_id": "docplan:Asset",
+        "renderer_id": "fdpm.document-plan:AssetMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "conceptMarkdownRenderer",
+      "local_name": "concept-md",
+      "metadata": {
+        "primitive_type_id": "docplan:Concept",
+        "renderer_id": "fdpm.document-plan:ConceptMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "contentSourceMarkdownRenderer",
+      "local_name": "content-source-md",
+      "metadata": {
+        "primitive_type_id": "docplan:ContentSource",
+        "renderer_id": "fdpm.document-plan:ContentSourceMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "documentPlanMarkdownRenderer",
+      "local_name": "document-plan-md",
+      "metadata": {
+        "primitive_type_id": "docplan:DocumentPlan",
+        "renderer_id": "fdpm.document-plan:DocumentPlanMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "personMarkdownRenderer",
+      "local_name": "person-md",
+      "metadata": {
+        "primitive_type_id": "docplan:Person",
+        "renderer_id": "fdpm.document-plan:PersonMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "threadMarkdownRenderer",
+      "local_name": "thread-md",
+      "metadata": {
+        "primitive_type_id": "docplan:Thread",
+        "renderer_id": "fdpm.document-plan:ThreadMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "assetValidator",
+      "local_name": "asset-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.document-plan:zod.asset.invalid_format.id",
+          "fdpm.document-plan:zod.asset.invalid_format.node_id",
+          "fdpm.document-plan:zod.asset.invalid_format.source_id",
+          "fdpm.document-plan:zod.asset.invalid_type",
+          "fdpm.document-plan:zod.asset.invalid_type.caption",
+          "fdpm.document-plan:zod.asset.invalid_type.id",
+          "fdpm.document-plan:zod.asset.invalid_type.node_id",
+          "fdpm.document-plan:zod.asset.invalid_type.source_id",
+          "fdpm.document-plan:zod.asset.invalid_value.kind",
+          "fdpm.document-plan:zod.asset.invalid_value.rights_status",
+          "fdpm.document-plan:zod.asset.too_big.caption",
+          "fdpm.document-plan:zod.asset.too_big.node_id",
+          "fdpm.document-plan:zod.asset.too_small.caption",
+          "fdpm.document-plan:zod.asset.too_small.node_id",
+          "fdpm.document-plan:zod.asset.unrecognized_keys"
+        ],
+        "target_type_id": "docplan:Asset",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "conceptValidator",
+      "local_name": "concept-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.document-plan:zod.concept.invalid_format.id",
+          "fdpm.document-plan:zod.concept.invalid_format.introduced_in",
+          "fdpm.document-plan:zod.concept.invalid_type",
+          "fdpm.document-plan:zod.concept.invalid_type.aliases",
+          "fdpm.document-plan:zod.concept.invalid_type.definition",
+          "fdpm.document-plan:zod.concept.invalid_type.id",
+          "fdpm.document-plan:zod.concept.invalid_type.introduced_in",
+          "fdpm.document-plan:zod.concept.invalid_type.term",
+          "fdpm.document-plan:zod.concept.too_big.aliases",
+          "fdpm.document-plan:zod.concept.too_big.definition",
+          "fdpm.document-plan:zod.concept.too_big.introduced_in",
+          "fdpm.document-plan:zod.concept.too_big.term",
+          "fdpm.document-plan:zod.concept.too_small.aliases",
+          "fdpm.document-plan:zod.concept.too_small.definition",
+          "fdpm.document-plan:zod.concept.too_small.introduced_in",
+          "fdpm.document-plan:zod.concept.too_small.term",
+          "fdpm.document-plan:zod.concept.unrecognized_keys"
+        ],
+        "target_type_id": "docplan:Concept",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "contentSourceValidator",
+      "local_name": "content-source-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.document-plan:zod.contentsource.invalid_format.citation_key",
+          "fdpm.document-plan:zod.contentsource.invalid_format.id",
+          "fdpm.document-plan:zod.contentsource.invalid_format.publication_date",
+          "fdpm.document-plan:zod.contentsource.invalid_format.retrieved_at",
+          "fdpm.document-plan:zod.contentsource.invalid_format.url",
+          "fdpm.document-plan:zod.contentsource.invalid_type",
+          "fdpm.document-plan:zod.contentsource.invalid_type.authors",
+          "fdpm.document-plan:zod.contentsource.invalid_type.citation_key",
+          "fdpm.document-plan:zod.contentsource.invalid_type.excerpt",
+          "fdpm.document-plan:zod.contentsource.invalid_type.id",
+          "fdpm.document-plan:zod.contentsource.invalid_type.identifier.value",
+          "fdpm.document-plan:zod.contentsource.invalid_type.publication_date",
+          "fdpm.document-plan:zod.contentsource.invalid_type.publisher",
+          "fdpm.document-plan:zod.contentsource.invalid_type.retrieved_at",
+          "fdpm.document-plan:zod.contentsource.invalid_type.title",
+          "fdpm.document-plan:zod.contentsource.invalid_type.url",
+          "fdpm.document-plan:zod.contentsource.invalid_value.authority_level",
+          "fdpm.document-plan:zod.contentsource.invalid_value.identifier.kind",
+          "fdpm.document-plan:zod.contentsource.too_big.authors",
+          "fdpm.document-plan:zod.contentsource.too_big.citation_key",
+          "fdpm.document-plan:zod.contentsource.too_big.excerpt",
+          "fdpm.document-plan:zod.contentsource.too_big.identifier.value",
+          "fdpm.document-plan:zod.contentsource.too_big.publisher",
+          "fdpm.document-plan:zod.contentsource.too_big.title",
+          "fdpm.document-plan:zod.contentsource.too_small.authors",
+          "fdpm.document-plan:zod.contentsource.too_small.citation_key",
+          "fdpm.document-plan:zod.contentsource.too_small.identifier.value",
+          "fdpm.document-plan:zod.contentsource.too_small.publisher",
+          "fdpm.document-plan:zod.contentsource.too_small.title",
+          "fdpm.document-plan:zod.contentsource.unrecognized_keys"
+        ],
+        "target_type_id": "docplan:ContentSource",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "documentPlanValidator",
+      "local_name": "document-plan-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.document-plan:zod.documentplan.custom.thesis",
+          "fdpm.document-plan:zod.documentplan.invalid_format.constraints.deadline",
+          "fdpm.document-plan:zod.documentplan.invalid_format.constraints.max_words",
+          "fdpm.document-plan:zod.documentplan.invalid_format.constraints.min_words",
+          "fdpm.document-plan:zod.documentplan.invalid_format.content.examples.section_id",
+          "fdpm.document-plan:zod.documentplan.invalid_format.dependencies.depends_on",
+          "fdpm.document-plan:zod.documentplan.invalid_format.dependencies.section_id",
+          "fdpm.document-plan:zod.documentplan.invalid_format.id",
+          "fdpm.document-plan:zod.documentplan.invalid_format.language",
+          "fdpm.document-plan:zod.documentplan.invalid_format.metadata.created_at",
+          "fdpm.document-plan:zod.documentplan.invalid_format.metadata.modified_at",
+          "fdpm.document-plan:zod.documentplan.invalid_format.metadata.revision",
+          "fdpm.document-plan:zod.documentplan.invalid_format.milestones.due",
+          "fdpm.document-plan:zod.documentplan.invalid_format.milestones.id",
+          "fdpm.document-plan:zod.documentplan.invalid_format.milestones.node_ids",
+          "fdpm.document-plan:zod.documentplan.invalid_format.review.assignments.person_id",
+          "fdpm.document-plan:zod.documentplan.invalid_format.review.assignments.scope_node_ids",
+          "fdpm.document-plan:zod.documentplan.invalid_format.series.carried_concept_ids",
+          "fdpm.document-plan:zod.documentplan.invalid_format.series.previous_volume_id",
+          "fdpm.document-plan:zod.documentplan.invalid_format.series.volume_number",
+          "fdpm.document-plan:zod.documentplan.invalid_format.translation_of",
+          "fdpm.document-plan:zod.documentplan.invalid_type",
+          "fdpm.document-plan:zod.documentplan.invalid_type.audience.includes_decision_makers",
+          "fdpm.document-plan:zod.documentplan.invalid_type.audience.primary",
+          "fdpm.document-plan:zod.documentplan.invalid_type.audience.prior_reading_assumed",
+          "fdpm.document-plan:zod.documentplan.invalid_type.audience.secondary",
+          "fdpm.document-plan:zod.documentplan.invalid_type.constraints.deadline",
+          "fdpm.document-plan:zod.documentplan.invalid_type.constraints.max_words",
+          "fdpm.document-plan:zod.documentplan.invalid_type.constraints.min_words",
+          "fdpm.document-plan:zod.documentplan.invalid_type.constraints.reviewers",
+          "fdpm.document-plan:zod.documentplan.invalid_type.constraints.reviewers.name",
+          "fdpm.document-plan:zod.documentplan.invalid_type.constraints.reviewers.role",
+          "fdpm.document-plan:zod.documentplan.invalid_type.constraints.word_budget_tolerance",
+          "fdpm.document-plan:zod.documentplan.invalid_type.content.examples",
+          "fdpm.document-plan:zod.documentplan.invalid_type.content.examples.description",
+          "fdpm.document-plan:zod.documentplan.invalid_type.content.examples.section_id",
+          "fdpm.document-plan:zod.documentplan.invalid_type.dependencies",
+          "fdpm.document-plan:zod.documentplan.invalid_type.dependencies.depends_on",
+          "fdpm.document-plan:zod.documentplan.invalid_type.dependencies.section_id",
+          "fdpm.document-plan:zod.documentplan.invalid_type.description",
+          "fdpm.document-plan:zod.documentplan.invalid_type.id",
+          "fdpm.document-plan:zod.documentplan.invalid_type.language",
+          "fdpm.document-plan:zod.documentplan.invalid_type.metadata.created_at",
+          "fdpm.document-plan:zod.documentplan.invalid_type.metadata.created_by",
+          "fdpm.document-plan:zod.documentplan.invalid_type.metadata.modified_at",
+          "fdpm.document-plan:zod.documentplan.invalid_type.metadata.modified_by",
+          "fdpm.document-plan:zod.documentplan.invalid_type.metadata.revision",
+          "fdpm.document-plan:zod.documentplan.invalid_type.milestones",
+          "fdpm.document-plan:zod.documentplan.invalid_type.milestones.due",
+          "fdpm.document-plan:zod.documentplan.invalid_type.milestones.id",
+          "fdpm.document-plan:zod.documentplan.invalid_type.milestones.label",
+          "fdpm.document-plan:zod.documentplan.invalid_type.milestones.node_ids",
+          "fdpm.document-plan:zod.documentplan.invalid_type.out_of_scope",
+          "fdpm.document-plan:zod.documentplan.invalid_type.purpose_other",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.assignments",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.assignments.person_id",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.assignments.required",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.assignments.scope_node_ids",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.require_budget_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.require_coherence_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.require_completeness_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.require_concept_introduction_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.require_self_contained_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.require_substantive_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review.require_thread_continuity_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review_requirements.require_coherence_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review_requirements.require_completeness_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review_requirements.require_self_contained_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.review_requirements.require_substantive_test",
+          "fdpm.document-plan:zod.documentplan.invalid_type.series.carried_concept_ids",
+          "fdpm.document-plan:zod.documentplan.invalid_type.series.previous_volume_id",
+          "fdpm.document-plan:zod.documentplan.invalid_type.series.title",
+          "fdpm.document-plan:zod.documentplan.invalid_type.series.volume_number",
+          "fdpm.document-plan:zod.documentplan.invalid_type.style.prohibited_patterns",
+          "fdpm.document-plan:zod.documentplan.invalid_type.style.required_patterns",
+          "fdpm.document-plan:zod.documentplan.invalid_type.subtitle",
+          "fdpm.document-plan:zod.documentplan.invalid_type.success_criteria",
+          "fdpm.document-plan:zod.documentplan.invalid_type.thesis",
+          "fdpm.document-plan:zod.documentplan.invalid_type.title",
+          "fdpm.document-plan:zod.documentplan.invalid_type.translation_of",
+          "fdpm.document-plan:zod.documentplan.invalid_value.audience.knowledge_level",
+          "fdpm.document-plan:zod.documentplan.invalid_value.constraints.format",
+          "fdpm.document-plan:zod.documentplan.invalid_value.dependencies.reason",
+          "fdpm.document-plan:zod.documentplan.invalid_value.metadata.status",
+          "fdpm.document-plan:zod.documentplan.invalid_value.milestones.target_status",
+          "fdpm.document-plan:zod.documentplan.invalid_value.purpose",
+          "fdpm.document-plan:zod.documentplan.invalid_value.schema_version",
+          "fdpm.document-plan:zod.documentplan.invalid_value.style.citation_style",
+          "fdpm.document-plan:zod.documentplan.invalid_value.style.reading_level",
+          "fdpm.document-plan:zod.documentplan.invalid_value.style.tone",
+          "fdpm.document-plan:zod.documentplan.invalid_value.style.voice",
+          "fdpm.document-plan:zod.documentplan.invalid_value.work_type",
+          "fdpm.document-plan:zod.documentplan.too_big.audience.primary",
+          "fdpm.document-plan:zod.documentplan.too_big.audience.prior_reading_assumed",
+          "fdpm.document-plan:zod.documentplan.too_big.audience.secondary",
+          "fdpm.document-plan:zod.documentplan.too_big.constraints.max_words",
+          "fdpm.document-plan:zod.documentplan.too_big.constraints.min_words",
+          "fdpm.document-plan:zod.documentplan.too_big.constraints.reviewers",
+          "fdpm.document-plan:zod.documentplan.too_big.constraints.reviewers.name",
+          "fdpm.document-plan:zod.documentplan.too_big.constraints.reviewers.role",
+          "fdpm.document-plan:zod.documentplan.too_big.constraints.word_budget_tolerance",
+          "fdpm.document-plan:zod.documentplan.too_big.content.examples",
+          "fdpm.document-plan:zod.documentplan.too_big.content.examples.description",
+          "fdpm.document-plan:zod.documentplan.too_big.content.examples.section_id",
+          "fdpm.document-plan:zod.documentplan.too_big.dependencies",
+          "fdpm.document-plan:zod.documentplan.too_big.dependencies.depends_on",
+          "fdpm.document-plan:zod.documentplan.too_big.dependencies.section_id",
+          "fdpm.document-plan:zod.documentplan.too_big.description",
+          "fdpm.document-plan:zod.documentplan.too_big.metadata.created_by",
+          "fdpm.document-plan:zod.documentplan.too_big.metadata.modified_by",
+          "fdpm.document-plan:zod.documentplan.too_big.milestones",
+          "fdpm.document-plan:zod.documentplan.too_big.milestones.id",
+          "fdpm.document-plan:zod.documentplan.too_big.milestones.label",
+          "fdpm.document-plan:zod.documentplan.too_big.milestones.node_ids",
+          "fdpm.document-plan:zod.documentplan.too_big.out_of_scope",
+          "fdpm.document-plan:zod.documentplan.too_big.purpose_other",
+          "fdpm.document-plan:zod.documentplan.too_big.review.assignments",
+          "fdpm.document-plan:zod.documentplan.too_big.review.assignments.scope_node_ids",
+          "fdpm.document-plan:zod.documentplan.too_big.series.carried_concept_ids",
+          "fdpm.document-plan:zod.documentplan.too_big.series.title",
+          "fdpm.document-plan:zod.documentplan.too_big.style.prohibited_patterns",
+          "fdpm.document-plan:zod.documentplan.too_big.style.required_patterns",
+          "fdpm.document-plan:zod.documentplan.too_big.subtitle",
+          "fdpm.document-plan:zod.documentplan.too_big.success_criteria",
+          "fdpm.document-plan:zod.documentplan.too_big.thesis",
+          "fdpm.document-plan:zod.documentplan.too_big.title",
+          "fdpm.document-plan:zod.documentplan.too_small.audience.primary",
+          "fdpm.document-plan:zod.documentplan.too_small.audience.prior_reading_assumed",
+          "fdpm.document-plan:zod.documentplan.too_small.audience.secondary",
+          "fdpm.document-plan:zod.documentplan.too_small.constraints.max_words",
+          "fdpm.document-plan:zod.documentplan.too_small.constraints.min_words",
+          "fdpm.document-plan:zod.documentplan.too_small.constraints.reviewers.name",
+          "fdpm.document-plan:zod.documentplan.too_small.constraints.reviewers.role",
+          "fdpm.document-plan:zod.documentplan.too_small.constraints.word_budget_tolerance",
+          "fdpm.document-plan:zod.documentplan.too_small.content.examples.description",
+          "fdpm.document-plan:zod.documentplan.too_small.content.examples.section_id",
+          "fdpm.document-plan:zod.documentplan.too_small.dependencies.depends_on",
+          "fdpm.document-plan:zod.documentplan.too_small.dependencies.section_id",
+          "fdpm.document-plan:zod.documentplan.too_small.description",
+          "fdpm.document-plan:zod.documentplan.too_small.metadata.created_by",
+          "fdpm.document-plan:zod.documentplan.too_small.metadata.modified_by",
+          "fdpm.document-plan:zod.documentplan.too_small.metadata.revision",
+          "fdpm.document-plan:zod.documentplan.too_small.milestones.id",
+          "fdpm.document-plan:zod.documentplan.too_small.milestones.label",
+          "fdpm.document-plan:zod.documentplan.too_small.milestones.node_ids",
+          "fdpm.document-plan:zod.documentplan.too_small.out_of_scope",
+          "fdpm.document-plan:zod.documentplan.too_small.purpose_other",
+          "fdpm.document-plan:zod.documentplan.too_small.review.assignments.scope_node_ids",
+          "fdpm.document-plan:zod.documentplan.too_small.series.title",
+          "fdpm.document-plan:zod.documentplan.too_small.series.volume_number",
+          "fdpm.document-plan:zod.documentplan.too_small.style.prohibited_patterns",
+          "fdpm.document-plan:zod.documentplan.too_small.style.required_patterns",
+          "fdpm.document-plan:zod.documentplan.too_small.subtitle",
+          "fdpm.document-plan:zod.documentplan.too_small.success_criteria",
+          "fdpm.document-plan:zod.documentplan.too_small.thesis",
+          "fdpm.document-plan:zod.documentplan.too_small.title",
+          "fdpm.document-plan:zod.documentplan.unrecognized_keys"
+        ],
+        "target_type_id": "docplan:DocumentPlan",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "personValidator",
+      "local_name": "person-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.document-plan:zod.person.invalid_format.id",
+          "fdpm.document-plan:zod.person.invalid_type",
+          "fdpm.document-plan:zod.person.invalid_type.id",
+          "fdpm.document-plan:zod.person.invalid_type.name",
+          "fdpm.document-plan:zod.person.invalid_type.role_other",
+          "fdpm.document-plan:zod.person.invalid_value.role",
+          "fdpm.document-plan:zod.person.too_big.name",
+          "fdpm.document-plan:zod.person.too_big.role_other",
+          "fdpm.document-plan:zod.person.too_small.name",
+          "fdpm.document-plan:zod.person.too_small.role_other",
+          "fdpm.document-plan:zod.person.unrecognized_keys"
+        ],
+        "target_type_id": "docplan:Person",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "threadValidator",
+      "local_name": "thread-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.document-plan:zod.thread.invalid_format.id",
+          "fdpm.document-plan:zod.thread.invalid_type",
+          "fdpm.document-plan:zod.thread.invalid_type.description",
+          "fdpm.document-plan:zod.thread.invalid_type.id",
+          "fdpm.document-plan:zod.thread.invalid_type.name",
+          "fdpm.document-plan:zod.thread.invalid_type.resolution",
+          "fdpm.document-plan:zod.thread.too_big.description",
+          "fdpm.document-plan:zod.thread.too_big.name",
+          "fdpm.document-plan:zod.thread.too_big.resolution",
+          "fdpm.document-plan:zod.thread.too_small.description",
+          "fdpm.document-plan:zod.thread.too_small.name",
+          "fdpm.document-plan:zod.thread.unrecognized_keys"
+        ],
+        "target_type_id": "docplan:Thread",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    }
+  ],
+  "description": "Document-plan plugin auto-generated from schemas/document-plan.ts (DocumentPlan v3.1.0) via @fdpm/zod-bridge. Models the plan header and its five registries (ContentSource, Concept, Asset, Thread, Person) with field-level Zod validators. The section tree is materialised as dnis:Node primitives by the companion plugin fdpm.document-plan-dnis, which also declares the node↔registry relations and the plan-outline renderer.",
+  "host_compatibility": {
+    "fdpm": ">=1.2,<2"
+  },
+  "id": "fdpm.document-plan",
+  "kind": "server",
+  "license": "MIT",
+  "name": "Document Plan",
+  "permissions": [
+    "read:primitives",
+    "read:relations",
+    "read:workbooks",
+    "render:server"
+  ],
+  "spec_version": "1.0.0",
+  "version": "0.1.0"
+}

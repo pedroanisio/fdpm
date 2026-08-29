@@ -1,0 +1,391 @@
+{
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "panels": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "schema_version",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "essay",
+            "article",
+            "long_form_feature",
+            "report",
+            "whitepaper",
+            "thesis",
+            "book",
+            "edited_volume",
+            "series_volume"
+          ],
+          "kind": "enum",
+          "name": "work_type",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "subtitle",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "language",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "translation_of",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "series",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "audience",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "thesis",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "inform",
+            "persuade",
+            "decide",
+            "explain",
+            "report",
+            "propose",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "purpose",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "purpose_other",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "success_criteria",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "out_of_scope",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "style",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "constraints",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "milestones",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "review",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "review_requirements",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "dependencies",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "metadata",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "content",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "docplan:DocumentPlan",
+      "title": "DocumentPlan"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "citation_key",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "authors",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "publication_date",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "publisher",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "struct",
+          "name": "identifier",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "url",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "primary",
+            "secondary",
+            "tertiary"
+          ],
+          "kind": "enum",
+          "name": "authority_level",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "excerpt",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "retrieved_at",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "docplan:ContentSource",
+      "title": "ContentSource"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "term",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "definition",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "aliases",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "introduced_in",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "docplan:Concept",
+      "title": "Concept"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "figure",
+            "table",
+            "chart",
+            "photograph",
+            "illustration",
+            "code_listing",
+            "epigraph"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "caption",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "node_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "source_id",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "original",
+            "public_domain",
+            "licensed",
+            "permission_pending",
+            "permission_denied"
+          ],
+          "kind": "enum",
+          "name": "rights_status",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "docplan:Asset",
+      "title": "Asset"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "resolution",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "docplan:Thread",
+      "title": "Thread"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "author",
+            "co_author",
+            "editor",
+            "researcher",
+            "translator",
+            "illustrator",
+            "reviewer",
+            "other"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "role_other",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "docplan:Person",
+      "title": "Person"
+    }
+  ],
+  "plugin_id": "fdpm.document-plan"
+}

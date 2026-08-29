@@ -1,0 +1,71 @@
+{
+  "bridgeRealization": {
+    "id": "zod-bridge",
+    "version": "0.3.0"
+  },
+  "candidates": [],
+  "classifications": [
+    {
+      "kind": "Entity",
+      "name": "Asset",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Concept",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "ContentSource",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "DocumentPlan",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Person",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Thread",
+      "reason": "explicit-entities-list"
+    }
+  ],
+  "divergences": [],
+  "generalSpecVersion": "0.2",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "losses": [
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "structure.section-tree",
+      "kind": "completeness-loss",
+      "reason": "The recursive SectionNode tree is not emitted as docplan primitives. fdpm.document-plan-dnis materialises each node as a dnis:Node (SPEC-CORE §5.6) via plugins/document_plan_dnis/build.ts, preserving reading order as SPEC-DNIS positions."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "superrefine.cross-references",
+      "kind": "completeness-loss",
+      "reason": "Reference resolution, concept introduction order, thread continuity, word budgets, milestone deadlines and the dependency DAG (DocumentPlanSchema.superRefine) are enforced by DocumentPlanSchema.safeParse at ingest (build.ts); the host's relation pipeline enforces endpoint existence afterwards. No CEL is emitted for them."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "assertion-text.self-referential-refine",
+      "kind": "completeness-loss",
+      "reason": "The AssertionText .refine (rejects plan text written in the voice of the document) has no CEL translation; it is enforced by the per-entity Zod validator for header fields and by ingest-time safeParse for node content."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "content-source.identifier.discriminated-union",
+      "kind": "soundness-loss",
+      "reason": "SourceIdentifier is stored as the flat {kind, value} struct (SourceIdentifierFlat); per-kind value formats are checked only at ingest time by DocumentPlanSchema.safeParse, not on later primitive patches."
+    }
+  ],
+  "overrides": [],
+  "realizationSpecVersion": "0.2",
+  "sidecarSpecVersion": "0.1"
+}

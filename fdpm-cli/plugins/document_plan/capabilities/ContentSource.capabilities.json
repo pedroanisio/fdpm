@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "contentSourceMarkdownRenderer",
+    "local_name": "docplan-content-source",
+    "metadata": {
+      "primitive_type_id": "docplan:ContentSource",
+      "target": "text/markdown"
+    }
+  }
+}

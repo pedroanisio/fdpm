@@ -97,9 +97,13 @@ export function registerSpecAuthoringValidators(ctx: PluginContext): void {
       // wrote `has_incoming(spec:RevisedIn)` which never fires for the
       // Document and is the kind of subtle mis-direction CLAUDE.md's
       // PALS-LAW posture exists to catch.
-      const hasSec = hasOutgoing(inst, rels, "spec:HasSection");
+      //
+      // SPEC-SECTIONS-TREE v0.2: a SPEC may hold its section tree as
+      // dnis:Node primitives, in which case the Document has NO
+      // spec:HasSection edges at all — so a section edge is not a proxy
+      // for "has a tree" and only the revision edge is checked here.
       const hasRev = hasOutgoing(inst, rels, "spec:RevisedIn");
-      if (hasSec && hasRev) return [];
+      if (hasRev) return [];
       return [
         {
           rule_id: "spec:val:document-has-revision",
@@ -107,7 +111,7 @@ export function registerSpecAuthoringValidators(ctx: PluginContext): void {
           target_id: inst.id,
           field_path: null,
           message:
-            "Document should declare ≥ 1 spec:RevisedIn edge to a spec:Revision (and ≥ 1 spec:HasSection child).",
+            "Document should declare ≥ 1 spec:RevisedIn edge to a spec:Revision.",
         },
       ];
     }),

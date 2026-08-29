@@ -1,0 +1,67 @@
+{
+  "id": "fdpm.document-plan-dnis",
+  "version": "0.1.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Document Plan DNIS Composition",
+  "description": "Composition profile extending profile:document-plan:3.1 (bridge-generated) and profile:dnis:0.1: one workbook holds the DocumentPlan header, its registries (sources, concepts, assets, threads, people) and the section tree as dnis:Node primitives. Adds the node↔registry relation types (uses-concept, advances-thread, cites, owned-by, placed-in, introduced-in) and the docplan:PlanOutlineRenderer text/markdown renderer.",
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.2,<2"
+  },
+  "permissions": [
+    "read:workbooks",
+    "read:primitives",
+    "read:relations",
+    "render:server"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "document-plan-dnis",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "plan-outline-md",
+      "entry": "renderPlanOutline",
+      "metadata": {
+        "target": "text/markdown",
+        "renderer_id": "docplan:PlanOutlineRenderer"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "comparative-claim-baseline",
+      "entry": "comparativeClaimBaselineValidator",
+      "metadata": {
+        "target_type_id": "dnis:Node",
+        "applies_to": "primitive",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ],
+        "level": "warning",
+        "rule_ids": [
+          "docplan:coherence.comparative-claim-without-baseline"
+        ]
+      }
+    }
+  ],
+  "dependencies": {
+    "plugins": [
+      {
+        "id": "fdpm.document-plan",
+        "version": ">=0.1.0"
+      },
+      {
+        "id": "fdpm.dnis",
+        "version": ">=0.1.0"
+      }
+    ]
+  }
+}
