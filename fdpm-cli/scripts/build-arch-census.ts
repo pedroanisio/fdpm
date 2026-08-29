@@ -15,8 +15,20 @@
  * disagree. Run with `npx tsx scripts/build-arch-census.ts`; pass `--check`
  * to verify without writing.
  *
- * Counts are deliberately mechanical and reproducible from a clean
- * checkout: no network, no git history, no wall clock in the output.
+ * Counts are mechanical and reproducible from a clean checkout: no network,
+ * no wall clock in the output.
+ *
+ * They are read from git's INDEX, not from the filesystem, and that is the
+ * load-bearing decision here. Counting the working tree made the census a
+ * function of whoever's checkout it ran in: an untracked file or an unstaged
+ * edit — another agent's work in progress, a scratch script, a half-finished
+ * plugin — was counted into the artifact. Since `--check` asserts the
+ * committed census equals a regeneration, that made the gate unsatisfiable
+ * whenever any uncommitted work existed. Whoever committed first shipped a
+ * census describing files their commit did not contain, and the next clean
+ * checkout regenerated something different and failed. Reading the index
+ * makes the census a function of the tree being committed, which is the only
+ * definition under which the gate can hold.
  *
  * Line counts are rounded to the nearest thousand ON PURPOSE. An exact LOC
  * figure changes on every commit, so an exact-match gate would demand a
@@ -25,10 +37,10 @@
  * amount an architecture document would actually want to restate.
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { FDPM_ENV_VARS } from "../src/core/config/env.js";
 
 const CLI_ROOT = resolve(import.meta.dirname, "..");
 const REPO_ROOT = resolve(CLI_ROOT, "..");
@@ -37,72 +49,169 @@ const OUT_PATH = join(REPO_ROOT, "docs/architecture/CENSUS.md");
 /** Directories whose contents never count toward source measurements. */
 const EXCLUDED_DIRS = new Set(["node_modules", "dist", ".git", "generated"]);
 
-function walk(dir: string, predicate: (path: string) => boolean): string[] {
-  if (!existsSync(dir)) return [];
-  const out: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (EXCLUDED_DIRS.has(entry.name)) continue;
-      out.push(...walk(join(dir, entry.name), predicate));
-    } else if (predicate(join(dir, entry.name))) {
-      out.push(join(dir, entry.name));
-    }
+/** Repo-relative paths, as `git ls-files` reports them. */
+const CLI_PREFIX = "fdpm-cli/";
+
+interface IndexEntry {
+  /** Repo-relative path. */
+  path: string;
+  /** Blob the index holds for it — staged content, not the working copy. */
+  sha: string;
+}
+
+function git(args: string[]): Buffer {
+  return execFileSync("git", args, { cwd: REPO_ROOT, maxBuffer: 1 << 28 });
+}
+
+/**
+ * Every path in git's index, with the blob it points at.
+ *
+ * `-s` gives the staged blob rather than the working copy, which is what
+ * makes an unstaged edit invisible here. Read once and reused: the census
+ * asks six questions of the same tree.
+ */
+function readIndex(): IndexEntry[] {
+  const out = git(["ls-files", "-s", "-z"]).toString("utf8");
+  const entries: IndexEntry[] = [];
+  for (const record of out.split("\0")) {
+    if (record.length === 0) continue;
+    const tab = record.indexOf("\t");
+    if (tab === -1) continue;
+    const sha = record.slice(0, tab).split(/\s+/)[1];
+    const path = record.slice(tab + 1);
+    if (sha === undefined) continue;
+    if (path.split("/").some((segment) => EXCLUDED_DIRS.has(segment))) continue;
+    entries.push({ path, sha });
   }
-  return out;
+  if (entries.length === 0) {
+    throw new Error(
+      "arch census: git ls-files returned nothing. This script reads the git index, " +
+        "so it requires a git checkout — it cannot count an exported tarball.",
+    );
+  }
+  return entries;
+}
+
+const INDEX = readIndex();
+
+/**
+ * Blob contents for the given entries, in one `git cat-file --batch` pass.
+ *
+ * The batch protocol answers each request as `<sha> blob <size>\n`, then
+ * exactly `size` bytes, then a newline. Sizes are honoured rather than split
+ * on delimiters, so content containing the header shape cannot desynchronise
+ * the parse.
+ */
+function readBlobs(entries: readonly IndexEntry[]): string[] {
+  if (entries.length === 0) return [];
+  const out = execFileSync("git", ["cat-file", "--batch"], {
+    cwd: REPO_ROOT,
+    input: entries.map((e) => e.sha).join("\n") + "\n",
+    maxBuffer: 1 << 30,
+  });
+  const contents: string[] = [];
+  let offset = 0;
+  for (let i = 0; i < entries.length; i += 1) {
+    const newline = out.indexOf(0x0a, offset);
+    if (newline === -1) break;
+    const header = out.subarray(offset, newline).toString("utf8");
+    const size = Number(header.split(" ")[2]);
+    if (!Number.isFinite(size)) {
+      throw new Error(`arch census: unreadable cat-file header ${JSON.stringify(header)}`);
+    }
+    const body = out.subarray(newline + 1, newline + 1 + size);
+    contents.push(body.toString("utf8"));
+    offset = newline + 1 + size + 1;
+  }
+  if (contents.length !== entries.length) {
+    throw new Error(
+      `arch census: git cat-file returned ${contents.length} blobs for ${entries.length} requests`,
+    );
+  }
+  return contents;
 }
 
 const isTs = (p: string) => p.endsWith(".ts") || p.endsWith(".tsx");
 
-function countLines(files: string[]): number {
+/** Index entries under a repo-relative directory prefix. */
+function under(prefix: string, predicate: (path: string) => boolean = () => true): IndexEntry[] {
+  const dir = prefix.endsWith("/") ? prefix : `${prefix}/`;
+  return INDEX.filter((e) => e.path.startsWith(dir) && predicate(e.path));
+}
+
+function countLines(entries: readonly IndexEntry[]): number {
   let total = 0;
-  for (const f of files) total += readFileSync(f, "utf8").split("\n").length;
+  for (const content of readBlobs(entries)) total += content.split("\n").length;
   return total;
 }
 
 /** Source areas measured independently so the parts sum to the whole. */
 const AREAS: readonly { label: string; dir: string }[] = [
-  { label: "`src/`", dir: join(CLI_ROOT, "src") },
-  { label: "`plugins/`", dir: join(CLI_ROOT, "plugins") },
-  { label: "`tests/`", dir: join(CLI_ROOT, "tests") },
-  { label: "`scripts/`", dir: join(CLI_ROOT, "scripts") },
-  { label: "`packages/zod-bridge/`", dir: join(CLI_ROOT, "packages/zod-bridge") },
+  { label: "`src/`", dir: `${CLI_PREFIX}src` },
+  { label: "`plugins/`", dir: `${CLI_PREFIX}plugins` },
+  { label: "`tests/`", dir: `${CLI_PREFIX}tests` },
+  { label: "`scripts/`", dir: `${CLI_PREFIX}scripts` },
+  { label: "`packages/zod-bridge/`", dir: `${CLI_PREFIX}packages/zod-bridge` },
 ];
 
+/** Directory names directly under `plugins/` that the index knows about. */
 function pluginDirs(): string[] {
-  const root = join(CLI_ROOT, "plugins");
-  return readdirSync(root, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name)
-    .sort();
+  const names = new Set<string>();
+  for (const e of under(`${CLI_PREFIX}plugins`)) {
+    const rest = e.path.slice(`${CLI_PREFIX}plugins/`.length);
+    const slash = rest.indexOf("/");
+    if (slash > 0) names.add(rest.slice(0, slash));
+  }
+  return [...names].sort();
 }
 
 function workflowFiles(): string[] {
-  const dir = join(CLI_ROOT, ".github/workflows");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml")).sort();
+  return under(`${CLI_PREFIX}.github/workflows`, (p) => p.endsWith(".yml") || p.endsWith(".yaml"))
+    .map((e) => e.path.split("/").pop()!)
+    .sort();
 }
 
 function specFiles(): string[] {
-  const dir = join(REPO_ROOT, "docs/specs");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir).filter((f) => f.startsWith("SPEC-") && f.endsWith(".md")).sort();
+  return under("docs/specs", (p) => {
+    const name = p.split("/").pop() ?? "";
+    return name.startsWith("SPEC-") && name.endsWith(".md");
+  })
+    .map((e) => e.path.split("/").pop()!)
+    .sort();
 }
 
 /** Distinct `fdpm.<group>.<verb>` tool ids advertised by the MCP manifest. */
 function mcpToolIds(): string[] {
-  const files = walk(join(CLI_ROOT, "src/mcp"), isTs);
   const ids = new Set<string>();
-  for (const f of files) {
-    for (const m of readFileSync(f, "utf8").matchAll(/["'`](fdpm\.[a-z_]+\.[a-z_]+)["'`]/g)) {
-      ids.add(m[1]!);
-    }
+  for (const content of readBlobs(under(`${CLI_PREFIX}src/mcp`, isTs))) {
+    for (const m of content.matchAll(/["'`](fdpm\.[a-z_]+\.[a-z_]+)["'`]/g)) ids.add(m[1]!);
   }
   return [...ids].sort();
 }
 
+/**
+ * `FDPM_*` names as the committed `env.ts` declares them.
+ *
+ * The module export is the source of truth for the code, but importing it
+ * here would read the working copy and reintroduce exactly the dependence on
+ * the checkout that the rest of this script removes. The committed blob is
+ * scanned instead, and a parse that finds nothing fails loudly rather than
+ * silently reporting zero.
+ */
+function envVarNames(): string[] {
+  const entry = INDEX.find((e) => e.path === `${CLI_PREFIX}src/core/config/env.ts`);
+  if (entry === undefined) throw new Error("arch census: src/core/config/env.ts is not tracked");
+  const names = new Set<string>();
+  for (const m of readBlobs([entry])[0]!.matchAll(/["'`](FDPM_[A-Z0-9_]+)["'`]/g)) names.add(m[1]!);
+  if (names.size === 0) {
+    throw new Error("arch census: found no FDPM_* names in the committed env.ts");
+  }
+  return [...names].sort();
+}
+
 function render(): string {
   const areaRows = AREAS.map((a) => {
-    const lines = countLines(walk(a.dir, isTs));
+    const lines = countLines(under(a.dir, isTs));
     return { label: a.label, lines };
   });
   const totalLines = areaRows.reduce((s, r) => s + r.lines, 0);
@@ -110,6 +219,7 @@ function render(): string {
   const workflows = workflowFiles();
   const specs = specFiles();
   const tools = mcpToolIds();
+  const envVars = envVarNames();
 
   // Rounded to the nearest 1,000 — see the header note on gate stability.
   const roundK = (n: number) => Math.round(n / 1000);
@@ -157,7 +267,7 @@ ${areaRows.map((r) => `| ${r.label} | ${fmt(r.lines)} |`).join("\n")}
 | Fact | Value | Derivation |
 |---|---:|---|
 | Plugin directories | ${plugins.length} | \`plugins/*/\` |
-| \`FDPM_*\` environment variables | ${FDPM_ENV_VARS.length} | \`FDPM_ENV_VARS\` in \`src/core/config/env.ts\` |
+| \`FDPM_*\` environment variables | ${envVars.length} | \`FDPM_ENV_VARS\` in \`src/core/config/env.ts\` |
 | CI workflows | ${workflows.length} | \`.github/workflows/*.yml\` |
 | \`SPEC-*.md\` documents | ${specs.length} | \`docs/specs/SPEC-*.md\` |
 | Distinct MCP tool ids | ${tools.length} | \`fdpm.<group>.<verb>\` literals under \`src/mcp/\` |
@@ -178,8 +288,14 @@ ${specs.map((s) => `- \`docs/specs/${s}\``).join("\n")}
 
 const rendered = render();
 const check = process.argv.includes("--check");
+/* Render to stdout without touching the artifact. `--check` reports only a
+   verdict, which is not enough to assert that two runs agree; a test that
+   needs the census itself would otherwise have to write the file to read it. */
+const print = process.argv.includes("--print");
 
-if (check) {
+if (print) {
+  process.stdout.write(rendered);
+} else if (check) {
   const existing = existsSync(OUT_PATH) ? readFileSync(OUT_PATH, "utf8") : "";
   if (existing !== rendered) {
     console.error(

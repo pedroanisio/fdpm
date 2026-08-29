@@ -22,6 +22,7 @@
  * rots.
  */
 import { execFileSync } from "node:child_process";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -38,6 +39,56 @@ describe("doc drift: repository census", () => {
         stdio: "pipe",
       }),
     ).not.toThrow();
+  });
+});
+
+/**
+ * The census must describe the *commit*, not the checkout.
+ *
+ * `build-arch-census.ts` counted the working tree, so every line another
+ * agent had written but not committed was counted into `CENSUS.md`. The
+ * consequence is not cosmetic: `--check` asserts the committed artifact
+ * equals a regeneration, so while any uncommitted work exists the gate
+ * cannot be satisfied by any commit at all. Whoever commits first ships a
+ * census describing files their commit does not contain, and the next clean
+ * checkout regenerates something different and fails.
+ *
+ * The fix is that the generator reads git's index rather than the
+ * filesystem. These tests pin that: untracked files and unstaged edits are
+ * invisible to the census, which is exactly what makes it a function of the
+ * tree being committed.
+ */
+describe("doc drift: the census describes the committed tree", () => {
+  const census = (): string =>
+    execFileSync("npx", ["tsx", "scripts/build-arch-census.ts", "--print"], {
+      cwd: CLI_ROOT,
+      stdio: "pipe",
+      encoding: "utf8",
+    });
+
+  it("ignores an untracked source file", () => {
+    const intruder = join(CLI_ROOT, "plugins/__census_probe__.ts");
+    const before = census();
+    // Big enough to move a figure rounded to the nearest thousand lines.
+    writeFileSync(intruder, `// probe\n${"const x = 1;\n".repeat(4000)}`);
+    try {
+      expect(census()).toBe(before);
+    } finally {
+      rmSync(intruder, { force: true });
+    }
+    expect(census()).toBe(before);
+  });
+
+  it("ignores an unstaged edit to a tracked file", () => {
+    const tracked = join(CLI_ROOT, "scripts/build-arch-census.ts");
+    const original = readFileSync(tracked, "utf8");
+    const before = census();
+    writeFileSync(tracked, `${original}\n${"// padding\n".repeat(4000)}`);
+    try {
+      expect(census()).toBe(before);
+    } finally {
+      writeFileSync(tracked, original);
+    }
   });
 });
 
