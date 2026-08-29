@@ -1,0 +1,3619 @@
+{
+  "bridgeRealization": {
+    "id": "zod-bridge",
+    "version": "0.3.0"
+  },
+  "candidates": [],
+  "classifications": [
+    {
+      "kind": "Entity",
+      "name": "Pipe_AtomizationStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_AtomSetArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_CopyOutputAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_DomainArchitectureArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_DomainElaborationStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_DownloadPackageAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_EvidenceMatrixArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_EvidenceMatrixStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_FormalArtifactsBundle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_FormalizationStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_FormalizationWorkflow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_FormalizeStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_GenericOntologyArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_GenericOntologyStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_MappingGraphArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_MigrationMappingStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_OntologyPackageArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_PipelineRunner",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_RepairOutputAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_RerunFromHereAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_RunNextAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_StageConsole",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_TypedExtractionStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_TypedGraphArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Pipe_ValidateAssembleStage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_AccessibilityModel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Action",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ActionControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Actor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Adaptation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Affordance",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_AgentActor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_AgentInstruction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_AnnouncementPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Artifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ArtifactSummary",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ArtifactViewer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Badge",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_BreadcrumbControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Breakpoint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_BreakpointCondition",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Button",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Canvas",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Capability",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_CardView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ChartView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_CheckboxInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Checkpoint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_CodeView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Command",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Component",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Constraint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Container",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ContentBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ContentUnit",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Context",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ContrastPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Control",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Credential",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DataColumn",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DataField",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DataFlowPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DataObject",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DataRow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Dataset",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DataView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DensityMode",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Dependency",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Device",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Dialog",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DisclosureControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DisclosureState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DisplayComponent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Dock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Document",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_DomainEvent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Edge",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Effect",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ErrorIssue",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Event",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Experience",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Feature",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Feedback",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_FeedbackChannel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_FeedbackComponent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_FileInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_FilterControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Flow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_FocusPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Format",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_GeneratedOutput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Goal",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Grid",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_GridView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Guard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_HumanActor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_IconButton",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ImageBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_InfoIssue",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_InlineCode",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_InputControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_InputEvent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Intent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Interaction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_InteractionSystem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Issue",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_KeyboardNavigation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Layout",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_LifecycleEvent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_LinkControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ListView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_LogView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_MediaBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Message",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_MetricTile",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Milestone",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_MotionPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_NavigationControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Node",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Notification",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_OrderingPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_OrganizationActor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_OverflowPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Overlay",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Page",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Panel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Parser",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Permission",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Policy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Popover",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_PrivacyPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ProcessBoundary",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ProgressModel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_RadioInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Recommendation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Recovery",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_RecoveryOption",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Region",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_RepresentationMode",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ResponsiveRule",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Risk",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Role",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_RuntimeInstance",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_RuntimeSnapshot",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Schema",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Screen",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SearchInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Secret",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SecretInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SecurityPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SegmentedControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SelectInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SemanticOrder",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Serializer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SeverityLevel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Sheet",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SliderInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Stack",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_State",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_StateMachine",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_StateModel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_StateValue",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_StateVariable",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_StatusIndicator",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_StatusValue",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Step",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_StoragePolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SuccessSignal",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Surface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SystemActor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_SystemEvent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TabControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TableView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Task",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TelemetryEvent",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TextAreaInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TextBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TextInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Toast",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Token",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Tooltip",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TouchTargetPolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Transition",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TreeView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_TrustBoundary",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_UsabilityHeuristic",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_UsabilityViolation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ValidationResult",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_ValidationRule",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_VideoBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Viewport",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_VisualLayer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_VisualOrder",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_WarningIssue",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixo_Workflow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_AIAppBuilderLandingPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_AIAppBuilderSite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_AIBuilderHero",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_AttachmentAddAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_BuildModeSelector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_GradientHeroSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_PromptComposer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_PromptSubmitAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_PromptTextArea",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaiapp_VoiceInputAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_Article",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleBody",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleHeader",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleHeroMedia",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleMetaRow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticlePage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleParagraph",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleSidebar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleTag",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleTitleBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ArticleToc",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_AuthorByline",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_AuthorProfile",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_BlogArticle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_BlogArticlePage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_BlogSite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_PublicationDate",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ReadingTimeIndicator",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_ShareLink",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoarticle_SocialShareGroup",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaud_AuditFinding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaud_AuditRun",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaud_ConformanceCheck",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaud_EvidenceSnapshot",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaud_RepairPlan",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaud_RepairStep",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoaud_ScreenshotEvidence",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_AssistantTurn",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_AttachmentControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_CodeSnippetBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_ConversationAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_ConversationalApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_ConversationMenu",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_ConversationSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_ConversationThread",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_GemList",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_MessageTurn",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_ModelSelector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_NotebookList",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_PromptComposer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_PromptInput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_SystemTurn",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_UserTurn",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixochat_VoiceInputControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_CodeEditorDocsPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_CodeEditorGutter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_CodeEditorLibrarySite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_CurrentLineHighlight",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_DiffEditor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_DiffEditorSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_DiffMarker",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_DiffOverviewRuler",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_DiffPane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_EditorDemoSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_EditorScrollbar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_EmbeddedCodeEditor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_IntelliSenseSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_LanguageSelector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_LineNumberColumn",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_ModifiedDiffPane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_OriginalDiffPane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_ProgrammingLanguageMode",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_SyntaxColorizationSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_SyntaxHighlightTheme",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocode_ThemeSelector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_AcceptConsentAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_BrowserFeatureTip",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_ConsentOverlay",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_CookieConsentDialog",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_OnboardingPopover",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_PrivacyPreferenceAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_RemindLaterAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoconsent_ShowHowAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_AnimationHandle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_AnimationTrack",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_CodeWindow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ColorFamilyColumn",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ColorPaletteDemo",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ColorPaletteGrid",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ColorScaleRow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ColorSwatch",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ColorValueTooltip",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_CSSEducationSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_CSSExampleArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_CSSFrameworkLandingPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_CSSFrameworkSite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_DesignTokenDemo",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_EasingCurvePreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ImageMasonryPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_LayoutEducationCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_MarkupDemo",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_MotionEducationCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_PairedCodePreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_QuickSearchControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_RenderedDesignPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ThemeVariableSet",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_ThemeVariableToken",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_TransitionCurveDemo",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_TransitionCurveRow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_UtilityClassMention",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_UtilityClassSet",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_UtilityClassToken",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_UtilityFirstCSSFramework",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixocss_VersionSelectorPill",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_AdminDashboardApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_AnalyticsChartPanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_DashboardPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_DashboardSidebar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_DataPoint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_ExportDashboardAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_LineSeries",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_NavigationItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_ReportTableSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_SavedReportLink",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_SavedReportList",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_ShareDashboardAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodash_TimeRangeFilter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_AutoSaveToggle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_CodeEditorPane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_CodePlaygroundApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_CompilerConfig",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_DemoControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_DemoOutputView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_DevToggle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_DocumentationHint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_ErrorDisplayToggle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_FileTab",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_InteractiveDemoState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_LivePreviewPane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_PlaygroundSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_PreviewConsole",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_PreviewTab",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_RangeControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_RuntimeVersionSelector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_SecurityUpdateCTA",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_SourceFile",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodev_SSRModeToggle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_AcceptedDropState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_ActiveDragOverlay",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DragDropDemoCanvas",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DragDropDemoPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DragDropDocumentationSite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DragDropSidebar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DraggableItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DraggingState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DragState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DropInteraction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DroppableDemoPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DroppableItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DropPlaceholder",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_Dropzone",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DropzoneConstraint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_DropzoneGrid",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_GithubCodeLink",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_HoveringDropzoneState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_RejectedDropState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_SwapInteraction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_SwappableDemoPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodnd_SwappableItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_CodeBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_ContentPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_ContentSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_ExternalLink",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_Heading",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_InformationArchitecture",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_InlineCode",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_NavigationGroup",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_NavigationItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_NavigationTree",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_Paragraph",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_Route",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_ScrollContainer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixodoc_TableOfContents",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_BadgeExample",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_BadgeInstance",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_CodeExample",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_CollectionExample",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_CollectionItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_ComponentCategory",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_ComponentDocPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_ComponentExample",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_ComponentLibrarySite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_ComponentNavItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_ComponentPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_ComponentSidebar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_DeveloperDocumentationPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_DirectiveDocumentationPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_DirectiveExample",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_DocsSidebarHint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_DocumentationAdCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_DropdownExample",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_HorizontalScrollCodeRegion",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_InlineCodeToken",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_RightToc",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_SponsorGrid",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixods_SponsorSlot",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_AddBlockAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_BlockAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_BlockToolbar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_CanonicalDocument",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ContentAuthoringApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ContentBlockEditor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ContributorCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DataSourceCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DeleteBlockAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DocumentCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DocumentInspector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DocumentOutline",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DocumentStat",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DocumentStatsPanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DocumentWorkspace",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_DuplicateBlockAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_EditableBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ExportDocumentAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ExternalReferenceCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_HeadingBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_LicenseCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ListBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ListItemEditor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_LoadDocumentAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_MetadataField",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_MetadataGroup",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_MetadataInspector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_MoveBlockDownAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_MoveBlockUpAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_OutlineSectionItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ParagraphBlock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ProvenanceCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_SourceCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_StructuredContentEditor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_StructuredDocument",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_TagChip",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_TagEditor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoedit_ValidationBadge",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_ContentOcclusionRisk",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_ContextMenu",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_FieldGroup",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_FooterBar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_Form",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_FormField",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_InteractionModality",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_MenuItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_NavigationRail",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_OverflowMenu",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_ResponsiveBreakage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_ScrollRegion",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_Sidebar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_StickyRegion",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_Toolbar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_TopBar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_ViewportFitConstraint",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoflow_VisualLayer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogallery_ExternalWebsiteReference",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogallery_ShowcaseCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogallery_ShowcaseCategory",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogallery_ShowcaseGrid",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogallery_ShowcaseItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogallery_ShowcasePage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogallery_ShowcaseThumbnail",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_AmbientOcclusionMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_CheckboxParameter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_DiffuseMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_DisplacementMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_DonationPanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_ExportControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_GraphicsPanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_GraphicsParameter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_GraphicsToolApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_HeightMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_ImagePreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_ImageProcessingWorkspace",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_ImageUploadDropZone",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_MapType",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_ModelPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_NormalMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_NumericParameter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_RenderPreview3D",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_SelectParameter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_SliderParameter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_SpecularMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_TextureMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixogfx_TextureMapGenerator",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_AudioItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_CaptionControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_Channel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_EngagementBar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_FullscreenControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_MediaApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_MediaFeed",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_MediaItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_MediaMetadataPanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_PlaybackControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_PlaybackSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_PlayerControlBar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_PlaylistQueue",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_RecommendationFeed",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_SubscriptionList",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_Thumbnail",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_TimelineScrubber",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_TopicChip",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_VideoCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_VideoItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_VideoPlayer",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomedia_VolumeControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_BrandNavigation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_CTAButton",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_CustomerStorySection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_FeatureDemoMedia",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_FloatingAssistantWidget",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_LandingPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_MarketingSite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_PricingLink",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_ProductCapability",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_ProductFeatureCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_ProductFeatureGrid",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_SignupCTA",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_TestimonialCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomkt_VoiceChatWidget",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomob_BottomComposerDock",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomob_GesturePolicy",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomob_HamburgerMenuControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomob_MobileTopBar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomob_MobileViewport",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixomob_SafeArea",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_ComparisonFeatureRow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PlanAvailabilityCell",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PlanCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PlanComparisonMatrix",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PlanCTA",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PlanFeature",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PlanFeatureList",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PriceAmount",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PricingPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprice_PricingPlan",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_CapabilityCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_CustomerLogoMark",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_DemoAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_DeveloperPlatformLandingPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_FeatureCluster",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_FeatureIcon",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_FeatureTile",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_GhostFeatureTile",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_HeroSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_LoginAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_ProductCapabilityMatrix",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_ProductPillarTile",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_ProductPlatformLandingPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_ProductPlatformSite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_SignupAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_SocialProofStrip",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprod_TrustedBySection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_ConfidenceAssessment",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_EvidenceRelation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_GroundingClaim",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_ProvenanceClassification",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_SourceBinding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_SynthesisBoundary",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_TraceabilityModel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoprov_TraceLink",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_AdSlot",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_ContentCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_RankingFeature",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_RankingModel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_RecommendationItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_RecommendationReason",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_RecommendationSet",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_RecommendationSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_SponsoredLabel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixorec_TopicFilter",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_AccountAuthorizationSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_AccountSetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_CredentialSetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_DangerZoneSetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_LinkedAccountProvider",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_NotificationSetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_PreferenceSetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_PrivacySetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_ProfileSetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingRow",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingsApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingsGroup",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingsPanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingsSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingsSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_SettingsTab",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoset_ToggleSetting",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_ClipboardInstallCommand",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_EmulatedBackend",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalBackend",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalCodeExample",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalCommand",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalCursor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalDocumentationPage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalDocumentationSite",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalEmulator",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalFeatureItem",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalFeaturePanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalHeroSection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalInputLine",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalOutput",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalPrompt",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalSession",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalTheme",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoterm_TerminalViewport",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_BarChartView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_ColorEncoding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_DataDimension",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_DataMeasure",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_GraphView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_HeatmapView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_HoverState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_Legend",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_LineChartView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_LineMark",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_NetworkGraphView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_OpacityEncoding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_PointMark",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_PositionEncoding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_RectMark",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_Scale",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_ScatterPlotView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_SelectionState",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_ShapeEncoding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_SizeEncoding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_TreemapView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_ViewportSelection",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_VisualEncoding",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_Visualization",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixoviz_VisualMark",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_AccountMenu",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_ArtifactAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_ArtifactHeader",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_ArtifactPane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_ArtifactPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_AssistantWorkbenchApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_ChatPane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_CloseArtifactAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_CopyArtifactAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_DocumentPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_DownloadArtifactAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_FileAttachmentCard",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_GeneratedArtifact",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_HTMLPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_MarkdownPreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_OpenExternalArtifactAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_Pane",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_PreviewModeToggle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_ReloadPreviewAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_SourceCodePreview",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_SplitPaneLayout",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowb_WorkbenchSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_AddNoteAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_ClearRunAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagCodeView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagGraphView",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagRun",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagRunDetailsPanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagRunMetadataField",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagRunTab",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagRunTabSet",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_DagRunToolbar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_GraphCanvas",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_GraphGridBackground",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_GraphMiniMap",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_GraphZoomControl",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_MarkRunAsAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_ParsedCodeMetadata",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_SearchDagsAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_TaskDependencyEdge",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_TaskInstance",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_TaskNode",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_TriggerDagAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_WorkflowDag",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowf_WorkflowOrchestratorApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_AnonymousEditNotice",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_AppearanceOption",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_AppearancePanel",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_ArticleActionTab",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_ArticleNamespaceTab",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_ArticleTableOfContents",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_CancelEditAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_Citation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_CopyrightNotice",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_EditSummaryField",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_Infobox",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_InfoboxField",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_InfoboxImage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_LanguageSelector",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_PublishChangesAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_Reference",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_ReferenceList",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_ShowChangesAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_ShowPreviewAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_StartEditingAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_SwitchToVisualEditorAction",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WelcomeToEditModal",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiApplication",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiArticle",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiArticlePage",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiEditSurface",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiEditToolbar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiNoticeBanner",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiSourceEditor",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiTemplateInvocation",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Uixowiki_WikiTransclusion",
+      "reason": "explicit-entities-list"
+    }
+  ],
+  "divergences": [],
+  "generalSpecVersion": "0.2",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "losses": [
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.edges-as-relations",
+      "kind": "completeness-loss",
+      "reason": "All 1653 graph-edge fields are lifted out of the entity schemas into 210 relation types. This is what makes the ontology's referential integrity a host invariant instead of a document-level batch check, but it means a consumer reading one primitive in isolation sees none of its edges — it must traverse the relations. An exporter reconstructing a source-shaped UixoDocument must read both, and must re-materialise each edge under its original camelCase property name (uixo:rel.hasChildComponent -> hasChildComponent)."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uixo.entity-name-mangling",
+      "kind": "soundness-loss",
+      "reason": "Thirty-one RDF prefixes share one profile and local names collide across them (Article exists in uixoarticle: and uixowiki:), so every class id carries its prefix: uixo:Button becomes the entity Uixo_Button and the type id uixo:Uixo_Button. The mapping is mechanical and reversible via qnameOf(); the entity's own `type` field still carries the true QName, so nothing is lost at the data layer."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uixo.open-world-ranges",
+      "kind": "soundness-loss",
+      "reason": "Ten of the 210 relation types are declared with the range owl:Thing, which names no storable class. Narrowing them to the empty set would make them unusable, so they open to all 712 classes. Those ten edges are therefore endpoint-checked for EXISTENCE but not for range conformance; the ontology asserts no range for them either."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uixo.range-widening",
+      "kind": "soundness-loss",
+      "reason": "1 edge propert(y|ies) are declared with different ranges on different classes (rendersArticle: uixoarticle:Article | uixowiki:WikiArticle). One relation type per property means the target set is the UNION of those ranges, so the relation accepts a target the narrower declaring class would not. Splitting per source class would restore soundness at the cost of one relation type per (class, property) pair."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.extensions-untyped",
+      "kind": "completeness-loss",
+      "reason": "Every class carries 'extensions', a z.record. The bridge maps a record to the host's `json` field kind, so the value is stored as an object and the generated Zod validator checks its keys and values — it is no longer the opaque string it was, which had made every document carrying extensions un-ingestable (the profile demanded a string, the validator a record). What is still lost is structure: the ontology's soft links live inside extensions as free-form keys, so they are not typed relations and the host cannot enforce their endpoints. invariants.ts reads them back when it walks reachability, exactly as the source oracle does."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.document-oracle-gate-at-ingest",
+      "kind": "completeness-loss",
+      "reason": "The source's oracle (validateUixoDocument — 41 coded checks across structural, referential, semantic and policy tiers) now runs as the FIRST control in ingest.ts, so a document entering the workbook is judged by the ontology's own authority and rejected in its own E-code vocabulary. What remains a loss is the WRITE path: the host validates one primitive or relation at a time and cannot see the document, so edits made after ingest through the CLI or MCP are judged by the field validators, the 210 typed relation endpoints and the graph invariants in invariants.ts — not by the full 41. Re-running the oracle over a projected workbook would need the projection inverted; that is not implemented."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.single-type-per-entity",
+      "kind": "completeness-loss",
+      "reason": "Inherited from the source, which states it directly: the `type` discriminator holds the entity's most specific class and RDF multi-typing is not representable. A primitive is an instance of exactly one class here."
+    }
+  ],
+  "overrides": [],
+  "realizationSpecVersion": "0.2",
+  "sidecarSpecVersion": "0.1"
+}

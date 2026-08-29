@@ -1,0 +1,2897 @@
+{
+  "__sidecarSpec": "0.1",
+  "declaredLoss": [
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.edges-as-relations",
+      "kind": "completeness-loss",
+      "reason": "All 1653 graph-edge fields are lifted out of the entity schemas into 210 relation types. This is what makes the ontology's referential integrity a host invariant instead of a document-level batch check, but it means a consumer reading one primitive in isolation sees none of its edges — it must traverse the relations. An exporter reconstructing a source-shaped UixoDocument must read both, and must re-materialise each edge under its original camelCase property name (uixo:rel.hasChildComponent -> hasChildComponent)."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uixo.entity-name-mangling",
+      "kind": "soundness-loss",
+      "reason": "Thirty-one RDF prefixes share one profile and local names collide across them (Article exists in uixoarticle: and uixowiki:), so every class id carries its prefix: uixo:Button becomes the entity Uixo_Button and the type id uixo:Uixo_Button. The mapping is mechanical and reversible via qnameOf(); the entity's own `type` field still carries the true QName, so nothing is lost at the data layer."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uixo.open-world-ranges",
+      "kind": "soundness-loss",
+      "reason": "Ten of the 210 relation types are declared with the range owl:Thing, which names no storable class. Narrowing them to the empty set would make them unusable, so they open to all 712 classes. Those ten edges are therefore endpoint-checked for EXISTENCE but not for range conformance; the ontology asserts no range for them either."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "uixo.range-widening",
+      "kind": "soundness-loss",
+      "reason": "1 edge propert(y|ies) are declared with different ranges on different classes (rendersArticle: uixoarticle:Article | uixowiki:WikiArticle). One relation type per property means the target set is the UNION of those ranges, so the relation accepts a target the narrower declaring class would not. Splitting per source class would restore soundness at the cost of one relation type per (class, property) pair."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.extensions-untyped",
+      "kind": "completeness-loss",
+      "reason": "Every class carries 'extensions', a z.record. The bridge maps a record to the host's `json` field kind, so the value is stored as an object and the generated Zod validator checks its keys and values — it is no longer the opaque string it was, which had made every document carrying extensions un-ingestable (the profile demanded a string, the validator a record). What is still lost is structure: the ontology's soft links live inside extensions as free-form keys, so they are not typed relations and the host cannot enforce their endpoints. invariants.ts reads them back when it walks reachability, exactly as the source oracle does."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.document-oracle-gate-at-ingest",
+      "kind": "completeness-loss",
+      "reason": "The source's oracle (validateUixoDocument — 41 coded checks across structural, referential, semantic and policy tiers) now runs as the FIRST control in ingest.ts, so a document entering the workbook is judged by the ontology's own authority and rejected in its own E-code vocabulary. What remains a loss is the WRITE path: the host validates one primitive or relation at a time and cannot see the document, so edits made after ingest through the CLI or MCP are judged by the field validators, the 210 typed relation endpoints and the graph invariants in invariants.ts — not by the full 41. Re-running the oracle over a projected workbook would need the projection inverted; that is not implemented."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "uixo.single-type-per-entity",
+      "kind": "completeness-loss",
+      "reason": "Inherited from the source, which states it directly: the `type` discriminator holds the entity's most specific class and RDF multi-typing is not representable. A primitive is an instance of exactly one class here."
+    }
+  ],
+  "entities": {
+    "Pipe_AtomSetArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_AtomizationStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_CopyOutputAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_DomainArchitectureArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_DomainElaborationStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_DownloadPackageAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_EvidenceMatrixArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_EvidenceMatrixStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_FormalArtifactsBundle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_FormalizationStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_FormalizationWorkflow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_FormalizeStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_GenericOntologyArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_GenericOntologyStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_MappingGraphArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_MigrationMappingStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_OntologyPackageArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_PipelineRunner": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_RepairOutputAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_RerunFromHereAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_RunNextAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_StageConsole": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_TypedExtractionStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_TypedGraphArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Pipe_ValidateAssembleStage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_AccessibilityModel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Action": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ActionControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Actor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Adaptation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Affordance": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_AgentActor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_AgentInstruction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_AnnouncementPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Artifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ArtifactSummary": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ArtifactViewer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Badge": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_BreadcrumbControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Breakpoint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_BreakpointCondition": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Button": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Canvas": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Capability": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_CardView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ChartView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_CheckboxInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Checkpoint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_CodeView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Command": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Component": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Constraint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Container": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ContentBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ContentUnit": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Context": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ContrastPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Control": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Credential": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DataColumn": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DataField": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DataFlowPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DataObject": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DataRow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DataView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Dataset": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DensityMode": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Dependency": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Device": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Dialog": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DisclosureControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DisclosureState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DisplayComponent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Dock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Document": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_DomainEvent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Edge": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Effect": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ErrorIssue": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Event": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Experience": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Feature": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Feedback": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_FeedbackChannel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_FeedbackComponent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_FileInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_FilterControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Flow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_FocusPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Format": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_GeneratedOutput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Goal": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Grid": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_GridView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Guard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_HumanActor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_IconButton": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ImageBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_InfoIssue": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_InlineCode": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_InputControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_InputEvent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Intent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Interaction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_InteractionSystem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Issue": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_KeyboardNavigation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Layout": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_LifecycleEvent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_LinkControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ListView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_LogView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_MediaBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Message": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_MetricTile": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Milestone": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_MotionPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_NavigationControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Node": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Notification": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_OrderingPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_OrganizationActor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_OverflowPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Overlay": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Page": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Panel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Parser": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Permission": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Policy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Popover": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_PrivacyPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ProcessBoundary": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ProgressModel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_RadioInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Recommendation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Recovery": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_RecoveryOption": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Region": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_RepresentationMode": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ResponsiveRule": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Risk": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Role": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_RuntimeInstance": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_RuntimeSnapshot": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Schema": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Screen": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SearchInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Secret": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SecretInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SecurityPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SegmentedControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SelectInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SemanticOrder": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Serializer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SeverityLevel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Sheet": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SliderInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Stack": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_State": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_StateMachine": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_StateModel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_StateValue": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_StateVariable": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_StatusIndicator": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_StatusValue": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Step": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_StoragePolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SuccessSignal": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Surface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SystemActor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_SystemEvent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TabControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TableView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Task": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TelemetryEvent": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TextAreaInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TextBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TextInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Toast": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Token": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Tooltip": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TouchTargetPolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Transition": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TreeView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_TrustBoundary": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_UsabilityHeuristic": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_UsabilityViolation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ValidationResult": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_ValidationRule": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_VideoBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Viewport": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_VisualLayer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_VisualOrder": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_WarningIssue": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixo_Workflow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_AIAppBuilderLandingPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_AIAppBuilderSite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_AIBuilderHero": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_AttachmentAddAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_BuildModeSelector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_GradientHeroSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_PromptComposer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_PromptSubmitAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_PromptTextArea": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaiapp_VoiceInputAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_Article": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleBody": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleHeader": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleHeroMedia": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleMetaRow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticlePage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleParagraph": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleSidebar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleTag": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleTitleBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ArticleToc": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_AuthorByline": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_AuthorProfile": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_BlogArticle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_BlogArticlePage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_BlogSite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_PublicationDate": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ReadingTimeIndicator": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_ShareLink": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoarticle_SocialShareGroup": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaud_AuditFinding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaud_AuditRun": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaud_ConformanceCheck": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaud_EvidenceSnapshot": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaud_RepairPlan": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaud_RepairStep": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoaud_ScreenshotEvidence": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_AssistantTurn": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_AttachmentControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_CodeSnippetBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_ConversationAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_ConversationMenu": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_ConversationSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_ConversationThread": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_ConversationalApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_GemList": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_MessageTurn": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_ModelSelector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_NotebookList": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_PromptComposer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_PromptInput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_SystemTurn": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_UserTurn": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixochat_VoiceInputControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_CodeEditorDocsPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_CodeEditorGutter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_CodeEditorLibrarySite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_CurrentLineHighlight": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_DiffEditor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_DiffEditorSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_DiffMarker": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_DiffOverviewRuler": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_DiffPane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_EditorDemoSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_EditorScrollbar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_EmbeddedCodeEditor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_IntelliSenseSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_LanguageSelector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_LineNumberColumn": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_ModifiedDiffPane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_OriginalDiffPane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_ProgrammingLanguageMode": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_SyntaxColorizationSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_SyntaxHighlightTheme": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocode_ThemeSelector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_AcceptConsentAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_BrowserFeatureTip": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_ConsentOverlay": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_CookieConsentDialog": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_OnboardingPopover": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_PrivacyPreferenceAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_RemindLaterAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoconsent_ShowHowAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_AnimationHandle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_AnimationTrack": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_CSSEducationSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_CSSExampleArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_CSSFrameworkLandingPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_CSSFrameworkSite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_CodeWindow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ColorFamilyColumn": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ColorPaletteDemo": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ColorPaletteGrid": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ColorScaleRow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ColorSwatch": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ColorValueTooltip": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_DesignTokenDemo": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_EasingCurvePreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ImageMasonryPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_LayoutEducationCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_MarkupDemo": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_MotionEducationCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_PairedCodePreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_QuickSearchControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_RenderedDesignPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ThemeVariableSet": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_ThemeVariableToken": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_TransitionCurveDemo": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_TransitionCurveRow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_UtilityClassMention": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_UtilityClassSet": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_UtilityClassToken": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_UtilityFirstCSSFramework": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixocss_VersionSelectorPill": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_AdminDashboardApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_AnalyticsChartPanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_DashboardPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_DashboardSidebar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_DataPoint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_ExportDashboardAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_LineSeries": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_NavigationItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_ReportTableSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_SavedReportLink": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_SavedReportList": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_ShareDashboardAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodash_TimeRangeFilter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_AutoSaveToggle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_CodeEditorPane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_CodePlaygroundApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_CompilerConfig": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_DemoControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_DemoOutputView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_DevToggle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_DocumentationHint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_ErrorDisplayToggle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_FileTab": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_InteractiveDemoState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_LivePreviewPane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_PlaygroundSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_PreviewConsole": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_PreviewTab": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_RangeControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_RuntimeVersionSelector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_SSRModeToggle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_SecurityUpdateCTA": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodev_SourceFile": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_AcceptedDropState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_ActiveDragOverlay": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DragDropDemoCanvas": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DragDropDemoPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DragDropDocumentationSite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DragDropSidebar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DragState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DraggableItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DraggingState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DropInteraction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DropPlaceholder": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DroppableDemoPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DroppableItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_Dropzone": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DropzoneConstraint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_DropzoneGrid": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_GithubCodeLink": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_HoveringDropzoneState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_RejectedDropState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_SwapInteraction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_SwappableDemoPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodnd_SwappableItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_CodeBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_ContentPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_ContentSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_ExternalLink": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_Heading": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_InformationArchitecture": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_InlineCode": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_NavigationGroup": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_NavigationItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_NavigationTree": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_Paragraph": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_Route": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_ScrollContainer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixodoc_TableOfContents": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_BadgeExample": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_BadgeInstance": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_CodeExample": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_CollectionExample": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_CollectionItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_ComponentCategory": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_ComponentDocPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_ComponentExample": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_ComponentLibrarySite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_ComponentNavItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_ComponentPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_ComponentSidebar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_DeveloperDocumentationPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_DirectiveDocumentationPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_DirectiveExample": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_DocsSidebarHint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_DocumentationAdCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_DropdownExample": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_HorizontalScrollCodeRegion": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_InlineCodeToken": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_RightToc": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_SponsorGrid": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixods_SponsorSlot": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_AddBlockAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_BlockAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_BlockToolbar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_CanonicalDocument": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ContentAuthoringApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ContentBlockEditor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ContributorCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DataSourceCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DeleteBlockAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DocumentCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DocumentInspector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DocumentOutline": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DocumentStat": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DocumentStatsPanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DocumentWorkspace": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_DuplicateBlockAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_EditableBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ExportDocumentAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ExternalReferenceCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_HeadingBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_LicenseCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ListBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ListItemEditor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_LoadDocumentAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_MetadataField": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_MetadataGroup": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_MetadataInspector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_MoveBlockDownAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_MoveBlockUpAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_OutlineSectionItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ParagraphBlock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ProvenanceCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_SourceCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_StructuredContentEditor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_StructuredDocument": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_TagChip": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_TagEditor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoedit_ValidationBadge": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_ContentOcclusionRisk": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_ContextMenu": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_FieldGroup": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_FooterBar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_Form": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_FormField": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_InteractionModality": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_MenuItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_NavigationRail": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_OverflowMenu": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_ResponsiveBreakage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_ScrollRegion": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_Sidebar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_StickyRegion": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_Toolbar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_TopBar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_ViewportFitConstraint": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoflow_VisualLayer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogallery_ExternalWebsiteReference": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogallery_ShowcaseCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogallery_ShowcaseCategory": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogallery_ShowcaseGrid": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogallery_ShowcaseItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogallery_ShowcasePage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogallery_ShowcaseThumbnail": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_AmbientOcclusionMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_CheckboxParameter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_DiffuseMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_DisplacementMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_DonationPanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_ExportControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_GraphicsPanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_GraphicsParameter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_GraphicsToolApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_HeightMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_ImagePreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_ImageProcessingWorkspace": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_ImageUploadDropZone": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_MapType": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_ModelPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_NormalMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_NumericParameter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_RenderPreview3D": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_SelectParameter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_SliderParameter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_SpecularMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_TextureMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixogfx_TextureMapGenerator": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_AudioItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_CaptionControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_Channel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_EngagementBar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_FullscreenControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_MediaApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_MediaFeed": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_MediaItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_MediaMetadataPanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_PlaybackControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_PlaybackSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_PlayerControlBar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_PlaylistQueue": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_RecommendationFeed": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_SubscriptionList": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_Thumbnail": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_TimelineScrubber": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_TopicChip": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_VideoCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_VideoItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_VideoPlayer": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomedia_VolumeControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_BrandNavigation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_CTAButton": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_CustomerStorySection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_FeatureDemoMedia": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_FloatingAssistantWidget": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_LandingPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_MarketingSite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_PricingLink": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_ProductCapability": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_ProductFeatureCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_ProductFeatureGrid": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_SignupCTA": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_TestimonialCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomkt_VoiceChatWidget": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomob_BottomComposerDock": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomob_GesturePolicy": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomob_HamburgerMenuControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomob_MobileTopBar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomob_MobileViewport": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixomob_SafeArea": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_ComparisonFeatureRow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PlanAvailabilityCell": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PlanCTA": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PlanCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PlanComparisonMatrix": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PlanFeature": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PlanFeatureList": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PriceAmount": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PricingPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprice_PricingPlan": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_CapabilityCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_CustomerLogoMark": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_DemoAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_DeveloperPlatformLandingPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_FeatureCluster": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_FeatureIcon": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_FeatureTile": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_GhostFeatureTile": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_HeroSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_LoginAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_ProductCapabilityMatrix": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_ProductPillarTile": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_ProductPlatformLandingPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_ProductPlatformSite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_SignupAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_SocialProofStrip": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprod_TrustedBySection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_ConfidenceAssessment": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_EvidenceRelation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_GroundingClaim": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_ProvenanceClassification": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_SourceBinding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_SynthesisBoundary": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_TraceLink": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoprov_TraceabilityModel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_AdSlot": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_ContentCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_RankingFeature": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_RankingModel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_RecommendationItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_RecommendationReason": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_RecommendationSet": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_RecommendationSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_SponsoredLabel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixorec_TopicFilter": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_AccountAuthorizationSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_AccountSetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_CredentialSetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_DangerZoneSetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_LinkedAccountProvider": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_NotificationSetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_PreferenceSetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_PrivacySetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_ProfileSetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingRow": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingsApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingsGroup": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingsPanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingsSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingsSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_SettingsTab": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoset_ToggleSetting": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_ClipboardInstallCommand": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_EmulatedBackend": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalBackend": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalCodeExample": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalCommand": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalCursor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalDocumentationPage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalDocumentationSite": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalEmulator": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalFeatureItem": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalFeaturePanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalHeroSection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalInputLine": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalOutput": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalPrompt": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalSession": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalTheme": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoterm_TerminalViewport": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_BarChartView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_ColorEncoding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_DataDimension": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_DataMeasure": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_GraphView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_HeatmapView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_HoverState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_Legend": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_LineChartView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_LineMark": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_NetworkGraphView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_OpacityEncoding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_PointMark": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_PositionEncoding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_RectMark": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_Scale": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_ScatterPlotView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_SelectionState": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_ShapeEncoding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_SizeEncoding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_TreemapView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_ViewportSelection": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_VisualEncoding": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_VisualMark": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixoviz_Visualization": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_AccountMenu": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_ArtifactAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_ArtifactHeader": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_ArtifactPane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_ArtifactPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_AssistantWorkbenchApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_ChatPane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_CloseArtifactAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_CopyArtifactAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_DocumentPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_DownloadArtifactAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_FileAttachmentCard": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_GeneratedArtifact": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_HTMLPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_MarkdownPreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_OpenExternalArtifactAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_Pane": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_PreviewModeToggle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_ReloadPreviewAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_SourceCodePreview": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_SplitPaneLayout": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowb_WorkbenchSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_AddNoteAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_ClearRunAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagCodeView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagGraphView": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagRun": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagRunDetailsPanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagRunMetadataField": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagRunTab": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagRunTabSet": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_DagRunToolbar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_GraphCanvas": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_GraphGridBackground": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_GraphMiniMap": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_GraphZoomControl": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_MarkRunAsAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_ParsedCodeMetadata": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_SearchDagsAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_TaskDependencyEdge": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_TaskInstance": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_TaskNode": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_TriggerDagAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_WorkflowDag": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowf_WorkflowOrchestratorApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_AnonymousEditNotice": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_AppearanceOption": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_AppearancePanel": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_ArticleActionTab": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_ArticleNamespaceTab": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_ArticleTableOfContents": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_CancelEditAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_Citation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_CopyrightNotice": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_EditSummaryField": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_Infobox": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_InfoboxField": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_InfoboxImage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_LanguageSelector": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_PublishChangesAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_Reference": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_ReferenceList": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_ShowChangesAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_ShowPreviewAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_StartEditingAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_SwitchToVisualEditorAction": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WelcomeToEditModal": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiApplication": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiArticle": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiArticlePage": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiEditSurface": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiEditToolbar": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiNoticeBanner": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiSourceEditor": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiTemplateInvocation": {
+      "idField": "id",
+      "identityKind": "id-field"
+    },
+    "Uixowiki_WikiTransclusion": {
+      "idField": "id",
+      "identityKind": "id-field"
+    }
+  }
+}

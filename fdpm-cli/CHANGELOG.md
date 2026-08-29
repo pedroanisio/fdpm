@@ -21,7 +21,328 @@ upgrade.
 
 ## [Unreleased]
 
+### Fixed
+
+#### `fdpm.uixo` — match the source ontology: run its oracle, and stop inventing orphans
+
+Validating one real 346-entity document (`claude-app_uixo.json`) against
+both showed the plugin rejecting what the source accepts. The source
+oracle returns `ok: true` — zero issues across all four tiers — while the
+plugin produced 221 findings. Every difference was ours.
+
+- **The oracle now gates ingest.** `uixo-native.ts` exports
+  `validateUixoDocument`, 41 coded checks with a remediation each. It was
+  vendored and never called. It now runs as the first control, and a
+  rejection carries the source's own E-code, tier and fix, so an operator
+  can look it up in `UIXO_ERRORS`. This recovers the state-machine,
+  status-family, conditional and policy rules the profile does not carry
+  — the plugin previously enforced roughly 14 of the 41.
+- **Envelope.** Ingest demanded `nodes`; the source's document shape
+  declares `entities`, and ingest is `.strict()`, so a valid document
+  could not be read at all. The envelope is the source's to define.
+- **`extensions` was un-ingestable in either direction.** The bridge
+  mapped `z.record` to `kind: "string", format: "json-record"` — "an
+  opaque JSON-encoded string; let the validator enforce key/value rules".
+  That intent cannot hold: the profile then demands a string while the
+  validator generated from the same record demands a record. Records now
+  map to the host's `json` field kind (`validation/pipeline.ts` treats it
+  as an object), so the value is stored as an object and the validator
+  checks it for real. 712 uixo fields were affected; no other plugin uses
+  a record, and no workbook held one.
+- **221 false orphans.** The source counts an entity reachable through
+  soft links anywhere inside `extensions`; our walk saw none, because the
+  links were locked in an opaque string. The invariant now reads them
+  back and resolves them through `field_values.id`. False positives are
+  worse than missing checks — they teach an operator to ignore the
+  validator.
+
+The declared losses were corrected rather than left standing:
+`uixo.document-oracle-not-ported` becomes
+`uixo.document-oracle-gate-at-ingest` (the oracle runs at ingest; the
+per-write path is still narrower, because the host validates one write at
+a time and cannot see the document), and `uixo.extensions-opaque` becomes
+`uixo.extensions-untyped` (validated as an object now; its soft links are
+still not typed relations).
+
+The operator's document now ingests: 346 primitives, 340 relations,
+`validate` clean. 54 uixo tests (9 new), full suite 178 files / 1664
+tests.
+
+
+#### `FieldDef.name`: enforce what SPEC-CORE actually requires, not a house style
+
+The three legacy exemptions added hours earlier are gone, and so are the
+warnings on every command. Investigating what it would cost to rename
+5,665 camelCase fields turned up the better answer: **the rule was the
+defect.**
+
+- SPEC-CORE states exactly one requirement of a field name — "Every
+  `FieldDef` has a `name` unique within its containing primitive or
+  struct". It says nothing about characters. The `^[a-z][a-z0-9_]*$`
+  pattern in `models/meta.ts` was a house style presented as a contract.
+- Nothing in the host depends on the shape: a name is an opaque key into
+  `field_values` (`validation/pipeline.ts:396,408,602`), and core
+  contains no case conversion at all.
+- Three independent parts of the codebase contradicted it — the host's
+  own profile compiler (`_item`), the Zod bridge (`<field>Item`), and
+  three domains whose vocabularies are camelCase in their own literature
+  (`epistemicMethod`, `hasSeverity`, `ownedAttribute`). A rule the
+  generator, the compiler and the domains all break is not protecting
+  anything; it cost a 1,375-field renaming in the UML derivation.
+
+So `FieldDef.name` now requires an **identifier** —
+`^[A-Za-z_][A-Za-z0-9_]*$` — which forbids exactly what would break:
+dots, brackets, quotes and spaces make `field_path: "field_values.<name>"`
+ambiguous or unparseable. Measured before changing it: the only
+non-conforming characters anywhere in the 18 registered profiles were
+uppercase letters.
+
+And the rule SPEC-CORE *does* state is now enforced, which nothing
+checked: **field names must be unique within their primitive type or
+struct**. A duplicate is not cosmetic — `field_values` is keyed by name,
+so the second definition silently shadows the first and its validations
+never run. No registered profile has one today; the check guards the
+future.
+
+`LEGACY_UNVALIDATED_PROFILES` is deleted. Plugin profile registration
+validates unconditionally, like every other entry point. `fdpm profile
+list` prints 18 profiles with versions, real labels, and no warnings.
+snake_case remains the convention for new work — the generators emit it —
+but it is a convention, not a gate.
+
+
+#### Plugin-contributed profiles are now validated like every other kind
+
+`fdpm profile list` showed `VERSION undefined` for three profiles
+(operator report, 2026-08-29). The cause was not three careless plugins:
+`registerPluginProfile` was the only entry point that never parsed
+against `DomainProfile`. `fdpm profile register`, the MCP
+`fdpm.profile.register` tool and the persisted-profile loader all
+validate; the plugin path did not, so a plugin could register a profile
+the operator could not — and that the host would refuse to reload from
+disk. **Eleven of seventeen registered profiles failed their own
+schema.**
+
+Four defects hid in that gap, each fixed at its source:
+
+- **`version` was absent.** It is REQUIRED by the schema, and the CLI
+  interpolated the missing value straight into the table. The bridge now
+  emits `version` for every profile it generates — from the sidecar's new
+  `profileVersion`, else `pluginVersion` — plus a readable `label`
+  (`profileLabel`, else derived from the id: `profile:acme-pitch-deck:0.1`
+  → `Acme Pitch Deck 0.1`). No bridge plugin can ship without identity
+  again.
+- **The bridge minted illegal field names.** Array element fields were
+  named `` `${field}Item` `` — camelCase, which violates `FieldDef.name`'s
+  `^[a-z][a-z0-9_]*$`, the rule the host enforces on every hand-written
+  profile. Now `` `${field}_item` ``.
+- **So did the host's own profile compiler.** `compileProfile` synthesised
+  `item_field.name = "_item"` for legacy `T[]` fields — a leading
+  underscore, which the same rule forbids. Now `"item"`. This affected
+  six hand-written profiles (dnis, planning, formal-specification,
+  software-architecture, spec-authoring, starter).
+- **The bridge emitted two keys the strict schema did not model.**
+  `format` (`iso-8601`, `json-union`, …) and `nullable` are generator
+  metadata the bridge's own view-page and product-page artefacts read;
+  the host does not interpret them. They are now declared on `FieldDef`,
+  making a long-standing tolerance explicit.
+
+Enforcement is a **ratchet, not a cliff**. `LEGACY_UNVALIDATED_PROFILES`
+exempts exactly three domains whose Zod schemas use camelCase field names
+— academic-paper (128), acme-pitch-deck (99) and uixo (5,438). Those names
+are stored in live workbooks' `field_values`, so clearing them is a schema
+rename plus a data migration of every workbook on that profile, not a code
+edit. They register with a startup warning that states the count; anything
+else that fails to parse is now a hard error. A test asserts the list
+contains exactly those three, that each is registered, and that each still
+fails — so an entry that becomes clean must be removed rather than left to
+rot, and a fourth cannot be quietly appended.
+
+All seven bridge plugins were regenerated (drift gates clean). Verified:
+`fdpm profile list` shows a version and a real label for all 18 profiles;
+the MCP server starts and reports 18/18 with versions.
+
+
+#### build: `copy-plugin-assets` now prunes, so a deleted plugin actually disappears
+
+Deleting `plugins/academic_paper/` removed `profile:academic-paper:0.3`
+from the source tree, but `fdpm profile list` kept showing it. Plugin
+discovery resolves relative to itself — `dist/src/plugin/discovery.js` →
+`dist/plugins` — and the build step only ever *copied*: nothing removed
+a destination file whose source was gone, and `tsc` does not delete emit
+for a vanished `.ts`. The deleted plugin therefore survived in
+`dist/plugins/` (45 files) and every built binary went on registering a
+profile the operator had removed. The MCP server has the same
+resolution, so it was serving it too.
+
+`copyPluginAssets` now mirrors rather than accumulates: after copying it
+prunes every destination file the source no longer justifies — an asset
+must exist in source, and compiled output (`.js`, `.js.map`, `.d.ts`,
+`.d.ts.map`) must have its `.ts` source — then removes the directories
+left empty. Four tests in `tests/plugin-asset-copy.test.ts` cover a
+removed plugin, surviving emit whose source lives, stale emit whose
+source was deleted, and idempotence.
+
+### Removed
+
+#### `web/` — the Vite browser and its Node bridge are retired
+
+The `fdpm-cli/web` workspace is deleted: 48 tracked files, its own
+`package.json` / `package-lock.json` dependency set (React, Vite,
+KaTeX, marked, Playwright, `@axe-core/playwright`), its `vitest` unit
+suite, and its `playwright` end-to-end suite with six committed
+screenshot baselines.
+
+What went with it:
+
+- **The HTTP surface.** `server/bridge.ts` spawned `fdpm <args> --json`
+  per request behind nine read endpoints plus one allow-listed write
+  family, `POST /api/planning/:verb`. FDPM now ships no HTTP front, and
+  the process-per-request front is gone from the concurrency picture —
+  the long-lived fronts are the REPL and `fdpm-mcp`, both of which
+  detect out-of-band appends by the log's `(mtime_ns, size)` tuple.
+- **The two React views** (workbook list, workbook detail) and the
+  per-profile templates (`PlanningView`, `GanttView`,
+  `FormalSpecificationView`, `SoftwareArchitectureView`,
+  `ProseWithMath`, `Math`) that lived in `web/src/templates/`.
+- **The Playwright accessibility suite** added days earlier
+  (`e2e/ux.spec.ts`, axe-core across three viewports in both themes).
+
+Nothing in the host depended on it. The web workspace was never a
+dependency of `@fdpm/cli`: it declared its own package graph, was
+absent from the host `tsconfig.json` include, was excluded by the host
+`vitest` include (`tests/**/*.test.ts`), and was named by none of the
+four GitHub workflows. `npx tsc -p tsconfig.json --noEmit` is clean and
+the host suite is unchanged by the removal.
+
+Two contracts outlive their only consumer and are now dead code rather
+than integration points, recorded here so they are not mistaken for
+live surfaces:
+
+- `HTTP_STATUS_FOR_CATEGORY` (`src/core/errors/fdpm-exception.ts:55`)
+  maps the 10-category error taxonomy to HTTP status. The bridge was
+  its only caller.
+- `BridgeResult.viewPage` (`ViewPageDescriptor`) is still emitted by
+  `@fdpm/zod-bridge` into `plugins/<id>/generated/view-page.json` and
+  is still held byte-stable by the CI drift gate, but the host
+  registers no `fdpm://plugin/<id>/view-page` resource and no client
+  reads it.
+
+`PURPOSE.md` is unaffected: it describes the web UI in the future tense
+throughout ("A web UI *will* sit on top of the same MCP surface") and
+states that HTTP is out of scope for the CLI runtime. The README's
+implementation-status table already listed "Web UI (humans on the same
+MCP surface)" as `Future`. Retiring the prototype removes the one place
+where the tree claimed more than those documents do.
+
+Two untracked whole-repository review artefacts that happened to live
+under `web/` — the 2026-07-13 strengths/weaknesses pair, whose declared
+scope is the git root, not the web app — were moved to
+`docs/reviews/repo-review-20260713-{strengths,weaknesses}.json` rather
+than deleted; `docs/architecture/FDPM-ARCHITECTURE-2026-08-28.md` cites
+them as evidence.
+
+#### `fdpm.academic-paper` — `profile:academic-paper:0.3` withdrawn
+
+The plugin registering `profile:academic-paper:0.3` is deleted. A
+structural diff against `profile:academic-paper:0.4.1` found the two
+profiles identical: 24 primitive types, 61 relation types, 279 CEL
+constraints, 22 enum defs and 33 validation rules, all byte-identical
+once the vendor prefix (`acad:` vs `acad041:`) and the plugin-id prefix
+on rule ids are normalised. The only raw difference — `validation_rules`
+at 11,027 vs 11,489 bytes — was exactly 33 rules x 2 id fields x the 7
+characters of `-v0-4-1`.
+
+What 0.4.1 adds is not in the profile at all: three checks inside the
+Zod `superRefine` — a `Quotation.translatedFrom` self-loop, and
+transitive cycle detection for `Claim.supersededBy` and
+`Quotation.translatedFrom` — bringing the typed-graph integrity layer to
+parity with the rev3 SHACL mirror. Those bite at write time and are
+invisible to `fdpm.profile.get` / `type_info`, which is why the two
+profiles read as identical over MCP.
+
+- No workbook was bound to 0.3 (checked against the live data dir before
+  removal), so nothing is stranded and no migration is required.
+- The deleted plugin's own version numbers disagreed with each other:
+  `package.json` 0.1.0, manifest 0.4.0, profile id 0.3 — and its rules
+  carried `[since 0.4]` descriptions, so the `0.3` label was already
+  stale.
+- The surviving plugin **reclaims the `acad:` vendor namespace**. Its
+  `acad041:` prefix existed only so two plugins could declare
+  `acad:Paper` without colliding at registration; with the older plugin
+  withdrawn the discriminator discriminated nothing. All 24 primitive
+  type ids, 61 relation type ids and the `id_format` patterns move
+  `acad041:` → `acad:`; the profile id stays
+  `profile:academic-paper:0.4.1`.
+- Downstream tooling therefore keeps working with a one-line change
+  each: `acad_validate.py`, `test_acad_validate.py` and
+  `scripts/fdpm_to_latex.py` had only their profile-id constant
+  repointed at 0.4.1 — their 100 `acad:Type` strings are untouched and
+  all of them resolve against the live profile (verified). Python suite:
+  83 passed, 2 skipped.
+- Still carrying the old discriminator: the plugin **id**
+  (`fdpm.academic-paper-v0-4-1`, which prefixes the 33 rule ids) and its
+  directory name (`plugins/academic_paper_v0_4_1`). Neither is addressed
+  by the Python tooling, so both were left alone.
+
 ### Added
+
+#### `fdpm.uixo` 0.1.0 — UIXO v11 interaction ontology, with its graph edges made enforceable
+
+712 ontology classes as primitive types and **210 relation types derived
+from the ontology's own hierarchy**, from a vendored
+[`schemas/uixo-native.ts`](plugins/uixo/schemas/uixo-native.ts) v1.2.0
+(source ontology `uixo_tbox_full_v11`, sha256 `bd808d51...`).
+
+- **The defect this fixes, measured.** `uixo-native.ts` is already Zod and
+  `@fdpm/zod-bridge` accepts it unchanged - 712 primitive types in 100 ms.
+  That result is worthless: the source models every graph edge as
+  `z.array(UixoEntityIdSchema)`, so the bridge emitted **0 relation types
+  and 1,653 list fields of opaque id strings**, and a Button written with
+  `hasChildComponent: ["ex:does-not-exist"]` was **accepted with zero
+  findings**. 712 typed boxes and no graph.
+- **[`derive.ts`](plugins/uixo/derive.ts)** lifts all 1,653 edge fields out
+  of the entity schemas and re-expresses them as relation types. Nothing is
+  hand-maintained: each edge's RDF range comes from its own `.describe()`
+  (present on 1,653 of 1,653) and the classes satisfying that range from
+  `CLASS_PARENT`, the ontology's 712-entry hierarchy. 1,653 occurrences
+  collapse to 210 properties - `hasChildComponent` is one property that 272
+  classes carry, not 272 relations. Target sets stay precise: median 1,
+  p90 45, max 272. Lifting uses `.omit()` on the strict source object, so
+  writing a lifted field is now a **rejection**, not a silently stored list.
+- **The host now enforces, per write:** endpoint existence, `owl:range`
+  (`hasLayout` refuses a Button) and `owl:domain` (`uixo:Canvas` declares no
+  `hasChildComponent`, so it cannot source one - this caught a wrong
+  assumption in the first test fixture).
+- **Prefixed class names.** Five local names are declared in two namespaces
+  each (`InlineCode`, `LanguageSelector`, `NavigationItem`,
+  `PromptComposer`, `VisualLayer`); unprefixed, ten distinct classes would
+  silently become five. Field names, by contrast, pass through unchanged -
+  for an RDF vocabulary the camelCase property name is the name.
+- **Vendoring is a script**, not a hand-edit:
+  [`scripts/vendor-uixo.ts`](plugins/uixo/scripts/vendor-uixo.ts) prepends a
+  header and applies five recorded type annotations (upstream exports whose
+  inferred types exceed TS7056's declaration-emit limit). `--check`
+  reverses them and re-hashes, so an in-place edit of the vendored body
+  fails. The upstream sha256 is asserted by test.
+- **[`invariants.ts`](plugins/uixo/invariants.ts)** ports the source
+  oracle's graph-level v1.1/v1.2 deltas - one InteractionSystem root,
+  reachability, containment as a tree with reciprocal edges and unique
+  `orderIndex`, non-blank labels - because a per-primitive `ValidatorFn`
+  receives one instance and the relations, never the sibling primitives.
+  The semantic and policy tiers are **not** ported and are declared as such.
+- **Ingest** carries all five PALS's-LAW controls; **two** renderers, not
+  712 - a class table that dispatches on `type_id`, and a document outline
+  that walks the containment tree back out of the relations.
+- Scale is a non-issue for the host (register 1 ms, 0.3 MB heap), but
+  `generated/profile.json` is **7.1 MB**, which makes
+  `FDPM_MCP_MAX_RESOURCE_BYTES` (`task:p1-sizecap`, still Backlog) a
+  prerequisite rather than a nicety.
+- 45 tests; seven declared losses in `generated/audit.json`.
+
+ARCHITECTURAL REQUIREMENT (PALS's LAW): LLMs will always produce some form of error.
+Absence of output verification is a design defect, not a runtime bug.
+All LLM output must be treated as untrusted and validated explicitly.
 
 #### `fdpm.uml` 0.3.0 — components, ports and connectors (roadmap Phase 2)
 

@@ -1,0 +1,10 @@
+{
+  "hash": "d199cf45308c23a587fda9ac54c9c4303815243fb3c940f6379d62b1ce58fbf4",
+  "hash_algo": "sha256",
+  "pinned_plugin_version": "0.1.0",
+  "sources": [
+    "schemas/uixo-native.ts",
+    "sidecar.ts",
+    "derive.ts"
+  ]
+}
