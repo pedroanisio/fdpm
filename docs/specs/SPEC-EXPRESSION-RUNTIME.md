@@ -340,13 +340,13 @@ doc.section_index             map<string, string>↳ render-time only (helper-se
                                               Populated by spec:SpecMarkdownRenderer's DFS over the
                                               dnis:Node graph per SPEC-SECTIONS-TREE v0.2; consumed by
                                               `fn.section_of`.
-workbook                       map             Workbook-level data.
-workbook.id                    string          ↳
-workbook.profile_id            string          ↳
-workbook.revision              int             Current operation-log revision.
-workbook.fingerprint           string          SHA-256 of operation log up to workbook.revision.
-workbook.primitives            list<map>       All primitives in the workbook.
-workbook.relations             list<map>       All relations.
+workbook                      map             Workbook-level data.
+workbook.id                   string          ↳
+workbook.profile_id           string          ↳
+workbook.revision             int             Current operation-log revision.
+workbook.fingerprint          string          SHA-256 of operation log up to workbook.revision.
+workbook.primitives           list<map>       All primitives in the workbook.
+workbook.relations            list<map>       All relations.
 host                          map             Host-level facts.
 host.fdpm_version             string          e.g. "1.1.1".
 host.helper_set_version       string          e.g. "1.0.0" (see §M14).
@@ -798,10 +798,7 @@ Other open questions (defaulted):
 
 - cel-js — TypeScript implementation of CEL. (https://www.npmjs.com/package/cel-js) _[unverified]_ — Existence and license to be verified before adoption; PR must pin a specific version that satisfies the §M14 CEL revision.
 - Common Expression Language Specification, Google. (https://github.com/google/cel-spec) _[unverified]_ — Reader must verify the spec revision pinned at implementation time. Bumping CEL is a SPEC-amendment concern (§M14). Initial pin TBD; expected v0.5.0.
-- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
-
->    1 | doc.fields.verification_note
-                    ^]]
+- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_
 - SPEC-CEL-VALIDATOR — CEL Runtime Validator for FDPM Plugin Predicates v0.1. (docs/specs/SPEC-CEL-VALIDATOR.md) _[verified]_ — Authored before this SPEC; will be amended to consume the contracts here.
 - SPEC-PLUGGABLE-ARCHITECTURE — Plugin runtime, capabilities, permissions. (docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) _[verified]_ — Will require amendment for cap:expr-helper and read:vcs / read:os-info permissions (per §13 implementation plan).
 - SPEC-RENDER-DSL — Render-Time DSL for FDPM Document Templates v0.1. (docs/specs/SPEC-RENDER-DSL.md) _[verified]_ — Authored alongside this SPEC; consumes the activation surface and helpers defined here.

@@ -23,6 +23,29 @@ upgrade.
 
 ### Fixed
 
+#### `spec:SpecMarkdownRenderer` — references without optional fields rendered a `[[render-error]]` marker into the SPEC
+
+`spec:Reference.locator` and `.verification_note` are optional (the note
+is required only for `unverified` / `cannot_verify`). `REFERENCE_ITEM_TEMPLATE`
+guarded both with `${if: doc.fields.<field>}`, but the guard is evaluated
+by CEL, where reading an absent map key is an **error**, not a falsy
+value. Every reference that omitted either field therefore emitted
+`[[render-error: doc.fields.verification_note :: No such key …]]` into
+the rendered document and pushed a render finding.
+
+- Both guards now use the CEL presence macro (`${if: has(doc.fields.…)}`).
+- Re-rendered from source, marker-free: SPEC-CEL-VALIDATOR, SPEC-CORE,
+  SPEC-DOCUMENT-PLAN, SPEC-EXPRESSION-RUNTIME, SPEC-MCP-SERVER,
+  SPEC-RENDER-DSL, SPEC-REPL. The SPEC-EXPRESSION-RUNTIME re-render also
+  absorbs a pre-existing column-alignment drift in the §M activation
+  table (the committed file predated a build-script change; the
+  determinism test compares two fresh builds, never the committed file,
+  so the drift was invisible to it).
+- Test: `tests/spec-md-body-eval.test.ts` renders one reference with
+  neither optional field and one with both — no marker, no findings,
+  optional parts omitted rather than emptied.
+
+
 #### `fdpm-mcp` — connected clients never heard about workbooks created after connect (SPEC-MCP-SERVER §10.1, §15.4)
 
 `resources/list` and `prompts/list` are computed from the live `Host` on

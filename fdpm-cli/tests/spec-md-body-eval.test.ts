@@ -229,3 +229,54 @@ describe("spec:SpecMarkdownRenderer — body_md template evaluation", () => {
     expect(text).toContain("render-error");
   });
 });
+
+/**
+ * References with only their mandatory fields.
+ *
+ * `spec:Reference.locator` and `.verification_note` are optional (the
+ * note is required only for `unverified` / `cannot_verify` — see
+ * spec:val:reference-verification-note). REFERENCE_ITEM_TEMPLATE guards
+ * both with `${if: …}`, but the guard is evaluated by CEL, where
+ * reading an absent map key is an ERROR, not a falsy value. Every
+ * reference that omitted either field therefore rendered a
+ * `[[render-error: … No such key …]]` marker into the SPEC and pushed a
+ * render finding — observed in 8 committed SPECs under docs/specs/.
+ */
+describe("spec:SpecMarkdownRenderer — optional reference fields", () => {
+  it("renders a verified reference that has neither locator nor verification_note", async () => {
+    const host = await freshHost();
+    await newProject(host, "test-ref-optional", "Reference fields");
+    await host.createPrimitive("test-ref-optional", {
+      id: "spec:ref:minimal",
+      type_id: "spec:Reference",
+      field_values: {
+        kind: "repo_file",
+        citation: "The minimal reference (no locator, no note).",
+        verification: "verified",
+      },
+    });
+    await host.createPrimitive("test-ref-optional", {
+      id: "spec:ref:full",
+      type_id: "spec:Reference",
+      field_values: {
+        kind: "book",
+        citation: "The full reference.",
+        locator: "§4.2",
+        verification: "unverified",
+        verification_note: "Checked against the printed edition.",
+      },
+    });
+
+    const { text, findings } = await renderText(host, "test-ref-optional");
+
+    expect(text).not.toContain("render-error");
+    expect(text).not.toContain("No such key");
+    expect(findings).toHaveLength(0);
+    // The optional parts are omitted, not emptied.
+    expect(text).toContain("- The minimal reference (no locator, no note). _[verified]_");
+    // The reference that carries them still renders them.
+    expect(text).toContain(
+      "- The full reference. (§4.2) _[unverified]_ — Checked against the printed edition.",
+    );
+  });
+});

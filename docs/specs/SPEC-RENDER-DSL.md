@@ -496,10 +496,7 @@ Other open questions (defaulted):
 ## 18. References — verify independently
 
 - Common Expression Language Specification, Google. (https://github.com/google/cel-spec) _[unverified]_ — Reader must verify the spec revision pinned at implementation time; CEL has shipped behaviour-affecting clarifications.
-- FDPM workbook guidelines (PALS-LAW, formalization-means-research, no-deferrals). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
-
->    1 | doc.fields.verification_note
-                    ^]]
+- FDPM workbook guidelines (PALS-LAW, formalization-means-research, no-deferrals). (CLAUDE.md) _[self_evident]_
 - LiquidJS — JavaScript implementation of the Liquid template language. (https://liquidjs.com/) _[unverified]_ — Cited as Option B; existence and license to be verified before any future adoption.
 - spec_authoring renderer — the hand-coded TS this SPEC proposes to replace. (fdpm-cli/plugins/spec_authoring/renderers/spec_md.ts) _[verified]_ — Read at SPEC-authoring time; ~20 small kind-renderer functions.
 - SPEC-CEL-VALIDATOR — CEL Runtime Validator for FDPM Plugin Predicates v0.1. (docs/specs/SPEC-CEL-VALIDATOR.md) _[verified]_ — Authored alongside this SPEC; rendered from the same fdpm.spec-authoring profile.

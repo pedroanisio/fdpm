@@ -391,11 +391,8 @@ Other open questions (defaulted):
 
 - cel-js — TypeScript implementation of CEL. (https://www.npmjs.com/package/cel-js) _[unverified]_ — Existence and license to be verified before adoption; PR must pin a specific version.
 - Common Expression Language Specification, Google, github.com/google/cel-spec. (https://github.com/google/cel-spec) _[unverified]_ — Reader must verify the spec revision pinned at implementation time; CEL has shipped behaviour-affecting clarifications.
-- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
-
->    1 | doc.fields.verification_note
-                    ^]]
 - FDPM ValidationPipeline source. (fdpm-cli/src/core/validation/pipeline.ts) _[verified]_ — Read at SPEC-authoring time; line numbers cited.
+- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_
 - fs plugin TS validators (the 408 lines this SPEC eliminates). (fdpm-cli/plugins/formal_specification/_register_validators.ts) _[verified]_ — Read at SPEC-authoring time.
 - sw plugin's 7 unevaluated predicate rules. (fdpm-cli/plugins/software_architecture/validation_rules.ts) _[verified]_ — Read at SPEC-authoring time.
 

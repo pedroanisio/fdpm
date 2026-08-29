@@ -583,10 +583,7 @@ Other open questions (defaulted):
 ## 28. References — verify independently
 
 - Existing one-shot CLI entry point. (fdpm-cli/src/bin/fdpm.ts) _[verified]_ — Read at SPEC-authoring time.
-- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_[[render-error: doc.fields.verification_note :: No such key: verification_note
-
->    1 | doc.fields.verification_note
-                    ^]]
+- FDPM workbook guidelines (PALS-LAW, formalization-means-research). (CLAUDE.md) _[self_evident]_
 - FDPMException taxonomy reused without extension. (fdpm-cli/src/core/errors/fdpm-exception.ts) _[verified]_ — Read at SPEC-authoring time.
 - Greshake, K. et al., 'Not what you've Signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection', arXiv:2302.12173, 2023. (https://arxiv.org/abs/2302.12173) _[unverified]_ — Cited as the canonical reference for the prompt-injection threat class invoked in §12.
 - Host class — composition the REPL holds. (fdpm-cli/src/core/host.ts) _[verified]_ — Read at SPEC-authoring time.

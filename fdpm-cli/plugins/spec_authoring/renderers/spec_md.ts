@@ -862,8 +862,16 @@ function renderReferences(ctx: Ctx): string[] {
   return lines;
 }
 
+/**
+ * `locator` and `verification_note` are optional on spec:Reference (the
+ * note is required only for `unverified` / `cannot_verify`). The `${if:}`
+ * condition is evaluated by CEL, where reading an absent map key is an
+ * ERROR, not a falsy value — so the guard MUST be the `has()` presence
+ * macro. Guarding on the bare path renders a `[[render-error: … No such
+ * key …]]` marker into the SPEC for every reference that omits the field.
+ */
 const REFERENCE_ITEM_TEMPLATE =
-  "- ${doc.fields.citation}${if: doc.fields.locator} (${doc.fields.locator})${endif} _[${doc.fields.verification}]_${if: doc.fields.verification_note} — ${doc.fields.verification_note}${endif}";
+  "- ${doc.fields.citation}${if: has(doc.fields.locator)} (${doc.fields.locator})${endif} _[${doc.fields.verification}]_${if: has(doc.fields.verification_note)} — ${doc.fields.verification_note}${endif}";
 
 /**
  * Render a dnis:Node section's body_md as a template (SPEC-RENDER-DSL
