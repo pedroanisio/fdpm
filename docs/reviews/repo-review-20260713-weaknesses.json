@@ -1,0 +1,546 @@
+{
+  "repository_summary": {
+    "repository_name": "fdpm-cli-web",
+    "analysis_timestamp": "2026-07-13T20:04:00Z",
+    "scope": "Git repository rooted at /home/admin/github-mirror/_editors/fdpm-cli, with deliverables written from fdpm-cli/web.",
+    "system_thesis": "FDPM has a strong core architecture, but its main risks concentrate at extension teardown, web bridge operational hardening, broad package-root exports, uneven test coverage outside Core/MCP/REPL/plugin-generator paths, and a few semantics that are encoded in comments or conventions more strongly than in executable contracts.",
+    "scale_indicators": {
+      "typescript_source_files_scanned": 330,
+      "typescript_source_lines_scanned": 74276,
+      "mcp_tool_modules": 30,
+      "plugin_manifests": 12,
+      "test_files_scanned": 146
+    }
+  },
+  "methodology": {
+    "evidence_policy": "Weaknesses are based on implemented code paths, imports, calls, tests, and configuration. Documentation-only concerns were excluded unless the code confirmed the risk.",
+    "analysis_steps": [
+      "Traced write execution from CLI/MCP/SDK/web bridge into Host and Store.",
+      "Inspected plugin registration, contribution tracking, disable/quarantine paths, and validator scoping.",
+      "Compared MCP controls with web bridge controls to identify boundary asymmetries.",
+      "Searched tests for direct coverage of command metadata, MCP classification, REPL subprocess behavior, plugin lifecycle, validator scoping, web bridge routes, and generated artifact drift.",
+      "Ran `npm run typecheck` in fdpm-cli and fdpm-cli/web; both passed."
+    ],
+    "validation_commands": [
+      {
+        "command": "npm run typecheck",
+        "working_directory": "fdpm-cli",
+        "result": "passed"
+      },
+      {
+        "command": "npm run typecheck",
+        "working_directory": "fdpm-cli/web",
+        "result": "passed"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "WEAK-001",
+      "title": "Plugin disable teardown does not remove all tracked contribution types",
+      "category": "extension_architecture",
+      "severity": "high",
+      "urgency": "medium",
+      "scope": "Plugin lifecycle, validation pipeline, profile registry, long-lived Host processes",
+      "confidence": "high",
+      "description": "PluginRuntime tracks validators and profiles as contributions, but tearDownContributions removes renderers, expression helpers, transformers, importers, and exporters while leaving profile registrations and validator registrations installed until a full Host restart or reload recreates the pipeline.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/plugin/context.ts",
+          "symbols": [
+            "PluginContributions.profileIds",
+            "PluginContributions.validators",
+            "makeContext.registerProfile",
+            "makeContext.registerValidator"
+          ],
+          "relationship": "Profiles and validators are recorded as contribution types during plugin activation."
+        },
+        {
+          "file": "fdpm-cli/src/plugin/runtime.ts",
+          "symbols": [
+            "PluginRuntime.disable",
+            "PluginRuntime.quarantine",
+            "PluginRuntime.tearDownContributions"
+          ],
+          "relationship": "Disable/quarantine call tearDownContributions, but the method deletes renderer/helper/transformer/importer/exporter contributions only."
+        },
+        {
+          "file": "fdpm-cli/src/core/validation/pipeline.ts",
+          "symbols": [
+            "ValidationPipeline.registerValidator",
+            "ValidationPipeline.validators"
+          ],
+          "relationship": "ValidationPipeline exposes append-only validator registration and no unregister method."
+        },
+        {
+          "file": "fdpm-cli/src/plugin/runtime.ts",
+          "symbols": [
+            "tearDownContributions"
+          ],
+          "relationship": "The implementation comment explicitly notes profiles are left in place because the registry lacks unregister support; validators have the same practical issue without an equivalent comment or removal path."
+        }
+      ],
+      "reasoning": "Contribution tracking implies lifecycle reversibility, but two contribution categories persist after disable/quarantine. In long-lived REPL or MCP sessions, a disabled or quarantined plugin may still influence type/profile availability or validation behavior.",
+      "current_consequences": [
+        "Plugin disable is not a full capability teardown.",
+        "A disabled plugin's validators can continue to run if their originating_profile_ids still match an active workbook profile.",
+        "Operators may need full Host reload or process restart for reliable removal."
+      ],
+      "potential_consequences": [
+        "Hot-reload/uninstall workflows can produce confusing validation failures from plugins that appear disabled.",
+        "Security assumptions around disabling a plugin are weaker than the lifecycle state suggests.",
+        "Future plugin management tooling may incorrectly report a plugin as fully inactive."
+      ],
+      "root_causes": [
+        "ProfileRegistry and ValidationPipeline lack unregister APIs.",
+        "PluginRuntime contribution teardown is incomplete relative to PluginContributions."
+      ],
+      "symptoms": [
+        "tearDownContributions deletes only a subset of contribution maps.",
+        "ValidationPipeline.registerValidator is append-only."
+      ],
+      "dependencies_prerequisites_regressions": [
+        "Adding unregisterProfile must account for workbooks that still reference the profile.",
+        "Removing validators must not break legacy unscoped core validators.",
+        "Tests should cover disable, quarantine, and reload paths so plugin-scoped validator filtering still works."
+      ],
+      "shortest_safe_mitigation_sequence": [
+        "Add ValidationPipeline.unregisterValidatorsForPlugin(pluginId) or unregisterValidator predicates, and store pluginId on registered validator wrappers.",
+        "Call the new unregister method from PluginRuntime.tearDownContributions before clearing contributions.",
+        "Add ProfileRegistry support for marking plugin profiles inactive or unregistering them only when no workbook references them.",
+        "Add plugin-runtime tests where a plugin registers a rejecting validator, is disabled, and subsequent writes no longer invoke that validator.",
+        "Document that full profile removal requires no live workbook references if hard unregister is not implemented."
+      ],
+      "expected_outcome": "Disabling or quarantining a plugin removes or deactivates every contribution type it installed, with explicit behavior for workbooks that still reference plugin-provided profiles.",
+      "verification_criteria": [
+        "A new test fails before the fix when a disabled plugin's validator still fires and passes after teardown removes it.",
+        "Existing validator-profile-scoping tests still pass.",
+        "Plugin runtime lifecycle tests cover profile visibility after disable according to the chosen policy.",
+        "`npm run typecheck` and relevant plugin-runtime tests pass."
+      ]
+    },
+    {
+      "id": "WEAK-002",
+      "title": "Web bridge is a shell-out HTTP adapter with limited direct contract coverage",
+      "category": "integration_boundary",
+      "severity": "medium",
+      "urgency": "medium",
+      "scope": "fdpm-cli/web/server/bridge.ts and React client API",
+      "confidence": "high",
+      "description": "The web bridge spawns an external `fdpm` binary for every request and parses stdout as a single JSON value. It validates routes and allowlists writes, but there are no direct bridge endpoint tests comparable to the repository's MCP and REPL contract tests.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/web/server/bridge.ts",
+          "symbols": [
+            "runFdpm",
+            "handle",
+            "PLANNING_VERBS",
+            "readJsonBody"
+          ],
+          "relationship": "Each HTTP request spawns FDPM_BIN with args, accumulates stdout/stderr, maps nonzero exits, and parses stdout with JSON.parse."
+        },
+        {
+          "file": "fdpm-cli/web/src/api.ts",
+          "symbols": [
+            "getJson",
+            "postJson",
+            "api.planning.runVerb"
+          ],
+          "relationship": "The React client depends on bridge error-envelope shapes and route behavior."
+        },
+        {
+          "file": "fdpm-cli/web/package.json",
+          "symbols": [
+            "scripts.test",
+            "scripts.dev:bridge"
+          ],
+          "relationship": "The web package has a Vitest script but the only discovered web test is for profile document rendering, not bridge endpoints."
+        },
+        {
+          "file": "fdpm-cli/web/vite.config.ts",
+          "symbols": [
+            "server.proxy"
+          ],
+          "relationship": "The UI reaches the bridge through Vite's /api proxy during development."
+        }
+      ],
+      "reasoning": "The bridge is a major runtime adapter and write boundary, yet its behavior is validated mainly by TypeScript compilation and client assumptions. The repository has much stronger executable contracts for MCP and REPL than for this HTTP shim.",
+      "current_consequences": [
+        "Route validation, HTTP status mapping, fdpm stdout/stderr parsing, and planning POST behavior can regress without a targeted test failure.",
+        "The bridge depends on PATH or FDPM_BIN resolving the intended CLI binary."
+      ],
+      "potential_consequences": [
+        "A CLI output-shape change could break the UI while Core, MCP, and REPL tests remain green.",
+        "Concurrent or long-running requests may accumulate child processes without timeout controls.",
+        "Local operator errors may surface as generic 500 responses instead of actionable bridge errors."
+      ],
+      "root_causes": [
+        "The bridge is implemented as an executable script with no exported handler/runFdpm seams for tests.",
+        "The UI bridge path is newer and less covered than the Core/MCP/REPL surfaces."
+      ],
+      "symptoms": [
+        "No direct bridge endpoint test files were found under fdpm-cli/web.",
+        "runFdpm has no child-process timeout, cancellation, or max stdout/stderr cap."
+      ],
+      "dependencies_prerequisites_regressions": [
+        "Refactoring bridge.ts for tests must preserve the standalone `npm run dev:bridge` entry point.",
+        "Timeouts must be conservative enough not to break legitimate heavy renders or slow plugin activation.",
+        "Mocking FDPM_BIN should not bypass route/body validation in tests."
+      ],
+      "shortest_safe_mitigation_sequence": [
+        "Split bridge.ts into exported pure route handler creation plus a thin listen-only main.",
+        "Inject a runFdpm function in tests and cover /api/health, /api/workbooks/:id validation, plugin README 404, invalid methods, invalid planning verbs, body-size failure, CLI not_found mapping, and CLI nonzero mapping.",
+        "Add a configurable child-process timeout and stdout/stderr byte caps in runFdpm.",
+        "Add one integration test that points FDPM_BIN at a fixture script emitting valid and invalid JSON."
+      ],
+      "expected_outcome": "The web bridge becomes a tested local adapter with explicit HTTP contracts and bounded process behavior while retaining spawn-per-request freshness.",
+      "verification_criteria": [
+        "New web Vitest endpoint tests fail on incorrect status codes or malformed bridge envelopes.",
+        "`npm run test` in fdpm-cli/web covers bridge.ts.",
+        "Type checks still pass in fdpm-cli/web.",
+        "Manual `npm run dev` still starts both bridge and Vite with synchronized ports."
+      ]
+    },
+    {
+      "id": "WEAK-003",
+      "title": "Package root exports broad internal surfaces, increasing embedder compatibility risk",
+      "category": "api_surface",
+      "severity": "medium",
+      "urgency": "low",
+      "scope": "@fdpm/cli package exports",
+      "confidence": "high",
+      "description": "The package root exports Host, Store, ProfileRegistry, ValidationPipeline, meta-models, instance models, operation kinds, Operation, payload schemas, replay, sliceProject, JSON patch helpers, host-extra functions, DNIS internals, and SDK helpers. Tests intentionally pin some exports, but the public boundary is wider than the stable SDK facade.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/index.ts",
+          "symbols": [
+            "Host",
+            "Store",
+            "ValidationPipeline",
+            "core/models/meta",
+            "core/operations/payloads",
+            "replay",
+            "sliceProject",
+            "core/dnis/index",
+            "sdk exports"
+          ],
+          "relationship": "Many low-level implementation modules are re-exported from the package root."
+        },
+        {
+          "file": "fdpm-cli/src/sdk.ts",
+          "symbols": [
+            "openHost",
+            "defineProject",
+            "ProjectBuilder"
+          ],
+          "relationship": "The SDK docstring positions Host as source of truth and SDK as a thin convenience facade."
+        },
+        {
+          "file": "fdpm-cli/tests/sdk-public-surface.test.ts",
+          "symbols": [
+            "SDK public surface"
+          ],
+          "relationship": "Tests pin expected SDK and host-extra root exports, making removals visible but also reinforcing compatibility expectations."
+        }
+      ],
+      "reasoning": "For a CLI/core package that is still evolving schemas, replay logic, and plugin lifecycles, broad root exports can turn internal refactors into public breaking changes. This is not an immediate correctness bug, but it raises long-term maintenance cost.",
+      "current_consequences": [
+        "Embedders can depend directly on Store, ValidationPipeline, payload schemas, replay, and DNIS internals.",
+        "Future refactors may require SemVer-major handling even when the intended SDK facade is unchanged."
+      ],
+      "potential_consequences": [
+        "External consumers may bypass intended Host/SDK patterns and create states not anticipated by higher-level contracts.",
+        "Public API compatibility pressure can slow needed internal cleanup."
+      ],
+      "root_causes": [
+        "Package root serves both stable embedder API and internal convenience export roles.",
+        "No explicit stability tier metadata is encoded for exported symbols."
+      ],
+      "symptoms": [
+        "src/index.ts uses broad wildcard exports for core models, operation payloads, and DNIS.",
+        "The SDK is documented as 0.x, but root exports expose lower-level contracts without tier labels in code."
+      ],
+      "dependencies_prerequisites_regressions": [
+        "Changing exports can break current embedders and tests that pin root exports.",
+        "Some plugins or scripts may import from package root expecting these low-level symbols."
+      ],
+      "shortest_safe_mitigation_sequence": [
+        "Classify every root export as stable, beta, or internal-exposed in a machine-readable export manifest.",
+        "Add tests that pin the classification manifest rather than treating all root exports as equal.",
+        "Introduce explicit subpath exports for internal/beta surfaces while keeping root aliases with deprecation notes for one release cycle.",
+        "Keep Host and SDK helpers as the recommended stable mutation API."
+      ],
+      "expected_outcome": "Embedders get a clear stable surface while maintainers retain freedom to evolve lower-level internals through subpath or beta contracts.",
+      "verification_criteria": [
+        "A generated or checked export manifest lists stability tier for each root export.",
+        "Public-surface tests fail when an export is added without classification.",
+        "Existing SDK public-surface tests continue passing during the transition."
+      ]
+    },
+    {
+      "id": "WEAK-004",
+      "title": "Validation pipeline intentionally tolerates some profile rule forms as informational, which can hide enforcement gaps",
+      "category": "validation_semantics",
+      "severity": "medium",
+      "urgency": "medium",
+      "scope": "Profile validation rules, CEL/runtime expression evaluation, plugin validators",
+      "confidence": "medium",
+      "description": "The validation pipeline evaluates supported CEL rules, but unparseable legacy/profile predicates are emitted as info findings rather than blocking writes. This is a pragmatic compatibility choice, but it can make a profile appear more enforced than it is unless rule coverage is audited.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/core/validation/pipeline.ts",
+          "symbols": [
+            "ValidationPipeline.runPrimitive",
+            "CELParseError handling",
+            "ruleIdsCoveredByValidators"
+          ],
+          "relationship": "Profile-level rules with unparseable predicates are converted into info findings, while validators with matching rule IDs can suppress info emissions and enforce real errors."
+        },
+        {
+          "file": "fdpm-cli/src/core/models/meta.ts",
+          "symbols": [
+            "FieldValidation",
+            "TypeConstraint",
+            "PrimitiveTypeDef.constraints"
+          ],
+          "relationship": "The meta-model accepts open legacy validation vocabulary and stores some Python parity constraints verbatim."
+        },
+        {
+          "file": "fdpm-cli/tests/cel-validation.test.ts",
+          "symbols": [
+            "cel-validation"
+          ],
+          "relationship": "CEL behavior is tested, but compatibility fallback remains an intentional non-blocking path."
+        }
+      ],
+      "reasoning": "Compatibility with legacy profiles is valuable, but operators may interpret declared validation rules as enforcement. The implementation distinguishes evaluated rules, validator-covered rules, and informational fallback findings; that distinction needs operational visibility.",
+      "current_consequences": [
+        "Some declared profile constraints may not reject invalid writes.",
+        "Validation reports can contain info-level rule findings that document rule presence rather than enforcement."
+      ],
+      "potential_consequences": [
+        "A domain plugin can ship with validation gaps if rule IDs are declared but no CEL-compatible predicate or custom validator exists.",
+        "Generated artifacts may look complete while relying on author-supplied validators for enforcement."
+      ],
+      "root_causes": [
+        "The system bridges legacy/open profile vocabularies and newer CEL/custom-validator enforcement.",
+        "Rule enforceability is not summarized as a first-class profile health metric."
+      ],
+      "symptoms": [
+        "CELParseError fallback produces info findings.",
+        "Unknown FieldValidation kinds are stored and ignored at runtime."
+      ],
+      "dependencies_prerequisites_regressions": [
+        "Making all unevaluated rules hard errors would likely break existing legacy profiles.",
+        "Generated plugins may need sidecar or bridge updates to provide validator closures for currently non-enforced rules."
+      ],
+      "shortest_safe_mitigation_sequence": [
+        "Add a profile health command or report section that classifies each validation rule as evaluated-by-CEL, covered-by-custom-validator, informational-only, or ignored.",
+        "Fail CI for bundled plugins when a rule intended to be blocking is informational-only.",
+        "Add generated plugin audit fields listing unenforced constraints and required author-supplied validators.",
+        "Keep runtime write behavior backward-compatible until bundled profiles are clean."
+      ],
+      "expected_outcome": "Operators and plugin authors can distinguish declared constraints from enforced constraints without breaking legacy profile compatibility.",
+      "verification_criteria": [
+        "A test fixture profile with CEL, custom-validator, and unparseable rules produces the expected enforceability report.",
+        "Bundled plugin audits list zero unexpected informational-only error-level rules.",
+        "Existing validation behavior remains unchanged unless an explicit strict mode is enabled."
+      ]
+    },
+    {
+      "id": "WEAK-005",
+      "title": "Workbook delete persistence semantics are ambiguous and only lightly asserted",
+      "category": "data_lifecycle",
+      "severity": "low",
+      "urgency": "low",
+      "scope": "Host.deleteProject, JsonlLogStore.deleteProject, workbook lifecycle",
+      "confidence": "medium",
+      "description": "Host.deleteProject appends a workbook.delete operation and returns, while JsonlLogStore has a deleteProject method that is not called by Host.deleteProject. The code comments in Host describe clearing or logically truncating the workbook directory but the implementation keeps the log path untouched.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/core/host.ts",
+          "symbols": [
+            "Host.deleteProject"
+          ],
+          "relationship": "deleteProject appends workbook.delete, enters an if (this.persistence) block containing only comments, then returns."
+        },
+        {
+          "file": "fdpm-cli/src/persistence/jsonl-log.ts",
+          "symbols": [
+            "JsonlLogStore.deleteProject"
+          ],
+          "relationship": "A persistence method exists to remove a workbook directory but is not referenced by Host.deleteProject."
+        },
+        {
+          "file": "fdpm-cli/tests/mcp/tier3-gating.test.ts",
+          "symbols": [
+            "fdpm.workbook.delete runs; operation log grows by exactly one entry"
+          ],
+          "relationship": "Tests assert the operation log grows on delete, but do not settle whether on-disk workbook directories should be removed or retained."
+        }
+      ],
+      "reasoning": "The current implementation may be deliberately append-only, but the existence of an unused deletion method and comments about clearing the on-disk directory make the lifecycle contract unclear. Ambiguity around deletion is operationally sensitive even for local tooling.",
+      "current_consequences": [
+        "Deleted workbook logs remain on disk unless another path removes them.",
+        "The intended behavior for recreating a workbook with the same ID is not expressed as a focused persistence test."
+      ],
+      "potential_consequences": [
+        "Operators may assume delete frees disk state when it preserves audit logs.",
+        "Future maintainers may call JsonlLogStore.deleteProject and accidentally change audit retention semantics."
+      ],
+      "root_causes": [
+        "Two possible lifecycle models exist in code: append-only audited delete and physical directory removal.",
+        "Tests cover MCP destructive gating but not explicit persistence retention policy."
+      ],
+      "symptoms": [
+        "Host.deleteProject has an empty persistence block.",
+        "JsonlLogStore.deleteProject is unused in src except its own definition."
+      ],
+      "dependencies_prerequisites_regressions": [
+        "If physical deletion is enabled, replay and audit expectations change.",
+        "If append-only retention is chosen, deleteProject should not imply disk cleanup."
+      ],
+      "shortest_safe_mitigation_sequence": [
+        "Decide the policy: audited append-only retention or physical removal.",
+        "If append-only retention is intended, remove the empty persistence block or replace it with explicit comment and test asserting log retention.",
+        "If physical removal is intended, call JsonlLogStore.deleteProject only after persisting a tombstone elsewhere that preserves audit requirements.",
+        "Add tests for delete then restart and delete then recreate same ID."
+      ],
+      "expected_outcome": "Workbook delete semantics become explicit and executable, with no unused persistence method suggesting a second behavior.",
+      "verification_criteria": [
+        "A persistence lifecycle test states and verifies whether log files remain after delete.",
+        "A restart after delete produces the expected workbook list.",
+        "A recreate-same-ID test passes under the chosen policy."
+      ]
+    },
+    {
+      "id": "WEAK-006",
+      "title": "Analysis and CI feedback are uneven between core architecture and web UI behavior",
+      "category": "testing",
+      "severity": "medium",
+      "urgency": "medium",
+      "scope": "Test strategy across CLI core, MCP, generator, and web packages",
+      "confidence": "high",
+      "description": "The core CLI, MCP, REPL, plugin runtime, and zod-bridge paths have extensive architecture-level tests. The web package has type checking and at least one print/document test, but lacks comparable coverage for navigation, bridge API consumption, error states, and route rendering behavior.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/vitest.config.ts",
+          "symbols": [
+            "coverage.thresholds"
+          ],
+          "relationship": "The CLI package has coverage thresholds and broad test inclusion."
+        },
+        {
+          "file": "fdpm-cli/tests/repl/repl-integration.test.ts",
+          "symbols": [
+            "fdpm repl end-to-end behavioral tests"
+          ],
+          "relationship": "REPL receives subprocess-level behavioral tests."
+        },
+        {
+          "file": "fdpm-cli/tests/mcp/dispatch.test.ts",
+          "symbols": [
+            "mcp dispatch"
+          ],
+          "relationship": "MCP dispatch has direct tests."
+        },
+        {
+          "file": "fdpm-cli/web/src/print/profileDocument.test.ts",
+          "symbols": [
+            "profileDocument"
+          ],
+          "relationship": "Only one web test was found in source scan, focused on print/profile document behavior."
+        },
+        {
+          "file": "fdpm-cli/web/src/App.tsx",
+          "symbols": [
+            "parseHash",
+            "navigate",
+            "App"
+          ],
+          "relationship": "Hash routing and view selection are implemented but not covered by discovered tests."
+        }
+      ],
+      "reasoning": "The repository's strongest test pattern is contract-level coverage of architectural surfaces. The web app does not yet benefit from that pattern, even though it is now a user-facing integration surface.",
+      "current_consequences": [
+        "UI route changes, bridge error rendering, and data-shape assumptions can regress without local test detection.",
+        "Core confidence is higher than end-to-end operator UI confidence."
+      ],
+      "potential_consequences": [
+        "A valid Core/MCP release can still ship a broken web inspector.",
+        "Future UI additions may become hard to refactor without tests."
+      ],
+      "root_causes": [
+        "The web app is separated as its own package and appears to be newer or less mature than core tooling.",
+        "No browser/component testing harness is configured beyond Vitest for the discovered print test."
+      ],
+      "symptoms": [
+        "Only one web test file was discovered.",
+        "No tests were found for App hash routing, api.ts error extraction, WorkbooksPage, PluginsPage, or bridge endpoint behavior."
+      ],
+      "dependencies_prerequisites_regressions": [
+        "Adding React component tests may require jsdom or a test environment change.",
+        "Bridge tests should avoid invoking a real operator fdpm binary by default."
+      ],
+      "shortest_safe_mitigation_sequence": [
+        "Add jsdom-based tests for App route parsing and top-level view selection.",
+        "Add api.ts unit tests for CLI error extraction and 404-null README handling using mocked fetch.",
+        "Add bridge endpoint tests with injected runFdpm as described in WEAK-002.",
+        "Add one Playwright smoke test only after the bridge and Vite launcher are stable in CI."
+      ],
+      "expected_outcome": "The web inspector has regression coverage proportional to its role as the human-facing front end over the CLI core.",
+      "verification_criteria": [
+        "fdpm-cli/web test suite includes route, API error, and bridge endpoint tests.",
+        "Web tests run without requiring a real ~/.fdpm-cli data directory.",
+        "Existing CLI and web type checks continue passing."
+      ]
+    }
+  ],
+  "cross_cutting_observations": [
+    {
+      "id": "OBS-001",
+      "observation": "Most systemic risks are not in the core append/replay path; they appear where lifecycle and integration boundaries are newer or intentionally pragmatic: plugin teardown, local HTTP bridge, and web UI test coverage."
+    },
+    {
+      "id": "OBS-002",
+      "observation": "The repository often encodes drift-prevention with tests, but a few semantics remain encoded primarily as comments or conventions, especially workbook delete persistence policy and validation enforceability classes."
+    },
+    {
+      "id": "OBS-003",
+      "observation": "The project is appropriately rigorous for an agent-facing CLI/MCP tool, but that rigor is not yet uniform across the whole cohesive system."
+    }
+  ],
+  "recommended_next_actions": [
+    {
+      "id": "NEXT-001",
+      "priority": "P0",
+      "action": "Fix or explicitly constrain plugin teardown semantics before expanding plugin hot-reload, disable, or uninstall workflows."
+    },
+    {
+      "id": "NEXT-002",
+      "priority": "P1",
+      "action": "Refactor the web bridge for dependency injection and add endpoint tests for every route and CLI error mapping."
+    },
+    {
+      "id": "NEXT-003",
+      "priority": "P1",
+      "action": "Add validation enforceability reporting so profile authors can see which rules are executable, custom-validator-backed, informational-only, or ignored."
+    },
+    {
+      "id": "NEXT-004",
+      "priority": "P2",
+      "action": "Classify package-root exports by stability tier and add a test that fails on unclassified exports."
+    },
+    {
+      "id": "NEXT-005",
+      "priority": "P2",
+      "action": "Settle workbook delete retention semantics with focused persistence lifecycle tests."
+    }
+  ],
+  "analysis_limitations": [
+    "The full Vitest suite was not executed during this audit; only TypeScript type checks were run for fdpm-cli and fdpm-cli/web.",
+    "The repository had pre-existing uncommitted changes in fdpm-cli/web; this audit did not attempt to attribute those changes.",
+    "No runtime load test, memory profile, browser screenshot pass, or MCP client interoperability run was performed.",
+    "Some generated plugin artifacts and static fixtures were sampled through generator tests and manifests rather than line-by-line audited."
+  ]
+}

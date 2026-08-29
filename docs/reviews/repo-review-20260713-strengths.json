@@ -1,0 +1,508 @@
+{
+  "repository_summary": {
+    "repository_name": "fdpm-cli-web",
+    "analysis_timestamp": "2026-07-13T20:04:00Z",
+    "scope": "Git repository rooted at /home/admin/github-mirror/_editors/fdpm-cli, with deliverables written from fdpm-cli/web.",
+    "system_thesis": "FDPM is an event-log-centered TypeScript CLI and tooling platform for workbook-shaped domain models. A Host composition root coordinates profiles, plugins, validation, persistence, rendering, REPL reuse, MCP dispatch, and a local React web inspector. The architecture is strongest where every external mutation is funneled through Host and Store append paths, with schema verification, validation reports, replay semantics, and explicit tool/command metadata guarding drift across CLI, REPL, MCP, and plugin surfaces.",
+    "scale_indicators": {
+      "typescript_source_files_scanned": 330,
+      "typescript_source_lines_scanned": 74276,
+      "mcp_tool_modules": 30,
+      "plugin_manifests": 12,
+      "test_files_scanned": 146
+    },
+    "primary_subsystems": [
+      "CLI binaries and Commander command tree",
+      "Host, Store, operation log, validation pipeline, and persistence",
+      "Plugin discovery, manifest validation, lifecycle, renderers, importers, exporters, validators, and expression helpers",
+      "MCP stdio server, tool manifest, dispatcher, sessions, audit log, and resources",
+      "Zod bridge package and generated plugin artifacts",
+      "React/Vite web inspector and local HTTP bridge"
+    ]
+  },
+  "methodology": {
+    "evidence_policy": "Findings are based on actual implementations, imports, calls, registries, tests, and package configuration. Documentation and comments were used only as secondary context when implementation evidence existed.",
+    "analysis_steps": [
+      "Enumerated source, plugin, package, web, test, and configuration files excluding node_modules and build output.",
+      "Traced boundary artifacts: package manifests, tsconfig/vitest config, CLI binaries, command registry, Host, Store, validation, plugin runtime, MCP manifest/dispatcher/session/resources, zod-bridge, and web bridge/API.",
+      "Mapped main execution paths from fdpm and fdpm-mcp entry points through Host and Store.",
+      "Inspected guard tests for command metadata, MCP classification, REPL framing/freshness, operation schema lockstep, plugin lifecycle, validator scoping, generator determinism, and SDK exports.",
+      "Ran `npm run typecheck` in fdpm-cli and fdpm-cli/web; both completed successfully."
+    ],
+    "validation_commands": [
+      {
+        "command": "npm run typecheck",
+        "working_directory": "fdpm-cli",
+        "result": "passed"
+      },
+      {
+        "command": "npm run typecheck",
+        "working_directory": "fdpm-cli/web",
+        "result": "passed"
+      }
+    ],
+    "best_practice_baseline": [
+      "CLI tools with durable local state should centralize mutation semantics, provide deterministic replay, expose structured errors, and keep command registration testable.",
+      "Plugin platforms should validate manifests, isolate plugin failures, permission-gate privileged reads and capabilities, and verify plugin-produced artifacts.",
+      "MCP servers should classify tools by risk, validate arguments before handler execution, audit calls, handle stale state explicitly, and avoid corrupting stdio protocol streams.",
+      "Generator-heavy projects should pin generated artifacts with determinism and drift tests.",
+      "Local developer web tools can accept lighter operational hardening than production services, but their bridge boundaries should still be testable and narrowly scoped."
+    ]
+  },
+  "findings": [
+    {
+      "id": "STR-001",
+      "title": "Host and Store form a coherent non-bypassable mutation core",
+      "category": "architecture",
+      "impact": "high",
+      "confidence": "high",
+      "description": "The implementation routes workbook mutations through Host methods, which validate proposed state before calling Store append paths that verify payload schemas, assign revisions, apply rollback on failure, and persist immutable operations.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/core/host.ts",
+          "symbols": [
+            "Host.createProject",
+            "Host.createPrimitive",
+            "Host.patchPrimitive",
+            "Host.runWithValidation",
+            "Host.appendAndPersist",
+            "Host.appendBatchWithCausation"
+          ],
+          "relationship": "Host methods construct domain payloads, run validation reports for writes, then delegate append/persist."
+        },
+        {
+          "file": "fdpm-cli/src/core/store/store.ts",
+          "symbols": [
+            "Store.append",
+            "Store.appendBatch",
+            "Store.restoreSlice"
+          ],
+          "relationship": "Store.append verifies operation payloads, assigns revision and provenance, applies projection updates with rollback, and commits to operation_log only after successful apply."
+        },
+        {
+          "file": "fdpm-cli/src/core/gate/verification-gate.ts",
+          "symbols": [
+            "verifyOperationPayload"
+          ],
+          "relationship": "Every Store append consults PAYLOAD_SCHEMAS before projection mutation."
+        },
+        {
+          "file": "fdpm-cli/src/persistence/jsonl-log.ts",
+          "symbols": [
+            "JsonlLogStore.appendOp",
+            "JsonlLogStore.readLog"
+          ],
+          "relationship": "Persistence stores operation records as JSONL and validates replayed records against Operation."
+        }
+      ],
+      "reasoning": "The data-flow from CLI/MCP/SDK calls to Host and then Store is consistent and implementation-enforced. Store is the serialization point and is not merely a passive repository.",
+      "practical_value": "This lowers drift risk across CLI, REPL, MCP, SDK, plugins, and web bridge because each surface can reuse the same append, validation, and replay semantics.",
+      "conditions_or_limitations": [
+        "The property holds only for callers that use Host or exported host-extra helpers; broad package-root exports still expose lower-level classes to embedders.",
+        "Validation strength depends on profile and plugin validators being registered correctly before writes."
+      ],
+      "preserve_reinforce_maximize_actions": [
+        "Keep new write paths behind Host methods or host-extra functions that call Store.append/appendBatch.",
+        "Maintain tests that prove PAYLOAD_SCHEMAS and OPERATION_KINDS remain lockstep.",
+        "Require any new external surface to cite its Host method or explicit non-exposure rationale.",
+        "Add regression tests whenever a Host write path gains a new bypass-capable option."
+      ]
+    },
+    {
+      "id": "STR-002",
+      "title": "Deterministic replay and forward-compatible operation upcasting are first-class",
+      "category": "data_flow",
+      "impact": "high",
+      "confidence": "high",
+      "description": "The operation log is treated as the canonical source of truth, replay is pure and deterministic, and schema-versioned payloads have bounded upcaster chains for compatibility.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/core/store/replay.ts",
+          "symbols": [
+            "applyOperation",
+            "replay"
+          ],
+          "relationship": "Replay applies operations by kind and upcasts payloads when schema_version differs from CURRENT_PAYLOAD_SCHEMA_VERSION."
+        },
+        {
+          "file": "fdpm-cli/src/core/operations/upcast.ts",
+          "symbols": [
+            "registerUpcaster",
+            "upcastPayload",
+            "mintUidFromSeed"
+          ],
+          "relationship": "Legacy v1.1.0 create operations gain deterministic UIDs derived from immutable op_id values."
+        },
+        {
+          "file": "fdpm-cli/src/core/operations/operation.ts",
+          "symbols": [
+            "Operation"
+          ],
+          "relationship": "Operation records are strict Zod schemas carrying op_id, timestamp, revision, request_id, causation_op_id, and schema_version."
+        },
+        {
+          "file": "fdpm-cli/tests/operation-schema-contract.test.ts",
+          "symbols": [
+            "operation kind/schema contract"
+          ],
+          "relationship": "Tests require operation kind and payload schema maps to remain one-to-one."
+        }
+      ],
+      "reasoning": "The code does not rely on ad hoc migrations or mutable snapshots as the canonical model. Compatibility logic is explicit, bounded, and category-typed when missing.",
+      "practical_value": "Operators can recover state from append-only logs, reason about causation, and upgrade hosts without silently changing replayed workbook identity.",
+      "conditions_or_limitations": [
+        "Missing upcasters surface as host_compat errors, so old logs require maintenance discipline.",
+        "Replay determinism depends on plugin contributions not participating in core replay."
+      ],
+      "preserve_reinforce_maximize_actions": [
+        "Require upcaster tests for every payload schema version bump.",
+        "Keep replay free of plugin calls, wall-clock reads, filesystem reads, and network reads.",
+        "Add fixture logs for each supported historical schema_version."
+      ]
+    },
+    {
+      "id": "STR-003",
+      "title": "CLI, REPL, and command metadata share a single command model",
+      "category": "runtime_composition",
+      "impact": "high",
+      "confidence": "high",
+      "description": "The one-shot CLI and REPL reuse the same Commander tree, while every command module is required to publish metadata used for freshness and MCP dispatch mapping.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/bin/fdpm.ts",
+          "symbols": [
+            "main",
+            "buildProgram",
+            "buildReplCommand"
+          ],
+          "relationship": "The binary constructs a Host, calls host.load, builds the shared program, and then adds REPL."
+        },
+        {
+          "file": "fdpm-cli/src/bin/program.ts",
+          "symbols": [
+            "buildProgram",
+            "topLevelCommandNames"
+          ],
+          "relationship": "All top-level commands are registered in one function shared by one-shot and REPL dispatch."
+        },
+        {
+          "file": "fdpm-cli/src/commands/index.ts",
+          "symbols": [
+            "ALL_COMMAND_METADATA"
+          ],
+          "relationship": "Command metadata is centrally merged for REPL freshness and MCP tool dispatch."
+        },
+        {
+          "file": "fdpm-cli/tests/_meta/command-metadata-presence.test.ts",
+          "symbols": [
+            "CI: every src/commands/*.ts exports commandMetadata"
+          ],
+          "relationship": "The test dynamically imports command modules and fails when metadata is missing or malformed."
+        },
+        {
+          "file": "fdpm-cli/tests/repl/repl-integration.test.ts",
+          "symbols": [
+            "JSON-mode framing",
+            "freshness gate",
+            "forbidden meta-commands"
+          ],
+          "relationship": "Subprocess tests verify REPL stdout/stderr framing, exit codes, and freshness behavior."
+        }
+      ],
+      "reasoning": "The command surface is not duplicated across one-shot and long-lived modes, and metadata drift is guarded by tests rather than convention alone.",
+      "practical_value": "Adding or changing commands has a predictable propagation path and reduced risk of stale REPL or MCP behavior.",
+      "conditions_or_limitations": [
+        "The design still requires developers to update central registries when adding new command modules.",
+        "The REPL freshness behavior depends on command metadata accurately classifying read-only versus write-capable commands."
+      ],
+      "preserve_reinforce_maximize_actions": [
+        "Keep command registration centralized in buildProgram.",
+        "Extend the metadata presence test to assert expected readOnly values for high-risk commands.",
+        "Prefer command-level tests that exercise both one-shot and REPL code paths for new mutation commands."
+      ]
+    },
+    {
+      "id": "STR-004",
+      "title": "MCP server applies defense-in-depth before Host invocation",
+      "category": "security_boundary",
+      "impact": "high",
+      "confidence": "high",
+      "description": "The MCP path classifies tools into read-only, validating-write, and destructive tiers, then applies destructive gating, optional confirmation tokens, rate limiting, freshness checks, strict input validation, and audit logging before calling handlers.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/mcp/manifest.ts",
+          "symbols": [
+            "TIER_1_TOOLS",
+            "TIER_2_TOOLS",
+            "TIER_3_TOOLS",
+            "advertisedTools",
+            "EXPOSED_HOST_METHODS"
+          ],
+          "relationship": "Tool tiering and exposed Host methods are explicit and centrally declared."
+        },
+        {
+          "file": "fdpm-cli/src/mcp/dispatch.ts",
+          "symbols": [
+            "createDispatcher",
+            "dispatchOne"
+          ],
+          "relationship": "Dispatch checks tool existence, destructive state, confirmation token, rate limit, freshness, schema validation, audit start, handler call, and audit complete."
+        },
+        {
+          "file": "fdpm-cli/src/mcp/session.ts",
+          "symbols": [
+            "TokenBucket",
+            "checkFreshness",
+            "markFresh"
+          ],
+          "relationship": "Session state tracks per-call rate limiting and workbook log mtime/size freshness tuples."
+        },
+        {
+          "file": "fdpm-cli/src/bin/fdpm-mcp.ts",
+          "symbols": [
+            "parseArgs",
+            "main"
+          ],
+          "relationship": "The server refuses unsupported HTTP/SSE flags, writes startup diagnostics to stderr, and wires tools/resources over stdio."
+        },
+        {
+          "file": "fdpm-cli/tests/mcp/tier3-gating.test.ts",
+          "symbols": [
+            "Tier 3 default-disabled conformance"
+          ],
+          "relationship": "Tests verify destructive advertisement and refusal behavior in both disabled and enabled states."
+        }
+      ],
+      "reasoning": "The MCP server is not a direct untyped adapter over Host; it has explicit policy gates and regression tests for risk classification.",
+      "practical_value": "This is appropriate for LLM tool use, where accidental destructive calls and stale-state writes are realistic operational hazards.",
+      "conditions_or_limitations": [
+        "The MCP process is stdio-only in this slice; remote transport security is deferred rather than partially implemented.",
+        "Audit full-args logging is optional and may increase sensitive-data exposure when enabled."
+      ],
+      "preserve_reinforce_maximize_actions": [
+        "Keep destructive tools advertised with clear disabled banners and dispatch-time refusal.",
+        "Add classification tests whenever Host gains a public method.",
+        "Keep audit defaults at hashed arguments unless a deployment has explicit retention and privacy controls.",
+        "Add resource-provider collision tests as new resource families are introduced."
+      ]
+    },
+    {
+      "id": "STR-005",
+      "title": "Plugin lifecycle isolates failures and verifies privileged contributions",
+      "category": "extension_architecture",
+      "impact": "high",
+      "confidence": "high",
+      "description": "Plugin discovery validates manifests and host compatibility, trusted built-ins auto-activate, community plugins remain disabled, privileged contribution types are permission-gated, and importer/renderer failures are wrapped with quarantine behavior.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/src/plugin/discovery.ts",
+          "symbols": [
+            "discoverPlugins",
+            "loadEntryModule",
+            "BUILTIN_PLUGIN_DIRS_DEFAULT"
+          ],
+          "relationship": "Built-in and filesystem plugin discovery are explicit and entry modules are shape-validated."
+        },
+        {
+          "file": "fdpm-cli/src/plugin/runtime.ts",
+          "symbols": [
+            "PluginRuntime.registerOne",
+            "PluginRuntime.activateAuto",
+            "PluginRuntime.enable",
+            "PluginRuntime.quarantine",
+            "PluginRuntime.runImporter",
+            "PluginRuntime.runRenderer"
+          ],
+          "relationship": "Manifest compatibility, trust inference, dependency ordering, exception barriers, and output verification are implemented in one runtime."
+        },
+        {
+          "file": "fdpm-cli/src/plugin/context.ts",
+          "symbols": [
+            "makeContext",
+            "requirePerm",
+            "registerRenderer",
+            "registerImporter",
+            "registerExporter",
+            "registerValidator"
+          ],
+          "relationship": "Plugin-visible APIs permission-gate privileged registration and read access."
+        },
+        {
+          "file": "fdpm-cli/tests/plugin-runtime.test.ts",
+          "symbols": [
+            "plugin runtime conformance tests"
+          ],
+          "relationship": "Tests cover discovery, manifest rejection, lifecycle, permissions, trust tier inference, and slot conflicts."
+        },
+        {
+          "file": "fdpm-cli/tests/validator-profile-scoping.test.ts",
+          "symbols": [
+            "Validator profile-scoping"
+          ],
+          "relationship": "Tests prevent cross-plugin validator leakage when plugins share primitive type IDs."
+        }
+      ],
+      "reasoning": "The plugin runtime matches the domain's need for extensible profiles, renderers, importers, exporters, expression helpers, and validators without letting plugin failure crash Host load.",
+      "practical_value": "The system can ship domain-specific plugins and generated plugins while preserving a stable core and clear failure categories.",
+      "conditions_or_limitations": [
+        "Disable/uninstall teardown has known gaps for profiles and validators, covered in the weaknesses report.",
+        "Verified trust depends on FDPM_TRUSTED_KEYS and manifest signatures; filesystem community plugins are correctly not auto-activated."
+      ],
+      "preserve_reinforce_maximize_actions": [
+        "Keep plugin output verification at renderer/importer boundaries.",
+        "Continue rejecting slot collisions across plugins.",
+        "Add teardown tests before expanding plugin hot-reload or uninstall workflows.",
+        "Keep generated plugin manifests aligned with the runtime manifest schema."
+      ]
+    },
+    {
+      "id": "STR-006",
+      "title": "Generator and generated-plugin workflow has determinism and drift gates",
+      "category": "build_tooling",
+      "impact": "medium",
+      "confidence": "high",
+      "description": "The zod-bridge package converts Zod/sidecar domain descriptions into profiles, validators, view descriptors, product bundles, migration hints, audit records, and plugin scaffolds with stable output formatting and explicit write-boundary checks.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/packages/zod-bridge/src/orchestrator.ts",
+          "symbols": [
+            "assembleDomainProfile"
+          ],
+          "relationship": "Schema classification, primitive/relation generation, validators, view pages, product pages, and migration hints are assembled from one pipeline."
+        },
+        {
+          "file": "fdpm-cli/packages/zod-bridge/src/sidecar-orchestrator.ts",
+          "symbols": [
+            "assembleDomainProfileFromSidecar",
+            "hashSchemaSource"
+          ],
+          "relationship": "Sidecar realization validates schema hashes, suppresses inferred references when sidecars are authoritative, and emits seven artifacts."
+        },
+        {
+          "file": "fdpm-cli/packages/zod-bridge/src/scaffold.ts",
+          "symbols": [
+            "writeArtefactsToDir",
+            "writePluginScaffold",
+            "safeResolveUnder"
+          ],
+          "relationship": "Writers use stableStringify and reject paths escaping outputDir."
+        },
+        {
+          "file": "fdpm-cli/packages/zod-bridge/tests/determinism.test.ts",
+          "symbols": [
+            "determinism"
+          ],
+          "relationship": "Tests cover byte-equal output behavior for generated artifacts."
+        },
+        {
+          "file": "fdpm-cli/tests/plugins/acme_pitch_deck/version-bump.test.ts",
+          "symbols": [
+            "schema-change-implies-version-bump"
+          ],
+          "relationship": "Generated plugin snapshots are guarded against schema drift without regeneration."
+        }
+      ],
+      "reasoning": "The generator is integrated as a real package with tests and plugin fixtures rather than a one-off script, which is appropriate for a project that treats plugins as a primary extension mechanism.",
+      "practical_value": "Domain plugins can be regenerated reproducibly, audited, and compared against committed snapshots.",
+      "conditions_or_limitations": [
+        "The generator remains coupled to Zod internal shapes and sidecar conventions.",
+        "Generated entry modules intentionally require authors to provide validator closures for some capabilities."
+      ],
+      "preserve_reinforce_maximize_actions": [
+        "Keep bridge output stableStringify-based and checked into drift tests.",
+        "Add negative tests for every new sidecar feature before enabling scaffold output.",
+        "Keep write-boundary tests for outputDir escape attempts."
+      ]
+    },
+    {
+      "id": "STR-007",
+      "title": "Testing strategy targets architectural contracts, not only unit behavior",
+      "category": "testing",
+      "impact": "high",
+      "confidence": "high",
+      "description": "The repository includes many tests that encode architecture-level invariants: public SDK exports, operation schema lockstep, command metadata presence, MCP Host-method classification, REPL process behavior, plugin lifecycle, validator scoping, generated artifact determinism, and error taxonomy.",
+      "evidence": [
+        {
+          "file": "fdpm-cli/vitest.config.ts",
+          "symbols": [
+            "coverage.thresholds"
+          ],
+          "relationship": "Coverage thresholds are configured for lines, functions, branches, and statements."
+        },
+        {
+          "file": "fdpm-cli/tests/sdk-public-surface.test.ts",
+          "symbols": [
+            "SDK public surface"
+          ],
+          "relationship": "Tests pin the package-root export contract."
+        },
+        {
+          "file": "fdpm-cli/tests/mcp-classification.test.ts",
+          "symbols": [
+            "MCP classification gate"
+          ],
+          "relationship": "Tests force public Host methods to be either exposed through MCP or explicitly not exposed."
+        },
+        {
+          "file": "fdpm-cli/tests/repl/repl-integration.test.ts",
+          "symbols": [
+            "fdpm repl end-to-end behavioral tests"
+          ],
+          "relationship": "REPL tests exercise a real subprocess and observe stdout/stderr and exit codes."
+        },
+        {
+          "file": "fdpm-cli/tests/error-message-style.test.ts",
+          "symbols": [
+            "error-message-style"
+          ],
+          "relationship": "Error output is treated as a contract, not incidental text."
+        }
+      ],
+      "reasoning": "The tests are strongly aligned with integration boundaries and drift-prone registries. This is better than high coverage over low-value leaf functions alone.",
+      "practical_value": "Regression detection is positioned at the places where this system is most likely to drift: command metadata, tool classification, generated artifacts, and public API exports.",
+      "conditions_or_limitations": [
+        "The web HTTP bridge is not directly covered by comparable endpoint tests.",
+        "This analysis ran type checks but did not run the full 146-test suite."
+      ],
+      "preserve_reinforce_maximize_actions": [
+        "Keep architecture contract tests close to registries and public surfaces.",
+        "Add direct tests for every new bridge endpoint and MCP resource provider.",
+        "Run full Vitest suites in CI after generator or Host changes."
+      ]
+    }
+  ],
+  "cross_cutting_observations": [
+    {
+      "id": "OBS-001",
+      "observation": "The repository consistently treats drift as an engineering problem: command metadata, MCP exposure, operation schemas, generated plugin snapshots, and SDK exports all have tests that force explicit updates."
+    },
+    {
+      "id": "OBS-002",
+      "observation": "The architecture is intentionally hybrid: request/response CLI and MCP handlers operate over an event-log projection; plugin activation and generator outputs extend the domain model; the web UI is a local inspector over the CLI rather than a separate service backend."
+    },
+    {
+      "id": "OBS-003",
+      "observation": "The system uses structured error categories consistently across CLI, REPL, MCP, and bridge wrappers, which supports machine handling by agents."
+    }
+  ],
+  "recommended_next_actions": [
+    {
+      "id": "NEXT-001",
+      "action": "Preserve the Host/Store write boundary by requiring every new external write path to name the exact Host method it calls and the validation report it returns."
+    },
+    {
+      "id": "NEXT-002",
+      "action": "Broaden endpoint-level tests for the web bridge so its local HTTP surface receives the same contract treatment as MCP and REPL."
+    },
+    {
+      "id": "NEXT-003",
+      "action": "Before expanding plugin hot-reload/uninstall workflows, add tests proving contribution teardown removes every contribution type."
+    }
+  ],
+  "analysis_limitations": [
+    "The full Vitest suite was not executed during this audit; only TypeScript type checks were run for fdpm-cli and fdpm-cli/web.",
+    "The repository had pre-existing uncommitted changes in fdpm-cli/web/package.json, src/App.tsx, src/pages/ProfileDetailPage.tsx, src/styles.css, vite.config.ts, scripts/, src/pages/ProfileDocumentPage.tsx, src/print/, and vitest.config.ts.",
+    "Generated artifacts and static fixtures were sampled for relationships and drift gates but not manually audited line-by-line.",
+    "Runtime performance, large-workbook behavior, and concurrent process behavior were inferred from implementation and tests; no profiling or load testing was performed."
+  ]
+}
