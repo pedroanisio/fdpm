@@ -96,7 +96,32 @@ export type FieldValidation = z.infer<typeof FieldValidation>;
 export const FieldDef: z.ZodType<FieldDefT> = z.lazy(() =>
   z
     .object({
-      name: z.string().regex(/^[a-z][a-z0-9_]*$/),
+      /**
+       * An identifier. SPEC-CORE requires exactly one thing of a field
+       * name — that it is "unique within its containing primitive or
+       * struct" (enforced on PrimitiveTypeDef below) — and the host
+       * treats the name as an opaque key into `field_values`
+       * (validation/pipeline.ts). It derives nothing from its shape and
+       * converts no cases.
+       *
+       * This was `^[a-z][a-z0-9_]*$`, a house style presented as a
+       * contract. Three independent parts of the codebase contradicted
+       * it: the profile compiler emitted `_item`, the Zod bridge emitted
+       * `<field>Item`, and three domains carry vocabularies that are
+       * camelCase in their own literature (`epistemicMethod`,
+       * `hasSeverity`, `ownedAttribute`). The rule protected nothing and
+       * cost a 1,375-field renaming in the UML bridge derivation.
+       *
+       * What IS forbidden is a name that cannot be addressed: findings
+       * report `field_path: "field_values.<name>"`, so a dot, bracket,
+       * quote or space would make that path ambiguous. snake_case
+       * remains the house style for new work — see the generators, which
+       * emit it — but it is a convention, not a gate.
+       */
+      name: z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/, {
+        message:
+          "field name must be an identifier: a letter or underscore followed by letters, digits or underscores (no dots, brackets, quotes or spaces — they would break field_path addressing)",
+      }),
       // structured form (CLI native)
       kind: FieldKind.optional(),
       required: z.boolean().default(false),
@@ -107,6 +132,17 @@ export const FieldDef: z.ZodType<FieldDefT> = z.lazy(() =>
       validations: z.array(FieldValidation).default([]),
       description: z.string().optional(),
       default: z.unknown().optional(),
+      // Generator metadata. @fdpm/zod-bridge emits these to record what
+      // the source Zod type said — `format: "iso-8601" | "json-union" |
+      // "json-record" | "bigint-decimal"`, and `nullable` for a
+      // `.nullable()` field — and the bridge's own view-page and
+      // product-page artefacts read them. The host does NOT interpret
+      // either: `kind` and `validations` are what the pipeline judges.
+      // They are declared here because FieldDef is strict and the bridge
+      // has always emitted them; leaving them undeclared made every
+      // bridge profile unparseable by the schema that governs profiles.
+      format: z.string().optional(),
+      nullable: z.boolean().optional(),
       // legacy form (Python plugin parity)
       legacy_type: z.string().optional(),
     })
@@ -158,6 +194,9 @@ export interface FieldDefT {
   validations: FieldValidation[];
   description?: string;
   default?: unknown;
+  /** Generator metadata; not interpreted by the host. See FieldDef. */
+  format?: string;
+  nullable?: boolean;
   legacy_type?: string;
 }
 
@@ -197,6 +236,17 @@ export const TypeConstraint = z
   .strict();
 export type TypeConstraint = z.infer<typeof TypeConstraint>;
 
+/** Field names appearing more than once, in declaration order. */
+function duplicateNames(fields: ReadonlyArray<{ name: string }>): string[] {
+  const seen = new Set<string>();
+  const dupes = new Set<string>();
+  for (const f of fields) {
+    if (seen.has(f.name)) dupes.add(f.name);
+    seen.add(f.name);
+  }
+  return [...dupes];
+}
+
 export const PrimitiveTypeDef = z
   .object({
     id: NamespacedId,
@@ -215,7 +265,30 @@ export const PrimitiveTypeDef = z
     constraints: z.array(TypeConstraint).default([]),
     description: z.string().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((t, ctx) => {
+    // SPEC-CORE: "Every FieldDef has a `name` unique within its
+    // containing primitive or struct." Nothing checked this. A duplicate
+    // is not cosmetic — `field_values` is keyed by name, so the second
+    // definition silently shadows the first and its validations never
+    // run against anything.
+    duplicateNames(t.fields).forEach((name) => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fields"],
+        message: `duplicate field name "${name}" on ${t.id} — a field name must be unique within its primitive type`,
+      });
+    });
+    for (const [i, struct] of (t.inline_structs ?? []).entries()) {
+      duplicateNames(struct.fields).forEach((name) => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["inline_structs", i, "fields"],
+          message: `duplicate field name "${name}" in struct ${struct.id} — a field name must be unique within its struct`,
+        });
+      });
+    }
+  });
 export type PrimitiveTypeDef = z.infer<typeof PrimitiveTypeDef>;
 
 const TypeIdsOrWildcard = z.union([z.array(NamespacedId), z.literal("*")]);

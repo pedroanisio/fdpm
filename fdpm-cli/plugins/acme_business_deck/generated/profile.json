@@ -420,7 +420,7 @@
       ]
     },
     {
-      "description": "Enum derived from PersuasionStrategy.AudienceFit.best_forItem",
+      "description": "Enum derived from PersuasionStrategy.AudienceFit.best_for_item",
       "id": "enum:PersuasionStrategyAudienceFitBestForItem",
       "name": "PersuasionStrategyAudienceFitBestForItem",
       "values": [
@@ -448,7 +448,7 @@
       ]
     },
     {
-      "description": "Enum derived from PersuasionStrategy.AudienceFit.risky_when_audience_isItem",
+      "description": "Enum derived from PersuasionStrategy.AudienceFit.risky_when_audience_is_item",
       "id": "enum:PersuasionStrategyAudienceFitRiskyWhenAudienceIsItem",
       "name": "PersuasionStrategyAudienceFitRiskyWhenAudienceIsItem",
       "values": [
@@ -462,7 +462,7 @@
       ]
     },
     {
-      "description": "Enum derived from PersuasionStrategy.AudienceFit.works_when_audience_isItem",
+      "description": "Enum derived from PersuasionStrategy.AudienceFit.works_when_audience_is_item",
       "id": "enum:PersuasionStrategyAudienceFitWorksWhenAudienceIsItem",
       "name": "PersuasionStrategyAudienceFitWorksWhenAudienceIsItem",
       "values": [
@@ -497,7 +497,7 @@
       ]
     },
     {
-      "description": "Enum derived from PersuasionStrategy.required_evidence_typesItem",
+      "description": "Enum derived from PersuasionStrategy.required_evidence_types_item",
       "id": "enum:PersuasionStrategyRequiredEvidenceTypesItem",
       "name": "PersuasionStrategyRequiredEvidenceTypesItem",
       "values": [
@@ -517,7 +517,7 @@
       ]
     },
     {
-      "description": "Enum derived from PersuasionStrategy.required_rhetorical_movesItem",
+      "description": "Enum derived from PersuasionStrategy.required_rhetorical_moves_item",
       "id": "enum:PersuasionStrategyRequiredRhetoricalMovesItem",
       "name": "PersuasionStrategyRequiredRhetoricalMovesItem",
       "values": [
@@ -665,7 +665,7 @@
       ]
     },
     {
-      "description": "Enum derived from Slide.ExpectedAudienceResponsesItem.expected_reactionsItem",
+      "description": "Enum derived from Slide.ExpectedAudienceResponsesItem.expected_reactions_item",
       "id": "enum:SlideExpectedAudienceResponsesItemExpectedReactionsItem",
       "name": "SlideExpectedAudienceResponsesItemExpectedReactionsItem",
       "values": [
@@ -709,7 +709,7 @@
       ]
     },
     {
-      "description": "Enum derived from Slide.rhetorical_movesItem",
+      "description": "Enum derived from Slide.rhetorical_moves_item",
       "id": "enum:SlideRhetoricalMovesItem",
       "name": "SlideRhetoricalMovesItem",
       "values": [
@@ -892,6 +892,7 @@
     }
   ],
   "id": "profile:acme-business-deck:0.1",
+  "label": "Acme Business Deck 0.1",
   "primitive_types": [
     {
       "fields": [
@@ -950,7 +951,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "claims_supportedItem",
+            "name": "claims_supported_item",
             "required": true,
             "validations": []
           },
@@ -1106,7 +1107,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "prosItem",
+            "name": "pros_item",
             "required": true,
             "validations": []
           },
@@ -1119,7 +1120,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "consItem",
+            "name": "cons_item",
             "required": true,
             "validations": []
           },
@@ -1132,7 +1133,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "risk_idsItem",
+            "name": "risk_ids_item",
             "required": true,
             "validations": []
           },
@@ -1168,7 +1169,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "differentiation_claim_idsItem",
+            "name": "differentiation_claim_ids_item",
             "required": true,
             "validations": []
           },
@@ -1336,7 +1337,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "struct",
-            "name": "required_elementsItem",
+            "name": "required_elements_item",
             "required": true,
             "struct_id": "VisualArtifactRequiredElementsItem",
             "validations": []
@@ -1594,7 +1595,7 @@
               "make_decision_ask"
             ],
             "kind": "enum",
-            "name": "required_rhetorical_movesItem",
+            "name": "required_rhetorical_moves_item",
             "required": true,
             "validations": []
           },
@@ -1622,7 +1623,7 @@
               "comparison_matrix"
             ],
             "kind": "enum",
-            "name": "required_evidence_typesItem",
+            "name": "required_evidence_types_item",
             "required": true,
             "validations": []
           },
@@ -1635,7 +1636,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "struct",
-            "name": "constraintsItem",
+            "name": "constraints_item",
             "required": true,
             "struct_id": "PersuasionStrategyConstraintsItem",
             "validations": []
@@ -1649,7 +1650,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "struct",
-            "name": "failure_modesItem",
+            "name": "failure_modes_item",
             "required": true,
             "struct_id": "PersuasionStrategyFailureModesItem",
             "validations": []
@@ -1681,7 +1682,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "empirical_grade_caveatsItem",
+            "name": "empirical_grade_caveats_item",
             "required": true,
             "validations": []
           },
@@ -1715,7 +1716,7 @@
                   "public"
                 ],
                 "kind": "enum",
-                "name": "best_forItem",
+                "name": "best_for_item",
                 "required": true,
                 "validations": []
               },
@@ -1737,7 +1738,7 @@
                   "divided"
                 ],
                 "kind": "enum",
-                "name": "works_when_audience_isItem",
+                "name": "works_when_audience_is_item",
                 "required": true,
                 "validations": []
               },
@@ -1759,7 +1760,7 @@
                   "divided"
                 ],
                 "kind": "enum",
-                "name": "risky_when_audience_isItem",
+                "name": "risky_when_audience_is_item",
                 "required": true,
                 "validations": []
               },
@@ -1893,7 +1894,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "speaks_for_claim_idsItem",
+            "name": "speaks_for_claim_ids_item",
             "required": true,
             "validations": []
           },
@@ -1906,7 +1907,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "number",
-            "name": "delivers_slide_numbersItem",
+            "name": "delivers_slide_numbers_item",
             "required": true,
             "validations": []
           },
@@ -1959,7 +1960,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "references_evidence_idsItem",
+            "name": "references_evidence_ids_item",
             "required": true,
             "validations": []
           },
@@ -2063,7 +2064,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "what_they_need_to_believeItem",
+            "name": "what_they_need_to_believe_item",
             "required": true,
             "validations": []
           },
@@ -2094,7 +2095,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "prioritiesItem",
+            "name": "priorities_item",
             "required": true,
             "validations": []
           },
@@ -2107,7 +2108,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "fearsItem",
+            "name": "fears_item",
             "required": true,
             "validations": []
           },
@@ -2120,7 +2121,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "success_criteriaItem",
+            "name": "success_criteria_item",
             "required": true,
             "validations": []
           },
@@ -2133,7 +2134,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "functional_jobsItem",
+            "name": "functional_jobs_item",
             "required": true,
             "validations": []
           },
@@ -2146,7 +2147,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "emotional_jobsItem",
+            "name": "emotional_jobs_item",
             "required": true,
             "validations": []
           },
@@ -2159,7 +2160,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "social_jobsItem",
+            "name": "social_jobs_item",
             "required": true,
             "validations": []
           },
@@ -2216,7 +2217,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "affected_persona_idsItem",
+            "name": "affected_persona_ids_item",
             "required": true,
             "validations": []
           },
@@ -2308,7 +2309,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "content_blocksItem",
+            "name": "content_blocks_item",
             "required": true,
             "struct_id": "SlideContentBlocksItem",
             "validations": []
@@ -2341,7 +2342,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "supports_claim_idsItem",
+            "name": "supports_claim_ids_item",
             "required": true,
             "validations": []
           },
@@ -2354,7 +2355,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "uses_evidence_idsItem",
+            "name": "uses_evidence_ids_item",
             "required": true,
             "validations": []
           },
@@ -2367,7 +2368,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "addresses_objection_idsItem",
+            "name": "addresses_objection_ids_item",
             "required": true,
             "validations": []
           },
@@ -2399,7 +2400,7 @@
               "make_decision_ask"
             ],
             "kind": "enum",
-            "name": "rhetorical_movesItem",
+            "name": "rhetorical_moves_item",
             "required": true,
             "validations": []
           },
@@ -2412,7 +2413,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "number",
-            "name": "narrative_stepsItem",
+            "name": "narrative_steps_item",
             "required": true,
             "validations": []
           },
@@ -2425,7 +2426,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "struct",
-            "name": "expected_audience_responsesItem",
+            "name": "expected_audience_responses_item",
             "required": true,
             "struct_id": "SlideExpectedAudienceResponsesItem",
             "validations": []
@@ -2564,7 +2565,7 @@
               "description": "default: []",
               "item_field": {
                 "kind": "struct",
-                "name": "visual_hierarchyItem",
+                "name": "visual_hierarchy_item",
                 "required": true,
                 "struct_id": "SlideVisualStrategyVisualHierarchyItem",
                 "validations": []
@@ -2651,7 +2652,7 @@
                   "reject"
                 ],
                 "kind": "enum",
-                "name": "expected_reactionsItem",
+                "name": "expected_reactions_item",
                 "required": true,
                 "validations": []
               },
@@ -2792,5 +2793,6 @@
       "source_type_id": "acme:PainPoint",
       "target_type_id": "acme:AudienceSegment"
     }
-  ]
+  ],
+  "version": "0.1.0"
 }

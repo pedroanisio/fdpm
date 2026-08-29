@@ -35,6 +35,7 @@ export type FieldKind =
   | "enum"
   | "list"
   | "struct"
+  | "json"
   | "relation";
 
 export interface FieldDef {
@@ -125,6 +126,16 @@ export interface Constraint {
 
 export interface DomainProfile {
   id: string;
+  /**
+   * Required by the host's schema (^\d+\.\d+\.\d+$). The bridge always
+   * emits it — from the sidecar's `profileVersion`, else `pluginVersion`
+   * — because a profile without one is a profile the host will refuse to
+   * load from disk even though a plugin can register it in memory.
+   */
+  version?: string;
+  name?: string;
+  label?: string;
+  description?: string;
   primitive_types: readonly PrimitiveTypeDef[];
   relation_types: readonly RelationTypeDef[];
   enum_defs?: readonly EnumDef[];

@@ -120,7 +120,7 @@ Three host rules forbid it, each verifiable rather than argued:
 
 | Blocker | Evidence | Resolution |
 |---|---|---|
-| **Field names.** UML is camelCase and uses `xmi:id` / `xmi:type`. | `FieldDef.name` must match `^[a-z][a-z0-9_]*$` — `src/core/models/meta.ts`. `DomainProfile.safeParse` rejects `ownedComment`. 1,375 of the source's 2,032 fields are affected. | Every field snake_cased; `xmi:id` → `xmi_id`. Mechanical and reversible, so an XMI round-trip keeps its names. |
+| **Field names.** UML is camelCase and uses `xmi:id` / `xmi:type`. | `FieldDef.name` must be addressable — no `:` — because findings report `field_path: "field_values.<name>"`. 1,375 of the source's 2,032 fields were also renamed for house style. | Every field snake_cased; `xmi:id` → `xmi_id`. Mechanical and reversible, so an XMI round-trip keeps its names. **Note (2026-08-29):** the rule then also forbade camelCase; that turned out to be a house style with no grounding in SPEC-CORE and was corrected, so only `xmi:id`/`xmi:type` are strictly forced now. The snake_case convention is kept — the bridge emits it and the profile is consistent — but it is a convention, not a gate. |
 | **`z.any()` value specifications.** `defaultValue`, `specification`, `lowerValue`, `upperValue` are `z.lazy(() => z.any())`. | The bridge throws `unsupported Zod node type: any` — 65 such fields block 33 of the source's 110 metaclasses. | Modelled as the closed `ValueSpecification` struct of UML 2.5.1 §8.3 (literal arms + `opaque_expression`). |
 | **`UnlimitedNatural`.** `upper` is `number \| "*"`. | A field-level union becomes `format: "json-union"`, an opaque string the host's kind check and the Zod validator cannot both accept. | `upper` is an integer; `UNLIMITED` (`-1`) is UML's `*`. |
 

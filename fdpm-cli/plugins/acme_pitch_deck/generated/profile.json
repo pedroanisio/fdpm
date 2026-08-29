@@ -923,6 +923,7 @@
     }
   ],
   "id": "profile:acme-pitch-deck:0.1",
+  "label": "Acme Pitch Deck 0.1",
   "primitive_types": [
     {
       "fields": [
@@ -975,7 +976,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "evaluationCriteriaItem",
+            "name": "evaluationCriteria_item",
             "required": true,
             "validations": [
               {
@@ -1099,7 +1100,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "derivedFromItem",
+            "name": "derivedFrom_item",
             "required": true,
             "validations": [
               {
@@ -1204,7 +1205,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "sourceIdsItem",
+            "name": "sourceIds_item",
             "required": true,
             "validations": [
               {
@@ -1233,7 +1234,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "usedOnSlidesItem",
+            "name": "usedOnSlides_item",
             "required": true,
             "validations": [
               {
@@ -1325,7 +1326,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "supportedByDataPointsItem",
+            "name": "supportedByDataPoints_item",
             "required": true,
             "validations": [
               {
@@ -1354,7 +1355,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "supportedByClaimsItem",
+            "name": "supportedByClaims_item",
             "required": true,
             "validations": [
               {
@@ -1382,7 +1383,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "appearsOnSlidesItem",
+            "name": "appearsOnSlides_item",
             "required": true,
             "validations": [
               {
@@ -1417,7 +1418,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "potentialDismissalsItem",
+            "name": "potentialDismissals_item",
             "required": true,
             "validations": [
               {
@@ -1436,7 +1437,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "antiDismissalEvidenceItem",
+            "name": "antiDismissalEvidence_item",
             "required": true,
             "validations": [
               {
@@ -1551,7 +1552,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "addressedOnSlidesItem",
+            "name": "addressedOnSlides_item",
             "required": true,
             "validations": [
               {
@@ -1799,7 +1800,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "detectionSignalsItem",
+            "name": "detectionSignals_item",
             "required": true,
             "validations": [
               {
@@ -1953,7 +1954,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "evidenceUsedItem",
+            "name": "evidenceUsed_item",
             "required": true,
             "validations": [
               {
@@ -1982,7 +1983,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "claimsAdvancedItem",
+            "name": "claimsAdvanced_item",
             "required": true,
             "validations": [
               {
@@ -2011,7 +2012,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "competitorsCitedItem",
+            "name": "competitorsCited_item",
             "required": true,
             "validations": [
               {
@@ -2040,7 +2041,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "risksAddressedItem",
+            "name": "risksAddressed_item",
             "required": true,
             "validations": [
               {
@@ -2069,7 +2070,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "antiPatternsAvoidedItem",
+            "name": "antiPatternsAvoided_item",
             "required": true,
             "validations": [
               {
@@ -2097,7 +2098,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "audienceReadingsItem",
+            "name": "audienceReadings_item",
             "required": true,
             "struct_id": "SlideAudienceReadingsItem",
             "validations": []
@@ -2117,7 +2118,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "struct",
-            "name": "openQuestionsItem",
+            "name": "openQuestions_item",
             "required": true,
             "struct_id": "SlideOpenQuestionsItem",
             "validations": []
@@ -2278,7 +2279,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "implicationsItem",
+            "name": "implications_item",
             "required": true,
             "struct_id": "Slide_ThesisWithImplicationsImplicationsItem",
             "validations": []
@@ -2338,7 +2339,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "tilesItem",
+            "name": "tiles_item",
             "required": true,
             "struct_id": "Slide_StatTilesPlusChartTilesItem",
             "validations": []
@@ -2387,7 +2388,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "chartDataPointIdsItem",
+            "name": "chartDataPointIds_item",
             "required": true,
             "validations": [
               {
@@ -2693,7 +2694,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "chartDataPointIdsItem",
+            "name": "chartDataPointIds_item",
             "required": true,
             "validations": [
               {
@@ -2721,7 +2722,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "signalRailItemsItem",
+            "name": "signalRailItems_item",
             "required": true,
             "struct_id": "Slide_ChartWithSignalRailSignalRailItemsItem",
             "validations": []
@@ -2793,7 +2794,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "cardsItem",
+            "name": "cards_item",
             "required": true,
             "struct_id": "Slide_TriggerEventPairCardsItem",
             "validations": []
@@ -2925,7 +2926,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "itemsItem",
+            "name": "items_item",
             "required": true,
             "struct_id": "Slide_CompetitiveQuadrantItemsItem",
             "validations": []
@@ -3076,7 +3077,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "claimsItem",
+                "name": "claims_item",
                 "required": true,
                 "validations": [
                   {
@@ -3125,7 +3126,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "pillarsItem",
+            "name": "pillars_item",
             "required": true,
             "struct_id": "Slide_RecommendationThreePillarsPillarsItem",
             "validations": []
@@ -3215,7 +3216,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "phasesItem",
+            "name": "phases_item",
             "required": true,
             "struct_id": "Slide_MilestoneTimelinePhasesItem",
             "validations": []
@@ -3274,7 +3275,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "bulletsItem",
+                "name": "bullets_item",
                 "required": true,
                 "validations": [
                   {
@@ -3335,7 +3336,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "pairsItem",
+            "name": "pairs_item",
             "required": true,
             "struct_id": "Slide_ThreatAnswerPairsPairsItem",
             "validations": []
@@ -3455,7 +3456,7 @@
           "item_field": {
             "format": "json-union",
             "kind": "string",
-            "name": "asksItem",
+            "name": "asks_item",
             "required": true,
             "validations": []
           },
@@ -3494,7 +3495,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "groupsItem",
+            "name": "groups_item",
             "required": true,
             "struct_id": "Slide_AppendixSourcesGroupsItem",
             "validations": []
@@ -3547,7 +3548,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "itemsItem",
+                "name": "items_item",
                 "required": true,
                 "validations": [
                   {
@@ -3584,7 +3585,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "questionsItem",
+            "name": "questions_item",
             "required": true,
             "struct_id": "Slide_OpenQuestionsQuestionsItem",
             "validations": []
@@ -3812,5 +3813,6 @@
       "source_type_id": "acme:Slide",
       "target_type_id": "acme:Slide_OpenQuestions"
     }
-  ]
+  ],
+  "version": "0.1.0"
 }

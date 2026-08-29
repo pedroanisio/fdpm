@@ -105,13 +105,27 @@ describe("regression: z.union and z.discriminatedUnion fall back to payload-blob
   });
 });
 
-describe("regression: z.record falls back to payload-blob (was: failure:trial:record-no-mapping)", () => {
-  it("z.record(SlugId, HexColor) emits string + format=json-record", () => {
+describe("regression: z.record maps to the json kind (was: failure:trial:record-no-mapping)", () => {
+  /**
+   * The original defect was that a record had NO mapping. It was then
+   * given `kind: "string", format: "json-record"` — "an opaque
+   * JSON-encoded string; let the validator enforce key/value rules". That
+   * intent could never hold: the profile demanded a string while the
+   * validator generated from the same z.record demanded a record, so
+   * whichever form an ingest stored, one of the two rejected it. uixo's
+   * 712 `extensions` fields were unusable end to end because of it.
+   *
+   * `json` is the host kind for exactly this (validation/pipeline.ts
+   * treats it as an object), so the value is stored as an object and the
+   * validator checks its keys and values for real. `format` is retained
+   * as provenance: this field came from a record.
+   */
+  it("z.record(SlugId, HexColor) emits kind=json, keeping json-record as provenance", () => {
     const S = z.object({
       brandColors: z.record(z.string(), z.string()),
     });
     const r = zodSchemaToPrimitiveType("S", S, opts);
-    expect(r.primitive.fields[0]!.kind).toBe("string");
+    expect(r.primitive.fields[0]!.kind).toBe("json");
     expect(r.primitive.fields[0]!.format).toBe("json-record");
   });
 });

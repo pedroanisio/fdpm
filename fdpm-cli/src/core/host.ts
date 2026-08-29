@@ -7,7 +7,7 @@ import { LocalWorkspace } from "./workspace/local.js";
 import type { Workspace } from "./workspace/types.js";
 import { createHash } from "node:crypto";
 import type { Operation } from "./operations/operation.js";
-import { DomainProfile } from "./models/meta.js";
+import { DomainProfile, DomainProfile as DomainProfileSchema } from "./models/meta.js";
 import type { ProjectStateSlice } from "./store/state.js";
 import { PluginRuntime } from "../plugin/runtime.js";
 import type {
@@ -109,6 +109,15 @@ export type DnisBatchIntent =
       kind: "relation.delete";
       payload: { id: string };
     };
+
+/** The bridge writes these beside the profile; DomainProfile does not model them. */
+function stripBridgeExtras(profile: DomainProfile): Record<string, unknown> {
+  const { enum_defs, constraints, validation_rules, ...core } = profile as unknown as Record<
+    string,
+    unknown
+  >;
+  return core;
+}
 
 export class Host {
   /**
@@ -581,9 +590,35 @@ export class Host {
    * profile-register commands. Persisted profiles load before plugins and
    * keep precedence: if a profile id is already present, activation treats
    * that contribution as already satisfied instead of failing startup.
+   *
+   * The profile is parsed against `DomainProfile`, the same schema
+   * `fdpm profile register`, the MCP register tool and the persisted-
+   * profile loader all use. This path used to skip that parse, so a
+   * plugin could register a profile the operator could not — and eleven
+   * of seventeen shipped profiles were in fact unparseable, including
+   * three with no `version` at all, which `fdpm profile list` rendered as
+   * the literal string "undefined".
+   *
+   * There are no exemptions. There briefly were three, for domains whose
+   * camelCase vocabularies the old `FieldDef.name` pattern rejected —
+   * until the pattern turned out to be a house style with no grounding in
+   * SPEC-CORE, contradicted by the host's own compiler and by the bridge.
+   * The rule was corrected instead; see FieldDef in models/meta.ts.
    */
   registerPluginProfile(profile: DomainProfile): "registered" | "already-present" {
     if (this.profiles.has(profile.id)) return "already-present";
+    const parsed = DomainProfileSchema.safeParse(stripBridgeExtras(profile));
+    if (!parsed.success) {
+      const detail = parsed.error.issues
+        .slice(0, 3)
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      throw new FDPMException(
+        "validation",
+        `plugin profile "${profile.id}" does not satisfy DomainProfile (${parsed.error.issues.length} issue(s)); first: ${detail}`,
+        { findings: parsed.error.issues, evidence: { profile_id: profile.id } },
+      );
+    }
     this.profiles.register(profile);
     return "registered";
   }

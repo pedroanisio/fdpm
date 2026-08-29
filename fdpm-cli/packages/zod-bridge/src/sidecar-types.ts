@@ -136,6 +136,19 @@ export interface FdpmSection {
   profileId: string;
   pluginVersion: string;
   hostCompatibility: string;
+  /**
+   * Profile identity. `DomainProfile.version` is REQUIRED by the host
+   * (^\d+\.\d+\.\d+$) and `label` is what `fdpm profile list` shows, so
+   * the bridge emits both: `profileVersion` when the domain has a version
+   * of its own (a schema version, say), otherwise `pluginVersion`.
+   * Without this a bridge plugin registers a profile with no version at
+   * all — which is what shipped, because the plugin registration path
+   * used to skip validation.
+   */
+  profileVersion?: string;
+  profileName?: string;
+  profileLabel?: string;
+  profileDescription?: string;
   capabilities?: ReadonlyArray<string>;
   viewPageOverrides?: Record<string, unknown>;
   recursionDepth?: number;

@@ -700,7 +700,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "success_criteriaItem",
+            "name": "success_criteria_item",
             "required": true,
             "validations": [
               {
@@ -734,7 +734,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "out_of_scopeItem",
+            "name": "out_of_scope_item",
             "required": true,
             "validations": [
               {
@@ -777,7 +777,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "milestonesItem",
+            "name": "milestones_item",
             "required": true,
             "struct_id": "DocumentPlanMilestonesItem",
             "validations": []
@@ -810,7 +810,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "dependenciesItem",
+            "name": "dependencies_item",
             "required": true,
             "struct_id": "DocumentPlanDependenciesItem",
             "validations": []
@@ -882,7 +882,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "carried_concept_idsItem",
+                "name": "carried_concept_ids_item",
                 "required": true,
                 "validations": []
               },
@@ -922,7 +922,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "secondaryItem",
+                "name": "secondary_item",
                 "required": true,
                 "validations": [
                   {
@@ -969,7 +969,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "prior_reading_assumedItem",
+                "name": "prior_reading_assumed_item",
                 "required": true,
                 "validations": [
                   {
@@ -1057,7 +1057,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "prohibited_patternsItem",
+                "name": "prohibited_patterns_item",
                 "required": true,
                 "validations": [
                   {
@@ -1086,7 +1086,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "required_patternsItem",
+                "name": "required_patterns_item",
                 "required": true,
                 "validations": [
                   {
@@ -1224,7 +1224,7 @@
             {
               "item_field": {
                 "kind": "struct",
-                "name": "reviewersItem",
+                "name": "reviewers_item",
                 "required": true,
                 "struct_id": "DocumentPlanConstraintsReviewersItem",
                 "validations": []
@@ -1294,7 +1294,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "node_idsItem",
+                "name": "node_ids_item",
                 "required": true,
                 "validations": [
                   {
@@ -1358,7 +1358,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "scope_node_idsItem",
+                "name": "scope_node_ids_item",
                 "required": true,
                 "validations": [
                   {
@@ -1453,7 +1453,7 @@
             {
               "item_field": {
                 "kind": "struct",
-                "name": "assignmentsItem",
+                "name": "assignments_item",
                 "required": true,
                 "struct_id": "DocumentPlanReviewAssignmentsItem",
                 "validations": []
@@ -1532,7 +1532,7 @@
             {
               "item_field": {
                 "kind": "string",
-                "name": "depends_onItem",
+                "name": "depends_on_item",
                 "required": true,
                 "validations": [
                   {
@@ -1706,7 +1706,7 @@
             {
               "item_field": {
                 "kind": "struct",
-                "name": "examplesItem",
+                "name": "examples_item",
                 "required": true,
                 "struct_id": "DocumentPlanContentExamplesItem",
                 "validations": []
@@ -1777,7 +1777,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "authorsItem",
+            "name": "authors_item",
             "required": true,
             "validations": [
               {
@@ -1967,7 +1967,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "aliasesItem",
+            "name": "aliases_item",
             "required": true,
             "validations": [
               {

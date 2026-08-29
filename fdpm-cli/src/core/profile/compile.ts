@@ -204,8 +204,12 @@ export function parseLegacyType(
       const structId = structMatch[1]!;
       return {
         kind: "list",
+          // "item", not "_item": this is a FieldDef.name, and the schema
+          // requires ^[a-z][a-z0-9_]*$. The compiler was minting a name its
+          // own DomainProfile schema rejects — invisible for as long as
+          // plugin-contributed profiles skipped validation.
         item_field: {
-          name: "_item",
+          name: "item",
           kind: "struct",
           required: true,
           struct_id: structId,
@@ -218,7 +222,7 @@ export function parseLegacyType(
     return {
       kind: "list",
       item_field: {
-        name: "_item",
+        name: "item",
         kind: itemKind!,
         required: true,
         validations: [],

@@ -121,6 +121,18 @@ export interface SidecarBridgeResult {
   uslNgCompanion: UslNgCompanion;
 }
 
+/**
+ * A readable label from the profile id, for a sidecar that declares none.
+ * `profile:acme-pitch-deck:0.1` -> `Acme Pitch Deck 0.1`. Better than the
+ * bare id, which is what the list showed before.
+ */
+function defaultLabel(profileId: string): string {
+  const parts = profileId.split(":");
+  const name = (parts[1] ?? profileId).replace(/[-_]+/g, " ").replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  const version = parts[2];
+  return version ? `${name} ${version}` : name;
+}
+
 export function assembleDomainProfileFromSidecar(
   args: SidecarBridgeArgs,
 ): SidecarBridgeResult {
@@ -349,6 +361,14 @@ export function assembleDomainProfileFromSidecar(
 
   const profile: DomainProfile = {
     id: fdpm.profileId,
+    // Identity the host requires (version) and the operator reads
+    // (name/label). Defaulted from the plugin so a profile can never be
+    // emitted without a version; a domain with its own version says so
+    // via `profileVersion`.
+    version: fdpm.profileVersion ?? fdpm.pluginVersion,
+    ...(fdpm.profileName ? { name: fdpm.profileName } : {}),
+    label: fdpm.profileLabel ?? defaultLabel(fdpm.profileId),
+    ...(fdpm.profileDescription ? { description: fdpm.profileDescription } : {}),
     primitive_types: primitives,
     relation_types: relations,
     ...(enums.length ? { enum_defs: dedupeEnums(enums) } : {}),

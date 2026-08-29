@@ -152,9 +152,16 @@ export function mapField(
     // Disambiguate item structs by absorbing the array's own field name into
     // the typePath. `tags: z.array(z.object(...))` → struct id ends in "Tags",
     // not collides with every other array's "Item".
+    //
+    // The suffix is `_item`, not `Item`: this name lands in
+    // `FieldDef.item_field.name`, which the host constrains to
+    // ^[a-z][a-z0-9_]*$ (src/core/models/meta.ts). Minting camelCase here
+    // produced profiles the schema forbids — and they registered anyway,
+    // because the plugin path did not validate. Both halves are fixed;
+    // this is the half that keeps the generator honest.
     const sub = mapField(element, {
       ...ctx,
-      fieldName: `${ctx.fieldName}Item`,
+      fieldName: `${ctx.fieldName}_item`,
       typePath: ctx.typePath,
       lazyDepth: ctx.lazyDepth,
     });
@@ -191,10 +198,18 @@ export function mapField(
       }
     }
   } else if (u.type === "record") {
-    // flag:zod-pipe-transform-adjacent: z.record(K, V) has no clean primitive
-    // representation. Emit as opaque JSON-encoded string and let the validator
-    // (safeParse) enforce key/value rules. Documented as a partial mapping.
-    kind = "string";
+    // z.record(K, V) maps to the host's `json` field kind, which accepts
+    // an object value (validation/pipeline.ts: `expectObject`).
+    //
+    // This was `kind: "string", format: "json-record"` — "emit as an
+    // opaque JSON-encoded string and let the validator enforce key/value
+    // rules". That intent is unachievable: the profile then demands a
+    // string while the generated Zod validator, derived from the same
+    // z.record, demands a record. Whichever way an ingest stored the
+    // value, one of the two rejected it, so a record field was unusable
+    // end to end. `json` satisfies both — the object is stored as an
+    // object and the validator checks its keys and values for real.
+    kind = "json";
     format = "json-record";
   } else if (u.type === "lazy") {
     // Unwrap one level of z.lazy and recurse with bumped lazyDepth.
