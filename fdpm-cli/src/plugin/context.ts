@@ -48,6 +48,63 @@ export function newContributions(): PluginContributions {
 }
 
 /**
+ * Declare, on the profile, the renderers the plugin's own manifest ships.
+ *
+ * A plugin states its renderers twice: once as `cap:renderer` capabilities
+ * in the manifest, which is what actually gets registered, and once in the
+ * profile's `renderers` list, which is what `findRenderer` consults to pick
+ * between several renderers claiming the same target. Keeping the two in
+ * step was left to the plugin author, and twelve of the seventeen in-tree
+ * plugins did not — so their profiles declared nothing, `findRenderer` fell
+ * through to "first registered wins", and a workbook could render through
+ * another plugin's renderer entirely.
+ *
+ * The manifest is the source of truth here because it is the thing the host
+ * registers from. Anything the profile already declares is left exactly as
+ * the author wrote it, including a deliberate omission of a renderer the
+ * manifest ships — this only fills what is absent, and never reorders or
+ * replaces. A profile that names a renderer no manifest capability provides
+ * is also left alone: that is a defect for validation to report, not for
+ * this function to paper over.
+ */
+export function withManifestRenderers(
+  profile: DomainProfile,
+  manifest: PluginManifest,
+): DomainProfile {
+  const already = new Set<string>();
+  for (const binding of profile.renderer_bindings ?? []) {
+    if (binding.renderer_id !== undefined) already.add(binding.renderer_id);
+  }
+  for (const binding of profile.renderers ?? []) {
+    if (binding.renderer_id !== undefined) already.add(binding.renderer_id);
+  }
+
+  const missing: NonNullable<DomainProfile["renderers"]> = [];
+  for (const capability of manifest.capabilities) {
+    if (capability.capability_id !== "cap:renderer") continue;
+    const metadata = capability.metadata ?? {};
+    const rendererId = metadata["renderer_id"];
+    if (typeof rendererId !== "string" || rendererId.length === 0) continue;
+    if (already.has(rendererId)) continue;
+    already.add(rendererId);
+
+    const target = metadata["target"] ?? metadata["output_format"];
+    const outputPath = metadata["output_path"];
+    const description = metadata["description"];
+    missing.push({
+      renderer_id: rendererId,
+      name: capability.local_name,
+      ...(typeof target === "string" ? { output_format: target } : {}),
+      ...(typeof outputPath === "string" ? { output_path: outputPath } : {}),
+      ...(typeof description === "string" ? { description } : {}),
+    });
+  }
+
+  if (missing.length === 0) return profile;
+  return { ...profile, renderers: [...(profile.renderers ?? []), ...missing] };
+}
+
+/**
  * Make a PluginContext bound to (host, manifest, contributions).
  *
  * Each register_* method:
@@ -107,8 +164,9 @@ export function makeContext(args: {
       // Plugin-contributed profiles are never persisted to disk —
       // every startup re-runs activate() which re-registers them.
       // (Persistence is for operator-registered profiles only.)
+      const declared = withManifestRenderers(profile, manifest);
       pluginRuntime.runMutation(manifest.id, () => {
-        host.registerPluginProfile(profile);
+        host.registerPluginProfile(declared);
       });
       contributions.profileIds.push(profile.id);
     },

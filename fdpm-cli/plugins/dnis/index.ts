@@ -7,7 +7,10 @@
  *   - 2 relation types (dnis:DerivedFrom, dnis:MigratedFrom)
  *   - 1 scope (scope:dnis:document)
  *
- * No renderers, validators, or transformers in this revision; the
+ *   - 1 renderer (dnis:DocumentOutlineRenderer) — the node tree as a
+ *     numbered document
+ *
+ * No validators or transformers in this revision; the
  * runtime contract for DNIS Operations lives in src/core/dnis/adapter.ts
  * (the host adapter), which uses these types as its persistence shape.
  *
@@ -27,6 +30,11 @@ import type {
 import type { PluginContext, PluginEntryModule } from "../../src/plugin/types.js";
 import type { PluginManifest } from "../../src/plugin/manifest.js";
 import { CATEGORIES } from "./categories.js";
+import {
+  DNIS_OUTLINE_RENDERER_ID,
+  DNIS_OUTLINE_TARGET,
+  renderDocumentOutline,
+} from "./renderers/outline.js";
 import { SCOPES, SCOPE_SETS, DEFAULT_SCOPE_SET } from "./scopes.js";
 import { ALL_PRIMITIVES } from "./primitives.js";
 import { RELATIONS } from "./relations.js";
@@ -64,8 +72,16 @@ export const manifest: PluginManifest = JSON.parse(manifestRaw) as PluginManifes
 
 export async function activate(ctx: PluginContext): Promise<void> {
   ctx.registerProfile(PROFILE);
+  // The node tree is a tree only in the graph — `parent_node_id` and the
+  // `position` fractional index — so a field table cannot show the document
+  // this workbook actually holds. The outline walks it.
+  ctx.registerRenderer({
+    target: DNIS_OUTLINE_TARGET,
+    rendererId: DNIS_OUTLINE_RENDERER_ID,
+    fn: renderDocumentOutline,
+  });
   ctx.logger.info(
-    `dnis activated: ${ALL_PRIMITIVES.length} primitive types (dnis:Document, dnis:Node), ${RELATIONS.length} relation types (dnis:DerivedFrom, dnis:MigratedFrom). Profile id: ${PROFILE_ID}.`,
+    `dnis activated: ${ALL_PRIMITIVES.length} primitive types (dnis:Document, dnis:Node), ${RELATIONS.length} relation types (dnis:DerivedFrom, dnis:MigratedFrom), 1 renderer (${DNIS_OUTLINE_RENDERER_ID}/md). Profile id: ${PROFILE_ID}.`,
   );
 }
 

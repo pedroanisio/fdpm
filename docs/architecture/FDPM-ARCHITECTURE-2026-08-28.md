@@ -7,7 +7,7 @@ disclaimer:
   generated_by: "Claude Fable 5 via Claude Code (conceptual-codebase-analysis skill)"
   date: "2026-08-28"
 status: "Architectural snapshot — branch ingest/sr-profile-plugin @ 78c7ff7 + uncommitted working tree"
-scope: "fdpm-cli repository, ≈101K LOC of TypeScript (src 24K · plugins 36K · tests 29K · spec-build scripts 39K · zod-bridge 7K) — the 6K `web` front counted in the August snapshot has since been retired"
+scope: "fdpm-cli repository. Source volume and every other count live in the generated docs/architecture/CENSUS.md — this document deliberately states no figure it cannot regenerate."
 ---
 
 # How FDPM Thinks — conceptual architecture, August 2026
@@ -25,7 +25,7 @@ This is the second conceptual snapshot of the repository. The first ([docs/archi
 |---|---|
 | `npm ci` + `packages/zod-bridge` build | clean |
 | `tsc -p . --noEmit` | clean |
-| `vitest run` (135 files, 1160 tests) | **1 failed · 1156 passed · 3 skipped**, 89 s |
+| `vitest run`, observed 2026-08-28 | **1 failed · 1156 passed · 3 skipped**, 89 s. A test count is a stopwatch reading, not a property of the tree — re-run rather than citing this. |
 | Failing test | `tests/mcp-classification.test.ts` — `Host.registerPluginProfile` (uncommitted, [src/core/host.ts:585](../../fdpm-cli/src/core/host.ts#L585)) is neither an MCP tool nor listed in [src/mcp/not-exposed.ts](../../fdpm-cli/src/mcp/not-exposed.ts). The gate is working; the branch is not yet green. |
 
 ---
@@ -42,7 +42,7 @@ A reader who holds that paragraph can predict: a plugin cannot introduce `planni
 
 ## 2. Boundary artifacts ingested, boilerplate subtracted
 
-**Read first (contracts):** `src/core/operations/{kinds,operation,payloads}.ts`, `src/core/models/{meta,instance}.ts`, `src/plugin/manifest.ts` (plugin manifest Zod schema), `src/mcp/{manifest,not-exposed,types}.ts`, `src/core/errors/fdpm-exception.ts` (10-category taxonomy → exit codes/HTTP), `src/core/config/env.ts` (21 `FDPM_*` variables), `src/commands/index.ts` + `src/bin/program.ts` (20 Commander subcommands), `packages/zod-bridge/src/index.ts`, 13 SPECs under `docs/specs/`.
+**Read first (contracts):** `src/core/operations/{kinds,operation,payloads}.ts`, `src/core/models/{meta,instance}.ts`, `src/plugin/manifest.ts` (plugin manifest Zod schema), `src/mcp/{manifest,not-exposed,types}.ts`, `src/core/errors/fdpm-exception.ts` (10-category taxonomy → exit codes/HTTP), `src/core/config/env.ts` (the `FDPM_*` registry — count in [CENSUS.md](./CENSUS.md)), `src/commands/index.ts` + `src/bin/program.ts` (20 Commander subcommands), `packages/zod-bridge/src/index.ts`, 13 SPECs under `docs/specs/`.
 
 **Subtracted as plumbing/data (≈60% of LOC):**
 - `fdpm-cli/scripts/build-spec-*.ts` (≈39K LOC): SPEC documents encoded as `defineProject` calls. They are *content*, regenerated into `docs/specs/*.md` — dogfooding, not logic. Drift between them and shared constants is tested ([tests/spec-builds-determinism.test.ts](../../fdpm-cli/tests/spec-builds-determinism.test.ts)).
@@ -204,7 +204,7 @@ An operator has `fdpm-mcp` running and, in another terminal, runs `fdpm primitiv
 | `docs/specs/*.md` ↔ build scripts | Regenerated from workbooks; drift-tested | Consistent per `spec-builds-determinism.test.ts`. |
 | `ErrorCategory` ↔ `HTTP_STATUS_FOR_CATEGORY` | 10 categories → HTTP status | Mapping is exported ([fdpm-exception.ts:55](../../fdpm-cli/src/core/errors/fdpm-exception.ts#L55)) but has had no consumer since the `web/` bridge was retired; it is dead until an HTTP front returns. |
 | Manifest `trust.signature` ↔ runtime | Signed plugins become `verified` | Signature is never verified; only `signed_by ∈ FDPM_TRUSTED_KEYS` string match ([runtime.ts:760-766](../../fdpm-cli/src/plugin/runtime.ts#L760-L766)). PURPOSE documents trust as deferred; the *field* still implies more than it does. |
-| `docs/architecture/FDPM-ARCHITECTURE.md` (May) ↔ tree | 7 plugins, 76K LOC | Now 14 plugin directories, 107K LOC, `workspace`, `quality/`, bridge v0.4.0, 4 generated plugins; T2 (extends gate) and T3 (rename) from May are still open. |
+| `docs/architecture/FDPM-ARCHITECTURE.md` (May) ↔ tree | 7 plugins, 76K LOC | Plugin and LOC counts now live in [CENSUS.md](./CENSUS.md); the May doc is marked SUPERSEDED in place. Added since: `workspace`, `quality/`, bridge v0.4.0, the bridge-generated plugins. T2 (extends gate) and T3 (rename) from May are still open. |
 
 ---
 
@@ -246,11 +246,11 @@ The JSONL append has no lock; the stat tuple detects *that* someone wrote, after
 
 ### T7 — CI does not run on core changes (process gap)
 
-The only workflows are `plugin-acme-business-deck.yml` and `plugin-acme-pitch-deck.yml`, both path-filtered to their plugin, the bridge, and their tests. A commit touching `src/core/**` triggers nothing. The test suite itself is healthy (1156 pass) but takes 89 s with 30 s per-test timeouts because every `freshHost()` activates 14 plugins ([vitest.config.ts](../../fdpm-cli/vitest.config.ts) comment). *Confidence:* high.
+Every workflow ([CENSUS.md](./CENSUS.md) lists them) is path-filtered to a single plugin, the zod-bridge, and that plugin's tests. **A commit touching `src/core/**` triggers nothing.** That is the gap: the code every plugin depends on is the code no workflow guards. The suite is also slow, because every `freshHost()` activates the whole plugin set and pays a cold start ([vitest.config.ts](../../fdpm-cli/vitest.config.ts) comment explains the 30 s timeout). *Confidence:* high.
 
 ### T8 — Root-level accretion (hygiene)
 
-The repository root carries an unrelated pricing model (`price_quote.py`), Python academic tooling for a profile version (`0.3`) that the TS plugin has moved past (`0.4.1`), a 119-file `.repo/skills` mirror, a `GEMINI.md`, 1.4 MB of `docs/drafts` JSON/TS, and a **tracked symlink** `static/schemas/node_modules → /home/admin/codebases/fdpm-cli/fdpm-cli/node_modules` (absolute, machine-specific). The operator directive `docs/goal-repo.md` sits untracked in the working tree. None of this breaks the build; all of it raises the cost of the "cold agent, first contact" test PURPOSE sets. *Confidence:* high.
+The repository root carries an unrelated pricing model (`price_quote.py`), Python academic tooling for a profile version (`0.3`) that the TS plugin has moved past (`0.4.1`), a large `.repo/skills` mirror, and 1.4 MB of `docs/drafts` JSON/TS. The 2026-08-29 doc-hygiene pass cleared the rest of what was listed here: `GEMINI.md` (an 11-line pointer stub) is deleted, the machine-specific `static/schemas/node_modules` symlink is untracked, and four unreadable `.repo/skills` index entries are gone. None of this breaks the build; all of it raises the cost of the "cold agent, first contact" test PURPOSE sets. *Confidence:* high.
 
 ### T9 — Trust tier is a label (misleading abstraction, acknowledged)
 
@@ -264,7 +264,7 @@ The repository root carries an unrelated pricing model (`price_quote.py`), Pytho
 
 | Area | May 5 | Now |
 |---|---|---|
-| Plugins | 7 hand-written | 14 dirs: 8 hand-written (`_starter`, `dnis`, `formal_specification` ×2, `planning`, `software_architecture`, `spec_authoring` ×2), 4 bridge-generated, 1 hand-assembled from Zod (`software_requirements`), 1 version twin |
+| Plugins | 7 hand-written | Directory list and count in [CENSUS.md](./CENSUS.md). The mix is now hand-written, bridge-generated, composition profiles extending `profile:dnis:0.1`, and one hand-assembled from Zod (`software_requirements`, the only plugin with generated artifacts and no drift gate). |
 | `@fdpm/zod-bridge` | trial journals | v0.4.0 with sidecar, scaffold, CI drift gate; 12 test files |
 | Quality scoring | rubric draft | `src/quality/score-workbook.ts` + scoreboard (most plugins `weak`/`adequate` on minimal fixtures) |
 | Workspace | new | `SPEC-WORKSPACE` v1.0 wired; registry + backup/restore |
@@ -310,6 +310,6 @@ Skip on first pass: `scripts/build-spec-*.ts`, `src/commands/*`, `src/mcp/tools/
 
 ## 15. Compression ratio
 
-16 concepts + 12 capabilities + 4 flows + 9 tensions = **41 conceptual items** for ≈107K LOC (≈45K after boilerplate subtraction). One over the ≤40 target; T9 could fold into T1's "documented deferrals" without loss, but it is kept separate because the manifest field name is the concrete thing a reader will trip on.
+16 concepts + 12 capabilities + 4 flows + 9 tensions = **41 conceptual items** (source volume in [CENSUS.md](./CENSUS.md)). One over the ≤40 target; T9 could fold into T1's "documented deferrals" without loss, but it is kept separate because the manifest field name is the concrete thing a reader will trip on.
 
 **Confidence tally:** high 31 · medium 3 · low 0. Claims not backed by a test run or a line reference are marked "reasoned from code".

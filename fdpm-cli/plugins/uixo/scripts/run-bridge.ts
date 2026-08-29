@@ -11,7 +11,7 @@
  *   generated/migration-hints.json
  *   generated/usl-ng-core.json
  *   generated/schema-hash.json
- *   fdpm-plugin.json                          (scaffold + two cap:renderer entries)
+ *   fdpm-plugin.json                          (scaffold + five cap:renderer entries)
  *
  * index.ts, derive.ts, ingest.ts, invariants.ts and renderers/ are author-owned and
  * NOT regenerated.
@@ -82,12 +82,25 @@ function buildPlanned(): { files: Map<string, string> } {
   // described records instead of the model they make; the outline renderer
   // below is what a reader wants from an interaction ontology.
   const extendedCaps: CapabilityEntry[] = [...(baseManifest.capabilities as CapabilityEntry[])];
-  extendedCaps.push({
-    capability_id: "cap:renderer",
-    local_name: "document-outline-md",
-    entry: "renderDocumentOutline",
-    metadata: { target: "text/markdown", renderer_id: `${VENDOR}:DocumentOutlineRenderer` },
-  });
+  // The five document views. Order here is irrelevant — stableSortCaps
+  // below fixes the emitted order — but the list must match what index.ts
+  // registers, because the manifest is what a host reads to decide a
+  // profile can render at all.
+  const views: [string, string, string, string][] = [
+    ["document-outline-md", "renderDocumentOutline", "text/markdown", "DocumentOutlineRenderer"],
+    ["document-html", "renderDocumentHtml", "text/html", "DocumentHtmlRenderer"],
+    ["document-pdf", "renderDocumentPdf", "application/pdf", "DocumentPdfRenderer"],
+    ["component-tree-svg", "renderComponentTree", "image/svg+xml", "ComponentTreeRenderer"],
+    ["component-sheet-png", "renderComponentSheet", "image/png", "ComponentSheetRenderer"],
+  ];
+  for (const [local_name, entry, target, rendererName] of views) {
+    extendedCaps.push({
+      capability_id: "cap:renderer",
+      local_name,
+      entry,
+      metadata: { target, renderer_id: `${VENDOR}:${rendererName}` },
+    });
+  }
   const permissions = ["read:primitives", "read:relations", "read:workbooks", "render:server"].sort();
   const extendedManifest = {
     ...baseManifest,

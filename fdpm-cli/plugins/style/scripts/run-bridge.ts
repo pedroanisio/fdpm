@@ -101,28 +101,25 @@ function buildPlanned(): { files: Map<string, string> } {
   // style-outline renderer.
   const baseManifest = buildBaseManifest(result);
   const extendedCaps: CapabilityEntry[] = [...(baseManifest.capabilities as CapabilityEntry[])];
-  for (const entityName of ENTITY_NAMES) {
-    const typeId = primitiveTypeId(entityName);
+
+  // The four document views. Order here is irrelevant — stableSortCaps
+  // below fixes the emitted order — but the list must match what
+  // index.ts registers, because the manifest is what a host reads to
+  // decide a profile can render at all.
+  const views: [string, string, string, string][] = [
+    ["style-outline-md", "renderStyleOutline", "text/markdown", "StyleOutlineRenderer"],
+    ["style-html", "renderStyleHtml", "text/html", "StyleHtmlRenderer"],
+    ["style-specimen-svg", "renderStyleSpecimen", "image/svg+xml", "StyleSpecimenRenderer"],
+    ["style-palette-png", "renderPaletteSheet", "image/png", "PaletteSheetRenderer"],
+  ];
+  for (const [local_name, entry, target, rendererName] of views) {
     extendedCaps.push({
       capability_id: "cap:renderer",
-      local_name: `${lowerTail(typeId)}-md`,
-      entry: `${camelCaseLast(typeId)}MarkdownRenderer`,
-      metadata: {
-        primitive_type_id: typeId,
-        target: "text/markdown",
-        renderer_id: `${PLUGIN_ID}:${entityName}MarkdownRenderer`,
-      },
+      local_name,
+      entry,
+      metadata: { target, renderer_id: `${VENDOR}:${rendererName}` },
     });
   }
-  extendedCaps.push({
-    capability_id: "cap:renderer",
-    local_name: "style-outline-md",
-    entry: "renderStyleOutline",
-    metadata: {
-      target: "text/markdown",
-      renderer_id: `${VENDOR}:StyleOutlineRenderer`,
-    },
-  });
   const permissions = ["read:primitives", "read:relations", "read:workbooks", "render:server"].sort();
   const extendedManifest = {
     ...baseManifest,

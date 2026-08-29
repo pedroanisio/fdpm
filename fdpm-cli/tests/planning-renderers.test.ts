@@ -474,3 +474,214 @@ describe("plan:GanttSvgRenderer (image/svg+xml)", () => {
     expect(svg).toContain("&quot;");
   });
 });
+
+// ---------------------------------------------------------------------------
+// plan:GanttSvgRenderer — the canvas must contain what is drawn on it
+// ---------------------------------------------------------------------------
+
+/**
+ * SVG clips at its viewport, silently. A drawing wider than its own `viewBox`
+ * is not a cosmetic defect — the glyphs past the edge are computed, written to
+ * the file, and then discarded by every renderer that opens it, with no error
+ * anywhere. These tests hold the canvas to the text.
+ *
+ * The width the tests measure with is deliberately NOT the renderer's own
+ * estimator: `0.5em` per character is below the true advance of any realistic
+ * sans-serif run, so it is a lower bound on the space the text needs. A
+ * viewBox that fails to contain even the lower bound is clipping for certain.
+ */
+const LOWER_BOUND_EM = 0.5;
+
+function atLeastWidth(s: string, fontSize: number): number {
+  return s.length * fontSize * LOWER_BOUND_EM;
+}
+
+function viewBoxOf(svg: string): { width: number; height: number } {
+  const m = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
+  if (m === null) throw new Error("no viewBox on the rendered SVG");
+  return { width: Number(m[1]), height: Number(m[2]) };
+}
+
+/** Every `<text>` element as drawn: its class, its x, and its content. */
+function textsOf(svg: string): { cls: string; x: number; body: string }[] {
+  return [
+    ...svg.matchAll(/<text class="([^"]+)" x="([\d.]+)" y="[\d.]+">([^<]*)/g),
+  ].map((m) => ({ cls: m[1]!, x: Number(m[2]), body: m[3]! }));
+}
+
+const FONT_SIZE: Record<string, number> = {
+  title: 16,
+  subtitle: 11,
+  "axis-label": 10,
+  "row-label": 12,
+  "row-label-summary": 10,
+  "now-label": 10,
+  "bar-text": 10,
+  "unscheduled-header": 12,
+  "unscheduled-row": 11,
+};
+
+function longSummaryTask(id: string, summary: string): PrimitiveInstance {
+  return task(id, {
+    name: id,
+    summary,
+    kind: "Implementation",
+    executor_kind: "Either",
+    ai_minutes: 30,
+    status: "Ready",
+    priority: "P2",
+  });
+}
+
+describe("plan:GanttSvgRenderer — canvas fits its text", () => {
+  it("sizes the viewBox from the unscheduled footer, not the timeline alone", async () => {
+    /* The reported defect: 22 undated tasks with paragraph-length summaries
+       produced viewBox="0 0 424 556" — the timeline width — while the rows ran
+       to roughly 1800 units. Three quarters of every line was clipped. */
+    const summary =
+      "Add StudioHostAdapter.render(workbookId, target, renderer?) wrapping " +
+      "renderProject from @fdpm/cli sdk.ts:836, which assembles the renderer " +
+      "envelope from workbook state. Same path the fdpm:// MCP render resource uses.";
+    const tasks = Array.from({ length: 22 }, (_, i) =>
+      longSummaryTask(`task:undated-${i}`, summary),
+    );
+    const svg = new TextDecoder().decode((await renderGantt(input(tasks))).bytes);
+    const { width } = viewBoxOf(svg);
+
+    const rows = textsOf(svg).filter((t) => t.cls === "unscheduled-row");
+    expect(rows).toHaveLength(22);
+    for (const row of rows) {
+      expect(row.x + atLeastWidth(row.body, FONT_SIZE["unscheduled-row"]!)).toBeLessThanOrEqual(
+        width,
+      );
+    }
+    // Timeline-only sizing is what the defect was; the canvas must exceed it.
+    expect(width).toBeGreaterThan(240 + 24 * 7 + 16);
+  });
+
+  it("holds every drawn string inside the viewBox", async () => {
+    const scheduledTask = task("task:a-rather-long-identifier-for-the-gutter", {
+      name: "WWWWW MMMMM WWWWW MMMMM WWWWW",
+      summary: "A summary of exactly thirty-eight chars",
+      kind: "Implementation",
+      executor_kind: "AI",
+      ai_minutes: 30,
+      status: "In_progress",
+      priority: "P1",
+      planned_start: "2026-05-01",
+      planned_finish: "2026-05-04",
+    });
+    const svg = new TextDecoder().decode(
+      (await renderGantt(input([scheduledTask, longSummaryTask("task:u", "x".repeat(400))])))
+        .bytes,
+    );
+    const { width } = viewBoxOf(svg);
+    for (const t of textsOf(svg)) {
+      const size = FONT_SIZE[t.cls];
+      expect(size, `unmeasured text class: ${t.cls}`).toBeDefined();
+      expect(
+        t.x + atLeastWidth(t.body, size!),
+        `${t.cls} at x=${t.x} runs past the ${width}-unit viewBox: ${t.body}`,
+      ).toBeLessThanOrEqual(width);
+    }
+  });
+
+  it("widens the canvas so a long workbook id's title stays inside it", async () => {
+    const svg = new TextDecoder().decode(
+      (
+        await renderGantt({
+          ...input([]),
+          workbookId: "studio-legacy-web-consolidation-with-a-very-long-name",
+        })
+      ).bytes,
+    );
+    const { width } = viewBoxOf(svg);
+    const title = textsOf(svg).find((t) => t.cls === "title")!;
+    expect(title.body).toContain("studio-legacy-web-consolidation");
+    expect(title.x + atLeastWidth(title.body, 16)).toBeLessThanOrEqual(width);
+  });
+
+  it("elides an over-long footer row and keeps the full text in a <title>", async () => {
+    const summary = "y".repeat(400);
+    const svg = new TextDecoder().decode(
+      (await renderGantt(input([longSummaryTask("task:u", summary)]))).bytes,
+    );
+    const row = /<text class="unscheduled-row"[^>]*>([^<]*)<title>([^<]*)<\/title>/.exec(svg);
+    expect(row, "an elided row must carry the whole row as a tooltip").not.toBeNull();
+    expect(row![1]!.endsWith("…")).toBe(true);
+    expect(row![1]!.length).toBeLessThan(row![2]!.length);
+    expect(row![2]).toContain(summary);
+  });
+
+  it("does not elide a footer row that already fits, and adds no tooltip", async () => {
+    const svg = new TextDecoder().decode(
+      (await renderGantt(input([longSummaryTask("task:u", "short summary")]))).bytes,
+    );
+    expect(svg).toContain("task:u [Ready/Either] — short summary</text>");
+    expect(svg).not.toContain("…");
+  });
+
+  it("spaces date labels so two never overlap", async () => {
+    /* Seven days at 24px each cannot carry a 10-character date every day. The
+       old rule aimed at ~12 labels whatever their width and printed them on
+       top of one another. */
+    const t = task("task:a", {
+      name: "a",
+      summary: "s",
+      kind: "Implementation",
+      executor_kind: "AI",
+      ai_minutes: 30,
+      status: "Ready",
+      priority: "P1",
+      planned_start: "2026-05-01",
+      planned_finish: "2026-05-07",
+    });
+    const svg = new TextDecoder().decode((await renderGantt(input([t]))).bytes);
+    const labels = textsOf(svg).filter((l) => l.cls === "axis-label");
+    expect(labels.length).toBeGreaterThan(1);
+    for (let i = 1; i < labels.length; i += 1) {
+      const previousRight =
+        labels[i - 1]!.x + atLeastWidth(labels[i - 1]!.body, FONT_SIZE["axis-label"]!);
+      expect(labels[i]!.x).toBeGreaterThanOrEqual(previousRight);
+    }
+  });
+
+  it("knocks the day grid out from behind the empty-state note", async () => {
+    /* With nothing scheduled the note is drawn inside the grid band. Day
+       rules struck through the one sentence a reader has is a drawing that
+       looks broken, which is the whole complaint this suite exists for. */
+    const svg = new TextDecoder().decode((await renderGantt(input([]))).bytes);
+    const note = textsOf(svg).find((t) => t.cls === "row-label-summary")!;
+    expect(note.body).toContain("No tasks have planned_start");
+
+    const knockout =
+      /<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="[\d.]+" fill="#ffffff" \/>/.exec(
+        svg,
+      );
+    expect(knockout, "the note needs a ground of its own").not.toBeNull();
+    const left = Number(knockout![1]);
+    const right = left + Number(knockout![2]);
+    expect(left).toBeLessThanOrEqual(note.x);
+    expect(right).toBeGreaterThanOrEqual(note.x + atLeastWidth(note.body, 10));
+    // It is a ground, so it is painted before the text it sits under.
+    expect(svg.indexOf(knockout![0])).toBeLessThan(svg.indexOf(note.body));
+  });
+
+  it("keeps a gutter label out of the chart area", async () => {
+    const t = task("task:an-identifier-far-too-long-for-a-240-unit-gutter-column", {
+      name: "n",
+      summary: "s",
+      kind: "Implementation",
+      executor_kind: "AI",
+      ai_minutes: 30,
+      status: "Ready",
+      priority: "P1",
+      planned_start: "2026-05-01",
+      planned_finish: "2026-05-02",
+    });
+    const svg = new TextDecoder().decode((await renderGantt(input([t]))).bytes);
+    const label = textsOf(svg).find((l) => l.cls === "row-label")!;
+    expect(label.body.endsWith("…")).toBe(true);
+    expect(label.x + atLeastWidth(label.body, 12)).toBeLessThanOrEqual(240);
+  });
+});

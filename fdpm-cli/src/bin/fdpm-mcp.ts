@@ -53,6 +53,10 @@ import {
   instructionsBytes,
 } from "../mcp/instructions.js";
 import { createSession } from "../mcp/session.js";
+import {
+  resolveConfirmationTokenPolicy,
+  type ConfirmationTokenPolicy,
+} from "../mcp/confirmation-token.js";
 import { createDispatcher } from "../mcp/dispatch.js";
 import type { DispatchCtx } from "../mcp/types.js";
 import { handleReload } from "../mcp/reload.js";
@@ -74,6 +78,7 @@ interface ParsedFlags {
   maxCallsPerMinute: number;
   auditFullArgs: boolean;
   catalogBudget: CatalogBudget;
+  confirmationTokenPolicy: ConfirmationTokenPolicy;
 }
 
 /**
@@ -143,6 +148,17 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
   // SPEC-MCP-SERVER §8.5: the catalog budget. Only the total is
   // operator-tunable; a malformed value is a startup refusal, like
   // --max-calls-per-minute.
+  // SPEC-MCP-SERVER §9.3: opt-in Tier 2/3 confirmation-token gate. A
+  // misconfiguration here is a startup refusal, not a silent downgrade to
+  // "unprotected" — see confirmation-token.ts.
+  let confirmationTokenPolicy: ConfirmationTokenPolicy;
+  try {
+    confirmationTokenPolicy = resolveConfirmationTokenPolicy(process.env);
+  } catch (err) {
+    process.stderr.write(`fdpm-mcp: ${err instanceof Error ? err.message : String(err)}\n`);
+    process.exit(2);
+  }
+
   let catalogBudget: CatalogBudget;
   try {
     catalogBudget = resolveCatalogBudget(process.env);
@@ -159,6 +175,7 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
     maxCallsPerMinute,
     auditFullArgs,
     catalogBudget,
+    confirmationTokenPolicy,
   };
 }
 
@@ -179,6 +196,7 @@ async function main(): Promise<void> {
       `  enabled_plugins=${flags.enabledPlugins.length === 0 ? "(none)" : flags.enabledPlugins.join(",")}`,
       `  max_calls_per_minute=${flags.maxCallsPerMinute}`,
       `  audit_full_args=${flags.auditFullArgs}`,
+      `  require_confirmation_token=${flags.confirmationTokenPolicy.requireConfirmationToken}`,
       `  catalog_budget_bytes=${flags.catalogBudget.total_bytes} (per_tool=${flags.catalogBudget.per_tool_bytes})`,
       `  instructions_bytes=${instructionsBytes()}`,
       ``,
@@ -255,6 +273,7 @@ async function main(): Promise<void> {
     enableDestructive: flags.enableDestructive,
     enabledPlugins: new Set(flags.enabledPlugins),
     auditFullArgs: flags.auditFullArgs,
+    ...flags.confirmationTokenPolicy,
     hostOptions: {
       dataDir: flags.dataDir,
       noPlugins,

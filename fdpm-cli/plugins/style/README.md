@@ -27,7 +27,7 @@ describes.
 | Derived from | [`schemas/style.ts`](./schemas/style.ts), a normalisation of `_ingest_bin/style-schema.ts` v3.1.0 (3717 lines of type-level TypeScript) |
 | Entities | Style, Movement, LineGrammar, ColorGrammar, FormGrammar, SpatialGrammar, SurfaceGrammar, TypographyGrammar, CompositionGrammar, ContrastGrammar, IconographyGrammar, MotionGrammar, Rule, ComplianceCheck, CanonicalReference |
 | Relations | `style:HasGrammar`, `style:DeclaresRule`, `style:DeclaresCheck`, `style:TestsRule`, `style:CitesExemplar`, `style:HasReference`, `style:BelongsToMovement`, `style:NegatesMovement`, `style:InfluencesStyle`, `style:ParentMovement` |
-| Renderer | `style:StyleOutlineRenderer` — the whole registry as a reviewable document |
+| Renderers | Four document views — `text/markdown`, `text/html`, `image/svg+xml`, `image/png` (see [Four views](#four-views-of-one-registry)) |
 
 Root [README.md](../../README.md).
 
@@ -148,26 +148,86 @@ each checkable in review:
 5. **Deterministic bounds.** No loop's termination depends on input
    content; the movement walk carries its own visited set.
 
+## Four views of one registry
+
+A style specification is not prose about colours; a table saying `#D2232A`
+asks the reader to imagine the thing the document is *for*. Four
+renderers are registered, and the three added beyond the outline exist so
+that the measurable parts of a style are rendered as what they mean.
+
+| Target | Renderer id | What it is |
+|---|---|---|
+| `text/markdown` | `style:StyleOutlineRenderer` | The registry as the source schema reads — the reviewable document, and the profile's default. |
+| `text/html` | `style:StyleHtmlRenderer` | The specification page. Palette and forbidden colours painted as chips, colour tokens as a copyable `:root {}` block, every WCAG pair with its **measured** ratio, the required minimum and a pass/fail verdict. |
+| `image/svg+xml` | `style:StyleSpecimenRenderer` | One specimen plate per style: palette, contrast pairs drawn as the two colours actually combine, a stroke specimen at the declared weight, the rule census as a proportional bar, ten grammar badges. |
+| `image/png` | `style:PaletteSheetRenderer` | The palette as pixels — a chip sheet for a picker, an eyedropper or a diff against last release. Palette, forbidden colours, colour tokens; nothing else. |
+
+```bash
+fdpm render <workbook> text/html      --renderer-id style:StyleHtmlRenderer     -o style.html
+fdpm render <workbook> image/svg+xml  --renderer-id style:StyleSpecimenRenderer -o style.svg
+fdpm render <workbook> image/png      --renderer-id style:PaletteSheetRenderer  -o style.png
+```
+
+Binary targets require `-o`; the CLI refuses to stream them to a terminal.
+
+Four properties hold across the three, and the suite asserts each:
+
+1. **One walk.** All three read the graph through
+   [`renderers/_model.ts`](./renderers/_model.ts), which resolves what the
+   graph only points at — a rule's exemplars become titles, a contrast
+   pair's token names become hexes with a ratio and a verdict. Four
+   independent walks is how four views drift into disagreeing about one
+   registry.
+2. **Self-contained.** The HTML carries no script, no stylesheet link, no
+   `@import` and no absolute URL; the SVG names only generic font
+   families. A specification gets mailed around and opened offline, and a
+   specimen that changes shape between viewers is not a specimen.
+3. **Escaped.** Every author-supplied string — a rule statement, an axiom,
+   a reference title — passes through the format's escape. Values reaching
+   a CSS context are additionally matched against the hex or ident grammar,
+   because escaping protects the HTML parser and not the CSS one.
+4. **Deterministic.** Nothing reads a clock, a locale or the environment.
+   Two renders of one workbook are byte-equal, so the output can be
+   committed and diffed.
+
+The PNG is encoded in-repo ([`src/core/render/png.ts`](../../src/core/render/png.ts)):
+8-bit truecolour, filter type 0, `node:zlib` for the deflate, a 5×7
+bitmap face for the labels. No image dependency was added, because the
+only raster this plugin produces is flat rectangles and monospaced text —
+a rasteriser earns its place when it has to resolve fonts, curves and
+blending, and none of that appears here. Correctness is not "a viewer
+opened it": the suite parses the chunk stream, verifies every CRC against
+an independent implementation, inflates IDAT and reads the palette's
+colours back out of the pixels.
+
 ## Layout
 
 ```
 plugins/style/
-├── schemas/style.ts       # the Zod transcription — the single source of truth
-├── sidecar.ts             # entities, ten relation types, declared losses
-├── invariants.ts          # the cross-entity invariant set
-├── ingest.ts              # StyleRegistry JSON → validated workbook
-├── renderers/             # the registry outline
-├── index.ts               # activate(): profile + 15 validators + 16 renderers
-├── scripts/run-bridge.ts  # regenerates everything below
-├── generated/             # profile.json, audit.json, … (bridge-owned)
-├── capabilities/          # per-entity renderer descriptors (bridge-owned)
-└── fdpm-plugin.json       # manifest (bridge-owned)
+├── schemas/style.ts          # the Zod transcription — the single source of truth
+├── sidecar.ts                # entities, ten relation types, declared losses
+├── invariants.ts             # the cross-entity invariant set
+├── ingest.ts                 # StyleRegistry JSON → validated workbook
+├── renderers/
+│   ├── _model.ts             # the graph → RegistryView walk, shared by all views
+│   ├── style_outline.ts      # text/markdown
+│   ├── style_html.ts         # text/html
+│   ├── style_specimen.ts     # image/svg+xml
+│   └── style_palette.ts      # image/png
+├── index.ts                  # activate(): profile + 15 validators + 19 renderers
+├── scripts/run-bridge.ts     # regenerates everything below
+├── generated/                # profile.json, audit.json, … (bridge-owned)
+├── capabilities/             # per-entity renderer descriptors (bridge-owned)
+└── fdpm-plugin.json          # manifest (bridge-owned)
 ```
 
 `schemas/style.ts`, `sidecar.ts`, `invariants.ts`, `ingest.ts`,
 `renderers/` and `index.ts` are hand-authored. Everything else is
 regenerated by `npm run bridge` and gated by `npm run bridge -- --check`,
-which fails on any drift.
+which fails on any drift. The four `cap:renderer` entries in the manifest
+are declared in `scripts/run-bridge.ts` and must match what `index.ts`
+registers — the manifest is what a host reads to decide a profile can
+render at all, and the drift test asserts the two agree.
 
 ```bash
 npm run bridge -- --check          # drift gate
@@ -183,14 +243,21 @@ npx vitest run tests/plugins/style # the suite
   Nothing in the host checks findings against that set — it is audit
   metadata — so this costs discoverability, not correctness.
 - The fifteen per-entity markdown renderers are generated by
-  `zodSchemaToMarkdownRenderer`, which stringifies array elements with
-  `String()`. A list-of-struct field — `palette`, `typefaces`,
-  `tokens_colors` — therefore renders as `[object Object]`. This is
-  `@fdpm/zod-bridge` behaviour shared by every plugin that uses the
-  generated renderers, not something this plugin introduces, and it is
-  asserted by a test so the day the bridge fixes it, the test fails and this
-  note comes out. The hand-written `style:StyleOutlineRenderer` does not
-  have the defect and is the renderer to reach for.
+  `zodSchemaToMarkdownRenderer`. They used to stringify array elements with
+  `String()`, so a list-of-struct field — `palette`, `typefaces`,
+  `tokens_colors` — rendered as `[object Object]`; the note that stood here
+  said the day the bridge fixed it, this text would come out. It was fixed
+  on 2026-08-29: a struct now renders as inline key/value pairs, unset
+  fields are omitted, and each entity is headed by its own name rather than
+  its type and ULID. The four hand-written views above are the renderers to
+  reach for when you want the registry as one document; the generated ones
+  are per-entity detail.
+- The PNG face covers uppercase, digits and `# - . : / ( )`. A label is
+  upper-cased before it is drawn and an unmapped character advances
+  without painting, so a non-Latin token name renders as a gap. The HTML
+  and SVG views carry the full text; the raster sheet is a colour
+  artefact, and a substituted glyph in a hex code would be worse than a
+  space.
 - `RenderedStyle` and `CssArtifacts` are not modelled. The source keeps
   them out of `StyleDefinition` behind a `sha256-jcs` content hash because
   they are a renderer's output rather than stored truth; the same reasoning

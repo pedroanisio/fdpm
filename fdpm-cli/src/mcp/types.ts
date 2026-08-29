@@ -42,9 +42,12 @@ export interface DispatchCtx {
    * `evidence.reason: "confirmation_required"`. Tier 1 calls are
    * unaffected.
    *
-   * Both fields are optional and additive — the bin entry leaves
-   * them undefined unless `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN=1` is
-   * set, preserving the v0.1 default behaviour.
+   * Both fields are optional and additive. The bin entry resolves them
+   * from `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN=1` plus
+   * `FDPM_MCP_CONFIRMATION_TOKEN` via `resolveConfirmationTokenPolicy`
+   * (`src/mcp/confirmation-token.ts`), and leaves both undefined
+   * otherwise, preserving the v0.1 default behaviour. Enabling the gate
+   * without a token is a startup refusal, not a lockout.
    */
   readonly requireConfirmationToken?: boolean;
   readonly confirmationToken?: string;

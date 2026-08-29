@@ -140,15 +140,17 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 
 ### Environment variables
 
+<!-- BEGIN GENERATED: env-vars (scripts/build-env-docs.ts) -->
+
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
 | `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths (colon-separated). |
-| `FDPM_LOG_LEVEL` | `info` | Plugin logger threshold: `debug`, `info`, `warn`, `error`, `silent`. |
+| `FDPM_LOG_LEVEL` | `info` | Plugin logger threshold: debug \| info \| warn \| error \| silent. |
 | `FDPM_DEBUG` | unset | Truthy -> also emit plugin debug logs. |
 | `FDPM_VERBOSE` | unset | Truthy -> expand human-mode error output. |
-| `FDPM_JSON_COMPACT` | unset | `1` -> emit compact (single-line) JSON; set automatically by `fdpm repl --json` and SPEC-MCP-SERVER. |
-| `FDPM_MAX_REQUEST_BYTES` | `5242880` | Cap on `-f` / stdin input size in bytes. |
+| `FDPM_JSON_COMPACT` | unset | 1 -> emit compact (single-line) JSON; set by `fdpm repl --json` and SPEC-MCP-SERVER. |
+| `FDPM_MAX_REQUEST_BYTES` | `5242880` | Cap on -f / stdin input size in bytes. |
 | `FDPM_MAX_FIELD_PATCH_OPS` | `100` | Cap on operations per field-patch request. |
 | `FDPM_LOG_PAGE_MAX` | `10000` | Max events returned by one log page. |
 | `FDPM_MAX_BATCH_OPS` | `500` | Cap on operations per edit batch. |
@@ -156,14 +158,18 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | `FDPM_TRUSTED_KEYS` | `""` | Comma-separated keys allowed for verified plugin trust. |
 | `FDPM_MAX_RENDER_BYTES` | `52428800` | Cap on renderer output size in bytes. |
 | `FDPM_SNAPSHOT_EVERY_OPS` | `1000` | Store snapshot after every N appended operations. |
-| `FDPM_NO_PLUGINS` | unset | Truthy -> `fdpm-mcp` constructs Host with `noPlugins=true`. |
-| `FDPM_MCP_ENABLE_DESTRUCTIVE` | unset | `fdpm-mcp`: truthy -> expose Tier-3 destructive tools (off by default). |
-| `FDPM_MCP_ENABLE_PLUGINS` | `""` | `fdpm-mcp`: comma-separated plugin ids whose MCP tools are exposed. |
-| `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | `fdpm-mcp`: per-session rate limit on tool calls. |
-| `FDPM_MCP_AUDIT_FULL_ARGS` | unset | `fdpm-mcp`: truthy -> log full args (default: sha256 hash only). |
-| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `28000` | `fdpm-mcp`: cap on the UTF-8 byte size of the advertised `tools/list` catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
-| `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when `FDPM_DATA_DIR` is set. |
+| `FDPM_NO_PLUGINS` | unset | Truthy -> fdpm-mcp constructs Host with noPlugins=true. |
+| `FDPM_MCP_ENABLE_DESTRUCTIVE` | unset | Fdpm-mcp: truthy -> expose Tier-3 destructive tools (off by default). |
+| `FDPM_MCP_ENABLE_PLUGINS` | `""` | Fdpm-mcp: comma-separated plugin ids whose MCP tools are exposed. |
+| `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | Fdpm-mcp: per-session rate limit on tool calls. |
+| `FDPM_MCP_AUDIT_FULL_ARGS` | unset | Fdpm-mcp: truthy -> log full args (default: sha256 hash only). |
+| `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN` | unset | SPEC-MCP-SERVER §9.3: exactly `1` gates Tier 2/3 calls behind an `_confirmation_token` argument; requires FDPM_MCP_CONFIRMATION_TOKEN. |
+| `FDPM_MCP_CONFIRMATION_TOKEN` | unset | Fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty. |
+| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `26000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
+| `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when FDPM_DATA_DIR is set. |
 | `FDPM_REGISTRY_PATH` | `$XDG_STATE_HOME/fdpm/workspaces.json` | SPEC-WORKSPACE §12: override path to the operator-local workspace registry. |
+
+<!-- END GENERATED: env-vars -->
 
 One-shot CLI ergonomics:
 - `fdpm` one-shot commands default plugin startup logs to `warn`, so human command output is not preceded by plugin activation banners.

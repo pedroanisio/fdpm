@@ -71,10 +71,11 @@ describe("fdpm.style activation", () => {
     expect(live.version).toBe(generated.version);
   });
 
-  it("registers the registry-outline renderer alongside one per entity", () => {
+  it("registers the registry-outline renderer, and only that", () => {
     const ids = host.plugins.listRenderers().map((r) => r.rendererId);
     expect(ids).toContain("style:StyleOutlineRenderer");
-    for (const name of ENTITY_NAMES) expect(ids).toContain(`${PLUGIN_ID}:${name}MarkdownRenderer`);
+    // The fifteen generated per-entity field tables were withdrawn.
+    for (const name of ENTITY_NAMES) expect(ids).not.toContain(`${PLUGIN_ID}:${name}MarkdownRenderer`);
   });
 });
 

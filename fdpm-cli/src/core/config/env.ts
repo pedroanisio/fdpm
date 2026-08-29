@@ -122,9 +122,26 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     summary: "fdpm-mcp: truthy -> log full args (default: sha256 hash only)",
   },
   {
+    name: "FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN",
+    defaultValue: "unset",
+    exampleValue: "1",
+    summary:
+      "SPEC-MCP-SERVER §9.3: exactly `1` gates Tier 2/3 calls behind an `_confirmation_token` argument; requires FDPM_MCP_CONFIRMATION_TOKEN",
+  },
+  {
+    name: "FDPM_MCP_CONFIRMATION_TOKEN",
+    defaultValue: "unset",
+    exampleValue: "change-me",
+    summary:
+      "fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty",
+  },
+  {
     name: "FDPM_MCP_CATALOG_BUDGET_BYTES",
-    defaultValue: "28000",
-    exampleValue: "28000",
+    // Must equal DEFAULT_CATALOG_BUDGET.total_bytes in src/mcp/catalog.ts.
+    // These drifted (registry 28000 vs code 26000) until 2026-08-29; the
+    // env-contract test now asserts they agree.
+    defaultValue: "26000",
+    exampleValue: "26000",
     summary:
       "fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5)",
   },

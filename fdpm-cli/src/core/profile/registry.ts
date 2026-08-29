@@ -1,7 +1,53 @@
 import type { DomainProfile } from "../models/meta.js";
 import { FDPMException } from "../errors/fdpm-exception.js";
 import { CORE_EMPTY_PROFILE } from "./core-empty.js";
+import { CORE_RENDERER_BINDING } from "./core-renderer.js";
 import { compileProfile } from "./compile.js";
+
+/**
+ * Every renderer id a profile names, in either spelling.
+ *
+ * `renderer_bindings` is the CLI-native list and `renderers` the
+ * Python-parity alias; a profile may populate either, and the in-tree
+ * plugins populate the alias. Anything reading "what renderers does this
+ * profile declare" has to read both or it reads nothing.
+ */
+function rendererIds(profile: {
+  renderer_bindings?: readonly { renderer_id?: string }[];
+  renderers?: readonly { renderer_id?: string }[];
+}): string[] {
+  const out: string[] = [];
+  for (const binding of profile.renderer_bindings ?? []) {
+    if (binding.renderer_id !== undefined) out.push(binding.renderer_id);
+  }
+  for (const binding of profile.renderers ?? []) {
+    if (binding.renderer_id !== undefined) out.push(binding.renderer_id);
+  }
+  return out;
+}
+
+/**
+ * Give a profile that names no renderer at all Core's generic one.
+ *
+ * This is what makes "every profile bears a runnable renderer" an invariant
+ * rather than a convention each plugin author has to remember. Without it a
+ * profile with an empty binding list does not fail to render — it renders
+ * through whatever `findRenderer` reaches last, which is the first plugin
+ * that happened to claim the target.
+ *
+ * Deliberately narrow in two ways. It applies only when the list is empty,
+ * so a profile's own renderer surface is never padded with one it did not
+ * ask for and anything counting that surface still counts what the author
+ * wrote. And it applies to the resolved view only, so `getRaw` and
+ * `listRaw` keep reporting the profile exactly as registered.
+ */
+function withCoreRenderer(profile: DomainProfile): DomainProfile {
+  if (rendererIds(profile).length > 0) return profile;
+  return {
+    ...profile,
+    renderers: [...(profile.renderers ?? []), { ...CORE_RENDERER_BINDING }],
+  };
+}
 
 /**
  * §4.3 Profile resolution — merge a profile with its `extends` chain.
@@ -57,7 +103,7 @@ export class ProfileRegistry {
   getResolved(id: string): DomainProfile {
     const cached = this.resolved.get(id);
     if (cached) return cached;
-    const resolved = this.resolve(id, new Set());
+    const resolved = withCoreRenderer(this.resolve(id, new Set()));
     this.resolved.set(id, resolved);
     return resolved;
   }
@@ -81,6 +127,11 @@ export class ProfileRegistry {
       relation_types: [...profile.relation_types],
       validation_rules: [...profile.validation_rules],
       renderer_bindings: [...profile.renderer_bindings],
+      // `renderers` is the Python-parity spelling of the same list, and it
+      // is the one every in-tree plugin actually populates. Copying only
+      // `renderer_bindings` here left a composition profile inheriting no
+      // renderer at all from a parent that has three.
+      renderers: [...(profile.renderers ?? [])],
       inline_structs: [...profile.inline_structs],
       extends: profile.extends,
     };
@@ -112,6 +163,17 @@ export class ProfileRegistry {
     collide(target.relation_types, parent.relation_types, "relation_type");
     collide(target.validation_rules, parent.validation_rules, "validation_rule");
     collide(target.inline_structs, parent.inline_structs, "inline_struct");
-    target.renderer_bindings.push(...parent.renderer_bindings);
+    // Renderers are inherited, not collided: two parents may legitimately
+    // offer a renderer for the same target, and the child picks between them
+    // through `renderer_bindings` order. Only an exact repeat of the same
+    // renderer id is dropped, so a diamond in the extends chain does not
+    // list the same renderer twice.
+    const known = new Set(rendererIds(target));
+    for (const binding of [...parent.renderer_bindings, ...(parent.renderers ?? [])]) {
+      const id = binding.renderer_id;
+      if (id !== undefined && known.has(id)) continue;
+      if (id !== undefined) known.add(id);
+      target.renderer_bindings.push(binding);
+    }
   }
 }

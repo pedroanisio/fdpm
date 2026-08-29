@@ -33,9 +33,32 @@ const list = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 /** Markdown-escape a table cell. */
 function cell(v: unknown): string {
   if (v === undefined || v === null) return "—";
-  if (Array.isArray(v)) return v.length === 0 ? "—" : v.map((x) => String(x)).join(", ");
-  if (typeof v === "object") return "`" + JSON.stringify(v) + "`";
-  return String(v).replace(/\|/g, "\\|");
+  if (Array.isArray(v)) return v.length === 0 ? "—" : v.map(scalar).join(", ");
+  if (typeof v === "object") return scalar(v);
+  return escapePipes(String(v));
+}
+
+/**
+ * One value inside a cell. An array of STRUCTS used to reach `String(x)`
+ * and render as "[object Object]" — the same defect the generated renderer
+ * had, in the hand-written one that was supposed to be free of it. A
+ * struct prints as inline key/value pairs so a palette entry reads
+ * "name: ink, hex: #1A1A1A" rather than as opaque JSON.
+ */
+function scalar(v: unknown): string {
+  if (v === undefined || v === null) return "—";
+  if (Array.isArray(v)) return v.map(scalar).join(" / ");
+  if (typeof v === "object") {
+    const pairs = Object.entries(v as Record<string, unknown>)
+      .filter(([, x]) => x !== undefined && x !== null && String(x) !== "")
+      .map(([k, x]) => `${k.replace(/_/g, " ")}: ${Array.isArray(x) ? x.map(scalar).join(" / ") : String(x)}`);
+    return escapePipes(pairs.join(", "));
+  }
+  return escapePipes(String(v));
+}
+
+function escapePipes(s: string): string {
+  return s.replace(/\|/g, "\\|");
 }
 
 /** Human-readable period, e.g. "1919–1933" or "1962–present". */

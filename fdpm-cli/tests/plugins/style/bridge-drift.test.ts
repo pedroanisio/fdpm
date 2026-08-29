@@ -35,11 +35,33 @@ describe("manifest ↔ sidecar parity", () => {
     expect(manifest.version).toBe(PLUGIN_VERSION);
   });
 
-  it("advertises one renderer per entity plus the registry outline", () => {
+  /**
+   * The manifest is what a host reads to decide a profile can render at
+   * all, so it must advertise exactly the four document views index.ts
+   * registers — one per target — and none of the fifteen generated
+   * per-entity field tables.
+   */
+  it("advertises the four document views, and no per-entity field tables", () => {
     const renderers = manifest.capabilities.filter((c) => c.capability_id === "cap:renderer");
-    expect(renderers).toHaveLength(ENTITY_NAMES.length + 1);
-    const ids = renderers.map((c) => (c.metadata as { renderer_id?: string } | undefined)?.renderer_id);
-    expect(ids).toContain("style:StyleOutlineRenderer");
+    const declared = renderers
+      .map((c) => c.metadata as { renderer_id?: string; target?: string } | undefined)
+      .map((m) => `${m?.target} ${m?.renderer_id}`)
+      .sort();
+    expect(declared).toEqual(
+      [
+        "text/markdown style:StyleOutlineRenderer",
+        "text/html style:StyleHtmlRenderer",
+        "image/svg+xml style:StyleSpecimenRenderer",
+        "image/png style:PaletteSheetRenderer",
+      ].sort(),
+    );
+  });
+
+  it("names an entry point that the plugin module actually exports", async () => {
+    const mod = (await import("../../../plugins/style/index.js")) as Record<string, unknown>;
+    for (const cap of manifest.capabilities.filter((c) => c.capability_id === "cap:renderer")) {
+      expect(typeof mod[cap.entry], `${cap.entry} is not an exported function`).toBe("function");
+    }
   });
 
   it("emits the profile id the plugin registers, with every relation type", () => {

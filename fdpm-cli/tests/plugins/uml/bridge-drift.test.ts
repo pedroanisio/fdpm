@@ -28,9 +28,11 @@ describe("manifest ↔ sidecar parity", () => {
     expect(manifest.version).toBe(PLUGIN_VERSION);
   });
 
-  it("advertises one renderer per metaclass plus the model outline", () => {
+  it("advertises the model outline, and no per-metaclass field tables", () => {
+    // Twenty-two generated per-entity renderers were withdrawn on
+    // 2026-08-29: they described records, not the model the records make.
     const renderers = manifest.capabilities.filter((c) => c.capability_id === "cap:renderer");
-    expect(renderers).toHaveLength(ENTITY_NAMES.length + 1);
+    expect(renderers).toHaveLength(1);
     const ids = renderers.map((c) => (c.metadata as { renderer_id?: string } | undefined)?.renderer_id);
     expect(ids).toContain("uml:ModelOutlineRenderer");
   });

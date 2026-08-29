@@ -1,7 +1,7 @@
 {
-  "hash": "66a034cd68022a35cdcb1b81a41fb17d4d879bbce686e90d8d72edad1a401c84",
+  "hash": "e24ebc9581d91314b6080c2a25eaf6b97ca553e5f2b2f391504a4c66bd6bf106",
   "hash_algo": "sha256",
-  "pinned_plugin_version": "0.1.0",
+  "pinned_plugin_version": "0.2.0",
   "sources": [
     "schemas/style.ts",
     "sidecar.ts"

@@ -4,8 +4,10 @@
   "spec_version": "1.2.0",
   "kind": "server",
   "name": "DNIS",
-  "description": "Document Node Identity profile per SPEC-CORE §5.6 (which adopts SPEC-DNIS as a normative extension of §5 The Instance Model). Registers dnis:Document, dnis:Node primitive types and dnis:DerivedFrom, dnis:MigratedFrom relation types. The runtime adapter (src/core/dnis/adapter.ts) routes SPEC-DNIS Operations through Host primitive/relation APIs and workbooks OperationResult from the SPEC-CORE op log per §5.6.3.",
-  "authors": ["FDPM Maintainers"],
+  "description": "Document Node Identity profile per SPEC-CORE \u00a75.6 (which adopts SPEC-DNIS as a normative extension of \u00a75 The Instance Model). Registers dnis:Document, dnis:Node primitive types and dnis:DerivedFrom, dnis:MigratedFrom relation types. The runtime adapter (src/core/dnis/adapter.ts) routes SPEC-DNIS Operations through Host primitive/relation APIs and workbooks OperationResult from the SPEC-CORE op log per \u00a75.6.3.",
+  "authors": [
+    "FDPM Maintainers"
+  ],
   "license": "MIT",
   "host_compatibility": {
     "fdpm": ">=1.2,<2"
@@ -13,7 +15,8 @@
   "permissions": [
     "read:workbooks",
     "read:primitives",
-    "read:relations"
+    "read:relations",
+    "render:server"
   ],
   "capabilities": [
     {
@@ -40,6 +43,17 @@
       "capability_id": "cap:lifecycle-hook",
       "local_name": "on-uninstall",
       "entry": "onUninstall"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "document-outline",
+      "entry": "renderDocumentOutline",
+      "metadata": {
+        "renderer_id": "dnis:DocumentOutlineRenderer",
+        "target": "text/markdown",
+        "output_path": "document.md",
+        "description": "The node tree as a numbered document, walked through parent_node_id and ordered by position."
+      }
     }
   ]
 }

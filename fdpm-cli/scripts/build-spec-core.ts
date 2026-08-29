@@ -591,7 +591,7 @@ const acceptances: PrimitiveSpec[] = [
   ac(13, "core-endpoint-001", "Every path in §9.1 is implemented and has request/response schema tests.", "open"),
   ac(14, "core-endpoint-002", "A plugin attempting to mount a router on any reserved path is rejected by the gate.", "open"),
   ac(15, "core-endpoint-003", "After §19 migration, requests to pre-migration paths (`/api/narrative/*`, `/api/spec_parser/*`, `/api/workbooks/{id}/export.pdf`) return 404 — no redirect, no shim. The contract test enumerates these paths and asserts their absence from OpenAPI.", "open"),
-  ac(16, "core-fe-baseline-001", "The SPA, run with zero plugins, exercises §10.2 in an end-to-end browser test (including default print/preview render and `core:empty` workbook open).", "open"),
+  ac(16, "core-fe-baseline-001", "A web client, when one exists, run with zero plugins, exercises §10.2 in an end-to-end browser test (including default print/preview render and `core:empty` workbook open). No web client ships in this repository — the `web/` prototype was retired on 2026-08-29 — so this criterion has no candidate implementation and cannot be closed until PURPOSE.md's future web UI is built.", "open"),
   ac(17, "core-fe-slot-001", "Each slot has a default implementation; a synthetic plugin overrides it; both code paths are tested.", "open"),
   ac(18, "core-fe-budget-001", "A synthetic frontend plugin that exceeds `FDPM_FE_PLUGIN_BUDGET_MS` does not block first paint; the slot falls back; the admin API records the breach.", "open"),
   ac(19, "core-boundary-001", "The `PluginContext` has no method that exposes mutable references to store internals; tested by introspection.", "open"),

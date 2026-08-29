@@ -948,7 +948,7 @@ The conformance suite (Acceptance Criterion 10) MUST verify:
 - Verification: profile collisions, oversized renderer output, non-UTF8 textual renderer output, router prefix violation, Core-reserved-namespace violation — all rejected.
 - Permissions: each operation in §5.2 with permission missing → `PermissionError`; with permission present → success.
 - Failure isolation: an `activate()` raising `RuntimeError` quarantines only its plugin.
-- Frontend: a stub plugin contributing `cap:ui:primitive-form` overrides the default form for a chosen `primitive_type_id` end-to-end (Playwright or equivalent).
+- Frontend: a stub plugin contributing `cap:ui:primitive-form` overrides the default form for a chosen `primitive_type_id` end-to-end (Playwright or equivalent). *Not currently executable: the host does not dispatch `cap:ui:*`, and the `web/` client this assumed was retired on 2026-08-29. The criterion stands as a target; there is no candidate implementation to run it against.*
 - Frontend scoped client: read-side Core endpoints are reachable when listed in `permissions`; same endpoints rejected when not.
 - Manifest cross-version: v1.0.0 manifest loads on v1.1.0 host (mocked); v1.2.0 manifest rejected on v1.0.0 host.
 

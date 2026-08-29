@@ -16,6 +16,12 @@ import type { ProjectTransfer } from "../core/models/instance.js";
 import type { RendererInput, RendererOutput } from "./types.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { emitHostWarning } from "../core/diagnostics/warnings.js";
+import {
+  CORE_RENDERER_ID,
+  CORE_RENDERER_OWNER,
+  CORE_RENDERER_TARGET,
+  renderWorkbookMarkdown,
+} from "../core/profile/core-renderer.js";
 import type { PluginManifest } from "./manifest.js";
 import { isHostCompatible, isSemverCompatible, parseManifest } from "./manifest.js";
 import { discoverPlugins, loadEntryModule, type DiscoveredPlugin } from "./discovery.js";
@@ -60,7 +66,20 @@ export class PluginRuntime implements PluginRuntimeFacade {
   private readonly exporters = new Map<string, ExporterRegistration & { pluginId: string }>();
   private mutatingPluginId: string | null = null;
 
-  constructor(private readonly host: Host) {}
+  constructor(private readonly host: Host) {
+    // Core's profile-generic renderer is installed here rather than at any
+    // of the Host's three PluginRuntime construction sites, so a fourth one
+    // cannot forget it. It is not a plugin and is never discovered,
+    // activated or torn down: it exists for as long as the runtime does,
+    // including in the `noPlugins` state, which is exactly the state in
+    // which a profile would otherwise have nothing at all to render with.
+    this.renderers.set(`${CORE_RENDERER_OWNER}:${CORE_RENDERER_TARGET}:${CORE_RENDERER_ID}`, {
+      target: CORE_RENDERER_TARGET,
+      rendererId: CORE_RENDERER_ID,
+      fn: renderWorkbookMarkdown,
+      pluginId: CORE_RENDERER_OWNER,
+    });
+  }
 
   // -- Discovery + registration --------------------------------------
 
@@ -597,6 +616,10 @@ export class PluginRuntime implements PluginRuntimeFacade {
    *   3. Otherwise, return the first renderer matching `target` by
    *      insertion order. Backwards-compatible with pre-profile
    *      callers (no behaviour change for single-binding targets).
+   *   4. If nothing at all matches, Core's own profile-generic renderer,
+   *      for its own target only. Every profile the registry resolves
+   *      declares a renderer (see `ProfileRegistry.getResolved`), so step 4
+   *      is reached only by a caller that assembled a profile by hand.
    */
   findRenderer(
     target: string,
@@ -609,23 +632,43 @@ export class PluginRuntime implements PluginRuntimeFacade {
       if (rendererId != null && reg.rendererId !== rendererId) continue;
       // Caller-supplied id wins outright, no profile fallback search.
       if (rendererId != null) return reg;
+      // Core's generic renderer is registered before any plugin, and it is
+      // a last resort, not a first match. It is reachable only by being
+      // named — by the caller, or by the profile — or when nothing else
+      // answers at all.
+      if (reg.rendererId === CORE_RENDERER_ID) continue;
       if (firstMatch === undefined) firstMatch = reg;
     }
     if (rendererId != null) return undefined;
 
     // Profile-aware disambiguation. The bindings list is small (one
     // per output format per profile), so the linear scan is cheap.
+    //
+    // Iterated in the order the PROFILE declares, not the order the
+    // registry happens to hold. A profile that lists two renderers for one
+    // target is stating a preference, and resolving it by plugin load order
+    // instead would make the answer depend on which plugin directory was
+    // walked first. It also lets Core append its own profile-generic
+    // renderer to every profile as a last resort without ever displacing a
+    // domain renderer the profile named ahead of it.
     if (profile !== undefined) {
-      const declared = collectDeclaredRendererIds(profile);
-      if (declared.size > 0) {
+      for (const rendererId of collectDeclaredRendererIds(profile)) {
         for (const reg of this.renderers.values()) {
           if (reg.target !== target) continue;
-          if (declared.has(reg.rendererId)) return reg;
+          if (reg.rendererId === rendererId) return reg;
         }
       }
     }
 
-    return firstMatch;
+    if (firstMatch !== undefined) return firstMatch;
+
+    // Nothing else answers. Core's generic renderer is reached only here,
+    // and only for its own target — a caller asking for a PDF still gets
+    // `undefined` rather than Markdown pretending to be one.
+    const core = this.renderers.get(
+      `${CORE_RENDERER_OWNER}:${CORE_RENDERER_TARGET}:${CORE_RENDERER_ID}`,
+    );
+    return core !== undefined && core.target === target ? core : undefined;
   }
 
   /**
@@ -658,8 +701,12 @@ export class PluginRuntime implements PluginRuntimeFacade {
           ? `no renderer registered for target=${target} rendererId=${options.rendererId}`
           : `no renderer registered for target: ${target}`,
       );
-    const owner = this.requireRecord(reg.pluginId);
-    if (owner.state !== "active")
+    // Core's own renderer has no plugin record and no lifecycle to check:
+    // it is part of the host, so it is active exactly when the host is, and
+    // there is nothing to quarantine if it misbehaves — a defect there is a
+    // host defect and belongs in the host's own test suite.
+    const owner = reg.pluginId === CORE_RENDERER_OWNER ? null : this.requireRecord(reg.pluginId);
+    if (owner !== null && owner.state !== "active")
       throw new PluginError(
         "lifecycle",
         `renderer ${reg.rendererId} (target=${target}) owner ${reg.pluginId} is not active (state=${owner.state})`,
@@ -699,7 +746,7 @@ export class PluginRuntime implements PluginRuntimeFacade {
       if (err instanceof FDPMException && err.category === "verification") {
         throw err;
       }
-      this.quarantine(owner, `renderer ${reg.rendererId} raised`, err);
+      if (owner !== null) this.quarantine(owner, `renderer ${reg.rendererId} raised`, err);
       throw new PluginError(
         "capability",
         `renderer ${reg.rendererId} (${reg.pluginId}) raised: ${
@@ -737,17 +784,14 @@ function collectDeclaredRendererIds(
     renderer_bindings?: readonly { renderer_id?: string }[];
     renderers?: readonly { renderer_id?: string }[];
   },
-): Set<string> {
-  const out = new Set<string>();
-  for (const binding of profile.renderer_bindings ?? []) {
-    if (typeof binding.renderer_id === "string" && binding.renderer_id.length > 0) {
-      out.add(binding.renderer_id);
-    }
-  }
-  for (const binding of profile.renderers ?? []) {
-    if (typeof binding.renderer_id === "string" && binding.renderer_id.length > 0) {
-      out.add(binding.renderer_id);
-    }
+): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const binding of [...(profile.renderer_bindings ?? []), ...(profile.renderers ?? [])]) {
+    if (typeof binding.renderer_id !== "string" || binding.renderer_id.length === 0) continue;
+    if (seen.has(binding.renderer_id)) continue;
+    seen.add(binding.renderer_id);
+    out.push(binding.renderer_id);
   }
   return out;
 }

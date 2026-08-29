@@ -1,7 +1,7 @@
 {
-  "hash": "d199cf45308c23a587fda9ac54c9c4303815243fb3c940f6379d62b1ce58fbf4",
+  "hash": "c14e60ca2a8bac87d48dcbd6a3ef913a08c9b8a697fcf830772854fd004f21e2",
   "hash_algo": "sha256",
-  "pinned_plugin_version": "0.1.0",
+  "pinned_plugin_version": "0.2.0",
   "sources": [
     "schemas/uixo-native.ts",
     "sidecar.ts",

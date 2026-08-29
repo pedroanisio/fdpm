@@ -1,6 +1,6 @@
 {
   "name": "@fdpm-plugins/uixo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "UIXO v11 interaction ontology — 712 classes and 210 derived relation types, from a vendored uixo-native.ts via @fdpm/zod-bridge.",

@@ -10,132 +10,11 @@
     },
     {
       "capability_id": "cap:renderer",
-      "entry": "canonicalReferenceMarkdownRenderer",
-      "local_name": "canonical-reference-md",
+      "entry": "renderStyleHtml",
+      "local_name": "style-html",
       "metadata": {
-        "primitive_type_id": "style:CanonicalReference",
-        "renderer_id": "fdpm.style:CanonicalReferenceMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "colorGrammarMarkdownRenderer",
-      "local_name": "color-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:ColorGrammar",
-        "renderer_id": "fdpm.style:ColorGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "complianceCheckMarkdownRenderer",
-      "local_name": "compliance-check-md",
-      "metadata": {
-        "primitive_type_id": "style:ComplianceCheck",
-        "renderer_id": "fdpm.style:ComplianceCheckMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "compositionGrammarMarkdownRenderer",
-      "local_name": "composition-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:CompositionGrammar",
-        "renderer_id": "fdpm.style:CompositionGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "contrastGrammarMarkdownRenderer",
-      "local_name": "contrast-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:ContrastGrammar",
-        "renderer_id": "fdpm.style:ContrastGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "formGrammarMarkdownRenderer",
-      "local_name": "form-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:FormGrammar",
-        "renderer_id": "fdpm.style:FormGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "iconographyGrammarMarkdownRenderer",
-      "local_name": "iconography-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:IconographyGrammar",
-        "renderer_id": "fdpm.style:IconographyGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "lineGrammarMarkdownRenderer",
-      "local_name": "line-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:LineGrammar",
-        "renderer_id": "fdpm.style:LineGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "motionGrammarMarkdownRenderer",
-      "local_name": "motion-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:MotionGrammar",
-        "renderer_id": "fdpm.style:MotionGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "movementMarkdownRenderer",
-      "local_name": "movement-md",
-      "metadata": {
-        "primitive_type_id": "style:Movement",
-        "renderer_id": "fdpm.style:MovementMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "ruleMarkdownRenderer",
-      "local_name": "rule-md",
-      "metadata": {
-        "primitive_type_id": "style:Rule",
-        "renderer_id": "fdpm.style:RuleMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "spatialGrammarMarkdownRenderer",
-      "local_name": "spatial-grammar-md",
-      "metadata": {
-        "primitive_type_id": "style:SpatialGrammar",
-        "renderer_id": "fdpm.style:SpatialGrammarMarkdownRenderer",
-        "target": "text/markdown"
-      }
-    },
-    {
-      "capability_id": "cap:renderer",
-      "entry": "styleMarkdownRenderer",
-      "local_name": "style-md",
-      "metadata": {
-        "primitive_type_id": "style:Style",
-        "renderer_id": "fdpm.style:StyleMarkdownRenderer",
-        "target": "text/markdown"
+        "renderer_id": "style:StyleHtmlRenderer",
+        "target": "text/html"
       }
     },
     {
@@ -149,22 +28,20 @@
     },
     {
       "capability_id": "cap:renderer",
-      "entry": "surfaceGrammarMarkdownRenderer",
-      "local_name": "surface-grammar-md",
+      "entry": "renderPaletteSheet",
+      "local_name": "style-palette-png",
       "metadata": {
-        "primitive_type_id": "style:SurfaceGrammar",
-        "renderer_id": "fdpm.style:SurfaceGrammarMarkdownRenderer",
-        "target": "text/markdown"
+        "renderer_id": "style:PaletteSheetRenderer",
+        "target": "image/png"
       }
     },
     {
       "capability_id": "cap:renderer",
-      "entry": "typographyGrammarMarkdownRenderer",
-      "local_name": "typography-grammar-md",
+      "entry": "renderStyleSpecimen",
+      "local_name": "style-specimen-svg",
       "metadata": {
-        "primitive_type_id": "style:TypographyGrammar",
-        "renderer_id": "fdpm.style:TypographyGrammarMarkdownRenderer",
-        "target": "text/markdown"
+        "renderer_id": "style:StyleSpecimenRenderer",
+        "target": "image/svg+xml"
       }
     },
     {
@@ -822,5 +699,5 @@
     "render:server"
   ],
   "spec_version": "1.0.0",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

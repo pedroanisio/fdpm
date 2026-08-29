@@ -10,11 +10,47 @@
     },
     {
       "capability_id": "cap:renderer",
+      "entry": "renderComponentSheet",
+      "local_name": "component-sheet-png",
+      "metadata": {
+        "renderer_id": "uixo:ComponentSheetRenderer",
+        "target": "image/png"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "renderComponentTree",
+      "local_name": "component-tree-svg",
+      "metadata": {
+        "renderer_id": "uixo:ComponentTreeRenderer",
+        "target": "image/svg+xml"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "renderDocumentHtml",
+      "local_name": "document-html",
+      "metadata": {
+        "renderer_id": "uixo:DocumentHtmlRenderer",
+        "target": "text/html"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
       "entry": "renderDocumentOutline",
       "local_name": "document-outline-md",
       "metadata": {
         "renderer_id": "uixo:DocumentOutlineRenderer",
         "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "renderDocumentPdf",
+      "local_name": "document-pdf",
+      "metadata": {
+        "renderer_id": "uixo:DocumentPdfRenderer",
+        "target": "application/pdf"
       }
     },
     {
@@ -21482,5 +21518,5 @@
     "render:server"
   ],
   "spec_version": "1.0.0",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

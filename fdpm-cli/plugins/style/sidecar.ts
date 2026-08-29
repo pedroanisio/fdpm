@@ -46,7 +46,13 @@ import {
 
 export const PROFILE_ID = "profile:style:3.1" as const;
 export const PLUGIN_ID = "fdpm.style" as const;
-export const PLUGIN_VERSION = "0.1.0" as const;
+/**
+ * 0.2.0 — additive: three document views (text/html, image/svg+xml,
+ * image/png) joined the markdown outline. The profile is unchanged, so
+ * `PROFILE_ID` stays at 3.1: no primitive type, relation type or field
+ * moved, and a 0.1.0 workbook renders under 0.2.0 without migration.
+ */
+export const PLUGIN_VERSION = "0.2.0" as const;
 export const HOST_COMPATIBILITY = ">=1.2,<2" as const;
 export const VENDOR = "style" as const;
 

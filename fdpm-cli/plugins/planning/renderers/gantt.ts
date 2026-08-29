@@ -20,6 +20,12 @@ import type { PrimitiveInstance } from "../../../src/core/models/instance.js";
  *   top margin: 80px (title + axis labels)
  *   bottom margin: 32px + (24px × unscheduled count)
  *   day width: 24px
+ *
+ * The canvas is sized from the TEXT as well as the timeline. A viewBox
+ * derived from the timeline alone is a silent data-loss bug: SVG clips at
+ * the viewport, so the title, the axis labels, the gutter labels and the
+ * whole unscheduled footer are drawn and then thrown away when they run
+ * past `chartWidth`. `textWidth` below is what makes the width honest.
  */
 
 interface ScheduledTask {
@@ -35,6 +41,28 @@ const TOP_MARGIN = 80;
 const BOTTOM_MARGIN = 32;
 const DAY_WIDTH = 24;
 const MS_PER_DAY = 86_400_000;
+
+/** Where gutter text starts, and how much room it has before the bars. */
+const GUTTER_TEXT_X = 8;
+const GUTTER_TEXT_WIDTH = LEFT_GUTTER - GUTTER_TEXT_X - 8;
+
+/**
+ * Where footer rows start, and the measure they are elided to.
+ *
+ * The footer is a one-line index of what is NOT on the chart, so a row is
+ * bounded rather than allowed to set the width of the whole drawing. A task
+ * summary runs to a paragraph; letting one dictate `chartWidth` produces a
+ * canvas several thousand units wide that renders as an unreadable smear.
+ * The full text is not lost — it rides on the row as a `<title>` tooltip.
+ */
+const FOOTER_TEXT_X = 16;
+const FOOTER_TEXT_WIDTH = 620;
+
+/** Clear space demanded between two adjacent date labels. */
+const AXIS_LABEL_GAP = 6;
+
+/** Padding around a label that knocks the grid out from behind itself. */
+const KNOCKOUT_PAD = 4;
 
 const STATUS_COLOR: Record<string, string> = {
   Backlog: "#94a3b8",
@@ -73,6 +101,62 @@ function formatDate(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
+/*
+ * Text measurement.
+ *
+ * A renderer that emits SVG as a string never loads a font, so real glyph
+ * metrics are not available to it. The layout does not need them — it needs a
+ * width the drawing cannot exceed. Every character is therefore charged the
+ * widest glyph in its class, and the classes are calibrated against DejaVu
+ * Sans, which is what `font-family="sans-serif"` resolves to on Linux and is
+ * the widest of the common fallbacks (Arial and Helvetica are narrower, so a
+ * bound that holds for DejaVu holds for them too). Anything past Latin-1 —
+ * em dashes, the ellipsis, CJK — is charged a full em.
+ *
+ * The result is an upper bound, so a box sized from it always contains the
+ * text. The price of the approximation is some slack on the right, never a
+ * clipped glyph, and that is the correct direction to be wrong in: slack is
+ * visible and recoverable, clipping destroys content silently.
+ */
+const NARROW_CHARS = new Set([..."ijltfrI!.,:;'\"`|()[]{}/\\ -"]);
+const WIDE_CHARS = new Set([..."ABCDEFGHJKLMNOPQRSTUVWXYZmw@%"]);
+/** DejaVu Sans: widest narrow glyph is `"` at 0.47em. */
+const ADVANCE_NARROW = 0.48;
+/** DejaVu Sans: `W` is 0.99em, `@` 1.08em. */
+const ADVANCE_WIDE = 1.05;
+/** DejaVu Sans: lowercase and digits sit at 0.63em–0.64em. */
+const ADVANCE_TYPICAL = 0.7;
+/** DejaVu Sans Bold runs about 8 % wider than the regular face. */
+const BOLD_FACTOR = 1.08;
+
+function textWidth(s: string, fontSize: number, bold = false): number {
+  let em = 0;
+  for (const ch of s) {
+    const code = ch.codePointAt(0)!;
+    if (code > 0x00ff) em += 1;
+    else if (NARROW_CHARS.has(ch)) em += ADVANCE_NARROW;
+    else if (WIDE_CHARS.has(ch)) em += ADVANCE_WIDE;
+    else em += ADVANCE_TYPICAL;
+  }
+  return em * fontSize * (bold ? BOLD_FACTOR : 1);
+}
+
+/** `s` cut to `maxWidth` with an ellipsis, or `s` itself when it fits. */
+function ellipsize(s: string, fontSize: number, maxWidth: number, bold = false): string {
+  if (textWidth(s, fontSize, bold) <= maxWidth) return s;
+  const budget = maxWidth - textWidth("…", fontSize, bold);
+  if (budget <= 0) return "…";
+  let used = 0;
+  let kept = "";
+  for (const ch of s) {
+    const w = textWidth(ch, fontSize, bold);
+    if (used + w > budget) break;
+    used += w;
+    kept += ch;
+  }
+  return `${kept.trimEnd()}…`;
+}
+
 export const renderGantt: RendererFn = (input): RendererOutput => {
   const { primitives, workbookId, profile } = input;
   const tasks = primitives.filter((p) => p.type_id === "plan:Task");
@@ -108,10 +192,53 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
       : todayMs + 6 * MS_PER_DAY;
   const totalDays = Math.max(1, Math.round((maxEnd - minStart) / MS_PER_DAY) + 1);
 
-  const chartWidth = LEFT_GUTTER + DAY_WIDTH * totalDays + RIGHT_MARGIN;
+  const barsHeight = Math.max(scheduled.length, 1) * ROW_HEIGHT;
+  const timelineWidth = LEFT_GUTTER + DAY_WIDTH * totalDays + RIGHT_MARGIN;
+
+  /* Every string that is drawn outside the gutter, decided before the header
+     is written because the header carries the width they have to fit in. */
+  const titleText = `${workbookId} — Gantt`;
+  const subtitleText = `${scheduled.length} scheduled, ${unscheduled.length} unscheduled · profile ${profile.id} v${profile.version}`;
+  const emptyNote = "No tasks have planned_start AND planned_finish set.";
+  const footerHeader = `Unscheduled (${unscheduled.length}) — no planned dates`;
+  const footerRows = unscheduled.map((t) => {
+    const status = fv<string>(t, "status") ?? "?";
+    const exec = fv<string>(t, "executor_kind") ?? "?";
+    const summary = (fv<string>(t, "summary") ?? fv<string>(t, "name") ?? "").trim();
+    const full = `${t.id} [${status}/${exec}] — ${summary}`;
+    return { full, shown: ellipsize(full, 11, FOOTER_TEXT_WIDTH) };
+  });
+
+  /* Date labels are fixed-width (ISO 8601), so the spacing that keeps two of
+     them apart is a constant the loop can be driven by. The old rule aimed at
+     ~12 labels regardless of how wide one is, which on a short timeline drew a
+     69px label every 24px and printed the axis as a single illegible smear. */
+  const axisLabelWidth = textWidth(formatDate(minStart), 10);
+  const labelStep = Math.max(
+    1,
+    Math.ceil((axisLabelWidth + AXIS_LABEL_GAP) / DAY_WIDTH),
+    Math.round(totalDays / 12),
+  );
+
+  const contentRight = Math.max(
+    LEFT_GUTTER + textWidth(titleText, 16, true),
+    LEFT_GUTTER + textWidth(subtitleText, 11),
+    LEFT_GUTTER + totalDays * DAY_WIDTH + 2 + axisLabelWidth,
+    ...(scheduled.length === 0
+      ? [LEFT_GUTTER + 8 + textWidth(emptyNote, 10) + KNOCKOUT_PAD]
+      : []),
+    ...(unscheduled.length > 0
+      ? [
+          GUTTER_TEXT_X + textWidth(footerHeader, 12, true),
+          ...footerRows.map((r) => FOOTER_TEXT_X + textWidth(r.shown, 11)),
+        ]
+      : []),
+  );
+
+  const chartWidth = Math.ceil(Math.max(timelineWidth, contentRight + RIGHT_MARGIN));
   const chartHeight =
     TOP_MARGIN +
-    Math.max(scheduled.length, 1) * ROW_HEIGHT +
+    barsHeight +
     BOTTOM_MARGIN +
     (unscheduled.length > 0 ? 24 + unscheduled.length * 18 : 0);
 
@@ -138,21 +265,28 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
   .unscheduled-row { fill: #6b7280; font-size: 11px; }
 ]]></style>`,
     // Title.
-    `<text class="title" x="${LEFT_GUTTER}" y="24">${escapeXml(workbookId)} — Gantt</text>`,
-    `<text class="subtitle" x="${LEFT_GUTTER}" y="42">${scheduled.length} scheduled, ${unscheduled.length} unscheduled · profile ${escapeXml(profile.id)} v${escapeXml(profile.version)}</text>`,
+    `<text class="title" x="${LEFT_GUTTER}" y="24">${escapeXml(titleText)}</text>`,
+    `<text class="subtitle" x="${LEFT_GUTTER}" y="42">${escapeXml(subtitleText)}</text>`,
   );
 
   // Day grid + date labels.
+  let lastLabelRight = -Infinity;
   for (let d = 0; d <= totalDays; d += 1) {
     const x = LEFT_GUTTER + d * DAY_WIDTH;
     lines.push(
-      `<line class="grid" x1="${x}" y1="${TOP_MARGIN - 8}" x2="${x}" y2="${TOP_MARGIN + Math.max(scheduled.length, 1) * ROW_HEIGHT}" />`,
+      `<line class="grid" x1="${x}" y1="${TOP_MARGIN - 8}" x2="${x}" y2="${TOP_MARGIN + barsHeight}" />`,
     );
-    if (d % Math.max(1, Math.round(totalDays / 12)) === 0 || d === totalDays) {
-      const ms = minStart + d * MS_PER_DAY;
-      lines.push(
-        `<text class="axis-label" x="${x + 2}" y="${TOP_MARGIN - 12}">${formatDate(ms)}</text>`,
-      );
+    /* The last day is always worth labelling, but "always" must not mean
+       "on top of its neighbour" — the gap decides, for the forced label and
+       the stepped ones alike. */
+    if (d % labelStep === 0 || d === totalDays) {
+      if (x + 2 >= lastLabelRight + AXIS_LABEL_GAP) {
+        const ms = minStart + d * MS_PER_DAY;
+        lines.push(
+          `<text class="axis-label" x="${x + 2}" y="${TOP_MARGIN - 12}">${formatDate(ms)}</text>`,
+        );
+        lastLabelRight = x + 2 + axisLabelWidth;
+      }
     }
   }
 
@@ -160,8 +294,8 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
   if (todayMs >= minStart && todayMs <= maxEnd) {
     const xNow = LEFT_GUTTER + ((todayMs - minStart) / MS_PER_DAY) * DAY_WIDTH;
     lines.push(
-      `<line class="now-line" x1="${xNow}" y1="${TOP_MARGIN - 8}" x2="${xNow}" y2="${TOP_MARGIN + Math.max(scheduled.length, 1) * ROW_HEIGHT}" />`,
-      `<text class="now-label" x="${xNow + 4}" y="${TOP_MARGIN + Math.max(scheduled.length, 1) * ROW_HEIGHT + 14}">now</text>`,
+      `<line class="now-line" x1="${xNow}" y1="${TOP_MARGIN - 8}" x2="${xNow}" y2="${TOP_MARGIN + barsHeight}" />`,
+      `<text class="now-label" x="${xNow + 4}" y="${TOP_MARGIN + barsHeight + 14}">now</text>`,
     );
   }
 
@@ -179,13 +313,15 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
     const klass = exec === "AI" ? "bar-ai" : exec === "Human" ? "bar-human" : "bar-either";
     const name = fv<string>(t, "name") ?? t.id;
     const summary = (fv<string>(t, "summary") ?? "").trim();
-    // Row label (left gutter).
+    /* Gutter text is elided to the gutter, not to a character count: the
+       gutter is 232 units wide whatever the glyphs are, and a label that
+       outgrows it runs under the bars instead of being clipped. */
     lines.push(
-      `<text class="row-label" x="8" y="${yBar + 14}">${escapeXml(t.id)}</text>`,
+      `<text class="row-label" x="${GUTTER_TEXT_X}" y="${yBar + 14}">${escapeXml(ellipsize(t.id, 12, GUTTER_TEXT_WIDTH))}</text>`,
     );
     if (summary && summary.length <= 38) {
       lines.push(
-        `<text class="row-label-summary" x="8" y="${yBar + 24}">${escapeXml(summary)}</text>`,
+        `<text class="row-label-summary" x="${GUTTER_TEXT_X}" y="${yBar + 24}">${escapeXml(ellipsize(summary, 10, GUTTER_TEXT_WIDTH))}</text>`,
       );
     }
     // The bar itself.
@@ -195,28 +331,36 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
     // In-bar label if it fits.
     if (wBar > 60) {
       lines.push(
-        `<text class="bar-text" x="${xBar + 4}" y="${yBar + 14}">${escapeXml(name)}</text>`,
+        `<text class="bar-text" x="${xBar + 4}" y="${yBar + 14}">${escapeXml(ellipsize(name, 10, wBar - 8))}</text>`,
       );
     }
   }
   if (scheduled.length === 0) {
+    /* The note sits inside the grid band, so the grid is knocked out from
+       behind it. An annotation with day rules struck through it reads as a
+       broken drawing, and the empty state is exactly when a reader has
+       nothing else to go on. */
+    const noteWidth = textWidth(emptyNote, 10);
     lines.push(
-      `<text class="row-label-summary" x="${LEFT_GUTTER + 8}" y="${TOP_MARGIN + 16}">No tasks have planned_start AND planned_finish set.</text>`,
+      `<rect x="${LEFT_GUTTER + 8 - KNOCKOUT_PAD}" y="${TOP_MARGIN + 5}" width="${Math.ceil(noteWidth + KNOCKOUT_PAD * 2)}" height="15" fill="#ffffff" />`,
+      `<text class="row-label-summary" x="${LEFT_GUTTER + 8}" y="${TOP_MARGIN + 16}">${escapeXml(emptyNote)}</text>`,
     );
   }
 
   // Unscheduled footer.
   if (unscheduled.length > 0) {
-    const yStart = TOP_MARGIN + Math.max(scheduled.length, 1) * ROW_HEIGHT + 24;
+    const yStart = TOP_MARGIN + barsHeight + 24;
     lines.push(
-      `<text class="unscheduled-header" x="8" y="${yStart}">Unscheduled (${unscheduled.length}) — no planned dates</text>`,
+      `<text class="unscheduled-header" x="${GUTTER_TEXT_X}" y="${yStart}">${escapeXml(footerHeader)}</text>`,
     );
-    for (let i = 0; i < unscheduled.length; i += 1) {
-      const t = unscheduled[i]!;
-      const status = fv<string>(t, "status") ?? "?";
-      const exec = fv<string>(t, "executor_kind") ?? "?";
+    for (let i = 0; i < footerRows.length; i += 1) {
+      const row = footerRows[i]!;
+      /* The elided row is what is drawn; the whole row is what is meant. A
+         `<title>` keeps the second recoverable from the first. */
+      const tooltip =
+        row.shown === row.full ? "" : `<title>${escapeXml(row.full)}</title>`;
       lines.push(
-        `<text class="unscheduled-row" x="16" y="${yStart + 18 + i * 18}">${escapeXml(t.id)} [${status}/${exec}] — ${escapeXml((fv<string>(t, "summary") ?? fv<string>(t, "name") ?? "").trim())}</text>`,
+        `<text class="unscheduled-row" x="${FOOTER_TEXT_X}" y="${yStart + 18 + i * 18}">${escapeXml(row.shown)}${tooltip}</text>`,
       );
     }
   }

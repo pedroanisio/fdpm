@@ -968,7 +968,7 @@ Core is **conformant** when all the following hold against `main`. Each criterio
 - [ ] **13.** Every path in §9.1 is implemented and has request/response schema tests. _(open)_
 - [ ] **14.** A plugin attempting to mount a router on any reserved path is rejected by the gate. _(open)_
 - [ ] **15.** After §19 migration, requests to pre-migration paths (`/api/narrative/*`, `/api/spec_parser/*`, `/api/workbooks/{id}/export.pdf`) return 404 — no redirect, no shim. The contract test enumerates these paths and asserts their absence from OpenAPI. _(open)_
-- [ ] **16.** The SPA, run with zero plugins, exercises §10.2 in an end-to-end browser test (including default print/preview render and `core:empty` workbook open). _(open)_
+- [ ] **16.** A web client, when one exists, run with zero plugins, exercises §10.2 in an end-to-end browser test (including default print/preview render and `core:empty` workbook open). No web client ships in this repository — the `web/` prototype was retired on 2026-08-29 — so this criterion has no candidate implementation and cannot be closed until PURPOSE.md's future web UI is built. _(open)_
 - [ ] **17.** Each slot has a default implementation; a synthetic plugin overrides it; both code paths are tested. _(open)_
 - [ ] **18.** A synthetic frontend plugin that exceeds `FDPM_FE_PLUGIN_BUDGET_MS` does not block first paint; the slot falls back; the admin API records the breach. _(open)_
 - [ ] **19.** The `PluginContext` has no method that exposes mutable references to store internals; tested by introspection. _(open)_

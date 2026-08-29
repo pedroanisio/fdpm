@@ -44,8 +44,34 @@ import {
   primitiveTypeId,
 } from "./sidecar.js";
 import { renderStyleOutline } from "./renderers/style_outline.js";
+import { renderStyleHtml } from "./renderers/style_html.js";
+import { renderStyleSpecimen } from "./renderers/style_specimen.js";
+import { renderPaletteSheet } from "./renderers/style_palette.js";
 
 export { renderStyleOutline } from "./renderers/style_outline.js";
+export { renderStyleHtml } from "./renderers/style_html.js";
+export { renderStyleSpecimen } from "./renderers/style_specimen.js";
+export {
+  renderPaletteSheet,
+  paletteSheetLayout,
+  cellCentre,
+  type SheetCell,
+  type SheetLayout,
+} from "./renderers/style_palette.js";
+export {
+  readRegistry,
+  hexToRgb,
+  readableInkOn,
+  type RegistryView,
+  type StyleView,
+  type MovementView,
+  type GrammarSectionView,
+  type RuleView,
+  type CheckView,
+  type ReferenceView,
+  type ContrastPairView,
+  type TokensView,
+} from "./renderers/_model.js";
 export {
   buildStyleWorkbook,
   parseStyleRegistry,
@@ -74,6 +100,9 @@ const manifestRaw = readFileSync(join(__dirname, "fdpm-plugin.json"), "utf8");
 export const manifest: PluginManifest = JSON.parse(manifestRaw) as PluginManifest;
 
 export const STYLE_OUTLINE_RENDERER_ID = `${VENDOR}:StyleOutlineRenderer` as const;
+export const STYLE_HTML_RENDERER_ID = `${VENDOR}:StyleHtmlRenderer` as const;
+export const STYLE_SPECIMEN_RENDERER_ID = `${VENDOR}:StyleSpecimenRenderer` as const;
+export const PALETTE_SHEET_RENDERER_ID = `${VENDOR}:PaletteSheetRenderer` as const;
 
 export { PLUGIN_ID, PROFILE_ID, VENDOR };
 export {
@@ -150,53 +179,30 @@ export async function activate(ctx: PluginContext): Promise<void> {
     });
   }
 
-  for (const entityName of ENTITY_NAMES) {
-    const typeId = primitiveTypeId(entityName);
-    const schema = ENTITY_SCHEMAS[entityName] as unknown as z.ZodObject<z.ZodRawShape>;
-    const { renderer: perPrimitive } = zodSchemaToMarkdownRenderer(schema, {
-      primitive_type_id: typeId,
-      fieldOrder: "schema",
-    });
-    const rendererFn: RendererFn = (input: RendererInput): RendererOutput => {
-      const matching = input.primitives
-        .filter((p) => p.type_id === typeId)
-        .slice()
-        .sort((a, b) => a.id.localeCompare(b.id));
-      const body =
-        matching.length === 0
-          ? `_(no ${typeId} primitives)_\n`
-          : matching
-              .map((p) =>
-                perPrimitive({
-                  id: p.id,
-                  type_id: p.type_id,
-                  field_values: p.field_values as Record<string, unknown>,
-                }),
-              )
-              .join("\n\n");
-      return {
-        bytes: new TextEncoder().encode(body),
-        contentType: "text/markdown",
-        filename: `${entityName.toLowerCase()}.md`,
-      };
-    };
-    ctx.registerRenderer({
-      target: "text/markdown",
-      rendererId: `${PLUGIN_ID}:${entityName}MarkdownRenderer`,
-      fn: rendererFn,
-    });
+
+  // Four views of one registry, each reassembled from the graph the
+  // ingest took apart. The per-entity renderers the bridge generates are
+  // field tables; these are documents.
+  //
+  //   text/markdown   the outline — the registry as the source schema reads
+  //   text/html       the specification page, with the colours painted
+  //   image/svg+xml   the specimen plate: palette, contrast, stroke, census
+  //   image/png       the palette as pixels, for a picker or a diff
+  //
+  // The three specialized views share ./renderers/_model.ts, so they
+  // cannot disagree with each other about what the registry contains.
+  const views: [string, string, RendererFn][] = [
+    ["text/markdown", STYLE_OUTLINE_RENDERER_ID, renderStyleOutline as RendererFn],
+    ["text/html", STYLE_HTML_RENDERER_ID, renderStyleHtml as RendererFn],
+    ["image/svg+xml", STYLE_SPECIMEN_RENDERER_ID, renderStyleSpecimen as RendererFn],
+    ["image/png", PALETTE_SHEET_RENDERER_ID, renderPaletteSheet as RendererFn],
+  ];
+  for (const [target, rendererId, fn] of views) {
+    ctx.registerRenderer({ target, rendererId, fn });
   }
 
-  // The document view: every style reassembled from the graph the ingest
-  // took apart. The per-entity renderers above are field tables.
-  ctx.registerRenderer({
-    target: "text/markdown",
-    rendererId: STYLE_OUTLINE_RENDERER_ID,
-    fn: renderStyleOutline as RendererFn,
-  });
-
   ctx.logger.info(
-    `${PLUGIN_ID} activated: ${profile.primitive_types.length} primitive types, ${profile.relation_types?.length ?? 0} relation types, ${ENTITY_NAMES.length} validators, ${ENTITY_NAMES.length + 1} renderers. Profile id: ${PROFILE_ID}.`,
+    `${PLUGIN_ID} activated: ${profile.primitive_types.length} primitive types, ${profile.relation_types?.length ?? 0} relation types, ${ENTITY_NAMES.length} validators, ${ENTITY_NAMES.length + views.length} renderers (${views.map(([t]) => t).join(", ")}). Profile id: ${PROFILE_ID}.`,
   );
 }
 

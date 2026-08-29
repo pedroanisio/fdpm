@@ -21,7 +21,437 @@ upgrade.
 
 ## [Unreleased]
 
+> **Release state.** No `@fdpm/cli` version has ever been released or tagged.
+> `package.json` has read `1.1.0` since the file first appeared and has never
+> been bumped, so there is no 1.0.0 → 1.1.0 boundary to split this section
+> along — everything below is genuinely unreleased, and `1.1.0` is a
+> development version rather than a shipped one. `@fdpm/zod-bridge` is
+> versioned separately and does have releases; its newest git tag is
+> `@fdpm/zod-bridge@0.2.0` while the package is at `0.4.0`, so **0.3.0 and
+> 0.4.0 are documented but untagged**. Cutting those tags is an operator
+> action. Recorded here by the 2026-08-29 doc-hygiene pass so the gap is
+> visible rather than inferred.
+
+
+### Added
+
+#### `fdpm.uixo` 0.1.0 → 0.2.0: HTML, PDF, SVG and PNG views of an interaction document
+
+712 typed classes and 210 relation types rendered as one markdown list. A
+UI component tree drawn as nested boxes *is* a wireframe, so that is the
+view the ontology was missing. Four renderers join the outline:
+
+| Target | Renderer id | What it is |
+|---|---|---|
+| `text/html` | `uixo:DocumentHtmlRenderer` | The reviewable page — containment nests as real elements, every entity gets an anchor and every cross-link is a resolving `href`, so a reviewer can send a URL that lands on the node under discussion. |
+| `application/pdf` | `uixo:DocumentPdfRenderer` | The paginated artefact that leaves the workbook: title page with counts and provenance, the forest as an indented outline, both censuses, page numbers. |
+| `image/svg+xml` | `uixo:ComponentTreeRenderer` | The wireframe as vectors, depth colour-keyed, plus edge-property and class censuses as proportional bars. |
+| `image/png` | `uixo:ComponentSheetRenderer` | The same wireframe as pixels — a thumbnail for a ticket or a visual diff between revisions. |
+
+**`hasChildComponent` alone was not containment.** The outline renderer
+walks that one property, and on a real 346-entity document that reaches a
+handful of buttons and strands everything else as "unreachable from any
+root" — because the chain runs `InteractionSystem → Screen → Layout →
+Region → Container` through five *different* properties. Deriving
+containment from the name instead would be a convention masquerading as a
+rule: 145 properties begin with `has`, and a node whose only in-edge is
+spelled differently would vanish.
+
+So `renderers/_model.ts` builds a **spanning forest over every edge**. A
+node's parent is one incoming edge, roots are the nodes with none, and
+every edge the tree does not consume becomes a cross-link on its source
+and a back-link on its target — nothing dropped, nothing drawn twice.
+Name shape only breaks a tie. This forest is a *view*, not a claim the
+ontology makes, and the markdown outline is left as the literal reading.
+
+**One layout, two rasterisations.** `renderers/_wireframe.ts` computes the
+nesting once; the SVG emits it as vectors and the PNG paints it as pixels,
+so the bitmap cannot disagree with its own vector. Layout is
+measure-then-place — a painter that discovers its own extent as it goes is
+a painter that clips. A box too narrow for a legible caption stops nesting
+and reports its remaining descendants as `+N nested` rather than dropping
+them.
+
+31 new tests in `tests/plugins/uixo/renderers.test.ts`, including the two
+failures that are invisible without them: pdf-lib's StandardFonts are
+WinAnsi and `drawText` **throws** on a code point they cannot encode, so a
+single exotic character in a label would fail a render of data that
+validated cleanly; and an SVG does not complain about ink outside its
+viewBox, it clips. Both are asserted. The PDF is byte-deterministic — its
+creation and modification dates are pinned, so two renders of one workbook
+are comparable.
+
+Verified end to end against `_ingest_bin/claude-app_uixo.json` (346
+entities, 340 edges): 245 KB HTML, 124 KB PDF, 144 KB SVG, 195 KB PNG at
+1120×15245.
+
+#### `src/core/render/png.ts` and `src/core/render/pdf.ts` — shared rendering primitives
+
+The PNG encoder shipped inside `plugins/style` and moved to
+`src/core/render` the moment `plugins/uixo` needed it: a plugin reaching
+into another plugin's private module is a dependency the manifest does not
+record and the loader does not enforce, and a second copy of an encoder is
+a second copy of its bugs. `plugins/style` imports it from the new
+location; nothing else about that plugin changed.
+
+`src/core/render/pdf.ts` is new and holds the three places a pdf-lib
+renderer silently produces a wrong document: WinAnsi sanitisation (an
+unencodable code point makes `drawText` throw), width-aware wrapping (text
+past the measure runs off the page, and a PDF has no overflow to report),
+and a cursor that breaks pages before drawing below the bottom margin.
+`plugins/formal_specification/renderers/pdf.ts` still carries its own
+copies of the first two, written before this module existed; it is not
+re-pointed here, because rewriting a large, visually tuned renderer is not
+part of adding a second one.
+
+#### `fdpm.style` 0.1.0 → 0.2.0: HTML, SVG and PNG views of a style registry
+
+The profile stored a palette, a WCAG contract and a stroke weight, and
+rendered all three as table cells. A table saying `#D2232A` asks the
+reader to imagine the thing the document is *for*. Three renderers join
+the markdown outline, each rendering the measurable part of a style as
+what it means:
+
+| Target | Renderer id | What it is |
+|---|---|---|
+| `text/html` | `style:StyleHtmlRenderer` | The specification page: palette and forbidden colours painted as chips, colour tokens as a copyable `:root {}` block, and every WCAG pair with its **measured** ratio, its required minimum and a pass/fail verdict. |
+| `image/svg+xml` | `style:StyleSpecimenRenderer` | One specimen plate per style — palette, contrast pairs drawn as the two colours actually combine, a stroke specimen at the declared weight, the rule census as a proportional bar, ten grammar badges. |
+| `image/png` | `style:PaletteSheetRenderer` | The palette as pixels: a chip sheet for a picker, an eyedropper, or a diff against last release. |
+
+`fdpm render <workbook> image/png --renderer-id style:PaletteSheetRenderer -o style.png`.
+Binary targets require `-o`; the CLI already refuses to stream them to a
+terminal.
+
+**One walk, not four.** The new `renderers/_model.ts` owns the
+graph → `RegistryView` reassembly and resolves what the graph only points
+at — a rule's exemplars become titles, a contrast pair's token names
+become hexes carrying a ratio and a verdict. Four independent walks over
+fifteen primitive types is how four views of one registry drift into
+disagreeing about it.
+
+**No image dependency.** `src/core/render/png.ts` encodes the sheet in-repo:
+8-bit truecolour, filter type 0, `node:zlib` for the deflate, a 5×7
+bitmap face for labels. The only raster this plugin produces is flat
+rectangles and monospaced text; a rasteriser earns its place when it has
+to resolve fonts, curves and blending, and none of that appears here.
+Correctness is not "a viewer opened it" — the suite parses the chunk
+stream, verifies each CRC against an independent implementation, inflates
+IDAT, and reads the declared palette colours back out of the pixels at
+coordinates the exported `paletteSheetLayout` supplies.
+
+Three properties are asserted rather than assumed, because each fails
+silently:
+
+- **Self-contained.** No script, no stylesheet link, no `@import`, no
+  absolute URL in the HTML; only generic font families in the SVG. A
+  specification is the kind of document that gets mailed around and opened
+  offline.
+- **Escaped.** Every author-supplied string passes through the format's
+  escape, and values reaching a CSS context are additionally matched
+  against the hex or ident grammar — escaping protects the HTML parser,
+  not the CSS one.
+- **In-bounds and deterministic.** The SVG's predicted plate height is
+  checked against every emitted coordinate, because an SVG does not
+  complain about ink outside its viewBox, it clips. Nothing reads a clock
+  or an environment, so two renders of one workbook are byte-equal.
+
+26 new tests in `tests/plugins/style/renderers.test.ts`. The manifest's
+`cap:renderer` entries are declared in `plugins/style/scripts/run-bridge.ts`
+and regenerated; `bridge-drift.test.ts` now asserts the manifest advertises
+exactly the four views `index.ts` registers and that each names a real
+export. `PROFILE_ID` is unchanged at `profile:style:3.1` — no primitive
+type, relation type or field moved, and a 0.1.0 workbook renders under
+0.2.0 without migration.
+
+#### `scripts/build-coma-void-style.ts` — the first style ingested through `buildStyleWorkbook`
+
+`plugins/style` shipped with an ingest boundary and a test fixture but no
+worked example against a real `StyleDefinition`. This script is that
+example: it wraps `_ingest_bin/coma-void-style.ts` — the Coma Void
+cartographic aesthetic, authored against `_ingest_bin/style-schema.ts`
+v3.1.0 — in the one-style `StyleRegistry` the profile models, declares the
+two movements its identity cross-references (`celestial-cartography`,
+`pictorial-constellation-atlas`, both with an open period and a null start,
+because neither tradition is dated by the source), and hands the result to
+`buildStyleWorkbook`.
+
+It lands 47 primitives and 72 relations in workbook `style-coma-void` on
+`profile:style:3.1`: 1 Style, 10 grammar sections, 2 Movements, 15 Rules,
+12 ComplianceChecks and 7 CanonicalReferences. `--replace` re-runs it over
+an existing workbook; `FDPM_DATA_DIR` targets a throwaway store.
+
+The script adds one post-condition the ingest does not have.
+`buildStyleWorkbook` runs `validateStyleWorkbook` against the *projection*,
+before writing; this re-runs it against the *stored slice*, after. The two
+should agree, and a disagreement would mean the write path altered the
+graph — which is worth a loud failure rather than a later discovery.
+
 ### Fixed
+
+#### `plan:GanttSvgRenderer` drew three quarters of its output outside the viewBox
+
+`chartWidth` was `LEFT_GUTTER + DAY_WIDTH × totalDays + RIGHT_MARGIN` — the
+timeline and nothing else — while the renderer also draws a title, a subtitle,
+date labels, gutter labels, an empty-state note and the whole unscheduled
+footer, none of which the timeline bounds. SVG clips at its viewport in
+silence, so every glyph past `chartWidth` was composed, written to the file
+and then discarded by whatever opened it, with no finding, no warning and no
+way for a reader to tell that anything was missing.
+
+Measured against the real `studio-legacy-web-consolidation` workbook (22
+undated tasks, 0 scheduled): `viewBox="0 0 424 556"` with 27 of 35 text
+elements clipped, the worst overrunning by ~1390 units. The same workbook now
+renders at `696 × 556` with none clipped.
+
+- **The canvas is sized from the text.** `textWidth` bounds a string's advance
+  from per-class glyph maxima calibrated against DejaVu Sans — the widest
+  common `sans-serif` fallback, so the bound holds for Arial and Helvetica
+  too. `chartWidth` is now `max(timeline, widest drawn string + margin)`.
+- **Footer rows are elided, not clipped.** A row is bounded to a 620-unit
+  measure so one paragraph-length `summary` cannot stretch the canvas to
+  thousands of units, and the full row rides along as a `<title>` tooltip
+  rather than being lost.
+- **Gutter labels stay in the gutter.** A `task:` id longer than 232 units
+  used to run under the bars; it is elided to the column instead.
+- **Date labels no longer overprint each other.** The old rule aimed at ~12
+  labels whatever their width, which on a 7-day chart drew a 69-unit date
+  every 24 units. Spacing is now derived from the label's own width, and the
+  always-drawn final label is skipped when it would land on its neighbour.
+- **The empty-state note has a ground.** With nothing scheduled the note sits
+  inside the grid band and had day rules struck through it; the grid is
+  knocked out behind it.
+
+Covered by 8 tests in `tests/planning-renderers.test.ts` that measure each
+drawn string with a deliberately independent (and lower) 0.5 em/char estimate,
+so a viewBox that fails to contain even that bound is clipping for certain. Six
+of the eight fail against the previous renderer.
+
+#### `_ingest_bin/` was unloadable — a dangling import and a missing module type
+
+Three defects, each of which stopped the staging area from being ingestible
+at all:
+
+- `_ingest_bin/style-schema.ts:109` imported `../shared/primitives`, a path
+  *above the repository root*. The module is now `_ingest_bin/shared/
+  primitives.ts`, carrying `HEX_COLOR_REGEX` and `SEMVER_REGEX` copied
+  verbatim from `plugins/style/schemas/style.ts:84-86`, where the Zod
+  transcription had already inlined them for this reason.
+- `_ingest_bin/coma-void-style.ts:54` imported `./style-schema-1`, a file
+  that has never existed. It now imports `./style-schema.js`, which exports
+  exactly the eighteen smart constructors it names.
+- `_ingest_bin/` had no `package.json`, so Node resolved its ESM-syntax
+  `.ts` files as CommonJS. An ESM caller in `fdpm-cli/` received
+  `module.exports` in place of the default export — silently, as an object
+  whose every field read `undefined`. A `{"type": "module"}` marker
+  declares what those files already are.
+
+`npm run typecheck` (`src/` + `plugins/`) is unaffected and passes. The
+unwired `tsconfig.scripts.json` — already failing before this change, on
+`scripts/business-plan-bridge-dryrun.ts` — now also reports
+`noUncheckedIndexedAccess` violations inside `_ingest_bin/style-schema.ts`,
+which were previously unreachable because `tsc` stopped at the dangling
+import. Hardening that vendored schema is a separate piece of work.
+
+### Changed
+
+#### Renderers: the generic field tables are gone; every profile renders as a document
+
+103 renderers were registered, and 88 of them were the same generated
+field table — one per entity across six plugins. They described records;
+none rendered the thing the records make. Two profiles could render
+nothing at all.
+
+**Withdrawn: 88 per-entity field tables** — academic-paper (24), uml
+(22), style (15), acme-business-deck (13), acme-pitch-deck (8),
+document-plan (6). uixo's single generic class table went with them: it
+was one renderer rather than 712, which was the right call against that
+alternative, but it still described records.
+
+**Added, where a profile had no document renderer:**
+
+| Profile | Renderer | Targets |
+|---|---|---|
+| `software-requirements:0.2` | `srs:SrsDocumentRenderer` / `srs:SrsHtmlRenderer` | markdown, HTML |
+| `academic-paper:0.4.1` | `acad:PaperDocumentRenderer` / `acad:PaperHtmlRenderer` | markdown, HTML |
+| `acme-business-deck:0.1` | `acme:DeckRunningOrderRenderer` / `acme:DeckContactSheetRenderer` | markdown, SVG |
+| `acme-pitch-deck:0.1` | `acme.pitch-deck:RunningOrderRenderer` / `acme.pitch-deck:PhaseMapRenderer` | markdown, SVG |
+| `document-plan:3.1` | `docplan:PlanBriefRenderer` | markdown |
+
+Each renders what the domain *is*, not what its records contain. An SRS
+puts scope boundaries before requirements and orders those by priority,
+carrying rationale, acceptance criteria and traceability resolved to
+names. A paper reads as sections with claims and their evidence, then
+findings and references. A deck is a running order plus a visual — a
+contact sheet whose load bars show where the deck crowds, or a phase map
+whose block widths are speaking budgets, so pacing is visible before
+anyone rehearses. The HTML artefacts are single files with inline styles,
+print rules and a dark-mode palette, because they travel on their own.
+
+`software-requirements` had **no renderer of any kind** — eight
+metaclasses, seventeen relation types, and no way to read a workbook.
+
+**Net effect:** 103 renderers → 22, and the MCP resource surface shrinks
+with them (1,567 entries, largely workbooks × renderers). Every profile
+now has a document-level renderer, and six offer more than one target
+where markdown alone had been the whole story.
+
+Fixed while proving the outline renderers were better than what they
+replaced: `style:StyleOutlineRenderer` rendered a list-of-struct field as
+`[object Object]` — the same defect the generated renderer had, in the
+hand-written one that was supposed to be free of it. A struct now prints
+as inline key/value pairs, so a palette entry reads
+`name: ink, hex: #1A1A1A`.
+
+### Changed
+
+#### The generated per-entity renderer now produces readable output
+
+88 of the 103 renderers registered across this repo come from
+`zodSchemaToMarkdownRenderer` — every entity of academic-paper (24),
+uml (22), style (15), acme-business-deck (13), acme-pitch-deck (8) and
+document-plan (6). What it emitted was therefore what most profiles
+looked like:
+
+```
+# uml:Class uml:Class:01HQ8Z3K7M4N5P6R7S8T9V0011
+| Field | Value |
+| xmi_id | 01HQ8Z3K7M4N5P6R7S8T9V0011 |
+| xmi_type |  |
+| visibility |  |
+```
+
+A machine identifier as the title, the type printed twice, the id
+repeated in the body, and a blank row for every field the instance did
+not set — a 30-field entity with four values rendered 26 empty cells.
+The same entity now reads:
+
+```
+## Publication
+
+`uml:Class`
+
+| Field | Value |
+|---|---|
+| Xmi id | 01HQ8Z3K7M4N5P6R7S8T9V0011 |
+| Qualified name | Library::lending::Publication |
+| Is abstract | yes |
+```
+
+- The heading **names** the entity, falling back through `name`, `title`,
+  `label`, `headline`, `summary`, and only then to the type plus the id's
+  own slug. The type moves to a subtitle. Headings start at `##`, leaving
+  `#` for whoever assembles fragments into a document.
+- Unset fields are omitted. `false` and `0` are values and stay.
+- Values are formatted for a reader: booleans as yes/no, lists
+  comma-joined, structs as inline key/value pairs. Pipes are escaped so a
+  value cannot break the table.
+- Labels read as words: `qualified_name` renders "Qualified name".
+
+This retires a defect the style plugin had documented and asserted: a
+list-of-struct field (`palette`, `typefaces`, `tokens_colors`) rendered
+as `[object Object]`, with a note promising the test would fail the day
+the bridge fixed it. It did; the note is out and the test now asserts the
+palette hexes.
+
+All seven bridge plugins regenerated, drift gates clean. Determinism is
+unchanged: the renderer remains a pure function of (schema, options,
+target).
+
+### Fixed
+
+#### Documentation that counted the repository is now generated, not typed
+
+A doc-hygiene audit of all 67 tracked documents found that the architecture
+snapshot published on 2026-08-28 carried **six hand-typed figures that were
+all wrong within twenty-four hours**: plugin directories (14 claimed, 17
+actual), `FDPM_*` variables (21 claimed, 22 actual), CI workflows (2 claimed,
+4 actual), the passing-test count, the LOC census, and the tracked/untracked
+status of `docs/goal-repo.md`.
+
+The figures were not the defect — typing them was.
+
+- **`scripts/build-arch-census.ts`** (new) generates
+  `docs/architecture/CENSUS.md`: source volume by area, plugin directories,
+  `FDPM_*` count, CI workflows, `SPEC-*.md` count, distinct MCP tool ids.
+  The architecture snapshot now links to it and states no figure it cannot
+  regenerate. Line counts are rounded to the nearest thousand so the drift
+  gate fires on meaningful movement rather than on every commit.
+- **`scripts/build-env-docs.ts`** (new) generates the `FDPM_*` tables in
+  `README.md` and `MANUAL.md` and the body of `.env.example` from
+  `FDPM_ENV_VARS`. Four hand-synchronised copies of one list is a drift
+  generator; they agreed only by coincidence.
+- **`tests/_meta/doc-drift.test.ts`** (new) fails the build on five
+  conditions: a stale census, stale env docs, a `docs/specs/SPEC-*.md` path
+  cited from a doc that does not resolve, a plugin directory with no README,
+  and a bridge-generated README that does not name its own bundle's profile id.
+
+#### `FDPM_MCP_CATALOG_BUDGET_BYTES` documented a default the code does not use
+
+`FDPM_ENV_VARS` advertised `28000`; `DEFAULT_CATALOG_BUDGET.total_bytes` in
+`src/mcp/catalog.ts` is `26_000`. The wrong value had propagated to
+`MANUAL.md`. The existing `tests/env-contract.test.ts` could not catch it —
+it asserts each variable's **name** appears on every doc surface, never its
+value. Registry corrected to `26000`, and that test now also asserts the
+documented default equals the constant.
+
+#### Two SPEC citations marked `verified` pointed at files that have never existed
+
+`SPEC-DOCUMENT-PLAN.md` cited `SPEC-FDPM-BRIDGE-ZOD` and `SPEC-DOMAIN-SIDECAR`
+as peer SPECs under `docs/specs/`, with `verification: "verified"`. Neither
+document has ever existed in this repository — a direct violation of the
+evidence rule in `DISCLAIMER.md` and of `CLAUDE.md`'s prohibition on
+unverifiable citations.
+
+Corrected at the source (`scripts/build-spec-document-plan.ts`) and
+regenerated: the peer reference is now
+`fdpm-cli/packages/zod-bridge/README.md`, which exists and is what the
+document_plan plugin is actually generated under. `@fdpm/zod-bridge` cites
+these three off-tree SPECs sixteen further times in source comments, tests and
+its own CHANGELOG, including one rendered as a Markdown link to a missing
+file. The dead links are removed and the package README now states plainly
+that the documents are not in this repository, so a reader stops hunting.
+
+### Added
+
+#### `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN` is now reachable (SPEC-MCP-SERVER §9.3)
+
+§9.3 states that Tier 2/3 tools "may additionally be gated by
+`FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN=1` — opt-in defense for high-trust
+deployments", and §9.5's threat model names confirmation-token mode as one of
+four controls bounding the blast radius of indirect prompt injection.
+
+`dispatch.ts` has always enforced the gate from `ctx.requireConfirmationToken`
+/ `ctx.confirmationToken`. **The bin entry never read the environment**, so no
+operator could switch the control on — only an embedder constructing a context
+by hand. The variable appeared in one TSDoc comment, in no registry, in no
+`.env.example`, and was read by nothing. A documented security control that
+cannot be enabled is not a control.
+
+- New `src/mcp/confirmation-token.ts` resolves the policy; `src/bin/fdpm-mcp.ts`
+  wires it into `DispatchCtx` and reports it in the startup banner.
+- Exactly `"1"` enables the gate, matching `FDPM_MCP_ENABLE_DESTRUCTIVE`. A
+  security control must not be on for `"true"` in one deployment and off for
+  `"yes"` in another.
+- Enabling the gate without `FDPM_MCP_CONFIRMATION_TOKEN` is a **startup
+  refusal** (exit 2), not a silent downgrade. `dispatch.ts` compares the
+  caller's token against `ctx.confirmationToken`; were that `undefined`, every
+  Tier 2/3 call would be refused with `confirmation_required` and no token
+  could ever satisfy it — the operator would be locked out of their own
+  workbook.
+- Both variables are registered in `FDPM_ENV_VARS`, so they reach `--help`,
+  `README.md`, `MANUAL.md` and `.env.example` through the generator.
+
+#### READMEs for the seven plugins that had none
+
+`academic_paper_v0_4_1`, `dnis`, `document_plan_dnis`,
+`formal_specification_dnis`, `software_requirements`, `spec_authoring` and
+`spec_authoring_dnis` shipped no README — 7 of 17 plugin directories. Every
+figure in the new pages is taken from plugin activation output or the
+manifest. Two carry warnings worth repeating here: `academic_paper_v0_4_1` has
+a `run-bridge.ts --check` drift gate but **no CI workflow to run it**, and
+`software_requirements` has generated artifacts with **no `run-bridge.ts` at
+all**, so nothing mechanically proves its `generated/profile.json` still
+matches its schema.
 
 #### `fdpm.uixo` — match the source ontology: run its oracle, and stop inventing orphans
 

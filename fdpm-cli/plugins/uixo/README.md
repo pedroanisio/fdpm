@@ -60,7 +60,7 @@ to run.
 | Derived from | [`schemas/uixo-native.ts`](./schemas/uixo-native.ts) v1.2.0, vendored; source ontology `uixo_tbox_full_v11`, sha256 `bd808d51…` |
 | Primitive types | 712 (one per ontology class, across 31 RDF prefixes) |
 | Relation types | 210 (one per graph-edge property) |
-| Renderers | `uixo:ClassMarkdownRenderer`, `uixo:DocumentOutlineRenderer` |
+| Renderers | Five document views — `text/markdown`, `text/html`, `application/pdf`, `image/svg+xml`, `image/png` (see [Five views](#five-views-of-one-document)) |
 
 Root [README.md](../../README.md).
 
@@ -225,6 +225,70 @@ Q2 roadmap. This plugin promotes that task from nicety to prerequisite.
 The plugin registers **two** renderers rather than one per class for the
 same reason.
 
+## Five views of one document
+
+A UI component tree drawn as nested boxes *is* a wireframe, which is why
+that is the view worth having for an interaction ontology. Five renderers
+are registered:
+
+| Target | Renderer id | What it is |
+|---|---|---|
+| `text/markdown` | `uixo:DocumentOutlineRenderer` | The containment list, walking `hasChildComponent` alone — the literal reading, and the profile's default. |
+| `text/html` | `uixo:DocumentHtmlRenderer` | The reviewable page. Containment nests as real elements, every entity gets an anchor, and every cross-link is a resolving `href` — so a reviewer can send a URL that lands on the node under discussion. |
+| `application/pdf` | `uixo:DocumentPdfRenderer` | The paginated artefact that leaves the workbook: title page with counts and provenance, the forest as an indented outline, both censuses, page numbers. |
+| `image/svg+xml` | `uixo:ComponentTreeRenderer` | The wireframe as vectors, depth colour-keyed, plus the edge-property and class censuses as proportional bars. |
+| `image/png` | `uixo:ComponentSheetRenderer` | The same wireframe as pixels — a thumbnail for a ticket, a chat, or a visual diff between revisions. |
+
+```bash
+fdpm render <workbook> text/html      --renderer-id uixo:DocumentHtmlRenderer    -o doc.html
+fdpm render <workbook> application/pdf --renderer-id uixo:DocumentPdfRenderer    -o doc.pdf
+fdpm render <workbook> image/svg+xml  --renderer-id uixo:ComponentTreeRenderer   -o tree.svg
+fdpm render <workbook> image/png      --renderer-id uixo:ComponentSheetRenderer  -o tree.png
+```
+
+Binary targets require `-o`; the CLI refuses to stream them to a terminal.
+
+### What counts as containment
+
+The ontology does not mark a property as containment, so the tree has to
+be derived — and `hasChildComponent` alone is not enough. On a real
+346-entity document it reaches a handful of buttons and leaves everything
+else unreachable from any root, because the chain runs
+`InteractionSystem → Screen → Layout → Region → Container` through five
+*different* properties.
+
+Deriving it from the *name* instead would be a convention masquerading as
+a rule: 145 properties begin with `has`, and a node whose only in-edge is
+spelled differently would vanish.
+
+So [`renderers/_model.ts`](./renderers/_model.ts) builds a **spanning
+forest over every edge**. A node's parent is one incoming edge; roots are
+the nodes with none; every edge not used as a tree edge becomes a
+cross-link on its source and a back-link on its target, so nothing is
+dropped and nothing is drawn twice. Name shape only breaks a tie — a
+`has…` or `…Component` in-edge is preferred when a node has several — so
+the common case reads as the ontology intends while the uncommon case
+still reaches every entity.
+
+**This forest is a view, not a claim the ontology makes.** The markdown
+outline remains the literal reading and is left as it was.
+
+### One layout, two rasterisations
+
+[`renderers/_wireframe.ts`](./renderers/_wireframe.ts) computes the
+nesting once; the SVG emits it as vectors and the PNG paints it as
+pixels. Neither owns a coordinate, so the bitmap cannot disagree with its
+own vector. Layout is measure-then-place: a painter that discovers its
+own extent as it goes is a painter that clips, and clipping is the defect
+a screenshot cannot show you.
+
+A box too narrow to hold a legible caption stops nesting and reports its
+remaining descendants as a count on the header (`+N nested`) rather than
+dropping them silently. The PNG encoder is
+[`src/core/render/png.ts`](../../src/core/render/png.ts), shared with
+`plugins/style`; the PDF's WinAnsi sanitisation and wrapping are
+[`src/core/render/pdf.ts`](../../src/core/render/pdf.ts).
+
 ## Layout
 
 ```
@@ -234,8 +298,15 @@ plugins/uixo/
 ├── sidecar.ts               # entities + derived relations + declared losses
 ├── invariants.ts            # graph-level checks relations cannot express
 ├── ingest.ts                # UIXO document -> validated workbook
-├── renderers/               # class table + document outline
-├── index.ts                 # activate(): profile + 712 validators + 2 renderers
+├── renderers/
+│   ├── _model.ts            # graph -> DocumentView; the spanning forest
+│   ├── _wireframe.ts        # nested-box geometry, shared by SVG and PNG
+│   ├── document_outline.ts  # text/markdown (+ the class table)
+│   ├── document_html.ts     # text/html
+│   ├── document_pdf.ts      # application/pdf
+│   ├── component_tree.ts    # image/svg+xml
+│   └── component_sheet.ts   # image/png
+├── index.ts                 # activate(): profile + 712 validators + 5 renderers
 ├── scripts/vendor-uixo.ts   # vendoring + --check gate
 ├── scripts/run-bridge.ts    # regenerates generated/ + fdpm-plugin.json
 └── generated/               # bridge-owned
@@ -244,7 +315,7 @@ plugins/uixo/
 ```bash
 npx tsx plugins/uixo/scripts/vendor-uixo.ts --check   # vendoring gate
 npx tsx plugins/uixo/scripts/run-bridge.ts --check    # drift gate
-npx vitest run tests/plugins/uixo                     # 45 tests
+npx vitest run tests/plugins/uixo                     # 86 tests
 ```
 
 ## Known limits

@@ -12,6 +12,12 @@ scope: "fdpm-cli repository (≈76K LOC across 247 .ts/.json files in src/, plug
 
 # FDPM — Software Architecture
 
+> **SUPERSEDED — 2026-08-29.** This is the May 5 2026 snapshot, taken at
+> ~76K LOC / 7 plugins / 247 files. The current architecture document is
+> [FDPM-ARCHITECTURE-2026-08-28.md](./FDPM-ARCHITECTURE-2026-08-28.md),
+> which cites this one and diffs against it. Kept for that historical
+> delta — do not read it as a description of the present tree.
+
 _Concept-first map of how the FDPM codebase thinks. Not a class diagram. Not auto-generated. A predictive synthesis of intent and design decisions, evidence-anchored to specific files._
 
 ## Disclaimer

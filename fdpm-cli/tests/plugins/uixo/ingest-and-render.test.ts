@@ -121,14 +121,32 @@ describe("bridge determinism", () => {
     expect(out).toContain("no drift");
   });
 
-  it("advertises the document outline alone — not 712, and not a field table", () => {
+  it("advertises the five document views — not 712, and not a field table", () => {
     // It was one generic class table rather than 712, which was the right
     // call against that alternative; it still described records instead of
-    // the model, so it went with the rest of the generic renderers.
+    // the model, so it went with the rest of the generic renderers. What
+    // replaced it is one view per target, each describing the model.
     const renderers = manifest.capabilities.filter((c) => c.capability_id === "cap:renderer");
-    expect(renderers).toHaveLength(1);
-    const ids = renderers.map((c) => (c.metadata as { renderer_id?: string } | undefined)?.renderer_id);
-        expect(ids).toContain("uixo:DocumentOutlineRenderer");
+    const declared = renderers
+      .map((c) => c.metadata as { renderer_id?: string; target?: string } | undefined)
+      .map((m) => `${m?.target} ${m?.renderer_id}`)
+      .sort();
+    expect(declared).toEqual(
+      [
+        "text/markdown uixo:DocumentOutlineRenderer",
+        "text/html uixo:DocumentHtmlRenderer",
+        "application/pdf uixo:DocumentPdfRenderer",
+        "image/svg+xml uixo:ComponentTreeRenderer",
+        "image/png uixo:ComponentSheetRenderer",
+      ].sort(),
+    );
+  });
+
+  it("names an entry point that the plugin module actually exports", async () => {
+    const mod = (await import("../../../plugins/uixo/index.js")) as Record<string, unknown>;
+    for (const cap of manifest.capabilities.filter((c) => c.capability_id === "cap:renderer")) {
+      expect(typeof mod[cap.entry], `${cap.entry} is not an exported function`).toBe("function");
+    }
   });
 });
 

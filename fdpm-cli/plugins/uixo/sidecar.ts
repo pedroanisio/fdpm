@@ -45,7 +45,14 @@ import {
 
 export const PROFILE_ID = "profile:uixo:1.2" as const;
 export const PLUGIN_ID = "fdpm.uixo" as const;
-export const PLUGIN_VERSION = "0.1.0" as const;
+/**
+ * 0.2.0 — additive: four document views (text/html, application/pdf,
+ * image/svg+xml, image/png) joined the markdown outline. The vendored
+ * ontology is untouched and `PROFILE_ID` stays at 1.2: no class, property
+ * or field moved, and a 0.1.0 workbook renders under 0.2.0 without
+ * migration.
+ */
+export const PLUGIN_VERSION = "0.2.0" as const;
 export const HOST_COMPATIBILITY = ">=1.2,<2" as const;
 export const VENDOR = "uixo" as const;
 

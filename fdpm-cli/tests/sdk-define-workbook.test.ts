@@ -3,6 +3,7 @@ import { Host } from "../src/core/host.js";
 import { TEST_PROFILE } from "./fixtures.js";
 import { defineProject, openHost, renderProject } from "../src/sdk.js";
 import { FDPMException } from "../src/core/errors/fdpm-exception.js";
+import { CORE_RENDERER_ID } from "../src/core/profile/core-renderer.js";
 
 /**
  * SDK tests — `defineProject()`, `openHost()`, `renderProject()`.
@@ -194,7 +195,18 @@ describe("renderProject", () => {
     const host = await newHostWithProfile();
     await defineProject(host, { id: "p", name: "P", profile: "test:demo" }).commit();
     await expect(
-      renderProject(host, { workbook: "p", target: "text/markdown" }),
+      renderProject(host, { workbook: "p", target: "application/pdf" }),
     ).rejects.toThrow();
+  });
+
+  // Markdown is not such a target: core registers a profile-generic
+  // renderer at `text/markdown` for every profile, so the fallback answers
+  // even when no plugin is loaded. See core/profile/core-renderer.ts.
+  it("falls back to the core renderer when no plugin claims text/markdown", async () => {
+    const host = await newHostWithProfile();
+    await defineProject(host, { id: "p", name: "P", profile: "test:demo" }).commit();
+    const out = await renderProject(host, { workbook: "p", target: "text/markdown" });
+    expect(out.rendererId).toBe(CORE_RENDERER_ID);
+    expect(out.contentType).toBe("text/markdown");
   });
 });

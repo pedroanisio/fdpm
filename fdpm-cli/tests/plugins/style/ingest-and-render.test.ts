@@ -243,11 +243,14 @@ describe("the outline renderer", () => {
   });
 });
 
-describe("the per-entity renderers the manifest advertises", () => {
+describe("the outline renderer is the one the manifest advertises", () => {
   /**
-   * index.ts registers one markdown renderer per entity and advertises all
-   * fifteen in fdpm-plugin.json. An advertised capability nothing exercises
-   * is indistinguishable from a broken one, so each is run through the
+   * This block used to exercise fifteen generated per-entity field tables,
+   * including one test asserting a list-of-struct rendered as
+   * "[object Object]". They were withdrawn on 2026-08-29: an advertised
+   * capability nothing exercises is indistinguishable from a broken one,
+   * and fifteen tables describing records are not a reading of the
+   * registry. What remains is the hand-written outline, run through the
    * host's own dispatch rather than called directly.
    */
   async function runRenderer(rendererId: string): Promise<string> {
@@ -267,63 +270,19 @@ describe("the per-entity renderers the manifest advertises", () => {
     return new TextDecoder().decode(out.bytes);
   }
 
-  it("runs every one of the fifteen without throwing", async () => {
+  it("no per-entity renderer is registered any more", async () => {
     for (const name of ENTITY_NAMES) {
-      const md = await runRenderer(`${PLUGIN_ID}:${name}MarkdownRenderer`);
-      expect(md.length).toBeGreaterThan(0);
+      await expect(runRenderer(`${PLUGIN_ID}:${name}MarkdownRenderer`)).rejects.toThrow();
     }
   });
 
-  it("renders the fields of the entity it is registered for", async () => {
-    const md = await runRenderer(`${PLUGIN_ID}:RuleMarkdownRenderer`);
-    expect(md).toContain("BAU-L-01");
-    expect(md).toContain("BAU-L-P01");
-    expect(md).toContain("Stroke weight is uniform across the whole artifact.");
-
-    const colour = await runRenderer(`${PLUGIN_ID}:ColorGrammarMarkdownRenderer`);
-    expect(colour).toContain("palette_limit_kind");
-    expect(colour).toContain("capped");
-  });
-
-  it("KNOWN BRIDGE LIMIT: a list-of-struct field stringifies as [object Object]", async () => {
-    // zodSchemaToMarkdownRenderer stringifies array elements with String(),
-    // so `palette` — a list of {name, hex, role} structs — loses its
-    // contents. This is @fdpm/zod-bridge behaviour shared by every plugin
-    // that uses the generated renderers, NOT something this plugin
-    // introduces, so it is asserted rather than worked around: the day the
-    // bridge fixes it, this test fails and the note in README.md comes out.
-    const colour = await runRenderer(`${PLUGIN_ID}:ColorGrammarMarkdownRenderer`);
-    expect(colour).toContain("[object Object]");
-    expect(colour).not.toContain("#1A1A1A");
-    // The outline renderer in this plugin does NOT have the defect: it is
-    // hand-written and prints the palette hexes.
-    const outline = await runRenderer(STYLE_OUTLINE_RENDERER_ID);
-    expect(outline).toContain("#1A1A1A");
-  });
-
-  it("dispatches the outline renderer through the host too", async () => {
+  it("the outline renders the registry, including nested struct content", async () => {
     const md = await runRenderer(STYLE_OUTLINE_RENDERER_ID);
     expect(md).toContain("# Style registry");
     expect(md).toContain("## Bauhaus `BAU`");
-  });
-
-  it("says so plainly when a type has no primitives, rather than emitting nothing", async () => {
-    const empty = new Host({ dataDir: null, builtinDirs: [resolve(process.cwd(), "plugins")] });
-    await empty.load();
-    await empty.createProject({ workbook_id: "blank", name: "blank", profile_id: PROFILE_ID });
-    const slice = empty.getProject("blank");
-    const out = await empty.plugins.runRenderer(
-      "text/markdown",
-      {
-        workbookId: "blank",
-        workbook: slice.workbook,
-        primitives: [],
-        relations: [],
-        templates: [],
-        profile: empty.profiles.getResolved(PROFILE_ID),
-      },
-      { rendererId: `${PLUGIN_ID}:MovementMarkdownRenderer` },
-    );
-    expect(new TextDecoder().decode(out.bytes)).toContain("no style:Movement primitives");
+    // The palette hexes live in a list-of-struct field; the outline has
+    // always printed them, which is why it is the renderer to reach for.
+    expect(md).toContain("#1A1A1A");
+    expect(md).not.toContain("[object Object]");
   });
 });

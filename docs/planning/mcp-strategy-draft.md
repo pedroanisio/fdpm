@@ -392,6 +392,16 @@ questions:
 
 **Lean:** web UI is an MCP client. Everything else is post-eval.
 
+**Evidence since this was drafted (2026-08-29).** A web UI was in fact built
+and then retired. It answered the first question the *other* way: `web/`
+bypassed MCP entirely, spawning `fdpm … --json` per HTTP request through a
+Node bridge, and its one write path (`POST /api/planning/:verb`) was an
+allow-list maintained by hand beside the MCP tool manifest — a second
+authorization surface with no shared gate. That is the concrete cost of the
+bypass option, now observed rather than predicted. It strengthens the lean:
+if the next web UI is not an MCP client, every tier, rate limit and
+confirmation gate has to be re-implemented and re-audited on the HTTP side.
+
 ### 7.7 — When community plugins open
 
 Currently deferred. Open questions when it does open:

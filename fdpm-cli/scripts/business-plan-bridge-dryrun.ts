@@ -165,7 +165,7 @@ function checkConfidenceRefine(): void {
   // Bridge note: ConfidenceSchema is structural (not in Schemas map);
   // the bridge will lift it as an inline_struct on its consumers
   // (KPIValue.confidence, ClaimAnnotation.confidence, etc.). Per
-  // SPEC-FDPM-BRIDGE-ZOD §6.4, .refine() on inline structs is currently
+  // Per the @fdpm/zod-bridge README (feature flags), .refine() on inline structs is currently
   // rendered as a per-entity validator (not a CEL constraint). The
   // bridge surfaces this as a declared loss when a refine is ignored;
   // we'll see it in step C if it happens.
@@ -252,7 +252,7 @@ function buildReferenceSpecs(): ReferenceSpec[] {
     //       (workbook walker). Bridge emits NO declarative relation;
     //       the cross-reference is enforced at write time only.
     //
-    //   (c) Add a sidecar `variants` block per SPEC-DOMAIN-SIDECAR §6
+    //   (c) Add a sidecar `variants` block (see `sidecar-types.ts`)
     //       to expose the inline struct as a variant primitive — but
     //       perSegment is a list of structs, not a tagged union, so
     //       variants are the wrong tool here.

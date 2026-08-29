@@ -39,8 +39,38 @@ import {
   VENDOR,
 } from "./sidecar.js";
 import { renderClassTable, renderDocumentOutline } from "./renderers/document_outline.js";
+import { renderDocumentHtml } from "./renderers/document_html.js";
+import { renderComponentTree } from "./renderers/component_tree.js";
+import { renderComponentSheet } from "./renderers/component_sheet.js";
+import { renderDocumentPdf } from "./renderers/document_pdf.js";
 
 export { renderClassTable, renderDocumentOutline } from "./renderers/document_outline.js";
+export { renderDocumentHtml } from "./renderers/document_html.js";
+export { renderComponentTree } from "./renderers/component_tree.js";
+export {
+  renderComponentSheet,
+  componentSheetLayout,
+  boxHeaderCentre,
+  depthFill,
+} from "./renderers/component_sheet.js";
+export { renderDocumentPdf } from "./renderers/document_pdf.js";
+export {
+  readDocument,
+  className,
+  displayName,
+  flattenValue,
+  propertyOf,
+  type DocumentView,
+  type NodeView,
+  type CrossLink,
+} from "./renderers/_model.js";
+export {
+  wireframeLayout,
+  boxCaption,
+  MIN_BOX_W,
+  type WireBox,
+  type WireframeLayout,
+} from "./renderers/_wireframe.js";
 export {
   buildUixoWorkbook,
   parseUixoDocument,
@@ -88,6 +118,10 @@ const manifestRaw = readFileSync(join(__dirname, "fdpm-plugin.json"), "utf8");
 export const manifest: PluginManifest = JSON.parse(manifestRaw) as PluginManifest;
 
 export const DOCUMENT_RENDERER_ID = `${VENDOR}:DocumentOutlineRenderer` as const;
+export const DOCUMENT_HTML_RENDERER_ID = `${VENDOR}:DocumentHtmlRenderer` as const;
+export const DOCUMENT_PDF_RENDERER_ID = `${VENDOR}:DocumentPdfRenderer` as const;
+export const COMPONENT_TREE_RENDERER_ID = `${VENDOR}:ComponentTreeRenderer` as const;
+export const COMPONENT_SHEET_RENDERER_ID = `${VENDOR}:ComponentSheetRenderer` as const;
 
 /** Pinned so activate() and run-bridge.ts derive byte-equal artefacts. */
 const GENERATED_AT = "1970-01-01T00:00:00.000Z";
@@ -140,14 +174,31 @@ export async function activate(ctx: PluginContext): Promise<void> {
     });
   }
 
-  ctx.registerRenderer({
-    target: "text/markdown",
-    rendererId: DOCUMENT_RENDERER_ID,
-    fn: renderDocumentOutline as RendererFn,
-  });
+  // Five views of one document. The markdown outline walks
+  // `hasChildComponent` alone — the literal reading of containment. The
+  // other four share ./renderers/_model.ts, whose spanning forest reaches
+  // every entity, and the two raster views share one geometry in
+  // ./renderers/_wireframe.ts, so the vector and the bitmap are the same
+  // drawing rather than two drawings that resemble each other.
+  //
+  //   text/markdown    the outline — the containment list
+  //   text/html        the reviewable page, cross-links as anchors
+  //   application/pdf  the paginated artefact that leaves the workbook
+  //   image/svg+xml    the wireframe plus the edge and class censuses
+  //   image/png        the wireframe as pixels, for a ticket or a diff
+  const views: [string, string, RendererFn][] = [
+    ["text/markdown", DOCUMENT_RENDERER_ID, renderDocumentOutline as RendererFn],
+    ["text/html", DOCUMENT_HTML_RENDERER_ID, renderDocumentHtml as RendererFn],
+    ["application/pdf", DOCUMENT_PDF_RENDERER_ID, renderDocumentPdf as RendererFn],
+    ["image/svg+xml", COMPONENT_TREE_RENDERER_ID, renderComponentTree as RendererFn],
+    ["image/png", COMPONENT_SHEET_RENDERER_ID, renderComponentSheet as RendererFn],
+  ];
+  for (const [target, rendererId, fn] of views) {
+    ctx.registerRenderer({ target, rendererId, fn });
+  }
 
   ctx.logger.info(
-    `${PLUGIN_ID} activated: ${profile.primitive_types.length} primitive types, ${profile.relation_types?.length ?? 0} relation types, ${ENTITY_NAMES.length} validators, 2 renderers. Profile id: ${PROFILE_ID}.`,
+    `${PLUGIN_ID} activated: ${profile.primitive_types.length} primitive types, ${profile.relation_types?.length ?? 0} relation types, ${ENTITY_NAMES.length} validators, ${views.length} renderers (${views.map(([t]) => t).join(", ")}). Profile id: ${PROFILE_ID}.`,
   );
 }
 
