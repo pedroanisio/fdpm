@@ -139,16 +139,14 @@ Honest list of gaps. These are NOT pedagogically motivated; some are
 genuinely missing-from-FDPM-today, some are explicit out-of-scope for
 a starter:
 
-- **No web frontend template.** The web app's per-profile templates
-  (like `PlanningView.tsx`) live in `web/src/templates/`, not in
-  plugin packages. There is no first-class way for a plugin to ship a
-  TS module the web frontend can consume; that's
+- **No client UI module.** There is no first-class way for a plugin
+  to ship a TS module a client consumes as a per-profile view; that's
   `cap:ui:*`-shaped territory the manifest schema accepts but the
   host doesn't dispatch (see `spec-plugin-authoring-howto` §7).
 - **No View Page beyond the synthesised default.** A recipe workbook
-  rendered in the web app falls back to the generic group-by-type
-  view — which is honest about the §7 obligation a plugin without a
-  rich client view satisfies via its `cap:profile` alone.
+  falls back to the group-by-type view derived from the profile —
+  which is honest about the §7 obligation a plugin without a rich
+  client view satisfies via its `cap:profile` alone.
 - **No scoped uniqueness demo.** Single scope, by design (see
   [scopes.ts](./scopes.ts)).
 - **No inline-struct or constraints demo.** These are real

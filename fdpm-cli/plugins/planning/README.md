@@ -385,9 +385,9 @@ fdpm planning release-claim    <workbook> <task-id>
 ```
 
 Each subcommand emits `--json` for machine output and propagates the
-SDK helper's exception verbatim. The web frontend wraps these via
-`POST /api/planning/<verb>` (see `web/server/bridge.ts`); the bridge is
-the only HTTP-shape mutation surface in the FDPM web app.
+SDK helper's exception verbatim. These subcommands and the SDK helpers
+they wrap are the whole mutation surface for planning state
+transitions; FDPM ships no HTTP front.
 
 ### Source + tests
 

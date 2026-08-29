@@ -110,7 +110,7 @@ const helper = zodSchemaToExprHelper(Customer, {
 | Artefact | Type | Purpose |
 |---|---|---|
 | `result.profile` | `DomainProfile` | Argument to `ctx.registerProfile()` at activation |
-| `result.viewPage` | `ViewPageDescriptor` | Served at `fdpm://plugin/<id>/view-page`; consumed by the web frontend |
+| `result.viewPage` | `ViewPageDescriptor` | Emitted to `plugins/<id>/generated/view-page.json` and held by the CI drift gate. No runtime consumer today: the host registers no `fdpm://plugin/...` resource. |
 | `result.productPage` | `ProductPageBundle` | Structured facts for the README; drift-protected |
 | `result.migrationHints` | `MigrationHints` | Future migration input for `flag:auto-migration` |
 | `result.audit` | `SidecarAuditLog` | Classifications, overrides, divergences, and declared losses |

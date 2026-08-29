@@ -630,6 +630,7 @@
     }
   ],
   "id": "profile:acme-pitch-deck:0.1",
+  "label": "Acme Pitch Deck 0.1",
   "primitive_types": [
     {
       "fields": [
@@ -682,7 +683,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "evaluationCriteriaItem",
+            "name": "evaluationCriteria_item",
             "required": true,
             "validations": [
               {
@@ -806,7 +807,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "derivedFromItem",
+            "name": "derivedFrom_item",
             "required": true,
             "validations": [
               {
@@ -911,7 +912,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "sourceIdsItem",
+            "name": "sourceIds_item",
             "required": true,
             "validations": [
               {
@@ -940,7 +941,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "usedOnSlidesItem",
+            "name": "usedOnSlides_item",
             "required": true,
             "validations": [
               {
@@ -1032,7 +1033,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "supportedByDataPointsItem",
+            "name": "supportedByDataPoints_item",
             "required": true,
             "validations": [
               {
@@ -1061,7 +1062,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "supportedByClaimsItem",
+            "name": "supportedByClaims_item",
             "required": true,
             "validations": [
               {
@@ -1089,7 +1090,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "appearsOnSlidesItem",
+            "name": "appearsOnSlides_item",
             "required": true,
             "validations": [
               {
@@ -1124,7 +1125,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "potentialDismissalsItem",
+            "name": "potentialDismissals_item",
             "required": true,
             "validations": [
               {
@@ -1143,7 +1144,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "antiDismissalEvidenceItem",
+            "name": "antiDismissalEvidence_item",
             "required": true,
             "validations": [
               {
@@ -1258,7 +1259,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "addressedOnSlidesItem",
+            "name": "addressedOnSlides_item",
             "required": true,
             "validations": [
               {
@@ -1506,7 +1507,7 @@
         {
           "item_field": {
             "kind": "string",
-            "name": "detectionSignalsItem",
+            "name": "detectionSignals_item",
             "required": true,
             "validations": [
               {
@@ -1667,7 +1668,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "evidenceUsedItem",
+            "name": "evidenceUsed_item",
             "required": true,
             "validations": [
               {
@@ -1696,7 +1697,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "claimsAdvancedItem",
+            "name": "claimsAdvanced_item",
             "required": true,
             "validations": [
               {
@@ -1725,7 +1726,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "competitorsCitedItem",
+            "name": "competitorsCited_item",
             "required": true,
             "validations": [
               {
@@ -1754,7 +1755,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "risksAddressedItem",
+            "name": "risksAddressed_item",
             "required": true,
             "validations": [
               {
@@ -1783,7 +1784,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "string",
-            "name": "antiPatternsAvoidedItem",
+            "name": "antiPatternsAvoided_item",
             "required": true,
             "validations": [
               {
@@ -1811,7 +1812,7 @@
         {
           "item_field": {
             "kind": "struct",
-            "name": "audienceReadingsItem",
+            "name": "audienceReadings_item",
             "required": true,
             "struct_id": "SlideAudienceReadingsItem",
             "validations": []
@@ -1831,7 +1832,7 @@
           "description": "default: []",
           "item_field": {
             "kind": "struct",
-            "name": "openQuestionsItem",
+            "name": "openQuestions_item",
             "required": true,
             "struct_id": "SlideOpenQuestionsItem",
             "validations": []
@@ -1999,5 +2000,6 @@
       "source_type_id": "acme:Slide",
       "target_type_id": "acme:AntiPattern"
     }
-  ]
+  ],
+  "version": "0.1.0"
 }

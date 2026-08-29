@@ -138,13 +138,13 @@ fork. Specifically:
 1. **Product Page**: ship a substantive `README.md`. The starter's
    README is the model. Replace its content; don't ship a
    stub-with-lorem-ipsum.
-2. **View Page**: your plugin's `cap:profile` IS the View Page (the
-   web frontend's generic group-by-type view renders any workbook
-   bound to your profile, deriving the view from the profile's
-   typed primitive_types and relation_types). To satisfy the
+2. **View Page**: your plugin's `cap:profile` IS the View Page — a
+   reader derives the view from the profile's typed primitive_types
+   and relation_types, with no bespoke UI. To satisfy the
    obligation: make your primitive types and their fields
-   *self-explanatory* via good `description` strings. The web's
-   profile detail page renders these descriptions verbatim.
+   *self-explanatory* via good `description` strings. `fdpm profile
+   get` and the `fdpm://profile/{id}` MCP resource render these
+   descriptions verbatim.
 
 ## Things this template intentionally chose
 
