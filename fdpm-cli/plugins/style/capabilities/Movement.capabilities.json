@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "movementMarkdownRenderer",
+    "local_name": "style-movement",
+    "metadata": {
+      "primitive_type_id": "style:Movement",
+      "target": "text/markdown"
+    }
+  }
+}

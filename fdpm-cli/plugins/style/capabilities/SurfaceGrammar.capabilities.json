@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "surfaceGrammarMarkdownRenderer",
+    "local_name": "style-surface-grammar",
+    "metadata": {
+      "primitive_type_id": "style:SurfaceGrammar",
+      "target": "text/markdown"
+    }
+  }
+}

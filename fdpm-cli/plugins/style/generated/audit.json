@@ -1,0 +1,140 @@
+{
+  "bridgeRealization": {
+    "id": "zod-bridge",
+    "version": "0.3.0"
+  },
+  "candidates": [],
+  "classifications": [
+    {
+      "kind": "Entity",
+      "name": "CanonicalReference",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "ColorGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "ComplianceCheck",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "CompositionGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "ContrastGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "FormGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "IconographyGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "LineGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "MotionGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Movement",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Rule",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "SpatialGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "Style",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "SurfaceGrammar",
+      "reason": "explicit-entities-list"
+    },
+    {
+      "kind": "Entity",
+      "name": "TypographyGrammar",
+      "reason": "explicit-entities-list"
+    }
+  ],
+  "divergences": [],
+  "generalSpecVersion": "0.2",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "losses": [
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "style.type-layer-transcription",
+      "kind": "soundness-loss",
+      "reason": "The source is type-level TypeScript: eleven branded scalar types and twelve smart constructors that are erased at runtime (style-schema.ts PIPELINE NOTE:96-107). Each brand is re-expressed as a Zod schema carrying the same regex or numeric bound, so every value is still checked — but nominal distinctness is gone. A RuleId and a ReferenceId are both strings at the host boundary, and nothing stops one being written where the other belongs except the relation endpoints' type constraints."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "style.field-name-normalisation",
+      "kind": "soundness-loss",
+      "reason": "FieldDef.name must match ^[a-z][a-z0-9_]*$ (src/core/models/meta.ts), so every camelCase source field is snake_cased: paletteDerivationRule becomes palette_derivation_rule, figureTreatmentsBySubgenre becomes figure_treatments_by_subgenre. The mapping is mechanical and reversible; an exporter back to the source shape must apply the inverse."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "style.union-flattening",
+      "kind": "soundness-loss",
+      "reason": "The source carries 47 discriminated unions; a field-level union reaches the host as an opaque json-union string (packages/zod-bridge/src/field-mapping.ts:66-77), which is untyped and unqueryable. Each union is flattened to its `kind` discriminant plus optional arm fields, so the emitted PrimitiveTypeDef alone would accept a LineGrammar with kind=\"no-lines\" carrying a stroke_weight. The entity's superRefine rejects exactly those combinations, so nothing invalid is ever stored — but a consumer reading the profile's FieldDefs without running the validator sees a wider type than the source declares."
+    },
+    {
+      "classification": "complete-but-not-sound",
+      "feature": "style.record-to-entry-list",
+      "kind": "soundness-loss",
+      "reason": "z.record reaches the host as an opaque json-record string (field-mapping.ts:187-192). Every Record and Partial<Record> in the token layer (colour tokens, type scale, letter spacing, weight map, timing map, font stacks, typefaces) becomes an array of key-bearing entry structs. A Record and a key-unique entry list are isomorphic, but the FieldDef layer cannot express key uniqueness; the entity's superRefine enforces it."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "style.references-as-relations",
+      "kind": "completeness-loss",
+      "reason": "StyleIdentity.parentMovement / negatedMovements / influencedStyles, Rule.exemplars, ComplianceCheck.testsRule and the three CanonicalReferences buckets are relations, not fields. This buys host-enforced referential integrity, but a consumer reading a Style primitive in isolation sees none of its lineage, exemplars or references — it must traverse the relations. An exporter reconstructing a source-shaped StyleDefinition must read both."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "style.cross-entity-invariants",
+      "kind": "completeness-loss",
+      "reason": "The source's validateStyleDefinition/validateStyleRegistry implement 991 lines of invariants. Those confined to one entity are ported into that entity's superRefine and run on every host write. Those spanning entities — rule/check weight alignment, defining-rule exemplar coverage, non-advisory check coverage, grammar-to-token kind agreement, the stroke-weight derivation, the WCAG contrast arithmetic, forbidden-colour prohibition linkage, rule-id namespace agreement, grammar-section completeness and the movement-forest acyclicity — CANNOT run in a per-primitive validator, because ValidatorFn receives one instance and the relations, never the sibling primitives (src/plugin/types.ts ValidatorContext). They live in ../invariants.ts and run at ingest time and on demand. A workbook assembled by direct primitive writes rather than through buildStyleWorkbook() is field-valid but NOT invariant-checked until validateStyleWorkbook() is run against it."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "style.rendered-artifacts-absent",
+      "kind": "completeness-loss",
+      "reason": "RenderedStyle and CssArtifacts are not modelled. The source keeps them out of StyleDefinition behind a sha256-jcs content hash precisely because they are a renderer's output rather than stored truth, and the same reasoning keeps them out of the profile. A consumer needing CSS derives it from the token layer."
+    },
+    {
+      "classification": "sound-but-not-complete",
+      "feature": "style.declared-rule-id-set-incomplete",
+      "kind": "completeness-loss",
+      "reason": "The bridge enumerates a closed rule_id set by walking the schema, emitting one `custom` id at the path each refinement is attached to (packages/zod-bridge/src/validator.ts:130-135). Every superRefine here attaches at the entity root but raises issues at nested field paths, so the ids actually emitted are more specific than the enumerated set. Nothing in the host checks findings against the declared set — it is audit metadata (src/mcp/dispatch.ts:570) — so this costs discoverability, not correctness."
+    }
+  ],
+  "overrides": [],
+  "realizationSpecVersion": "0.2",
+  "sidecarSpecVersion": "0.1"
+}

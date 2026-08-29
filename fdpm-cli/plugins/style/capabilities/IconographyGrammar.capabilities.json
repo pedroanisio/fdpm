@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "iconographyGrammarMarkdownRenderer",
+    "local_name": "style-iconography-grammar",
+    "metadata": {
+      "primitive_type_id": "style:IconographyGrammar",
+      "target": "text/markdown"
+    }
+  }
+}

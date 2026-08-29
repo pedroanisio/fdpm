@@ -1,0 +1,1260 @@
+{
+  "expr_helpers": [],
+  "feature_flag_states": [
+    {
+      "flag": "flag:scope-server-only",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-v3-support",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:auto-migration",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-cross-field-refine",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-async-refine",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-discriminated-union",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-intersection",
+      "state": "enabled"
+    },
+    {
+      "flag": "flag:zod-recursive-lazy",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-function-promise",
+      "state": "disabled"
+    },
+    {
+      "flag": "flag:zod-brand",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-regex-flags",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-pipe-transform",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "flag:zod-default",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.type-layer-transcription",
+      "reason": "soundness-loss (complete-but-not-sound): The source is type-level TypeScript: eleven branded scalar types and twelve smart constructors that are erased at runtime (style-schema.ts PIPELINE NOTE:96-107). Each brand is re-expressed as a Zod schema carrying the same regex or numeric bound, so every value is still checked — but nominal distinctness is gone. A RuleId and a ReferenceId are both strings at the host boundary, and nothing stops one being written where the other belongs except the relation endpoints' type constraints.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.field-name-normalisation",
+      "reason": "soundness-loss (complete-but-not-sound): FieldDef.name must match ^[a-z][a-z0-9_]*$ (src/core/models/meta.ts), so every camelCase source field is snake_cased: paletteDerivationRule becomes palette_derivation_rule, figureTreatmentsBySubgenre becomes figure_treatments_by_subgenre. The mapping is mechanical and reversible; an exporter back to the source shape must apply the inverse.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.union-flattening",
+      "reason": "soundness-loss (complete-but-not-sound): The source carries 47 discriminated unions; a field-level union reaches the host as an opaque json-union string (packages/zod-bridge/src/field-mapping.ts:66-77), which is untyped and unqueryable. Each union is flattened to its `kind` discriminant plus optional arm fields, so the emitted PrimitiveTypeDef alone would accept a LineGrammar with kind=\"no-lines\" carrying a stroke_weight. The entity's superRefine rejects exactly those combinations, so nothing invalid is ever stored — but a consumer reading the profile's FieldDefs without running the validator sees a wider type than the source declares.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.record-to-entry-list",
+      "reason": "soundness-loss (complete-but-not-sound): z.record reaches the host as an opaque json-record string (field-mapping.ts:187-192). Every Record and Partial<Record> in the token layer (colour tokens, type scale, letter spacing, weight map, timing map, font stacks, typefaces) becomes an array of key-bearing entry structs. A Record and a key-unique entry list are isomorphic, but the FieldDef layer cannot express key uniqueness; the entity's superRefine enforces it.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.references-as-relations",
+      "reason": "completeness-loss (sound-but-not-complete): StyleIdentity.parentMovement / negatedMovements / influencedStyles, Rule.exemplars, ComplianceCheck.testsRule and the three CanonicalReferences buckets are relations, not fields. This buys host-enforced referential integrity, but a consumer reading a Style primitive in isolation sees none of its lineage, exemplars or references — it must traverse the relations. An exporter reconstructing a source-shaped StyleDefinition must read both.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.cross-entity-invariants",
+      "reason": "completeness-loss (sound-but-not-complete): The source's validateStyleDefinition/validateStyleRegistry implement 991 lines of invariants. Those confined to one entity are ported into that entity's superRefine and run on every host write. Those spanning entities — rule/check weight alignment, defining-rule exemplar coverage, non-advisory check coverage, grammar-to-token kind agreement, the stroke-weight derivation, the WCAG contrast arithmetic, forbidden-colour prohibition linkage, rule-id namespace agreement, grammar-section completeness and the movement-forest acyclicity — CANNOT run in a per-primitive validator, because ValidatorFn receives one instance and the relations, never the sibling primitives (src/plugin/types.ts ValidatorContext). They live in ../invariants.ts and run at ingest time and on demand. A workbook assembled by direct primitive writes rather than through buildStyleWorkbook() is field-valid but NOT invariant-checked until validateStyleWorkbook() is run against it.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.rendered-artifacts-absent",
+      "reason": "completeness-loss (sound-but-not-complete): RenderedStyle and CssArtifacts are not modelled. The source keeps them out of StyleDefinition behind a sha256-jcs content hash precisely because they are a renderer's output rather than stored truth, and the same reasoning keeps them out of the profile. A consumer needing CSS derives it from the token layer.",
+      "state": "behind-flag"
+    },
+    {
+      "flag": "declared-loss:style.declared-rule-id-set-incomplete",
+      "reason": "completeness-loss (sound-but-not-complete): The bridge enumerates a closed rule_id set by walking the schema, emitting one `custom` id at the path each refinement is attached to (packages/zod-bridge/src/validator.ts:130-135). Every superRefine here attaches at the entity root but raises issues at nested field paths, so the ids actually emitted are more specific than the enumerated set. Nothing in the host checks findings against the declared set — it is audit metadata (src/mcp/dispatch.ts:570) — so this costs discoverability, not correctness.",
+      "state": "behind-flag"
+    }
+  ],
+  "host_compatibility": ">=1.2,<2",
+  "plugin_id": "fdpm.style",
+  "profile_id": "profile:style:3.1",
+  "relation_types": [],
+  "schemas": [
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "movement_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "aliases",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "period",
+          "required": true
+        }
+      ],
+      "name": "Movement",
+      "primitive_type_id": "style:Movement",
+      "source_path": "domain.entities.Movement.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "style_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "schema_version",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "locale",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "code",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "aliases",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "period",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "geographic_centers",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "origin_medium",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "provenance",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "ornament_stance",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "machine_attitude",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "form_function_relation",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "human_relation",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "axioms",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "minimum_pass_ratio",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_colors_kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "tokens_colors",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_typography_kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "tokens_font_stacks",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "tokens_scale",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "tokens_line_heights",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "tokens_letter_spacing",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "tokens_weight_map",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_spacing_kind",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "tokens_base_unit",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "tokens_spacing_scale",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_shape_kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "tokens_border_radius",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "tokens_stroke_weight",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_stroke_alignment",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_motion_kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "tokens_timing_map",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "tokens_default_duration_ms",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_prompt_kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "tokens_prompt_positive",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "tokens_prompt_negative",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_accessibility_kind",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_accessibility_version",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "tokens_accessibility_level",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "tokens_contrast_pairs",
+          "required": false
+        }
+      ],
+      "name": "Style",
+      "primitive_type_id": "style:Style",
+      "source_path": "domain.entities.Style.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "stroke_kind",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight_min",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight_max",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "stroke_roles",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "quality",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "contour_hierarchy",
+          "required": false
+        }
+      ],
+      "name": "LineGrammar",
+      "primitive_type_id": "style:LineGrammar",
+      "source_path": "domain.entities.LineGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "application_methods",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "gradients",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "lighting_kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "lighting_sources",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "lighting_treatment",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "palette",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "forbidden_colors",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "palette_derivation_rule",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "color_relationships",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "palette_limit_kind",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "palette_limit_max",
+          "required": false
+        }
+      ],
+      "name": "ColorGrammar",
+      "primitive_type_id": "style:ColorGrammar",
+      "source_path": "domain.entities.ColorGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "primitives",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "proportion_system",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "symmetry",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "edge_treatment",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "structural_exposure",
+          "required": true
+        }
+      ],
+      "name": "FormGrammar",
+      "primitive_type_id": "style:FormGrammar",
+      "source_path": "domain.entities.FormGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "perspective_system",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "depth_encoding_kind",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "depth_encoding_methods",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "frame_behavior",
+          "required": true
+        }
+      ],
+      "name": "SpatialGrammar",
+      "primitive_type_id": "style:SpatialGrammar",
+      "source_path": "domain.entities.SpatialGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "rendering_methods",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "material_honesty",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "dominant_texture",
+          "required": true
+        }
+      ],
+      "name": "SurfaceGrammar",
+      "primitive_type_id": "style:SurfaceGrammar",
+      "source_path": "domain.entities.SurfaceGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "typefaces",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "type_image_relation",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "baseline_grid_kind",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "baseline_grid_unit",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "letter_spacing",
+          "required": true
+        }
+      ],
+      "name": "TypographyGrammar",
+      "primitive_type_id": "style:TypographyGrammar",
+      "source_path": "domain.entities.TypographyGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "layout_kind",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "layout_columns",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "layout_gutter",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "layout_axis",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "layout_angle_degrees",
+          "required": false
+        },
+        {
+          "kind": "list",
+          "name": "hierarchy_methods",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "negative_space",
+          "required": true
+        },
+        {
+          "kind": "boolean",
+          "name": "permits_bleed",
+          "required": true
+        }
+      ],
+      "name": "CompositionGrammar",
+      "primitive_type_id": "style:CompositionGrammar",
+      "source_path": "domain.entities.CompositionGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "tonal_range",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "contrast_roles",
+          "required": true
+        }
+      ],
+      "name": "ContrastGrammar",
+      "primitive_type_id": "style:ContrastGrammar",
+      "source_path": "domain.entities.ContrastGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "motifs",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "figure_treatment",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "figure_treatments_by_subgenre",
+          "required": false
+        }
+      ],
+      "name": "IconographyGrammar",
+      "primitive_type_id": "style:IconographyGrammar",
+      "source_path": "domain.entities.IconographyGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "character",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_squash_stretch",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_motion_blur",
+          "required": false
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_kinetic_marks",
+          "required": false
+        }
+      ],
+      "name": "MotionGrammar",
+      "primitive_type_id": "style:MotionGrammar",
+      "source_path": "domain.entities.MotionGrammar.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "rule_id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "section",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "weight",
+          "required": true
+        }
+      ],
+      "name": "Rule",
+      "primitive_type_id": "style:Rule",
+      "source_path": "domain.entities.Rule.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "check_id",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "kind",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "kind": "enum",
+          "name": "weight",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "threshold_metric",
+          "required": false
+        },
+        {
+          "kind": "enum",
+          "name": "threshold_operator",
+          "required": false
+        },
+        {
+          "kind": "number",
+          "name": "threshold_value",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "threshold_unit",
+          "required": false
+        },
+        {
+          "kind": "string",
+          "name": "criteria",
+          "required": false
+        }
+      ],
+      "name": "ComplianceCheck",
+      "primitive_type_id": "style:ComplianceCheck",
+      "source_path": "domain.entities.ComplianceCheck.schema"
+    },
+    {
+      "field_summary": [
+        {
+          "kind": "string",
+          "name": "reference_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "name": "creators",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "medium",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "exemplifies",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "source",
+          "required": true
+        }
+      ],
+      "name": "CanonicalReference",
+      "primitive_type_id": "style:CanonicalReference",
+      "source_path": "domain.entities.CanonicalReference.schema"
+    }
+  ],
+  "validator_rule_ids": [
+    "fdpm.style:zod.canonicalreference.custom",
+    "fdpm.style:zod.canonicalreference.custom.creators",
+    "fdpm.style:zod.canonicalreference.custom.exemplifies",
+    "fdpm.style:zod.canonicalreference.custom.medium",
+    "fdpm.style:zod.canonicalreference.custom.source",
+    "fdpm.style:zod.canonicalreference.custom.title",
+    "fdpm.style:zod.canonicalreference.invalid_format.reference_id",
+    "fdpm.style:zod.canonicalreference.invalid_format.year",
+    "fdpm.style:zod.canonicalreference.invalid_type",
+    "fdpm.style:zod.canonicalreference.invalid_type.creators",
+    "fdpm.style:zod.canonicalreference.invalid_type.exemplifies",
+    "fdpm.style:zod.canonicalreference.invalid_type.medium",
+    "fdpm.style:zod.canonicalreference.invalid_type.reference_id",
+    "fdpm.style:zod.canonicalreference.invalid_type.source",
+    "fdpm.style:zod.canonicalreference.invalid_type.title",
+    "fdpm.style:zod.canonicalreference.invalid_type.year",
+    "fdpm.style:zod.canonicalreference.too_small.creators",
+    "fdpm.style:zod.canonicalreference.too_small.exemplifies",
+    "fdpm.style:zod.canonicalreference.too_small.medium",
+    "fdpm.style:zod.canonicalreference.too_small.source",
+    "fdpm.style:zod.canonicalreference.too_small.title",
+    "fdpm.style:zod.canonicalreference.unrecognized_keys",
+    "fdpm.style:zod.colorgrammar.custom",
+    "fdpm.style:zod.colorgrammar.custom.forbidden_colors.name",
+    "fdpm.style:zod.colorgrammar.custom.forbidden_colors.reason",
+    "fdpm.style:zod.colorgrammar.custom.grammar_id",
+    "fdpm.style:zod.colorgrammar.custom.palette.name",
+    "fdpm.style:zod.colorgrammar.custom.palette_derivation_rule",
+    "fdpm.style:zod.colorgrammar.invalid_format.forbidden_colors.hex",
+    "fdpm.style:zod.colorgrammar.invalid_format.forbidden_colors.prohibited_by",
+    "fdpm.style:zod.colorgrammar.invalid_format.palette.hex",
+    "fdpm.style:zod.colorgrammar.invalid_format.palette_limit_max",
+    "fdpm.style:zod.colorgrammar.invalid_type",
+    "fdpm.style:zod.colorgrammar.invalid_type.application_methods",
+    "fdpm.style:zod.colorgrammar.invalid_type.color_relationships",
+    "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors",
+    "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.hex",
+    "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.name",
+    "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.prohibited_by",
+    "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.reason",
+    "fdpm.style:zod.colorgrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.colorgrammar.invalid_type.lighting_sources",
+    "fdpm.style:zod.colorgrammar.invalid_type.palette",
+    "fdpm.style:zod.colorgrammar.invalid_type.palette.hex",
+    "fdpm.style:zod.colorgrammar.invalid_type.palette.name",
+    "fdpm.style:zod.colorgrammar.invalid_type.palette_derivation_rule",
+    "fdpm.style:zod.colorgrammar.invalid_type.palette_limit_max",
+    "fdpm.style:zod.colorgrammar.invalid_value.application_methods",
+    "fdpm.style:zod.colorgrammar.invalid_value.color_relationships",
+    "fdpm.style:zod.colorgrammar.invalid_value.gradients",
+    "fdpm.style:zod.colorgrammar.invalid_value.lighting_kind",
+    "fdpm.style:zod.colorgrammar.invalid_value.lighting_sources",
+    "fdpm.style:zod.colorgrammar.invalid_value.lighting_treatment",
+    "fdpm.style:zod.colorgrammar.invalid_value.palette.printing_origin",
+    "fdpm.style:zod.colorgrammar.invalid_value.palette.role",
+    "fdpm.style:zod.colorgrammar.invalid_value.palette_limit_kind",
+    "fdpm.style:zod.colorgrammar.too_small.application_methods",
+    "fdpm.style:zod.colorgrammar.too_small.color_relationships",
+    "fdpm.style:zod.colorgrammar.too_small.forbidden_colors.name",
+    "fdpm.style:zod.colorgrammar.too_small.forbidden_colors.reason",
+    "fdpm.style:zod.colorgrammar.too_small.grammar_id",
+    "fdpm.style:zod.colorgrammar.too_small.palette.name",
+    "fdpm.style:zod.colorgrammar.too_small.palette_derivation_rule",
+    "fdpm.style:zod.colorgrammar.too_small.palette_limit_max",
+    "fdpm.style:zod.colorgrammar.unrecognized_keys",
+    "fdpm.style:zod.compliancecheck.custom",
+    "fdpm.style:zod.compliancecheck.custom.criteria",
+    "fdpm.style:zod.compliancecheck.custom.description",
+    "fdpm.style:zod.compliancecheck.custom.threshold_metric",
+    "fdpm.style:zod.compliancecheck.custom.threshold_unit",
+    "fdpm.style:zod.compliancecheck.invalid_format.check_id",
+    "fdpm.style:zod.compliancecheck.invalid_type",
+    "fdpm.style:zod.compliancecheck.invalid_type.check_id",
+    "fdpm.style:zod.compliancecheck.invalid_type.criteria",
+    "fdpm.style:zod.compliancecheck.invalid_type.description",
+    "fdpm.style:zod.compliancecheck.invalid_type.threshold_metric",
+    "fdpm.style:zod.compliancecheck.invalid_type.threshold_unit",
+    "fdpm.style:zod.compliancecheck.invalid_type.threshold_value",
+    "fdpm.style:zod.compliancecheck.invalid_value.kind",
+    "fdpm.style:zod.compliancecheck.invalid_value.threshold_operator",
+    "fdpm.style:zod.compliancecheck.invalid_value.weight",
+    "fdpm.style:zod.compliancecheck.too_small.criteria",
+    "fdpm.style:zod.compliancecheck.too_small.description",
+    "fdpm.style:zod.compliancecheck.too_small.threshold_metric",
+    "fdpm.style:zod.compliancecheck.too_small.threshold_unit",
+    "fdpm.style:zod.compliancecheck.unrecognized_keys",
+    "fdpm.style:zod.compositiongrammar.custom",
+    "fdpm.style:zod.compositiongrammar.custom.grammar_id",
+    "fdpm.style:zod.compositiongrammar.invalid_format.layout_columns",
+    "fdpm.style:zod.compositiongrammar.invalid_type",
+    "fdpm.style:zod.compositiongrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.compositiongrammar.invalid_type.hierarchy_methods",
+    "fdpm.style:zod.compositiongrammar.invalid_type.layout_angle_degrees",
+    "fdpm.style:zod.compositiongrammar.invalid_type.layout_columns",
+    "fdpm.style:zod.compositiongrammar.invalid_type.layout_gutter",
+    "fdpm.style:zod.compositiongrammar.invalid_type.permits_bleed",
+    "fdpm.style:zod.compositiongrammar.invalid_value.hierarchy_methods",
+    "fdpm.style:zod.compositiongrammar.invalid_value.layout_axis",
+    "fdpm.style:zod.compositiongrammar.invalid_value.layout_kind",
+    "fdpm.style:zod.compositiongrammar.invalid_value.negative_space",
+    "fdpm.style:zod.compositiongrammar.too_small.grammar_id",
+    "fdpm.style:zod.compositiongrammar.too_small.hierarchy_methods",
+    "fdpm.style:zod.compositiongrammar.too_small.layout_columns",
+    "fdpm.style:zod.compositiongrammar.too_small.layout_gutter",
+    "fdpm.style:zod.compositiongrammar.unrecognized_keys",
+    "fdpm.style:zod.contrastgrammar.custom",
+    "fdpm.style:zod.contrastgrammar.custom.grammar_id",
+    "fdpm.style:zod.contrastgrammar.invalid_type",
+    "fdpm.style:zod.contrastgrammar.invalid_type.contrast_roles",
+    "fdpm.style:zod.contrastgrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.contrastgrammar.invalid_value.contrast_roles",
+    "fdpm.style:zod.contrastgrammar.invalid_value.tonal_range",
+    "fdpm.style:zod.contrastgrammar.too_small.grammar_id",
+    "fdpm.style:zod.contrastgrammar.unrecognized_keys",
+    "fdpm.style:zod.formgrammar.custom",
+    "fdpm.style:zod.formgrammar.custom.grammar_id",
+    "fdpm.style:zod.formgrammar.invalid_type",
+    "fdpm.style:zod.formgrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.formgrammar.invalid_type.primitives",
+    "fdpm.style:zod.formgrammar.invalid_value.edge_treatment",
+    "fdpm.style:zod.formgrammar.invalid_value.primitives",
+    "fdpm.style:zod.formgrammar.invalid_value.proportion_system",
+    "fdpm.style:zod.formgrammar.invalid_value.structural_exposure",
+    "fdpm.style:zod.formgrammar.invalid_value.symmetry",
+    "fdpm.style:zod.formgrammar.too_small.grammar_id",
+    "fdpm.style:zod.formgrammar.too_small.primitives",
+    "fdpm.style:zod.formgrammar.unrecognized_keys",
+    "fdpm.style:zod.iconographygrammar.custom",
+    "fdpm.style:zod.iconographygrammar.custom.figure_treatments_by_subgenre.subgenre",
+    "fdpm.style:zod.iconographygrammar.custom.grammar_id",
+    "fdpm.style:zod.iconographygrammar.custom.motifs.description",
+    "fdpm.style:zod.iconographygrammar.custom.motifs.name",
+    "fdpm.style:zod.iconographygrammar.invalid_type",
+    "fdpm.style:zod.iconographygrammar.invalid_type.figure_treatments_by_subgenre",
+    "fdpm.style:zod.iconographygrammar.invalid_type.figure_treatments_by_subgenre.subgenre",
+    "fdpm.style:zod.iconographygrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.iconographygrammar.invalid_type.motifs",
+    "fdpm.style:zod.iconographygrammar.invalid_type.motifs.description",
+    "fdpm.style:zod.iconographygrammar.invalid_type.motifs.name",
+    "fdpm.style:zod.iconographygrammar.invalid_value.figure_treatment",
+    "fdpm.style:zod.iconographygrammar.invalid_value.figure_treatments_by_subgenre.dominance",
+    "fdpm.style:zod.iconographygrammar.invalid_value.figure_treatments_by_subgenre.treatment",
+    "fdpm.style:zod.iconographygrammar.invalid_value.motifs.frequency",
+    "fdpm.style:zod.iconographygrammar.too_small.figure_treatments_by_subgenre.subgenre",
+    "fdpm.style:zod.iconographygrammar.too_small.grammar_id",
+    "fdpm.style:zod.iconographygrammar.too_small.motifs.description",
+    "fdpm.style:zod.iconographygrammar.too_small.motifs.name",
+    "fdpm.style:zod.iconographygrammar.unrecognized_keys",
+    "fdpm.style:zod.linegrammar.custom",
+    "fdpm.style:zod.linegrammar.custom.grammar_id",
+    "fdpm.style:zod.linegrammar.invalid_type",
+    "fdpm.style:zod.linegrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.linegrammar.invalid_type.stroke_roles",
+    "fdpm.style:zod.linegrammar.invalid_type.stroke_weight",
+    "fdpm.style:zod.linegrammar.invalid_type.stroke_weight_max",
+    "fdpm.style:zod.linegrammar.invalid_type.stroke_weight_min",
+    "fdpm.style:zod.linegrammar.invalid_value.contour_hierarchy",
+    "fdpm.style:zod.linegrammar.invalid_value.kind",
+    "fdpm.style:zod.linegrammar.invalid_value.quality",
+    "fdpm.style:zod.linegrammar.invalid_value.stroke_kind",
+    "fdpm.style:zod.linegrammar.invalid_value.stroke_roles",
+    "fdpm.style:zod.linegrammar.too_small.grammar_id",
+    "fdpm.style:zod.linegrammar.too_small.stroke_weight",
+    "fdpm.style:zod.linegrammar.too_small.stroke_weight_max",
+    "fdpm.style:zod.linegrammar.too_small.stroke_weight_min",
+    "fdpm.style:zod.linegrammar.unrecognized_keys",
+    "fdpm.style:zod.motiongrammar.custom",
+    "fdpm.style:zod.motiongrammar.custom.grammar_id",
+    "fdpm.style:zod.motiongrammar.invalid_type",
+    "fdpm.style:zod.motiongrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.motiongrammar.invalid_type.uses_kinetic_marks",
+    "fdpm.style:zod.motiongrammar.invalid_type.uses_motion_blur",
+    "fdpm.style:zod.motiongrammar.invalid_type.uses_squash_stretch",
+    "fdpm.style:zod.motiongrammar.invalid_value.character",
+    "fdpm.style:zod.motiongrammar.invalid_value.kind",
+    "fdpm.style:zod.motiongrammar.too_small.grammar_id",
+    "fdpm.style:zod.motiongrammar.unrecognized_keys",
+    "fdpm.style:zod.movement.custom",
+    "fdpm.style:zod.movement.custom.aliases",
+    "fdpm.style:zod.movement.custom.name",
+    "fdpm.style:zod.movement.custom.period",
+    "fdpm.style:zod.movement.invalid_format.movement_id",
+    "fdpm.style:zod.movement.invalid_format.period.end",
+    "fdpm.style:zod.movement.invalid_format.period.start",
+    "fdpm.style:zod.movement.invalid_type",
+    "fdpm.style:zod.movement.invalid_type.aliases",
+    "fdpm.style:zod.movement.invalid_type.movement_id",
+    "fdpm.style:zod.movement.invalid_type.name",
+    "fdpm.style:zod.movement.invalid_type.period.end",
+    "fdpm.style:zod.movement.invalid_type.period.start",
+    "fdpm.style:zod.movement.invalid_value.period.kind",
+    "fdpm.style:zod.movement.too_small.aliases",
+    "fdpm.style:zod.movement.too_small.name",
+    "fdpm.style:zod.movement.unrecognized_keys",
+    "fdpm.style:zod.rule.custom.statement",
+    "fdpm.style:zod.rule.invalid_format.rule_id",
+    "fdpm.style:zod.rule.invalid_type",
+    "fdpm.style:zod.rule.invalid_type.rule_id",
+    "fdpm.style:zod.rule.invalid_type.statement",
+    "fdpm.style:zod.rule.invalid_value.kind",
+    "fdpm.style:zod.rule.invalid_value.section",
+    "fdpm.style:zod.rule.invalid_value.weight",
+    "fdpm.style:zod.rule.too_small.statement",
+    "fdpm.style:zod.rule.unrecognized_keys",
+    "fdpm.style:zod.spatialgrammar.custom",
+    "fdpm.style:zod.spatialgrammar.custom.grammar_id",
+    "fdpm.style:zod.spatialgrammar.invalid_type",
+    "fdpm.style:zod.spatialgrammar.invalid_type.depth_encoding_methods",
+    "fdpm.style:zod.spatialgrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.spatialgrammar.invalid_value.depth_encoding_kind",
+    "fdpm.style:zod.spatialgrammar.invalid_value.depth_encoding_methods",
+    "fdpm.style:zod.spatialgrammar.invalid_value.frame_behavior",
+    "fdpm.style:zod.spatialgrammar.invalid_value.perspective_system",
+    "fdpm.style:zod.spatialgrammar.too_small.grammar_id",
+    "fdpm.style:zod.spatialgrammar.unrecognized_keys",
+    "fdpm.style:zod.style.custom",
+    "fdpm.style:zod.style.custom.aliases",
+    "fdpm.style:zod.style.custom.axioms.source",
+    "fdpm.style:zod.style.custom.axioms.statement",
+    "fdpm.style:zod.style.custom.geographic_centers",
+    "fdpm.style:zod.style.custom.name",
+    "fdpm.style:zod.style.custom.origin_medium",
+    "fdpm.style:zod.style.custom.origin_medium.components.process",
+    "fdpm.style:zod.style.custom.origin_medium.process",
+    "fdpm.style:zod.style.custom.period",
+    "fdpm.style:zod.style.custom.provenance",
+    "fdpm.style:zod.style.custom.provenance.created_by",
+    "fdpm.style:zod.style.custom.provenance.modified_by",
+    "fdpm.style:zod.style.custom.provenance.source_system",
+    "fdpm.style:zod.style.custom.tokens_border_radius.name",
+    "fdpm.style:zod.style.custom.tokens_colors.name",
+    "fdpm.style:zod.style.custom.tokens_contrast_pairs.background",
+    "fdpm.style:zod.style.custom.tokens_contrast_pairs.foreground",
+    "fdpm.style:zod.style.custom.tokens_font_stacks.stack",
+    "fdpm.style:zod.style.custom.tokens_letter_spacing.name",
+    "fdpm.style:zod.style.custom.tokens_scale.name",
+    "fdpm.style:zod.style.custom.tokens_spacing_scale.name",
+    "fdpm.style:zod.style.custom.tokens_timing_map.timing",
+    "fdpm.style:zod.style.custom.tokens_weight_map.weight",
+    "fdpm.style:zod.style.invalid_format.code",
+    "fdpm.style:zod.style.invalid_format.locale",
+    "fdpm.style:zod.style.invalid_format.period.end",
+    "fdpm.style:zod.style.invalid_format.period.start",
+    "fdpm.style:zod.style.invalid_format.provenance.created_at",
+    "fdpm.style:zod.style.invalid_format.provenance.modified_at",
+    "fdpm.style:zod.style.invalid_format.schema_version",
+    "fdpm.style:zod.style.invalid_format.style_id",
+    "fdpm.style:zod.style.invalid_format.tokens_colors.value",
+    "fdpm.style:zod.style.invalid_format.tokens_weight_map.step",
+    "fdpm.style:zod.style.invalid_format.tokens_weight_map.weight",
+    "fdpm.style:zod.style.invalid_type",
+    "fdpm.style:zod.style.invalid_type.aliases",
+    "fdpm.style:zod.style.invalid_type.axioms",
+    "fdpm.style:zod.style.invalid_type.axioms.source",
+    "fdpm.style:zod.style.invalid_type.axioms.statement",
+    "fdpm.style:zod.style.invalid_type.code",
+    "fdpm.style:zod.style.invalid_type.geographic_centers",
+    "fdpm.style:zod.style.invalid_type.locale",
+    "fdpm.style:zod.style.invalid_type.minimum_pass_ratio",
+    "fdpm.style:zod.style.invalid_type.name",
+    "fdpm.style:zod.style.invalid_type.origin_medium.components",
+    "fdpm.style:zod.style.invalid_type.origin_medium.components.process",
+    "fdpm.style:zod.style.invalid_type.origin_medium.process",
+    "fdpm.style:zod.style.invalid_type.period.end",
+    "fdpm.style:zod.style.invalid_type.period.start",
+    "fdpm.style:zod.style.invalid_type.provenance.created_at",
+    "fdpm.style:zod.style.invalid_type.provenance.created_by",
+    "fdpm.style:zod.style.invalid_type.provenance.modified_at",
+    "fdpm.style:zod.style.invalid_type.provenance.modified_by",
+    "fdpm.style:zod.style.invalid_type.provenance.source_system",
+    "fdpm.style:zod.style.invalid_type.schema_version",
+    "fdpm.style:zod.style.invalid_type.style_id",
+    "fdpm.style:zod.style.invalid_type.tokens_base_unit",
+    "fdpm.style:zod.style.invalid_type.tokens_border_radius",
+    "fdpm.style:zod.style.invalid_type.tokens_border_radius.name",
+    "fdpm.style:zod.style.invalid_type.tokens_border_radius.value",
+    "fdpm.style:zod.style.invalid_type.tokens_colors",
+    "fdpm.style:zod.style.invalid_type.tokens_colors.name",
+    "fdpm.style:zod.style.invalid_type.tokens_colors.value",
+    "fdpm.style:zod.style.invalid_type.tokens_contrast_pairs",
+    "fdpm.style:zod.style.invalid_type.tokens_contrast_pairs.background",
+    "fdpm.style:zod.style.invalid_type.tokens_contrast_pairs.foreground",
+    "fdpm.style:zod.style.invalid_type.tokens_default_duration_ms",
+    "fdpm.style:zod.style.invalid_type.tokens_font_stacks",
+    "fdpm.style:zod.style.invalid_type.tokens_font_stacks.stack",
+    "fdpm.style:zod.style.invalid_type.tokens_letter_spacing",
+    "fdpm.style:zod.style.invalid_type.tokens_letter_spacing.name",
+    "fdpm.style:zod.style.invalid_type.tokens_letter_spacing.value",
+    "fdpm.style:zod.style.invalid_type.tokens_line_heights",
+    "fdpm.style:zod.style.invalid_type.tokens_line_heights.value",
+    "fdpm.style:zod.style.invalid_type.tokens_prompt_negative",
+    "fdpm.style:zod.style.invalid_type.tokens_prompt_positive",
+    "fdpm.style:zod.style.invalid_type.tokens_scale",
+    "fdpm.style:zod.style.invalid_type.tokens_scale.name",
+    "fdpm.style:zod.style.invalid_type.tokens_scale.value",
+    "fdpm.style:zod.style.invalid_type.tokens_spacing_scale",
+    "fdpm.style:zod.style.invalid_type.tokens_spacing_scale.name",
+    "fdpm.style:zod.style.invalid_type.tokens_spacing_scale.value",
+    "fdpm.style:zod.style.invalid_type.tokens_stroke_weight",
+    "fdpm.style:zod.style.invalid_type.tokens_timing_map",
+    "fdpm.style:zod.style.invalid_type.tokens_timing_map.timing",
+    "fdpm.style:zod.style.invalid_type.tokens_weight_map",
+    "fdpm.style:zod.style.invalid_type.tokens_weight_map.step",
+    "fdpm.style:zod.style.invalid_type.tokens_weight_map.weight",
+    "fdpm.style:zod.style.invalid_value.form_function_relation",
+    "fdpm.style:zod.style.invalid_value.human_relation",
+    "fdpm.style:zod.style.invalid_value.machine_attitude",
+    "fdpm.style:zod.style.invalid_value.origin_medium.components.family",
+    "fdpm.style:zod.style.invalid_value.origin_medium.family",
+    "fdpm.style:zod.style.invalid_value.origin_medium.kind",
+    "fdpm.style:zod.style.invalid_value.ornament_stance",
+    "fdpm.style:zod.style.invalid_value.period.kind",
+    "fdpm.style:zod.style.invalid_value.tokens_accessibility_kind",
+    "fdpm.style:zod.style.invalid_value.tokens_accessibility_level",
+    "fdpm.style:zod.style.invalid_value.tokens_accessibility_version",
+    "fdpm.style:zod.style.invalid_value.tokens_colors_kind",
+    "fdpm.style:zod.style.invalid_value.tokens_contrast_pairs.usage",
+    "fdpm.style:zod.style.invalid_value.tokens_font_stacks.role",
+    "fdpm.style:zod.style.invalid_value.tokens_line_heights.name",
+    "fdpm.style:zod.style.invalid_value.tokens_motion_kind",
+    "fdpm.style:zod.style.invalid_value.tokens_prompt_kind",
+    "fdpm.style:zod.style.invalid_value.tokens_shape_kind",
+    "fdpm.style:zod.style.invalid_value.tokens_spacing_kind",
+    "fdpm.style:zod.style.invalid_value.tokens_stroke_alignment",
+    "fdpm.style:zod.style.invalid_value.tokens_timing_map.character",
+    "fdpm.style:zod.style.invalid_value.tokens_typography_kind",
+    "fdpm.style:zod.style.too_big.minimum_pass_ratio",
+    "fdpm.style:zod.style.too_big.tokens_letter_spacing.value",
+    "fdpm.style:zod.style.too_big.tokens_line_heights.value",
+    "fdpm.style:zod.style.too_big.tokens_weight_map.step",
+    "fdpm.style:zod.style.too_small.aliases",
+    "fdpm.style:zod.style.too_small.axioms",
+    "fdpm.style:zod.style.too_small.axioms.source",
+    "fdpm.style:zod.style.too_small.axioms.statement",
+    "fdpm.style:zod.style.too_small.geographic_centers",
+    "fdpm.style:zod.style.too_small.minimum_pass_ratio",
+    "fdpm.style:zod.style.too_small.name",
+    "fdpm.style:zod.style.too_small.origin_medium.components.process",
+    "fdpm.style:zod.style.too_small.origin_medium.process",
+    "fdpm.style:zod.style.too_small.provenance.created_by",
+    "fdpm.style:zod.style.too_small.provenance.modified_by",
+    "fdpm.style:zod.style.too_small.provenance.source_system",
+    "fdpm.style:zod.style.too_small.tokens_base_unit",
+    "fdpm.style:zod.style.too_small.tokens_border_radius.name",
+    "fdpm.style:zod.style.too_small.tokens_border_radius.value",
+    "fdpm.style:zod.style.too_small.tokens_colors.name",
+    "fdpm.style:zod.style.too_small.tokens_contrast_pairs.background",
+    "fdpm.style:zod.style.too_small.tokens_contrast_pairs.foreground",
+    "fdpm.style:zod.style.too_small.tokens_default_duration_ms",
+    "fdpm.style:zod.style.too_small.tokens_font_stacks.stack",
+    "fdpm.style:zod.style.too_small.tokens_letter_spacing.name",
+    "fdpm.style:zod.style.too_small.tokens_letter_spacing.value",
+    "fdpm.style:zod.style.too_small.tokens_line_heights.value",
+    "fdpm.style:zod.style.too_small.tokens_scale.name",
+    "fdpm.style:zod.style.too_small.tokens_scale.value",
+    "fdpm.style:zod.style.too_small.tokens_spacing_scale.name",
+    "fdpm.style:zod.style.too_small.tokens_spacing_scale.value",
+    "fdpm.style:zod.style.too_small.tokens_stroke_weight",
+    "fdpm.style:zod.style.too_small.tokens_weight_map.step",
+    "fdpm.style:zod.style.unrecognized_keys",
+    "fdpm.style:zod.surfacegrammar.custom",
+    "fdpm.style:zod.surfacegrammar.custom.grammar_id",
+    "fdpm.style:zod.surfacegrammar.invalid_type",
+    "fdpm.style:zod.surfacegrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.surfacegrammar.invalid_type.rendering_methods",
+    "fdpm.style:zod.surfacegrammar.invalid_value.dominant_texture",
+    "fdpm.style:zod.surfacegrammar.invalid_value.material_honesty",
+    "fdpm.style:zod.surfacegrammar.invalid_value.rendering_methods",
+    "fdpm.style:zod.surfacegrammar.too_small.grammar_id",
+    "fdpm.style:zod.surfacegrammar.too_small.rendering_methods",
+    "fdpm.style:zod.surfacegrammar.unrecognized_keys",
+    "fdpm.style:zod.typographygrammar.custom",
+    "fdpm.style:zod.typographygrammar.custom.grammar_id",
+    "fdpm.style:zod.typographygrammar.custom.typefaces",
+    "fdpm.style:zod.typographygrammar.custom.typefaces.exemplars",
+    "fdpm.style:zod.typographygrammar.invalid_format.typefaces.weight_min",
+    "fdpm.style:zod.typographygrammar.invalid_format.typefaces.weight_span",
+    "fdpm.style:zod.typographygrammar.invalid_type",
+    "fdpm.style:zod.typographygrammar.invalid_type.baseline_grid_unit",
+    "fdpm.style:zod.typographygrammar.invalid_type.grammar_id",
+    "fdpm.style:zod.typographygrammar.invalid_type.typefaces",
+    "fdpm.style:zod.typographygrammar.invalid_type.typefaces.exemplars",
+    "fdpm.style:zod.typographygrammar.invalid_type.typefaces.permits_italic",
+    "fdpm.style:zod.typographygrammar.invalid_type.typefaces.weight_min",
+    "fdpm.style:zod.typographygrammar.invalid_type.typefaces.weight_span",
+    "fdpm.style:zod.typographygrammar.invalid_value.baseline_grid_kind",
+    "fdpm.style:zod.typographygrammar.invalid_value.letter_spacing",
+    "fdpm.style:zod.typographygrammar.invalid_value.type_image_relation",
+    "fdpm.style:zod.typographygrammar.invalid_value.typefaces.casing",
+    "fdpm.style:zod.typographygrammar.invalid_value.typefaces.classification",
+    "fdpm.style:zod.typographygrammar.invalid_value.typefaces.role",
+    "fdpm.style:zod.typographygrammar.too_big.typefaces.weight_min",
+    "fdpm.style:zod.typographygrammar.too_big.typefaces.weight_span",
+    "fdpm.style:zod.typographygrammar.too_small.baseline_grid_unit",
+    "fdpm.style:zod.typographygrammar.too_small.grammar_id",
+    "fdpm.style:zod.typographygrammar.too_small.typefaces.exemplars",
+    "fdpm.style:zod.typographygrammar.too_small.typefaces.weight_min",
+    "fdpm.style:zod.typographygrammar.too_small.typefaces.weight_span",
+    "fdpm.style:zod.typographygrammar.unrecognized_keys"
+  ],
+  "version": "0.1.0"
+}

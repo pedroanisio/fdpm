@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "styleMarkdownRenderer",
+    "local_name": "style-style",
+    "metadata": {
+      "primitive_type_id": "style:Style",
+      "target": "text/markdown"
+    }
+  }
+}

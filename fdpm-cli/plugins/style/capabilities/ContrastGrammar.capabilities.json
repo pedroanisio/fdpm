@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "contrastGrammarMarkdownRenderer",
+    "local_name": "style-contrast-grammar",
+    "metadata": {
+      "primitive_type_id": "style:ContrastGrammar",
+      "target": "text/markdown"
+    }
+  }
+}

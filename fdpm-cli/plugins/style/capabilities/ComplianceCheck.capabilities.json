@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "complianceCheckMarkdownRenderer",
+    "local_name": "style-compliance-check",
+    "metadata": {
+      "primitive_type_id": "style:ComplianceCheck",
+      "target": "text/markdown"
+    }
+  }
+}

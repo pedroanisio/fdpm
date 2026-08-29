@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "canonicalReferenceMarkdownRenderer",
+    "local_name": "style-canonical-reference",
+    "metadata": {
+      "primitive_type_id": "style:CanonicalReference",
+      "target": "text/markdown"
+    }
+  }
+}

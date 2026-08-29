@@ -1,0 +1,1134 @@
+{
+  "generated_at": "1970-01-01T00:00:00.000Z",
+  "panels": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "movement_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "aliases",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "period",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "style:Movement",
+      "title": "Movement"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "style_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "schema_version",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "locale",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "code",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "aliases",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "period",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "geographic_centers",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "origin_medium",
+          "required": true
+        },
+        {
+          "kind": "struct",
+          "name": "provenance",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "prohibited",
+            "structural-only",
+            "geometric",
+            "celebratory",
+            "subversive",
+            "organic",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "ornament_stance",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "collaborative",
+            "subservient",
+            "aestheticized",
+            "revolutionary",
+            "confrontational",
+            "aspirational",
+            "irrelevant"
+          ],
+          "kind": "enum",
+          "name": "machine_attitude",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "form-follows-function",
+            "form-is-function",
+            "form-over-function",
+            "form-against-function",
+            "form-independent"
+          ],
+          "kind": "enum",
+          "name": "form_function_relation",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "body-conforming",
+            "body-indifferent",
+            "body-confronting",
+            "body-aspirational"
+          ],
+          "kind": "enum",
+          "name": "human_relation",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "axioms",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "minimum_pass_ratio",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_colors_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_colors",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_typography_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_font_stacks",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_scale",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_line_heights",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_letter_spacing",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_weight_map",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_spacing_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "number",
+          "name": "tokens_base_unit",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_spacing_scale",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_shape_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_border_radius",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "tokens_stroke_weight",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "inside",
+            "center",
+            "outside"
+          ],
+          "kind": "enum",
+          "name": "tokens_stroke_alignment",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_motion_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_timing_map",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "tokens_default_duration_ms",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_prompt_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "tokens_prompt_positive",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "tokens_prompt_negative",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "wcag"
+          ],
+          "kind": "enum",
+          "name": "tokens_accessibility_kind",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "2.0",
+            "2.1",
+            "2.2"
+          ],
+          "kind": "enum",
+          "name": "tokens_accessibility_version",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "aa",
+            "aaa"
+          ],
+          "kind": "enum",
+          "name": "tokens_accessibility_level",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "tokens_contrast_pairs",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "style:Style",
+      "title": "Style"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "lines",
+            "no-lines"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "uniform",
+            "calligraphic",
+            "expressive"
+          ],
+          "kind": "enum",
+          "name": "stroke_kind",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight_min",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight_max",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "stroke_roles",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "mechanical",
+            "gestural",
+            "brush",
+            "scratchy",
+            "clean"
+          ],
+          "kind": "enum",
+          "name": "quality",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "uniform",
+            "hierarchical"
+          ],
+          "kind": "enum",
+          "name": "contour_hierarchy",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "style:LineGrammar",
+      "title": "LineGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "application_methods",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "forbidden",
+            "permitted",
+            "motif-only"
+          ],
+          "kind": "enum",
+          "name": "gradients",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "none",
+            "implied",
+            "rendered",
+            "full-pbr"
+          ],
+          "kind": "enum",
+          "name": "lighting_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "lighting_sources",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "spot-black",
+            "hard-edge",
+            "soft-gradient",
+            "hatched",
+            "screentone"
+          ],
+          "kind": "enum",
+          "name": "lighting_treatment",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "palette",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "forbidden_colors",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "palette_derivation_rule",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "color_relationships",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "unlimited",
+            "capped"
+          ],
+          "kind": "enum",
+          "name": "palette_limit_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "number",
+          "name": "palette_limit_max",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "style:ColorGrammar",
+      "title": "ColorGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "primitives",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "golden-ratio",
+            "modular-grid",
+            "heroic-anatomy",
+            "cartoon-anatomy",
+            "skeleton-less",
+            "photographic",
+            "geometric-reduction",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "proportion_system",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "bilateral-dominant",
+            "asymmetric-dominant",
+            "rotational",
+            "no-preference"
+          ],
+          "kind": "enum",
+          "name": "symmetry",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "hard",
+            "soft",
+            "variable",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "edge_treatment",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "maximally-exposed",
+            "partially-exposed",
+            "concealed"
+          ],
+          "kind": "enum",
+          "name": "structural_exposure",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "style:FormGrammar",
+      "title": "FormGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "single-point",
+            "two-point",
+            "three-point",
+            "isometric",
+            "flat",
+            "forced-perspective",
+            "cinematic",
+            "inconsistent",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "perspective_system",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "none",
+            "encoded"
+          ],
+          "kind": "enum",
+          "name": "depth_encoding_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "depth_encoding_methods",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "respected",
+            "punctured",
+            "dissolved",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "frame_behavior",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "style:SpatialGrammar",
+      "title": "SpatialGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "rendering_methods",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "required",
+            "encouraged",
+            "irrelevant",
+            "subverted"
+          ],
+          "kind": "enum",
+          "name": "material_honesty",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "smooth",
+            "grain",
+            "mechanical",
+            "imperfect",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "dominant_texture",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "style:SurfaceGrammar",
+      "title": "SurfaceGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "typefaces",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "integrated",
+            "separate",
+            "subordinate",
+            "dominant",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "type_image_relation",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "none",
+            "grid"
+          ],
+          "kind": "enum",
+          "name": "baseline_grid_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "number",
+          "name": "baseline_grid_unit",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "tracked-wide",
+            "normal",
+            "tight",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "letter_spacing",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "style:TypographyGrammar",
+      "title": "TypographyGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "modular-grid",
+            "panel-grid",
+            "axial",
+            "radial",
+            "diagonal",
+            "free",
+            "hierarchical"
+          ],
+          "kind": "enum",
+          "name": "layout_kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "number",
+          "name": "layout_columns",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "number",
+          "name": "layout_gutter",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "horizontal",
+            "vertical"
+          ],
+          "kind": "enum",
+          "name": "layout_axis",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "number",
+          "name": "layout_angle_degrees",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "hierarchy_methods",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "generous",
+            "compressed",
+            "functional",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "negative_space",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "permits_bleed",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "style:CompositionGrammar",
+      "title": "CompositionGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "full",
+            "high-key",
+            "low-key",
+            "compressed",
+            "bimodal"
+          ],
+          "kind": "enum",
+          "name": "tonal_range",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "enum",
+          "name": "contrast_roles",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "style:ContrastGrammar",
+      "title": "ContrastGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "motifs",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "idealized",
+            "caricatured",
+            "abstracted",
+            "realistic",
+            "absent",
+            "symbolic",
+            "atmospherically-dissolved"
+          ],
+          "kind": "enum",
+          "name": "figure_treatment",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "struct",
+          "name": "figure_treatments_by_subgenre",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "style:IconographyGrammar",
+      "title": "IconographyGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "static",
+            "animated"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "mechanical",
+            "organic",
+            "anticipatory",
+            "snappy",
+            "elastic",
+            "viscous"
+          ],
+          "kind": "enum",
+          "name": "character",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_squash_stretch",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_motion_blur",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_kinetic_marks",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "style:MotionGrammar",
+      "title": "MotionGrammar"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "rule_id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "requires",
+            "forbids"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "enum_values": [
+            "line",
+            "color",
+            "form",
+            "space",
+            "surface",
+            "typography",
+            "composition",
+            "contrast",
+            "iconography",
+            "motion"
+          ],
+          "kind": "enum",
+          "name": "section",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "defining",
+            "strong",
+            "advisory"
+          ],
+          "kind": "enum",
+          "name": "weight",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        }
+      ],
+      "primitive_type_id": "style:Rule",
+      "title": "Rule"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "check_id",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "binary",
+            "threshold",
+            "qualitative"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true
+        },
+        {
+          "enum_values": [
+            "defining",
+            "strong",
+            "advisory"
+          ],
+          "kind": "enum",
+          "name": "weight",
+          "required": true,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "string",
+          "name": "threshold_metric",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "enum_values": [
+            "<",
+            "<=",
+            "=",
+            ">=",
+            ">"
+          ],
+          "kind": "enum",
+          "name": "threshold_operator",
+          "required": false,
+          "visual_hint": "enum-dropdown"
+        },
+        {
+          "kind": "number",
+          "name": "threshold_value",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "threshold_unit",
+          "required": false,
+          "visual_hint": "optional-dim"
+        },
+        {
+          "kind": "string",
+          "name": "criteria",
+          "required": false,
+          "visual_hint": "optional-dim"
+        }
+      ],
+      "primitive_type_id": "style:ComplianceCheck",
+      "title": "ComplianceCheck"
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "reference_id",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true
+        },
+        {
+          "kind": "list",
+          "list_item_kind": "string",
+          "name": "creators",
+          "required": true
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "medium",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "exemplifies",
+          "required": true
+        },
+        {
+          "kind": "string",
+          "name": "source",
+          "required": true
+        }
+      ],
+      "primitive_type_id": "style:CanonicalReference",
+      "title": "CanonicalReference"
+    }
+  ],
+  "plugin_id": "fdpm.style"
+}

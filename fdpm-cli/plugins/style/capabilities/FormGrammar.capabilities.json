@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "formGrammarMarkdownRenderer",
+    "local_name": "style-form-grammar",
+    "metadata": {
+      "primitive_type_id": "style:FormGrammar",
+      "target": "text/markdown"
+    }
+  }
+}

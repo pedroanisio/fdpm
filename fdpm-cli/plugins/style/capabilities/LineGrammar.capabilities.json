@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "lineGrammarMarkdownRenderer",
+    "local_name": "style-line-grammar",
+    "metadata": {
+      "primitive_type_id": "style:LineGrammar",
+      "target": "text/markdown"
+    }
+  }
+}

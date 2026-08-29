@@ -1,0 +1,22 @@
+{
+  "name": "@fdpm-plugins/style",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "StyleDefinition 3.1.0 — derived from _ingest_bin/style-schema.ts via @fdpm/zod-bridge.",
+  "scripts": {
+    "bridge": "tsx scripts/run-bridge.ts",
+    "bridge:check": "tsx scripts/run-bridge.ts --check",
+    "test": "vitest run --root ../../ tests/plugins/style",
+    "typecheck": "tsc -p ../../tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0",
+    "@fdpm/zod-bridge": "^0.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

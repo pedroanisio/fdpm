@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "spatialGrammarMarkdownRenderer",
+    "local_name": "style-spatial-grammar",
+    "metadata": {
+      "primitive_type_id": "style:SpatialGrammar",
+      "target": "text/markdown"
+    }
+  }
+}

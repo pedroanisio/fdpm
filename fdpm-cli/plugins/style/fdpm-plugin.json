@@ -1,0 +1,826 @@
+{
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "entry": "profile",
+      "local_name": "fdpm-style"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "canonicalReferenceMarkdownRenderer",
+      "local_name": "canonical-reference-md",
+      "metadata": {
+        "primitive_type_id": "style:CanonicalReference",
+        "renderer_id": "fdpm.style:CanonicalReferenceMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "colorGrammarMarkdownRenderer",
+      "local_name": "color-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:ColorGrammar",
+        "renderer_id": "fdpm.style:ColorGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "complianceCheckMarkdownRenderer",
+      "local_name": "compliance-check-md",
+      "metadata": {
+        "primitive_type_id": "style:ComplianceCheck",
+        "renderer_id": "fdpm.style:ComplianceCheckMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "compositionGrammarMarkdownRenderer",
+      "local_name": "composition-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:CompositionGrammar",
+        "renderer_id": "fdpm.style:CompositionGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "contrastGrammarMarkdownRenderer",
+      "local_name": "contrast-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:ContrastGrammar",
+        "renderer_id": "fdpm.style:ContrastGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "formGrammarMarkdownRenderer",
+      "local_name": "form-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:FormGrammar",
+        "renderer_id": "fdpm.style:FormGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "iconographyGrammarMarkdownRenderer",
+      "local_name": "iconography-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:IconographyGrammar",
+        "renderer_id": "fdpm.style:IconographyGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "lineGrammarMarkdownRenderer",
+      "local_name": "line-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:LineGrammar",
+        "renderer_id": "fdpm.style:LineGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "motionGrammarMarkdownRenderer",
+      "local_name": "motion-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:MotionGrammar",
+        "renderer_id": "fdpm.style:MotionGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "movementMarkdownRenderer",
+      "local_name": "movement-md",
+      "metadata": {
+        "primitive_type_id": "style:Movement",
+        "renderer_id": "fdpm.style:MovementMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "ruleMarkdownRenderer",
+      "local_name": "rule-md",
+      "metadata": {
+        "primitive_type_id": "style:Rule",
+        "renderer_id": "fdpm.style:RuleMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "spatialGrammarMarkdownRenderer",
+      "local_name": "spatial-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:SpatialGrammar",
+        "renderer_id": "fdpm.style:SpatialGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "styleMarkdownRenderer",
+      "local_name": "style-md",
+      "metadata": {
+        "primitive_type_id": "style:Style",
+        "renderer_id": "fdpm.style:StyleMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "renderStyleOutline",
+      "local_name": "style-outline-md",
+      "metadata": {
+        "renderer_id": "style:StyleOutlineRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "surfaceGrammarMarkdownRenderer",
+      "local_name": "surface-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:SurfaceGrammar",
+        "renderer_id": "fdpm.style:SurfaceGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "entry": "typographyGrammarMarkdownRenderer",
+      "local_name": "typography-grammar-md",
+      "metadata": {
+        "primitive_type_id": "style:TypographyGrammar",
+        "renderer_id": "fdpm.style:TypographyGrammarMarkdownRenderer",
+        "target": "text/markdown"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "canonicalReferenceValidator",
+      "local_name": "canonical-reference-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.canonicalreference.custom",
+          "fdpm.style:zod.canonicalreference.custom.creators",
+          "fdpm.style:zod.canonicalreference.custom.exemplifies",
+          "fdpm.style:zod.canonicalreference.custom.medium",
+          "fdpm.style:zod.canonicalreference.custom.source",
+          "fdpm.style:zod.canonicalreference.custom.title",
+          "fdpm.style:zod.canonicalreference.invalid_format.reference_id",
+          "fdpm.style:zod.canonicalreference.invalid_format.year",
+          "fdpm.style:zod.canonicalreference.invalid_type",
+          "fdpm.style:zod.canonicalreference.invalid_type.creators",
+          "fdpm.style:zod.canonicalreference.invalid_type.exemplifies",
+          "fdpm.style:zod.canonicalreference.invalid_type.medium",
+          "fdpm.style:zod.canonicalreference.invalid_type.reference_id",
+          "fdpm.style:zod.canonicalreference.invalid_type.source",
+          "fdpm.style:zod.canonicalreference.invalid_type.title",
+          "fdpm.style:zod.canonicalreference.invalid_type.year",
+          "fdpm.style:zod.canonicalreference.too_small.creators",
+          "fdpm.style:zod.canonicalreference.too_small.exemplifies",
+          "fdpm.style:zod.canonicalreference.too_small.medium",
+          "fdpm.style:zod.canonicalreference.too_small.source",
+          "fdpm.style:zod.canonicalreference.too_small.title",
+          "fdpm.style:zod.canonicalreference.unrecognized_keys"
+        ],
+        "target_type_id": "style:CanonicalReference",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "colorGrammarValidator",
+      "local_name": "color-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.colorgrammar.custom",
+          "fdpm.style:zod.colorgrammar.custom.forbidden_colors.name",
+          "fdpm.style:zod.colorgrammar.custom.forbidden_colors.reason",
+          "fdpm.style:zod.colorgrammar.custom.grammar_id",
+          "fdpm.style:zod.colorgrammar.custom.palette.name",
+          "fdpm.style:zod.colorgrammar.custom.palette_derivation_rule",
+          "fdpm.style:zod.colorgrammar.invalid_format.forbidden_colors.hex",
+          "fdpm.style:zod.colorgrammar.invalid_format.forbidden_colors.prohibited_by",
+          "fdpm.style:zod.colorgrammar.invalid_format.palette.hex",
+          "fdpm.style:zod.colorgrammar.invalid_format.palette_limit_max",
+          "fdpm.style:zod.colorgrammar.invalid_type",
+          "fdpm.style:zod.colorgrammar.invalid_type.application_methods",
+          "fdpm.style:zod.colorgrammar.invalid_type.color_relationships",
+          "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors",
+          "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.hex",
+          "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.name",
+          "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.prohibited_by",
+          "fdpm.style:zod.colorgrammar.invalid_type.forbidden_colors.reason",
+          "fdpm.style:zod.colorgrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.colorgrammar.invalid_type.lighting_sources",
+          "fdpm.style:zod.colorgrammar.invalid_type.palette",
+          "fdpm.style:zod.colorgrammar.invalid_type.palette.hex",
+          "fdpm.style:zod.colorgrammar.invalid_type.palette.name",
+          "fdpm.style:zod.colorgrammar.invalid_type.palette_derivation_rule",
+          "fdpm.style:zod.colorgrammar.invalid_type.palette_limit_max",
+          "fdpm.style:zod.colorgrammar.invalid_value.application_methods",
+          "fdpm.style:zod.colorgrammar.invalid_value.color_relationships",
+          "fdpm.style:zod.colorgrammar.invalid_value.gradients",
+          "fdpm.style:zod.colorgrammar.invalid_value.lighting_kind",
+          "fdpm.style:zod.colorgrammar.invalid_value.lighting_sources",
+          "fdpm.style:zod.colorgrammar.invalid_value.lighting_treatment",
+          "fdpm.style:zod.colorgrammar.invalid_value.palette.printing_origin",
+          "fdpm.style:zod.colorgrammar.invalid_value.palette.role",
+          "fdpm.style:zod.colorgrammar.invalid_value.palette_limit_kind",
+          "fdpm.style:zod.colorgrammar.too_small.application_methods",
+          "fdpm.style:zod.colorgrammar.too_small.color_relationships",
+          "fdpm.style:zod.colorgrammar.too_small.forbidden_colors.name",
+          "fdpm.style:zod.colorgrammar.too_small.forbidden_colors.reason",
+          "fdpm.style:zod.colorgrammar.too_small.grammar_id",
+          "fdpm.style:zod.colorgrammar.too_small.palette.name",
+          "fdpm.style:zod.colorgrammar.too_small.palette_derivation_rule",
+          "fdpm.style:zod.colorgrammar.too_small.palette_limit_max",
+          "fdpm.style:zod.colorgrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:ColorGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "complianceCheckValidator",
+      "local_name": "compliance-check-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.compliancecheck.custom",
+          "fdpm.style:zod.compliancecheck.custom.criteria",
+          "fdpm.style:zod.compliancecheck.custom.description",
+          "fdpm.style:zod.compliancecheck.custom.threshold_metric",
+          "fdpm.style:zod.compliancecheck.custom.threshold_unit",
+          "fdpm.style:zod.compliancecheck.invalid_format.check_id",
+          "fdpm.style:zod.compliancecheck.invalid_type",
+          "fdpm.style:zod.compliancecheck.invalid_type.check_id",
+          "fdpm.style:zod.compliancecheck.invalid_type.criteria",
+          "fdpm.style:zod.compliancecheck.invalid_type.description",
+          "fdpm.style:zod.compliancecheck.invalid_type.threshold_metric",
+          "fdpm.style:zod.compliancecheck.invalid_type.threshold_unit",
+          "fdpm.style:zod.compliancecheck.invalid_type.threshold_value",
+          "fdpm.style:zod.compliancecheck.invalid_value.kind",
+          "fdpm.style:zod.compliancecheck.invalid_value.threshold_operator",
+          "fdpm.style:zod.compliancecheck.invalid_value.weight",
+          "fdpm.style:zod.compliancecheck.too_small.criteria",
+          "fdpm.style:zod.compliancecheck.too_small.description",
+          "fdpm.style:zod.compliancecheck.too_small.threshold_metric",
+          "fdpm.style:zod.compliancecheck.too_small.threshold_unit",
+          "fdpm.style:zod.compliancecheck.unrecognized_keys"
+        ],
+        "target_type_id": "style:ComplianceCheck",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "compositionGrammarValidator",
+      "local_name": "composition-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.compositiongrammar.custom",
+          "fdpm.style:zod.compositiongrammar.custom.grammar_id",
+          "fdpm.style:zod.compositiongrammar.invalid_format.layout_columns",
+          "fdpm.style:zod.compositiongrammar.invalid_type",
+          "fdpm.style:zod.compositiongrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.compositiongrammar.invalid_type.hierarchy_methods",
+          "fdpm.style:zod.compositiongrammar.invalid_type.layout_angle_degrees",
+          "fdpm.style:zod.compositiongrammar.invalid_type.layout_columns",
+          "fdpm.style:zod.compositiongrammar.invalid_type.layout_gutter",
+          "fdpm.style:zod.compositiongrammar.invalid_type.permits_bleed",
+          "fdpm.style:zod.compositiongrammar.invalid_value.hierarchy_methods",
+          "fdpm.style:zod.compositiongrammar.invalid_value.layout_axis",
+          "fdpm.style:zod.compositiongrammar.invalid_value.layout_kind",
+          "fdpm.style:zod.compositiongrammar.invalid_value.negative_space",
+          "fdpm.style:zod.compositiongrammar.too_small.grammar_id",
+          "fdpm.style:zod.compositiongrammar.too_small.hierarchy_methods",
+          "fdpm.style:zod.compositiongrammar.too_small.layout_columns",
+          "fdpm.style:zod.compositiongrammar.too_small.layout_gutter",
+          "fdpm.style:zod.compositiongrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:CompositionGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "contrastGrammarValidator",
+      "local_name": "contrast-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.contrastgrammar.custom",
+          "fdpm.style:zod.contrastgrammar.custom.grammar_id",
+          "fdpm.style:zod.contrastgrammar.invalid_type",
+          "fdpm.style:zod.contrastgrammar.invalid_type.contrast_roles",
+          "fdpm.style:zod.contrastgrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.contrastgrammar.invalid_value.contrast_roles",
+          "fdpm.style:zod.contrastgrammar.invalid_value.tonal_range",
+          "fdpm.style:zod.contrastgrammar.too_small.grammar_id",
+          "fdpm.style:zod.contrastgrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:ContrastGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "formGrammarValidator",
+      "local_name": "form-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.formgrammar.custom",
+          "fdpm.style:zod.formgrammar.custom.grammar_id",
+          "fdpm.style:zod.formgrammar.invalid_type",
+          "fdpm.style:zod.formgrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.formgrammar.invalid_type.primitives",
+          "fdpm.style:zod.formgrammar.invalid_value.edge_treatment",
+          "fdpm.style:zod.formgrammar.invalid_value.primitives",
+          "fdpm.style:zod.formgrammar.invalid_value.proportion_system",
+          "fdpm.style:zod.formgrammar.invalid_value.structural_exposure",
+          "fdpm.style:zod.formgrammar.invalid_value.symmetry",
+          "fdpm.style:zod.formgrammar.too_small.grammar_id",
+          "fdpm.style:zod.formgrammar.too_small.primitives",
+          "fdpm.style:zod.formgrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:FormGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "iconographyGrammarValidator",
+      "local_name": "iconography-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.iconographygrammar.custom",
+          "fdpm.style:zod.iconographygrammar.custom.figure_treatments_by_subgenre.subgenre",
+          "fdpm.style:zod.iconographygrammar.custom.grammar_id",
+          "fdpm.style:zod.iconographygrammar.custom.motifs.description",
+          "fdpm.style:zod.iconographygrammar.custom.motifs.name",
+          "fdpm.style:zod.iconographygrammar.invalid_type",
+          "fdpm.style:zod.iconographygrammar.invalid_type.figure_treatments_by_subgenre",
+          "fdpm.style:zod.iconographygrammar.invalid_type.figure_treatments_by_subgenre.subgenre",
+          "fdpm.style:zod.iconographygrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.iconographygrammar.invalid_type.motifs",
+          "fdpm.style:zod.iconographygrammar.invalid_type.motifs.description",
+          "fdpm.style:zod.iconographygrammar.invalid_type.motifs.name",
+          "fdpm.style:zod.iconographygrammar.invalid_value.figure_treatment",
+          "fdpm.style:zod.iconographygrammar.invalid_value.figure_treatments_by_subgenre.dominance",
+          "fdpm.style:zod.iconographygrammar.invalid_value.figure_treatments_by_subgenre.treatment",
+          "fdpm.style:zod.iconographygrammar.invalid_value.motifs.frequency",
+          "fdpm.style:zod.iconographygrammar.too_small.figure_treatments_by_subgenre.subgenre",
+          "fdpm.style:zod.iconographygrammar.too_small.grammar_id",
+          "fdpm.style:zod.iconographygrammar.too_small.motifs.description",
+          "fdpm.style:zod.iconographygrammar.too_small.motifs.name",
+          "fdpm.style:zod.iconographygrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:IconographyGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "lineGrammarValidator",
+      "local_name": "line-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.linegrammar.custom",
+          "fdpm.style:zod.linegrammar.custom.grammar_id",
+          "fdpm.style:zod.linegrammar.invalid_type",
+          "fdpm.style:zod.linegrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.linegrammar.invalid_type.stroke_roles",
+          "fdpm.style:zod.linegrammar.invalid_type.stroke_weight",
+          "fdpm.style:zod.linegrammar.invalid_type.stroke_weight_max",
+          "fdpm.style:zod.linegrammar.invalid_type.stroke_weight_min",
+          "fdpm.style:zod.linegrammar.invalid_value.contour_hierarchy",
+          "fdpm.style:zod.linegrammar.invalid_value.kind",
+          "fdpm.style:zod.linegrammar.invalid_value.quality",
+          "fdpm.style:zod.linegrammar.invalid_value.stroke_kind",
+          "fdpm.style:zod.linegrammar.invalid_value.stroke_roles",
+          "fdpm.style:zod.linegrammar.too_small.grammar_id",
+          "fdpm.style:zod.linegrammar.too_small.stroke_weight",
+          "fdpm.style:zod.linegrammar.too_small.stroke_weight_max",
+          "fdpm.style:zod.linegrammar.too_small.stroke_weight_min",
+          "fdpm.style:zod.linegrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:LineGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "motionGrammarValidator",
+      "local_name": "motion-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.motiongrammar.custom",
+          "fdpm.style:zod.motiongrammar.custom.grammar_id",
+          "fdpm.style:zod.motiongrammar.invalid_type",
+          "fdpm.style:zod.motiongrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.motiongrammar.invalid_type.uses_kinetic_marks",
+          "fdpm.style:zod.motiongrammar.invalid_type.uses_motion_blur",
+          "fdpm.style:zod.motiongrammar.invalid_type.uses_squash_stretch",
+          "fdpm.style:zod.motiongrammar.invalid_value.character",
+          "fdpm.style:zod.motiongrammar.invalid_value.kind",
+          "fdpm.style:zod.motiongrammar.too_small.grammar_id",
+          "fdpm.style:zod.motiongrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:MotionGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "movementValidator",
+      "local_name": "movement-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.movement.custom",
+          "fdpm.style:zod.movement.custom.aliases",
+          "fdpm.style:zod.movement.custom.name",
+          "fdpm.style:zod.movement.custom.period",
+          "fdpm.style:zod.movement.invalid_format.movement_id",
+          "fdpm.style:zod.movement.invalid_format.period.end",
+          "fdpm.style:zod.movement.invalid_format.period.start",
+          "fdpm.style:zod.movement.invalid_type",
+          "fdpm.style:zod.movement.invalid_type.aliases",
+          "fdpm.style:zod.movement.invalid_type.movement_id",
+          "fdpm.style:zod.movement.invalid_type.name",
+          "fdpm.style:zod.movement.invalid_type.period.end",
+          "fdpm.style:zod.movement.invalid_type.period.start",
+          "fdpm.style:zod.movement.invalid_value.period.kind",
+          "fdpm.style:zod.movement.too_small.aliases",
+          "fdpm.style:zod.movement.too_small.name",
+          "fdpm.style:zod.movement.unrecognized_keys"
+        ],
+        "target_type_id": "style:Movement",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "ruleValidator",
+      "local_name": "rule-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.rule.custom.statement",
+          "fdpm.style:zod.rule.invalid_format.rule_id",
+          "fdpm.style:zod.rule.invalid_type",
+          "fdpm.style:zod.rule.invalid_type.rule_id",
+          "fdpm.style:zod.rule.invalid_type.statement",
+          "fdpm.style:zod.rule.invalid_value.kind",
+          "fdpm.style:zod.rule.invalid_value.section",
+          "fdpm.style:zod.rule.invalid_value.weight",
+          "fdpm.style:zod.rule.too_small.statement",
+          "fdpm.style:zod.rule.unrecognized_keys"
+        ],
+        "target_type_id": "style:Rule",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "spatialGrammarValidator",
+      "local_name": "spatial-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.spatialgrammar.custom",
+          "fdpm.style:zod.spatialgrammar.custom.grammar_id",
+          "fdpm.style:zod.spatialgrammar.invalid_type",
+          "fdpm.style:zod.spatialgrammar.invalid_type.depth_encoding_methods",
+          "fdpm.style:zod.spatialgrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.spatialgrammar.invalid_value.depth_encoding_kind",
+          "fdpm.style:zod.spatialgrammar.invalid_value.depth_encoding_methods",
+          "fdpm.style:zod.spatialgrammar.invalid_value.frame_behavior",
+          "fdpm.style:zod.spatialgrammar.invalid_value.perspective_system",
+          "fdpm.style:zod.spatialgrammar.too_small.grammar_id",
+          "fdpm.style:zod.spatialgrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:SpatialGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "styleValidator",
+      "local_name": "style-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.style.custom",
+          "fdpm.style:zod.style.custom.aliases",
+          "fdpm.style:zod.style.custom.axioms.source",
+          "fdpm.style:zod.style.custom.axioms.statement",
+          "fdpm.style:zod.style.custom.geographic_centers",
+          "fdpm.style:zod.style.custom.name",
+          "fdpm.style:zod.style.custom.origin_medium",
+          "fdpm.style:zod.style.custom.origin_medium.components.process",
+          "fdpm.style:zod.style.custom.origin_medium.process",
+          "fdpm.style:zod.style.custom.period",
+          "fdpm.style:zod.style.custom.provenance",
+          "fdpm.style:zod.style.custom.provenance.created_by",
+          "fdpm.style:zod.style.custom.provenance.modified_by",
+          "fdpm.style:zod.style.custom.provenance.source_system",
+          "fdpm.style:zod.style.custom.tokens_border_radius.name",
+          "fdpm.style:zod.style.custom.tokens_colors.name",
+          "fdpm.style:zod.style.custom.tokens_contrast_pairs.background",
+          "fdpm.style:zod.style.custom.tokens_contrast_pairs.foreground",
+          "fdpm.style:zod.style.custom.tokens_font_stacks.stack",
+          "fdpm.style:zod.style.custom.tokens_letter_spacing.name",
+          "fdpm.style:zod.style.custom.tokens_scale.name",
+          "fdpm.style:zod.style.custom.tokens_spacing_scale.name",
+          "fdpm.style:zod.style.custom.tokens_timing_map.timing",
+          "fdpm.style:zod.style.custom.tokens_weight_map.weight",
+          "fdpm.style:zod.style.invalid_format.code",
+          "fdpm.style:zod.style.invalid_format.locale",
+          "fdpm.style:zod.style.invalid_format.period.end",
+          "fdpm.style:zod.style.invalid_format.period.start",
+          "fdpm.style:zod.style.invalid_format.provenance.created_at",
+          "fdpm.style:zod.style.invalid_format.provenance.modified_at",
+          "fdpm.style:zod.style.invalid_format.schema_version",
+          "fdpm.style:zod.style.invalid_format.style_id",
+          "fdpm.style:zod.style.invalid_format.tokens_colors.value",
+          "fdpm.style:zod.style.invalid_format.tokens_weight_map.step",
+          "fdpm.style:zod.style.invalid_format.tokens_weight_map.weight",
+          "fdpm.style:zod.style.invalid_type",
+          "fdpm.style:zod.style.invalid_type.aliases",
+          "fdpm.style:zod.style.invalid_type.axioms",
+          "fdpm.style:zod.style.invalid_type.axioms.source",
+          "fdpm.style:zod.style.invalid_type.axioms.statement",
+          "fdpm.style:zod.style.invalid_type.code",
+          "fdpm.style:zod.style.invalid_type.geographic_centers",
+          "fdpm.style:zod.style.invalid_type.locale",
+          "fdpm.style:zod.style.invalid_type.minimum_pass_ratio",
+          "fdpm.style:zod.style.invalid_type.name",
+          "fdpm.style:zod.style.invalid_type.origin_medium.components",
+          "fdpm.style:zod.style.invalid_type.origin_medium.components.process",
+          "fdpm.style:zod.style.invalid_type.origin_medium.process",
+          "fdpm.style:zod.style.invalid_type.period.end",
+          "fdpm.style:zod.style.invalid_type.period.start",
+          "fdpm.style:zod.style.invalid_type.provenance.created_at",
+          "fdpm.style:zod.style.invalid_type.provenance.created_by",
+          "fdpm.style:zod.style.invalid_type.provenance.modified_at",
+          "fdpm.style:zod.style.invalid_type.provenance.modified_by",
+          "fdpm.style:zod.style.invalid_type.provenance.source_system",
+          "fdpm.style:zod.style.invalid_type.schema_version",
+          "fdpm.style:zod.style.invalid_type.style_id",
+          "fdpm.style:zod.style.invalid_type.tokens_base_unit",
+          "fdpm.style:zod.style.invalid_type.tokens_border_radius",
+          "fdpm.style:zod.style.invalid_type.tokens_border_radius.name",
+          "fdpm.style:zod.style.invalid_type.tokens_border_radius.value",
+          "fdpm.style:zod.style.invalid_type.tokens_colors",
+          "fdpm.style:zod.style.invalid_type.tokens_colors.name",
+          "fdpm.style:zod.style.invalid_type.tokens_colors.value",
+          "fdpm.style:zod.style.invalid_type.tokens_contrast_pairs",
+          "fdpm.style:zod.style.invalid_type.tokens_contrast_pairs.background",
+          "fdpm.style:zod.style.invalid_type.tokens_contrast_pairs.foreground",
+          "fdpm.style:zod.style.invalid_type.tokens_default_duration_ms",
+          "fdpm.style:zod.style.invalid_type.tokens_font_stacks",
+          "fdpm.style:zod.style.invalid_type.tokens_font_stacks.stack",
+          "fdpm.style:zod.style.invalid_type.tokens_letter_spacing",
+          "fdpm.style:zod.style.invalid_type.tokens_letter_spacing.name",
+          "fdpm.style:zod.style.invalid_type.tokens_letter_spacing.value",
+          "fdpm.style:zod.style.invalid_type.tokens_line_heights",
+          "fdpm.style:zod.style.invalid_type.tokens_line_heights.value",
+          "fdpm.style:zod.style.invalid_type.tokens_prompt_negative",
+          "fdpm.style:zod.style.invalid_type.tokens_prompt_positive",
+          "fdpm.style:zod.style.invalid_type.tokens_scale",
+          "fdpm.style:zod.style.invalid_type.tokens_scale.name",
+          "fdpm.style:zod.style.invalid_type.tokens_scale.value",
+          "fdpm.style:zod.style.invalid_type.tokens_spacing_scale",
+          "fdpm.style:zod.style.invalid_type.tokens_spacing_scale.name",
+          "fdpm.style:zod.style.invalid_type.tokens_spacing_scale.value",
+          "fdpm.style:zod.style.invalid_type.tokens_stroke_weight",
+          "fdpm.style:zod.style.invalid_type.tokens_timing_map",
+          "fdpm.style:zod.style.invalid_type.tokens_timing_map.timing",
+          "fdpm.style:zod.style.invalid_type.tokens_weight_map",
+          "fdpm.style:zod.style.invalid_type.tokens_weight_map.step",
+          "fdpm.style:zod.style.invalid_type.tokens_weight_map.weight",
+          "fdpm.style:zod.style.invalid_value.form_function_relation",
+          "fdpm.style:zod.style.invalid_value.human_relation",
+          "fdpm.style:zod.style.invalid_value.machine_attitude",
+          "fdpm.style:zod.style.invalid_value.origin_medium.components.family",
+          "fdpm.style:zod.style.invalid_value.origin_medium.family",
+          "fdpm.style:zod.style.invalid_value.origin_medium.kind",
+          "fdpm.style:zod.style.invalid_value.ornament_stance",
+          "fdpm.style:zod.style.invalid_value.period.kind",
+          "fdpm.style:zod.style.invalid_value.tokens_accessibility_kind",
+          "fdpm.style:zod.style.invalid_value.tokens_accessibility_level",
+          "fdpm.style:zod.style.invalid_value.tokens_accessibility_version",
+          "fdpm.style:zod.style.invalid_value.tokens_colors_kind",
+          "fdpm.style:zod.style.invalid_value.tokens_contrast_pairs.usage",
+          "fdpm.style:zod.style.invalid_value.tokens_font_stacks.role",
+          "fdpm.style:zod.style.invalid_value.tokens_line_heights.name",
+          "fdpm.style:zod.style.invalid_value.tokens_motion_kind",
+          "fdpm.style:zod.style.invalid_value.tokens_prompt_kind",
+          "fdpm.style:zod.style.invalid_value.tokens_shape_kind",
+          "fdpm.style:zod.style.invalid_value.tokens_spacing_kind",
+          "fdpm.style:zod.style.invalid_value.tokens_stroke_alignment",
+          "fdpm.style:zod.style.invalid_value.tokens_timing_map.character",
+          "fdpm.style:zod.style.invalid_value.tokens_typography_kind",
+          "fdpm.style:zod.style.too_big.minimum_pass_ratio",
+          "fdpm.style:zod.style.too_big.tokens_letter_spacing.value",
+          "fdpm.style:zod.style.too_big.tokens_line_heights.value",
+          "fdpm.style:zod.style.too_big.tokens_weight_map.step",
+          "fdpm.style:zod.style.too_small.aliases",
+          "fdpm.style:zod.style.too_small.axioms",
+          "fdpm.style:zod.style.too_small.axioms.source",
+          "fdpm.style:zod.style.too_small.axioms.statement",
+          "fdpm.style:zod.style.too_small.geographic_centers",
+          "fdpm.style:zod.style.too_small.minimum_pass_ratio",
+          "fdpm.style:zod.style.too_small.name",
+          "fdpm.style:zod.style.too_small.origin_medium.components.process",
+          "fdpm.style:zod.style.too_small.origin_medium.process",
+          "fdpm.style:zod.style.too_small.provenance.created_by",
+          "fdpm.style:zod.style.too_small.provenance.modified_by",
+          "fdpm.style:zod.style.too_small.provenance.source_system",
+          "fdpm.style:zod.style.too_small.tokens_base_unit",
+          "fdpm.style:zod.style.too_small.tokens_border_radius.name",
+          "fdpm.style:zod.style.too_small.tokens_border_radius.value",
+          "fdpm.style:zod.style.too_small.tokens_colors.name",
+          "fdpm.style:zod.style.too_small.tokens_contrast_pairs.background",
+          "fdpm.style:zod.style.too_small.tokens_contrast_pairs.foreground",
+          "fdpm.style:zod.style.too_small.tokens_default_duration_ms",
+          "fdpm.style:zod.style.too_small.tokens_font_stacks.stack",
+          "fdpm.style:zod.style.too_small.tokens_letter_spacing.name",
+          "fdpm.style:zod.style.too_small.tokens_letter_spacing.value",
+          "fdpm.style:zod.style.too_small.tokens_line_heights.value",
+          "fdpm.style:zod.style.too_small.tokens_scale.name",
+          "fdpm.style:zod.style.too_small.tokens_scale.value",
+          "fdpm.style:zod.style.too_small.tokens_spacing_scale.name",
+          "fdpm.style:zod.style.too_small.tokens_spacing_scale.value",
+          "fdpm.style:zod.style.too_small.tokens_stroke_weight",
+          "fdpm.style:zod.style.too_small.tokens_weight_map.step",
+          "fdpm.style:zod.style.unrecognized_keys"
+        ],
+        "target_type_id": "style:Style",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "surfaceGrammarValidator",
+      "local_name": "surface-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.surfacegrammar.custom",
+          "fdpm.style:zod.surfacegrammar.custom.grammar_id",
+          "fdpm.style:zod.surfacegrammar.invalid_type",
+          "fdpm.style:zod.surfacegrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.surfacegrammar.invalid_type.rendering_methods",
+          "fdpm.style:zod.surfacegrammar.invalid_value.dominant_texture",
+          "fdpm.style:zod.surfacegrammar.invalid_value.material_honesty",
+          "fdpm.style:zod.surfacegrammar.invalid_value.rendering_methods",
+          "fdpm.style:zod.surfacegrammar.too_small.grammar_id",
+          "fdpm.style:zod.surfacegrammar.too_small.rendering_methods",
+          "fdpm.style:zod.surfacegrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:SurfaceGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "entry": "typographyGrammarValidator",
+      "local_name": "typography-grammar-zod",
+      "metadata": {
+        "applies_to": "primitive",
+        "rule_ids": [
+          "fdpm.style:zod.typographygrammar.custom",
+          "fdpm.style:zod.typographygrammar.custom.grammar_id",
+          "fdpm.style:zod.typographygrammar.custom.typefaces",
+          "fdpm.style:zod.typographygrammar.custom.typefaces.exemplars",
+          "fdpm.style:zod.typographygrammar.invalid_format.typefaces.weight_min",
+          "fdpm.style:zod.typographygrammar.invalid_format.typefaces.weight_span",
+          "fdpm.style:zod.typographygrammar.invalid_type",
+          "fdpm.style:zod.typographygrammar.invalid_type.baseline_grid_unit",
+          "fdpm.style:zod.typographygrammar.invalid_type.grammar_id",
+          "fdpm.style:zod.typographygrammar.invalid_type.typefaces",
+          "fdpm.style:zod.typographygrammar.invalid_type.typefaces.exemplars",
+          "fdpm.style:zod.typographygrammar.invalid_type.typefaces.permits_italic",
+          "fdpm.style:zod.typographygrammar.invalid_type.typefaces.weight_min",
+          "fdpm.style:zod.typographygrammar.invalid_type.typefaces.weight_span",
+          "fdpm.style:zod.typographygrammar.invalid_value.baseline_grid_kind",
+          "fdpm.style:zod.typographygrammar.invalid_value.letter_spacing",
+          "fdpm.style:zod.typographygrammar.invalid_value.type_image_relation",
+          "fdpm.style:zod.typographygrammar.invalid_value.typefaces.casing",
+          "fdpm.style:zod.typographygrammar.invalid_value.typefaces.classification",
+          "fdpm.style:zod.typographygrammar.invalid_value.typefaces.role",
+          "fdpm.style:zod.typographygrammar.too_big.typefaces.weight_min",
+          "fdpm.style:zod.typographygrammar.too_big.typefaces.weight_span",
+          "fdpm.style:zod.typographygrammar.too_small.baseline_grid_unit",
+          "fdpm.style:zod.typographygrammar.too_small.grammar_id",
+          "fdpm.style:zod.typographygrammar.too_small.typefaces.exemplars",
+          "fdpm.style:zod.typographygrammar.too_small.typefaces.weight_min",
+          "fdpm.style:zod.typographygrammar.too_small.typefaces.weight_span",
+          "fdpm.style:zod.typographygrammar.unrecognized_keys"
+        ],
+        "target_type_id": "style:TypographyGrammar",
+        "triggers": [
+          "create",
+          "patch",
+          "replace"
+        ]
+      }
+    }
+  ],
+  "description": "StyleDefinition 3.1.0, auto-generated from schemas/style.ts via @fdpm/zod-bridge. Fifteen entities as primitives with field-level Zod validators, plus ten author-declared relation types (grammar composition, rule declaration, compliance linkage, exemplar citation, reference buckets, movement lineage) merged by finalizeProfile.",
+  "host_compatibility": {
+    "fdpm": ">=1.2,<2"
+  },
+  "id": "fdpm.style",
+  "kind": "server",
+  "license": "MIT",
+  "name": "Visual Style Definition",
+  "permissions": [
+    "read:primitives",
+    "read:relations",
+    "read:workbooks",
+    "render:server"
+  ],
+  "spec_version": "1.0.0",
+  "version": "0.1.0"
+}

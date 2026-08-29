@@ -1,0 +1,11 @@
+{
+  "renderer": {
+    "capability_id": "cap:renderer",
+    "entry": "compositionGrammarMarkdownRenderer",
+    "local_name": "style-composition-grammar",
+    "metadata": {
+      "primitive_type_id": "style:CompositionGrammar",
+      "target": "text/markdown"
+    }
+  }
+}

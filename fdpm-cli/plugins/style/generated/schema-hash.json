@@ -1,0 +1,9 @@
+{
+  "hash": "66a034cd68022a35cdcb1b81a41fb17d4d879bbce686e90d8d72edad1a401c84",
+  "hash_algo": "sha256",
+  "pinned_plugin_version": "0.1.0",
+  "sources": [
+    "schemas/style.ts",
+    "sidecar.ts"
+  ]
+}

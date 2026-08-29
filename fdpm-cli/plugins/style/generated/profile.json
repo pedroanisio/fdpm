@@ -1,0 +1,4272 @@
+{
+  "constraints": [
+    {
+      "expression": "self.field_values.movement_id.matches(\"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$\")",
+      "level": "error",
+      "name": "style.movement.movement_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "style.movement.name.min_length"
+    },
+    {
+      "expression": "self.field_values.aliases.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "style.movement.aliases.item.min_length"
+    },
+    {
+      "expression": "self.field_values.style_id.matches(\"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$\")",
+      "level": "error",
+      "name": "style.style.style_id.regex"
+    },
+    {
+      "expression": "self.field_values.schema_version.matches(\"^\\\\d+\\\\.\\\\d+\\\\.\\\\d+$\")",
+      "level": "error",
+      "name": "style.style.schema_version.regex"
+    },
+    {
+      "expression": "self.field_values.locale.matches(\"^[a-z]{2,3}(-[A-Z]{2})?$\")",
+      "level": "error",
+      "name": "style.style.locale.regex"
+    },
+    {
+      "expression": "self.field_values.code.matches(\"^[A-Z][A-Z0-9]{1,11}$\")",
+      "level": "error",
+      "name": "style.style.code.regex"
+    },
+    {
+      "expression": "size(self.field_values.name) >= 1",
+      "level": "error",
+      "name": "style.style.name.min_length"
+    },
+    {
+      "expression": "self.field_values.aliases.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "style.style.aliases.item.min_length"
+    },
+    {
+      "expression": "self.field_values.geographic_centers.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "style.style.geographic_centers.item.min_length"
+    },
+    {
+      "expression": "self.field_values.ornament_stance in [\"prohibited\", \"structural-only\", \"geometric\", \"celebratory\", \"subversive\", \"organic\", \"arbitrary\"]",
+      "level": "error",
+      "name": "style.style.ornament_stance.enum"
+    },
+    {
+      "expression": "self.field_values.machine_attitude in [\"collaborative\", \"subservient\", \"aestheticized\", \"revolutionary\", \"confrontational\", \"aspirational\", \"irrelevant\"]",
+      "level": "error",
+      "name": "style.style.machine_attitude.enum"
+    },
+    {
+      "expression": "self.field_values.form_function_relation in [\"form-follows-function\", \"form-is-function\", \"form-over-function\", \"form-against-function\", \"form-independent\"]",
+      "level": "error",
+      "name": "style.style.form_function_relation.enum"
+    },
+    {
+      "expression": "self.field_values.human_relation in [\"body-conforming\", \"body-indifferent\", \"body-confronting\", \"body-aspirational\"]",
+      "level": "error",
+      "name": "style.style.human_relation.enum"
+    },
+    {
+      "expression": "size(self.field_values.axioms) >= 1",
+      "level": "error",
+      "name": "style.style.axioms.min_items"
+    },
+    {
+      "expression": "self.field_values.minimum_pass_ratio >= 0",
+      "level": "error",
+      "name": "style.style.minimum_pass_ratio.gt"
+    },
+    {
+      "expression": "self.field_values.minimum_pass_ratio <= 1",
+      "level": "error",
+      "name": "style.style.minimum_pass_ratio.lt"
+    },
+    {
+      "expression": "self.field_values.tokens_colors_kind in [\"omitted\", \"rendered\"]",
+      "level": "error",
+      "name": "style.style.tokens_colors_kind.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_typography_kind in [\"omitted\", \"rendered\"]",
+      "level": "error",
+      "name": "style.style.tokens_typography_kind.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_spacing_kind in [\"omitted\", \"rendered\"]",
+      "level": "error",
+      "name": "style.style.tokens_spacing_kind.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_base_unit >= 0",
+      "level": "error",
+      "name": "style.style.tokens_base_unit.gt"
+    },
+    {
+      "expression": "self.field_values.tokens_shape_kind in [\"omitted\", \"rendered\"]",
+      "level": "error",
+      "name": "style.style.tokens_shape_kind.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_stroke_weight >= 0",
+      "level": "error",
+      "name": "style.style.tokens_stroke_weight.gt"
+    },
+    {
+      "expression": "self.field_values.tokens_stroke_alignment in [\"inside\", \"center\", \"outside\"]",
+      "level": "error",
+      "name": "style.style.tokens_stroke_alignment.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_motion_kind in [\"omitted\", \"rendered\"]",
+      "level": "error",
+      "name": "style.style.tokens_motion_kind.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_default_duration_ms >= 0",
+      "level": "error",
+      "name": "style.style.tokens_default_duration_ms.gt"
+    },
+    {
+      "expression": "self.field_values.tokens_prompt_kind in [\"omitted\", \"rendered\"]",
+      "level": "error",
+      "name": "style.style.tokens_prompt_kind.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_accessibility_kind in [\"omitted\", \"wcag\"]",
+      "level": "error",
+      "name": "style.style.tokens_accessibility_kind.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_accessibility_version in [\"2.0\", \"2.1\", \"2.2\"]",
+      "level": "error",
+      "name": "style.style.tokens_accessibility_version.enum"
+    },
+    {
+      "expression": "self.field_values.tokens_accessibility_level in [\"aa\", \"aaa\"]",
+      "level": "error",
+      "name": "style.style.tokens_accessibility_level.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.linegrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "self.field_values.kind in [\"lines\", \"no-lines\"]",
+      "level": "error",
+      "name": "style.linegrammar.kind.enum"
+    },
+    {
+      "expression": "self.field_values.stroke_kind in [\"uniform\", \"calligraphic\", \"expressive\"]",
+      "level": "error",
+      "name": "style.linegrammar.stroke_kind.enum"
+    },
+    {
+      "expression": "self.field_values.stroke_weight >= 0",
+      "level": "error",
+      "name": "style.linegrammar.stroke_weight.gt"
+    },
+    {
+      "expression": "self.field_values.stroke_weight_min >= 0",
+      "level": "error",
+      "name": "style.linegrammar.stroke_weight_min.gt"
+    },
+    {
+      "expression": "self.field_values.stroke_weight_max >= 0",
+      "level": "error",
+      "name": "style.linegrammar.stroke_weight_max.gt"
+    },
+    {
+      "expression": "self.field_values.stroke_roles.all(t, t in [\"contour\", \"internal-detail\", \"hatching\", \"structural\", \"speed-line\", \"leader\"])",
+      "level": "error",
+      "name": "style.linegrammar.stroke_roles.item.enum"
+    },
+    {
+      "expression": "self.field_values.quality in [\"mechanical\", \"gestural\", \"brush\", \"scratchy\", \"clean\"]",
+      "level": "error",
+      "name": "style.linegrammar.quality.enum"
+    },
+    {
+      "expression": "self.field_values.contour_hierarchy in [\"uniform\", \"hierarchical\"]",
+      "level": "error",
+      "name": "style.linegrammar.contour_hierarchy.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.colorgrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.application_methods) >= 1",
+      "level": "error",
+      "name": "style.colorgrammar.application_methods.min_items"
+    },
+    {
+      "expression": "self.field_values.application_methods.all(t, t in [\"flat\", \"tonal\", \"halftone\", \"screentone\", \"atmospheric\", \"local-color\", \"divided-brushwork\"])",
+      "level": "error",
+      "name": "style.colorgrammar.application_methods.item.enum"
+    },
+    {
+      "expression": "self.field_values.gradients in [\"forbidden\", \"permitted\", \"motif-only\"]",
+      "level": "error",
+      "name": "style.colorgrammar.gradients.enum"
+    },
+    {
+      "expression": "self.field_values.lighting_kind in [\"none\", \"implied\", \"rendered\", \"full-pbr\"]",
+      "level": "error",
+      "name": "style.colorgrammar.lighting_kind.enum"
+    },
+    {
+      "expression": "self.field_values.lighting_sources.all(t, t in [\"cast\", \"ambient-occlusion\", \"specular\"])",
+      "level": "error",
+      "name": "style.colorgrammar.lighting_sources.item.enum"
+    },
+    {
+      "expression": "self.field_values.lighting_treatment in [\"spot-black\", \"hard-edge\", \"soft-gradient\", \"hatched\", \"screentone\"]",
+      "level": "error",
+      "name": "style.colorgrammar.lighting_treatment.enum"
+    },
+    {
+      "expression": "size(self.field_values.palette_derivation_rule) >= 1",
+      "level": "error",
+      "name": "style.colorgrammar.palette_derivation_rule.min_length"
+    },
+    {
+      "expression": "size(self.field_values.color_relationships) >= 1",
+      "level": "error",
+      "name": "style.colorgrammar.color_relationships.min_items"
+    },
+    {
+      "expression": "self.field_values.color_relationships.all(t, t in [\"complementary\", \"analogous\", \"monochromatic\", \"triadic\", \"achromatic\", \"restricted-primary\", \"arbitrary\"])",
+      "level": "error",
+      "name": "style.colorgrammar.color_relationships.item.enum"
+    },
+    {
+      "expression": "self.field_values.palette_limit_kind in [\"unlimited\", \"capped\"]",
+      "level": "error",
+      "name": "style.colorgrammar.palette_limit_kind.enum"
+    },
+    {
+      "expression": "self.field_values.palette_limit_max >= 1",
+      "level": "error",
+      "name": "style.colorgrammar.palette_limit_max.gt"
+    },
+    {
+      "expression": "int(self.field_values.palette_limit_max) == self.field_values.palette_limit_max",
+      "level": "error",
+      "name": "style.colorgrammar.palette_limit_max.int"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.formgrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.primitives) >= 1",
+      "level": "error",
+      "name": "style.formgrammar.primitives.min_items"
+    },
+    {
+      "expression": "self.field_values.primitives.all(t, t in [\"circle\", \"square\", \"rectangle\", \"triangle\", \"ellipse\", \"biomorphic\", \"freeform\", \"polygon\", \"tubular\"])",
+      "level": "error",
+      "name": "style.formgrammar.primitives.item.enum"
+    },
+    {
+      "expression": "self.field_values.proportion_system in [\"golden-ratio\", \"modular-grid\", \"heroic-anatomy\", \"cartoon-anatomy\", \"skeleton-less\", \"photographic\", \"geometric-reduction\", \"arbitrary\"]",
+      "level": "error",
+      "name": "style.formgrammar.proportion_system.enum"
+    },
+    {
+      "expression": "self.field_values.symmetry in [\"bilateral-dominant\", \"asymmetric-dominant\", \"rotational\", \"no-preference\"]",
+      "level": "error",
+      "name": "style.formgrammar.symmetry.enum"
+    },
+    {
+      "expression": "self.field_values.edge_treatment in [\"hard\", \"soft\", \"variable\", \"absent\"]",
+      "level": "error",
+      "name": "style.formgrammar.edge_treatment.enum"
+    },
+    {
+      "expression": "self.field_values.structural_exposure in [\"maximally-exposed\", \"partially-exposed\", \"concealed\"]",
+      "level": "error",
+      "name": "style.formgrammar.structural_exposure.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.spatialgrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "self.field_values.perspective_system in [\"single-point\", \"two-point\", \"three-point\", \"isometric\", \"flat\", \"forced-perspective\", \"cinematic\", \"inconsistent\", \"absent\"]",
+      "level": "error",
+      "name": "style.spatialgrammar.perspective_system.enum"
+    },
+    {
+      "expression": "self.field_values.depth_encoding_kind in [\"none\", \"encoded\"]",
+      "level": "error",
+      "name": "style.spatialgrammar.depth_encoding_kind.enum"
+    },
+    {
+      "expression": "self.field_values.depth_encoding_methods.all(t, t in [\"size-diminution\", \"overlap\", \"atmospheric\", \"line-weight\"])",
+      "level": "error",
+      "name": "style.spatialgrammar.depth_encoding_methods.item.enum"
+    },
+    {
+      "expression": "self.field_values.frame_behavior in [\"respected\", \"punctured\", \"dissolved\", \"arbitrary\"]",
+      "level": "error",
+      "name": "style.spatialgrammar.frame_behavior.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.surfacegrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "size(self.field_values.rendering_methods) >= 1",
+      "level": "error",
+      "name": "style.surfacegrammar.rendering_methods.min_items"
+    },
+    {
+      "expression": "self.field_values.rendering_methods.all(t, t in [\"flat-fill\", \"painted-light\", \"cross-hatching\", \"airbrushed\", \"screentone\", \"ink-wash\", \"digital-flat\", \"photographic\"])",
+      "level": "error",
+      "name": "style.surfacegrammar.rendering_methods.item.enum"
+    },
+    {
+      "expression": "self.field_values.material_honesty in [\"required\", \"encouraged\", \"irrelevant\", \"subverted\"]",
+      "level": "error",
+      "name": "style.surfacegrammar.material_honesty.enum"
+    },
+    {
+      "expression": "self.field_values.dominant_texture in [\"smooth\", \"grain\", \"mechanical\", \"imperfect\", \"absent\"]",
+      "level": "error",
+      "name": "style.surfacegrammar.dominant_texture.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.typographygrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "self.field_values.type_image_relation in [\"integrated\", \"separate\", \"subordinate\", \"dominant\", \"absent\"]",
+      "level": "error",
+      "name": "style.typographygrammar.type_image_relation.enum"
+    },
+    {
+      "expression": "self.field_values.baseline_grid_kind in [\"none\", \"grid\"]",
+      "level": "error",
+      "name": "style.typographygrammar.baseline_grid_kind.enum"
+    },
+    {
+      "expression": "self.field_values.baseline_grid_unit >= 0",
+      "level": "error",
+      "name": "style.typographygrammar.baseline_grid_unit.gt"
+    },
+    {
+      "expression": "self.field_values.letter_spacing in [\"tracked-wide\", \"normal\", \"tight\", \"arbitrary\"]",
+      "level": "error",
+      "name": "style.typographygrammar.letter_spacing.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.compositiongrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "self.field_values.layout_kind in [\"modular-grid\", \"panel-grid\", \"axial\", \"radial\", \"diagonal\", \"free\", \"hierarchical\"]",
+      "level": "error",
+      "name": "style.compositiongrammar.layout_kind.enum"
+    },
+    {
+      "expression": "self.field_values.layout_columns >= 1",
+      "level": "error",
+      "name": "style.compositiongrammar.layout_columns.gt"
+    },
+    {
+      "expression": "int(self.field_values.layout_columns) == self.field_values.layout_columns",
+      "level": "error",
+      "name": "style.compositiongrammar.layout_columns.int"
+    },
+    {
+      "expression": "self.field_values.layout_gutter >= 0",
+      "level": "error",
+      "name": "style.compositiongrammar.layout_gutter.gt"
+    },
+    {
+      "expression": "self.field_values.layout_axis in [\"horizontal\", \"vertical\"]",
+      "level": "error",
+      "name": "style.compositiongrammar.layout_axis.enum"
+    },
+    {
+      "expression": "size(self.field_values.hierarchy_methods) >= 1",
+      "level": "error",
+      "name": "style.compositiongrammar.hierarchy_methods.min_items"
+    },
+    {
+      "expression": "self.field_values.hierarchy_methods.all(t, t in [\"size\", \"weight\", \"color\", \"position\", \"isolation\", \"disruption\"])",
+      "level": "error",
+      "name": "style.compositiongrammar.hierarchy_methods.item.enum"
+    },
+    {
+      "expression": "self.field_values.negative_space in [\"generous\", \"compressed\", \"functional\", \"arbitrary\"]",
+      "level": "error",
+      "name": "style.compositiongrammar.negative_space.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.contrastgrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "self.field_values.tonal_range in [\"full\", \"high-key\", \"low-key\", \"compressed\", \"bimodal\"]",
+      "level": "error",
+      "name": "style.contrastgrammar.tonal_range.enum"
+    },
+    {
+      "expression": "self.field_values.contrast_roles.all(t, t in [\"volume\", \"emphasis\", \"mood\", \"information\"])",
+      "level": "error",
+      "name": "style.contrastgrammar.contrast_roles.item.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.iconographygrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "self.field_values.figure_treatment in [\"idealized\", \"caricatured\", \"abstracted\", \"realistic\", \"absent\", \"symbolic\", \"atmospherically-dissolved\"]",
+      "level": "error",
+      "name": "style.iconographygrammar.figure_treatment.enum"
+    },
+    {
+      "expression": "size(self.field_values.grammar_id) >= 1",
+      "level": "error",
+      "name": "style.motiongrammar.grammar_id.min_length"
+    },
+    {
+      "expression": "self.field_values.kind in [\"static\", \"animated\"]",
+      "level": "error",
+      "name": "style.motiongrammar.kind.enum"
+    },
+    {
+      "expression": "self.field_values.character in [\"mechanical\", \"organic\", \"anticipatory\", \"snappy\", \"elastic\", \"viscous\"]",
+      "level": "error",
+      "name": "style.motiongrammar.character.enum"
+    },
+    {
+      "expression": "self.field_values.rule_id.matches(\"^[A-Z][A-Z0-9]*-[A-Z]+-P?\\\\d{1,3}$\")",
+      "level": "error",
+      "name": "style.rule.rule_id.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"requires\", \"forbids\"]",
+      "level": "error",
+      "name": "style.rule.kind.enum"
+    },
+    {
+      "expression": "self.field_values.section in [\"line\", \"color\", \"form\", \"space\", \"surface\", \"typography\", \"composition\", \"contrast\", \"iconography\", \"motion\"]",
+      "level": "error",
+      "name": "style.rule.section.enum"
+    },
+    {
+      "expression": "size(self.field_values.statement) >= 1",
+      "level": "error",
+      "name": "style.rule.statement.min_length"
+    },
+    {
+      "expression": "self.field_values.weight in [\"defining\", \"strong\", \"advisory\"]",
+      "level": "error",
+      "name": "style.rule.weight.enum"
+    },
+    {
+      "expression": "self.field_values.check_id.matches(\"^CC-[A-Z][A-Z0-9]*-\\\\d{1,3}$\")",
+      "level": "error",
+      "name": "style.compliancecheck.check_id.regex"
+    },
+    {
+      "expression": "self.field_values.kind in [\"binary\", \"threshold\", \"qualitative\"]",
+      "level": "error",
+      "name": "style.compliancecheck.kind.enum"
+    },
+    {
+      "expression": "size(self.field_values.description) >= 1",
+      "level": "error",
+      "name": "style.compliancecheck.description.min_length"
+    },
+    {
+      "expression": "self.field_values.weight in [\"defining\", \"strong\", \"advisory\"]",
+      "level": "error",
+      "name": "style.compliancecheck.weight.enum"
+    },
+    {
+      "expression": "size(self.field_values.threshold_metric) >= 1",
+      "level": "error",
+      "name": "style.compliancecheck.threshold_metric.min_length"
+    },
+    {
+      "expression": "self.field_values.threshold_operator in [\"<\", \"<=\", \"=\", \">=\", \">\"]",
+      "level": "error",
+      "name": "style.compliancecheck.threshold_operator.enum"
+    },
+    {
+      "expression": "size(self.field_values.threshold_unit) >= 1",
+      "level": "error",
+      "name": "style.compliancecheck.threshold_unit.min_length"
+    },
+    {
+      "expression": "size(self.field_values.criteria) >= 1",
+      "level": "error",
+      "name": "style.compliancecheck.criteria.min_length"
+    },
+    {
+      "expression": "self.field_values.reference_id.matches(\"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$\")",
+      "level": "error",
+      "name": "style.canonicalreference.reference_id.regex"
+    },
+    {
+      "expression": "size(self.field_values.title) >= 1",
+      "level": "error",
+      "name": "style.canonicalreference.title.min_length"
+    },
+    {
+      "expression": "size(self.field_values.creators) >= 1",
+      "level": "error",
+      "name": "style.canonicalreference.creators.min_items"
+    },
+    {
+      "expression": "self.field_values.creators.all(t, size(t) >= 1)",
+      "level": "error",
+      "name": "style.canonicalreference.creators.item.min_length"
+    },
+    {
+      "expression": "int(self.field_values.year) == self.field_values.year",
+      "level": "error",
+      "name": "style.canonicalreference.year.int"
+    },
+    {
+      "expression": "size(self.field_values.medium) >= 1",
+      "level": "error",
+      "name": "style.canonicalreference.medium.min_length"
+    },
+    {
+      "expression": "size(self.field_values.exemplifies) >= 1",
+      "level": "error",
+      "name": "style.canonicalreference.exemplifies.min_length"
+    },
+    {
+      "expression": "size(self.field_values.source) >= 1",
+      "level": "error",
+      "name": "style.canonicalreference.source.min_length"
+    }
+  ],
+  "description": "Bridge-generated from schemas/style.ts — a normalisation of _ingest_bin/style-schema.ts v3.1.0. Fifteen entities as primitives (Style, Movement, the ten grammar sections, Rule, ComplianceCheck, CanonicalReference) and ten typed edges for grammar composition, rule declaration, compliance linkage, exemplar citation, reference buckets and movement lineage. A workbook is one StyleRegistry: the closed world against which every cross-reference resolves.",
+  "enum_defs": [
+    {
+      "description": "Enum derived from ColorGrammar.application_methodsItem",
+      "id": "enum:ColorGrammarApplicationMethodsItem",
+      "name": "ColorGrammarApplicationMethodsItem",
+      "values": [
+        "flat",
+        "tonal",
+        "halftone",
+        "screentone",
+        "atmospheric",
+        "local-color",
+        "divided-brushwork"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.color_relationshipsItem",
+      "id": "enum:ColorGrammarColorRelationshipsItem",
+      "name": "ColorGrammarColorRelationshipsItem",
+      "values": [
+        "complementary",
+        "analogous",
+        "monochromatic",
+        "triadic",
+        "achromatic",
+        "restricted-primary",
+        "arbitrary"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.gradients",
+      "id": "enum:ColorGrammarGradients",
+      "name": "ColorGrammarGradients",
+      "values": [
+        "forbidden",
+        "permitted",
+        "motif-only"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.lighting_kind",
+      "id": "enum:ColorGrammarLightingKind",
+      "name": "ColorGrammarLightingKind",
+      "values": [
+        "none",
+        "implied",
+        "rendered",
+        "full-pbr"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.lighting_sourcesItem",
+      "id": "enum:ColorGrammarLightingSourcesItem",
+      "name": "ColorGrammarLightingSourcesItem",
+      "values": [
+        "cast",
+        "ambient-occlusion",
+        "specular"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.lighting_treatment",
+      "id": "enum:ColorGrammarLightingTreatment",
+      "name": "ColorGrammarLightingTreatment",
+      "values": [
+        "spot-black",
+        "hard-edge",
+        "soft-gradient",
+        "hatched",
+        "screentone"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.PaletteItem.printing_origin",
+      "id": "enum:ColorGrammarPaletteItemPrintingOrigin",
+      "name": "ColorGrammarPaletteItemPrintingOrigin",
+      "values": [
+        "cmyk-process",
+        "pantone",
+        "ral",
+        "traditional-pigment",
+        "screen-rgb"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.PaletteItem.role",
+      "id": "enum:ColorGrammarPaletteItemRole",
+      "name": "ColorGrammarPaletteItemRole",
+      "values": [
+        "primary",
+        "secondary",
+        "accent",
+        "neutral",
+        "background"
+      ]
+    },
+    {
+      "description": "Enum derived from ColorGrammar.palette_limit_kind",
+      "id": "enum:ColorGrammarPaletteLimitKind",
+      "name": "ColorGrammarPaletteLimitKind",
+      "values": [
+        "unlimited",
+        "capped"
+      ]
+    },
+    {
+      "description": "Enum derived from ComplianceCheck.kind",
+      "id": "enum:ComplianceCheckKind",
+      "name": "ComplianceCheckKind",
+      "values": [
+        "binary",
+        "threshold",
+        "qualitative"
+      ]
+    },
+    {
+      "description": "Enum derived from ComplianceCheck.threshold_operator",
+      "id": "enum:ComplianceCheckThresholdOperator",
+      "name": "ComplianceCheckThresholdOperator",
+      "values": [
+        "<",
+        "<=",
+        "=",
+        ">=",
+        ">"
+      ]
+    },
+    {
+      "description": "Enum derived from ComplianceCheck.weight",
+      "id": "enum:ComplianceCheckWeight",
+      "name": "ComplianceCheckWeight",
+      "values": [
+        "defining",
+        "strong",
+        "advisory"
+      ]
+    },
+    {
+      "description": "Enum derived from CompositionGrammar.hierarchy_methodsItem",
+      "id": "enum:CompositionGrammarHierarchyMethodsItem",
+      "name": "CompositionGrammarHierarchyMethodsItem",
+      "values": [
+        "size",
+        "weight",
+        "color",
+        "position",
+        "isolation",
+        "disruption"
+      ]
+    },
+    {
+      "description": "Enum derived from CompositionGrammar.layout_axis",
+      "id": "enum:CompositionGrammarLayoutAxis",
+      "name": "CompositionGrammarLayoutAxis",
+      "values": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    {
+      "description": "Enum derived from CompositionGrammar.layout_kind",
+      "id": "enum:CompositionGrammarLayoutKind",
+      "name": "CompositionGrammarLayoutKind",
+      "values": [
+        "modular-grid",
+        "panel-grid",
+        "axial",
+        "radial",
+        "diagonal",
+        "free",
+        "hierarchical"
+      ]
+    },
+    {
+      "description": "Enum derived from CompositionGrammar.negative_space",
+      "id": "enum:CompositionGrammarNegativeSpace",
+      "name": "CompositionGrammarNegativeSpace",
+      "values": [
+        "generous",
+        "compressed",
+        "functional",
+        "arbitrary"
+      ]
+    },
+    {
+      "description": "Enum derived from ContrastGrammar.contrast_rolesItem",
+      "id": "enum:ContrastGrammarContrastRolesItem",
+      "name": "ContrastGrammarContrastRolesItem",
+      "values": [
+        "volume",
+        "emphasis",
+        "mood",
+        "information"
+      ]
+    },
+    {
+      "description": "Enum derived from ContrastGrammar.tonal_range",
+      "id": "enum:ContrastGrammarTonalRange",
+      "name": "ContrastGrammarTonalRange",
+      "values": [
+        "full",
+        "high-key",
+        "low-key",
+        "compressed",
+        "bimodal"
+      ]
+    },
+    {
+      "description": "Enum derived from FormGrammar.edge_treatment",
+      "id": "enum:FormGrammarEdgeTreatment",
+      "name": "FormGrammarEdgeTreatment",
+      "values": [
+        "hard",
+        "soft",
+        "variable",
+        "absent"
+      ]
+    },
+    {
+      "description": "Enum derived from FormGrammar.primitivesItem",
+      "id": "enum:FormGrammarPrimitivesItem",
+      "name": "FormGrammarPrimitivesItem",
+      "values": [
+        "circle",
+        "square",
+        "rectangle",
+        "triangle",
+        "ellipse",
+        "biomorphic",
+        "freeform",
+        "polygon",
+        "tubular"
+      ]
+    },
+    {
+      "description": "Enum derived from FormGrammar.proportion_system",
+      "id": "enum:FormGrammarProportionSystem",
+      "name": "FormGrammarProportionSystem",
+      "values": [
+        "golden-ratio",
+        "modular-grid",
+        "heroic-anatomy",
+        "cartoon-anatomy",
+        "skeleton-less",
+        "photographic",
+        "geometric-reduction",
+        "arbitrary"
+      ]
+    },
+    {
+      "description": "Enum derived from FormGrammar.structural_exposure",
+      "id": "enum:FormGrammarStructuralExposure",
+      "name": "FormGrammarStructuralExposure",
+      "values": [
+        "maximally-exposed",
+        "partially-exposed",
+        "concealed"
+      ]
+    },
+    {
+      "description": "Enum derived from FormGrammar.symmetry",
+      "id": "enum:FormGrammarSymmetry",
+      "name": "FormGrammarSymmetry",
+      "values": [
+        "bilateral-dominant",
+        "asymmetric-dominant",
+        "rotational",
+        "no-preference"
+      ]
+    },
+    {
+      "description": "Enum derived from IconographyGrammar.figure_treatment",
+      "id": "enum:IconographyGrammarFigureTreatment",
+      "name": "IconographyGrammarFigureTreatment",
+      "values": [
+        "idealized",
+        "caricatured",
+        "abstracted",
+        "realistic",
+        "absent",
+        "symbolic",
+        "atmospherically-dissolved"
+      ]
+    },
+    {
+      "description": "Enum derived from IconographyGrammar.FigureTreatmentsBySubgenreItem.dominance",
+      "id": "enum:IconographyGrammarFigureTreatmentsBySubgenreItemDominance",
+      "name": "IconographyGrammarFigureTreatmentsBySubgenreItemDominance",
+      "values": [
+        "primary",
+        "minority"
+      ]
+    },
+    {
+      "description": "Enum derived from IconographyGrammar.FigureTreatmentsBySubgenreItem.treatment",
+      "id": "enum:IconographyGrammarFigureTreatmentsBySubgenreItemTreatment",
+      "name": "IconographyGrammarFigureTreatmentsBySubgenreItemTreatment",
+      "values": [
+        "idealized",
+        "caricatured",
+        "abstracted",
+        "realistic",
+        "absent",
+        "symbolic",
+        "atmospherically-dissolved"
+      ]
+    },
+    {
+      "description": "Enum derived from IconographyGrammar.MotifsItem.frequency",
+      "id": "enum:IconographyGrammarMotifsItemFrequency",
+      "name": "IconographyGrammarMotifsItemFrequency",
+      "values": [
+        "ubiquitous",
+        "frequent",
+        "occasional"
+      ]
+    },
+    {
+      "description": "Enum derived from LineGrammar.contour_hierarchy",
+      "id": "enum:LineGrammarContourHierarchy",
+      "name": "LineGrammarContourHierarchy",
+      "values": [
+        "uniform",
+        "hierarchical"
+      ]
+    },
+    {
+      "description": "Enum derived from LineGrammar.kind",
+      "id": "enum:LineGrammarKind",
+      "name": "LineGrammarKind",
+      "values": [
+        "lines",
+        "no-lines"
+      ]
+    },
+    {
+      "description": "Enum derived from LineGrammar.quality",
+      "id": "enum:LineGrammarQuality",
+      "name": "LineGrammarQuality",
+      "values": [
+        "mechanical",
+        "gestural",
+        "brush",
+        "scratchy",
+        "clean"
+      ]
+    },
+    {
+      "description": "Enum derived from LineGrammar.stroke_kind",
+      "id": "enum:LineGrammarStrokeKind",
+      "name": "LineGrammarStrokeKind",
+      "values": [
+        "uniform",
+        "calligraphic",
+        "expressive"
+      ]
+    },
+    {
+      "description": "Enum derived from LineGrammar.stroke_rolesItem",
+      "id": "enum:LineGrammarStrokeRolesItem",
+      "name": "LineGrammarStrokeRolesItem",
+      "values": [
+        "contour",
+        "internal-detail",
+        "hatching",
+        "structural",
+        "speed-line",
+        "leader"
+      ]
+    },
+    {
+      "description": "Enum derived from MotionGrammar.character",
+      "id": "enum:MotionGrammarCharacter",
+      "name": "MotionGrammarCharacter",
+      "values": [
+        "mechanical",
+        "organic",
+        "anticipatory",
+        "snappy",
+        "elastic",
+        "viscous"
+      ]
+    },
+    {
+      "description": "Enum derived from MotionGrammar.kind",
+      "id": "enum:MotionGrammarKind",
+      "name": "MotionGrammarKind",
+      "values": [
+        "static",
+        "animated"
+      ]
+    },
+    {
+      "description": "Enum derived from Movement.Period.kind",
+      "id": "enum:MovementPeriodKind",
+      "name": "MovementPeriodKind",
+      "values": [
+        "open",
+        "closed"
+      ]
+    },
+    {
+      "description": "Enum derived from Rule.kind",
+      "id": "enum:RuleKind",
+      "name": "RuleKind",
+      "values": [
+        "requires",
+        "forbids"
+      ]
+    },
+    {
+      "description": "Enum derived from Rule.section",
+      "id": "enum:RuleSection",
+      "name": "RuleSection",
+      "values": [
+        "line",
+        "color",
+        "form",
+        "space",
+        "surface",
+        "typography",
+        "composition",
+        "contrast",
+        "iconography",
+        "motion"
+      ]
+    },
+    {
+      "description": "Enum derived from Rule.weight",
+      "id": "enum:RuleWeight",
+      "name": "RuleWeight",
+      "values": [
+        "defining",
+        "strong",
+        "advisory"
+      ]
+    },
+    {
+      "description": "Enum derived from SpatialGrammar.depth_encoding_kind",
+      "id": "enum:SpatialGrammarDepthEncodingKind",
+      "name": "SpatialGrammarDepthEncodingKind",
+      "values": [
+        "none",
+        "encoded"
+      ]
+    },
+    {
+      "description": "Enum derived from SpatialGrammar.depth_encoding_methodsItem",
+      "id": "enum:SpatialGrammarDepthEncodingMethodsItem",
+      "name": "SpatialGrammarDepthEncodingMethodsItem",
+      "values": [
+        "size-diminution",
+        "overlap",
+        "atmospheric",
+        "line-weight"
+      ]
+    },
+    {
+      "description": "Enum derived from SpatialGrammar.frame_behavior",
+      "id": "enum:SpatialGrammarFrameBehavior",
+      "name": "SpatialGrammarFrameBehavior",
+      "values": [
+        "respected",
+        "punctured",
+        "dissolved",
+        "arbitrary"
+      ]
+    },
+    {
+      "description": "Enum derived from SpatialGrammar.perspective_system",
+      "id": "enum:SpatialGrammarPerspectiveSystem",
+      "name": "SpatialGrammarPerspectiveSystem",
+      "values": [
+        "single-point",
+        "two-point",
+        "three-point",
+        "isometric",
+        "flat",
+        "forced-perspective",
+        "cinematic",
+        "inconsistent",
+        "absent"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.form_function_relation",
+      "id": "enum:StyleFormFunctionRelation",
+      "name": "StyleFormFunctionRelation",
+      "values": [
+        "form-follows-function",
+        "form-is-function",
+        "form-over-function",
+        "form-against-function",
+        "form-independent"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.human_relation",
+      "id": "enum:StyleHumanRelation",
+      "name": "StyleHumanRelation",
+      "values": [
+        "body-conforming",
+        "body-indifferent",
+        "body-confronting",
+        "body-aspirational"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.machine_attitude",
+      "id": "enum:StyleMachineAttitude",
+      "name": "StyleMachineAttitude",
+      "values": [
+        "collaborative",
+        "subservient",
+        "aestheticized",
+        "revolutionary",
+        "confrontational",
+        "aspirational",
+        "irrelevant"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.OriginMedium.ComponentsItem.family",
+      "id": "enum:StyleOriginMediumComponentsItemFamily",
+      "name": "StyleOriginMediumComponentsItemFamily",
+      "values": [
+        "intaglio",
+        "relief",
+        "planographic",
+        "stencil",
+        "direct-application",
+        "photographic",
+        "animation-cel",
+        "digital",
+        "fabrication",
+        "architecture",
+        "installation"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.OriginMedium.family",
+      "id": "enum:StyleOriginMediumFamily",
+      "name": "StyleOriginMediumFamily",
+      "values": [
+        "intaglio",
+        "relief",
+        "planographic",
+        "stencil",
+        "direct-application",
+        "photographic",
+        "animation-cel",
+        "digital",
+        "fabrication",
+        "architecture",
+        "installation"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.OriginMedium.kind",
+      "id": "enum:StyleOriginMediumKind",
+      "name": "StyleOriginMediumKind",
+      "values": [
+        "single",
+        "mixed"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.ornament_stance",
+      "id": "enum:StyleOrnamentStance",
+      "name": "StyleOrnamentStance",
+      "values": [
+        "prohibited",
+        "structural-only",
+        "geometric",
+        "celebratory",
+        "subversive",
+        "organic",
+        "arbitrary"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.Period.kind",
+      "id": "enum:StylePeriodKind",
+      "name": "StylePeriodKind",
+      "values": [
+        "open",
+        "closed"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_accessibility_kind",
+      "id": "enum:StyleTokensAccessibilityKind",
+      "name": "StyleTokensAccessibilityKind",
+      "values": [
+        "omitted",
+        "wcag"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_accessibility_level",
+      "id": "enum:StyleTokensAccessibilityLevel",
+      "name": "StyleTokensAccessibilityLevel",
+      "values": [
+        "aa",
+        "aaa"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_accessibility_version",
+      "id": "enum:StyleTokensAccessibilityVersion",
+      "name": "StyleTokensAccessibilityVersion",
+      "values": [
+        "2.0",
+        "2.1",
+        "2.2"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_colors_kind",
+      "id": "enum:StyleTokensColorsKind",
+      "name": "StyleTokensColorsKind",
+      "values": [
+        "omitted",
+        "rendered"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.TokensContrastPairsItem.usage",
+      "id": "enum:StyleTokensContrastPairsItemUsage",
+      "name": "StyleTokensContrastPairsItemUsage",
+      "values": [
+        "normal-text",
+        "large-text",
+        "ui-component"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.TokensFontStacksItem.role",
+      "id": "enum:StyleTokensFontStacksItemRole",
+      "name": "StyleTokensFontStacksItemRole",
+      "values": [
+        "heading",
+        "body",
+        "caption",
+        "display",
+        "monospace"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.TokensLineHeightsItem.name",
+      "id": "enum:StyleTokensLineHeightsItemName",
+      "name": "StyleTokensLineHeightsItemName",
+      "values": [
+        "tight",
+        "base",
+        "loose"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_motion_kind",
+      "id": "enum:StyleTokensMotionKind",
+      "name": "StyleTokensMotionKind",
+      "values": [
+        "omitted",
+        "rendered"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_prompt_kind",
+      "id": "enum:StyleTokensPromptKind",
+      "name": "StyleTokensPromptKind",
+      "values": [
+        "omitted",
+        "rendered"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_shape_kind",
+      "id": "enum:StyleTokensShapeKind",
+      "name": "StyleTokensShapeKind",
+      "values": [
+        "omitted",
+        "rendered"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_spacing_kind",
+      "id": "enum:StyleTokensSpacingKind",
+      "name": "StyleTokensSpacingKind",
+      "values": [
+        "omitted",
+        "rendered"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_stroke_alignment",
+      "id": "enum:StyleTokensStrokeAlignment",
+      "name": "StyleTokensStrokeAlignment",
+      "values": [
+        "inside",
+        "center",
+        "outside"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.TokensTimingMapItem.character",
+      "id": "enum:StyleTokensTimingMapItemCharacter",
+      "name": "StyleTokensTimingMapItemCharacter",
+      "values": [
+        "mechanical",
+        "organic",
+        "anticipatory",
+        "snappy",
+        "elastic",
+        "viscous"
+      ]
+    },
+    {
+      "description": "Enum derived from Style.tokens_typography_kind",
+      "id": "enum:StyleTokensTypographyKind",
+      "name": "StyleTokensTypographyKind",
+      "values": [
+        "omitted",
+        "rendered"
+      ]
+    },
+    {
+      "description": "Enum derived from SurfaceGrammar.dominant_texture",
+      "id": "enum:SurfaceGrammarDominantTexture",
+      "name": "SurfaceGrammarDominantTexture",
+      "values": [
+        "smooth",
+        "grain",
+        "mechanical",
+        "imperfect",
+        "absent"
+      ]
+    },
+    {
+      "description": "Enum derived from SurfaceGrammar.material_honesty",
+      "id": "enum:SurfaceGrammarMaterialHonesty",
+      "name": "SurfaceGrammarMaterialHonesty",
+      "values": [
+        "required",
+        "encouraged",
+        "irrelevant",
+        "subverted"
+      ]
+    },
+    {
+      "description": "Enum derived from SurfaceGrammar.rendering_methodsItem",
+      "id": "enum:SurfaceGrammarRenderingMethodsItem",
+      "name": "SurfaceGrammarRenderingMethodsItem",
+      "values": [
+        "flat-fill",
+        "painted-light",
+        "cross-hatching",
+        "airbrushed",
+        "screentone",
+        "ink-wash",
+        "digital-flat",
+        "photographic"
+      ]
+    },
+    {
+      "description": "Enum derived from TypographyGrammar.baseline_grid_kind",
+      "id": "enum:TypographyGrammarBaselineGridKind",
+      "name": "TypographyGrammarBaselineGridKind",
+      "values": [
+        "none",
+        "grid"
+      ]
+    },
+    {
+      "description": "Enum derived from TypographyGrammar.letter_spacing",
+      "id": "enum:TypographyGrammarLetterSpacing",
+      "name": "TypographyGrammarLetterSpacing",
+      "values": [
+        "tracked-wide",
+        "normal",
+        "tight",
+        "arbitrary"
+      ]
+    },
+    {
+      "description": "Enum derived from TypographyGrammar.TypefacesItem.casing",
+      "id": "enum:TypographyGrammarTypefacesItemCasing",
+      "name": "TypographyGrammarTypefacesItemCasing",
+      "values": [
+        "required-uppercase",
+        "required-lowercase",
+        "sentence-case",
+        "free"
+      ]
+    },
+    {
+      "description": "Enum derived from TypographyGrammar.TypefacesItem.classification",
+      "id": "enum:TypographyGrammarTypefacesItemClassification",
+      "name": "TypographyGrammarTypefacesItemClassification",
+      "values": [
+        "latin-geometric-sans",
+        "latin-grotesque-sans",
+        "latin-humanist-sans",
+        "latin-slab-serif",
+        "latin-transitional-serif",
+        "latin-old-style-serif",
+        "latin-display-decorative",
+        "latin-blackletter",
+        "latin-handwritten",
+        "latin-comic-lettering",
+        "arabic-kufic",
+        "arabic-naskh",
+        "arabic-thuluth",
+        "arabic-diwani",
+        "arabic-ruqah",
+        "devanagari-display",
+        "devanagari-body",
+        "cjk-seal",
+        "cjk-clerical",
+        "cjk-regular",
+        "cjk-semi-cursive",
+        "cjk-cursive",
+        "cjk-sans",
+        "cjk-serif",
+        "monospace"
+      ]
+    },
+    {
+      "description": "Enum derived from TypographyGrammar.TypefacesItem.role",
+      "id": "enum:TypographyGrammarTypefacesItemRole",
+      "name": "TypographyGrammarTypefacesItemRole",
+      "values": [
+        "heading",
+        "body",
+        "caption",
+        "display",
+        "monospace"
+      ]
+    },
+    {
+      "description": "Enum derived from TypographyGrammar.type_image_relation",
+      "id": "enum:TypographyGrammarTypeImageRelation",
+      "name": "TypographyGrammarTypeImageRelation",
+      "values": [
+        "integrated",
+        "separate",
+        "subordinate",
+        "dominant",
+        "absent"
+      ]
+    }
+  ],
+  "id": "profile:style:3.1",
+  "label": "Visual Style Definition 3.1.0",
+  "name": "Style",
+  "primitive_types": [
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "movement_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "aliasesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "aliases",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "period",
+          "required": true,
+          "struct_id": "MovementPeriod",
+          "validations": []
+        }
+      ],
+      "id": "style:Movement",
+      "id_format": {
+        "pattern": "style:Movement:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "open",
+                "closed"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "number",
+              "name": "start",
+              "nullable": true,
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "number",
+              "name": "end",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "MovementPeriod"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "style_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "schema_version",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^\\d+\\.\\d+\\.\\d+$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "locale",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z]{2,3}(-[A-Z]{2})?$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "code",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[A-Z][A-Z0-9]{1,11}$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "name",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "aliasesItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "aliases",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "period",
+          "required": true,
+          "struct_id": "StylePeriod",
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "geographic_centersItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "geographic_centers",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "origin_medium",
+          "required": true,
+          "struct_id": "StyleOriginMedium",
+          "validations": []
+        },
+        {
+          "kind": "struct",
+          "name": "provenance",
+          "required": true,
+          "struct_id": "StyleProvenance",
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "prohibited",
+            "structural-only",
+            "geometric",
+            "celebratory",
+            "subversive",
+            "organic",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "ornament_stance",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "collaborative",
+            "subservient",
+            "aestheticized",
+            "revolutionary",
+            "confrontational",
+            "aspirational",
+            "irrelevant"
+          ],
+          "kind": "enum",
+          "name": "machine_attitude",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "form-follows-function",
+            "form-is-function",
+            "form-over-function",
+            "form-against-function",
+            "form-independent"
+          ],
+          "kind": "enum",
+          "name": "form_function_relation",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "body-conforming",
+            "body-indifferent",
+            "body-confronting",
+            "body-aspirational"
+          ],
+          "kind": "enum",
+          "name": "human_relation",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "axiomsItem",
+            "required": true,
+            "struct_id": "StyleAxiomsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "axioms",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "minimum_pass_ratio",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            },
+            {
+              "kind": "max_value",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_colors_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_colorsItem",
+            "required": true,
+            "struct_id": "StyleTokensColorsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_colors",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_typography_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_font_stacksItem",
+            "required": true,
+            "struct_id": "StyleTokensFontStacksItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_font_stacks",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_scaleItem",
+            "required": true,
+            "struct_id": "StyleTokensScaleItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_scale",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_line_heightsItem",
+            "required": true,
+            "struct_id": "StyleTokensLineHeightsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_line_heights",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_letter_spacingItem",
+            "required": true,
+            "struct_id": "StyleTokensLetterSpacingItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_letter_spacing",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_weight_mapItem",
+            "required": true,
+            "struct_id": "StyleTokensWeightMapItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_weight_map",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_spacing_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "tokens_base_unit",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_spacing_scaleItem",
+            "required": true,
+            "struct_id": "StyleTokensSpacingScaleItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_spacing_scale",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_shape_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_border_radiusItem",
+            "required": true,
+            "struct_id": "StyleTokensBorderRadiusItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_border_radius",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "tokens_stroke_weight",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "inside",
+            "center",
+            "outside"
+          ],
+          "kind": "enum",
+          "name": "tokens_stroke_alignment",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_motion_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_timing_mapItem",
+            "required": true,
+            "struct_id": "StyleTokensTimingMapItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_timing_map",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "tokens_default_duration_ms",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "omitted",
+            "rendered"
+          ],
+          "kind": "enum",
+          "name": "tokens_prompt_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "tokens_prompt_positive",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "tokens_prompt_negative",
+          "required": false,
+          "validations": []
+        },
+        {
+          "description": "default: \"omitted\"",
+          "enum_values": [
+            "omitted",
+            "wcag"
+          ],
+          "kind": "enum",
+          "name": "tokens_accessibility_kind",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "2.0",
+            "2.1",
+            "2.2"
+          ],
+          "kind": "enum",
+          "name": "tokens_accessibility_version",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "aa",
+            "aaa"
+          ],
+          "kind": "enum",
+          "name": "tokens_accessibility_level",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "tokens_contrast_pairsItem",
+            "required": true,
+            "struct_id": "StyleTokensContrastPairsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "tokens_contrast_pairs",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "style:Style",
+      "id_format": {
+        "pattern": "style:Style:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "open",
+                "closed"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "number",
+              "name": "start",
+              "nullable": true,
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "number",
+              "name": "end",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "StylePeriod"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "intaglio",
+                "relief",
+                "planographic",
+                "stencil",
+                "direct-application",
+                "photographic",
+                "animation-cel",
+                "digital",
+                "fabrication",
+                "architecture",
+                "installation"
+              ],
+              "kind": "enum",
+              "name": "family",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "process",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "StyleOriginMediumComponentsItem"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "single",
+                "mixed"
+              ],
+              "kind": "enum",
+              "name": "kind",
+              "required": true,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "intaglio",
+                "relief",
+                "planographic",
+                "stencil",
+                "direct-application",
+                "photographic",
+                "animation-cel",
+                "digital",
+                "fabrication",
+                "architecture",
+                "installation"
+              ],
+              "kind": "enum",
+              "name": "family",
+              "required": false,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "process",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "item_field": {
+                "kind": "struct",
+                "name": "componentsItem",
+                "required": true,
+                "struct_id": "StyleOriginMediumComponentsItem",
+                "validations": []
+              },
+              "kind": "list",
+              "name": "components",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "StyleOriginMedium"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "created_by",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "created_at",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "modified_by",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "modified_at",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "source_system",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "StyleProvenance"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "statement",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "source",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "StyleAxiomsItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+                }
+              ]
+            }
+          ],
+          "id": "StyleTokensColorsItem"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "heading",
+                "body",
+                "caption",
+                "display",
+                "monospace"
+              ],
+              "kind": "enum",
+              "name": "role",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "stack",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "id": "StyleTokensFontStacksItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          "id": "StyleTokensScaleItem"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "tight",
+                "base",
+                "loose"
+              ],
+              "kind": "enum",
+              "name": "name",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "number",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0.8
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 3
+                }
+              ]
+            }
+          ],
+          "id": "StyleTokensLineHeightsItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": -0.2
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "id": "StyleTokensLetterSpacingItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "number",
+              "name": "step",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 9
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "weight",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "StyleTokensWeightMapItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          "id": "StyleTokensSpacingScaleItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "value",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                }
+              ]
+            }
+          ],
+          "id": "StyleTokensBorderRadiusItem"
+        },
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "mechanical",
+                "organic",
+                "anticipatory",
+                "snappy",
+                "elastic",
+                "viscous"
+              ],
+              "kind": "enum",
+              "name": "character",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "string",
+              "name": "timing",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "StyleTokensTimingMapItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "foreground",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "background",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "enum_values": [
+                "normal-text",
+                "large-text",
+                "ui-component"
+              ],
+              "kind": "enum",
+              "name": "usage",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "StyleTokensContrastPairsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "lines",
+            "no-lines"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "uniform",
+            "calligraphic",
+            "expressive"
+          ],
+          "kind": "enum",
+          "name": "stroke_kind",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight_min",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "stroke_weight_max",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "contour",
+              "internal-detail",
+              "hatching",
+              "structural",
+              "speed-line",
+              "leader"
+            ],
+            "kind": "enum",
+            "name": "stroke_rolesItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "stroke_roles",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "mechanical",
+            "gestural",
+            "brush",
+            "scratchy",
+            "clean"
+          ],
+          "kind": "enum",
+          "name": "quality",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "uniform",
+            "hierarchical"
+          ],
+          "kind": "enum",
+          "name": "contour_hierarchy",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "style:LineGrammar",
+      "id_format": {
+        "pattern": "style:LineGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "flat",
+              "tonal",
+              "halftone",
+              "screentone",
+              "atmospheric",
+              "local-color",
+              "divided-brushwork"
+            ],
+            "kind": "enum",
+            "name": "application_methodsItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "application_methods",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "forbidden",
+            "permitted",
+            "motif-only"
+          ],
+          "kind": "enum",
+          "name": "gradients",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "none",
+            "implied",
+            "rendered",
+            "full-pbr"
+          ],
+          "kind": "enum",
+          "name": "lighting_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "cast",
+              "ambient-occlusion",
+              "specular"
+            ],
+            "kind": "enum",
+            "name": "lighting_sourcesItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "lighting_sources",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "spot-black",
+            "hard-edge",
+            "soft-gradient",
+            "hatched",
+            "screentone"
+          ],
+          "kind": "enum",
+          "name": "lighting_treatment",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "paletteItem",
+            "required": true,
+            "struct_id": "ColorGrammarPaletteItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "palette",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "forbidden_colorsItem",
+            "required": true,
+            "struct_id": "ColorGrammarForbiddenColorsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "forbidden_colors",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "palette_derivation_rule",
+          "nullable": true,
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "complementary",
+              "analogous",
+              "monochromatic",
+              "triadic",
+              "achromatic",
+              "restricted-primary",
+              "arbitrary"
+            ],
+            "kind": "enum",
+            "name": "color_relationshipsItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "color_relationships",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "unlimited",
+            "capped"
+          ],
+          "kind": "enum",
+          "name": "palette_limit_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "palette_limit_max",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "id": "style:ColorGrammar",
+      "id_format": {
+        "pattern": "style:ColorGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "hex",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+                }
+              ]
+            },
+            {
+              "enum_values": [
+                "primary",
+                "secondary",
+                "accent",
+                "neutral",
+                "background"
+              ],
+              "kind": "enum",
+              "name": "role",
+              "required": true,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "cmyk-process",
+                "pantone",
+                "ral",
+                "traditional-pigment",
+                "screen-rgb"
+              ],
+              "kind": "enum",
+              "name": "printing_origin",
+              "required": false,
+              "validations": []
+            }
+          ],
+          "id": "ColorGrammarPaletteItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "hex",
+              "required": false,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "reason",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "prohibited_by",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "regex",
+                  "level": "error",
+                  "value": "^[A-Z][A-Z0-9]*-[A-Z]+-P?\\d{1,3}$"
+                }
+              ]
+            }
+          ],
+          "id": "ColorGrammarForbiddenColorsItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "circle",
+              "square",
+              "rectangle",
+              "triangle",
+              "ellipse",
+              "biomorphic",
+              "freeform",
+              "polygon",
+              "tubular"
+            ],
+            "kind": "enum",
+            "name": "primitivesItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "primitives",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "golden-ratio",
+            "modular-grid",
+            "heroic-anatomy",
+            "cartoon-anatomy",
+            "skeleton-less",
+            "photographic",
+            "geometric-reduction",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "proportion_system",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "bilateral-dominant",
+            "asymmetric-dominant",
+            "rotational",
+            "no-preference"
+          ],
+          "kind": "enum",
+          "name": "symmetry",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "hard",
+            "soft",
+            "variable",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "edge_treatment",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "maximally-exposed",
+            "partially-exposed",
+            "concealed"
+          ],
+          "kind": "enum",
+          "name": "structural_exposure",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:FormGrammar",
+      "id_format": {
+        "pattern": "style:FormGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "single-point",
+            "two-point",
+            "three-point",
+            "isometric",
+            "flat",
+            "forced-perspective",
+            "cinematic",
+            "inconsistent",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "perspective_system",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "none",
+            "encoded"
+          ],
+          "kind": "enum",
+          "name": "depth_encoding_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "size-diminution",
+              "overlap",
+              "atmospheric",
+              "line-weight"
+            ],
+            "kind": "enum",
+            "name": "depth_encoding_methodsItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "depth_encoding_methods",
+          "required": false,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "respected",
+            "punctured",
+            "dissolved",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "frame_behavior",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:SpatialGrammar",
+      "id_format": {
+        "pattern": "style:SpatialGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "flat-fill",
+              "painted-light",
+              "cross-hatching",
+              "airbrushed",
+              "screentone",
+              "ink-wash",
+              "digital-flat",
+              "photographic"
+            ],
+            "kind": "enum",
+            "name": "rendering_methodsItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "rendering_methods",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "required",
+            "encouraged",
+            "irrelevant",
+            "subverted"
+          ],
+          "kind": "enum",
+          "name": "material_honesty",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "smooth",
+            "grain",
+            "mechanical",
+            "imperfect",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "dominant_texture",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:SurfaceGrammar",
+      "id_format": {
+        "pattern": "style:SurfaceGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "typefacesItem",
+            "required": true,
+            "struct_id": "TypographyGrammarTypefacesItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "typefaces",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "integrated",
+            "separate",
+            "subordinate",
+            "dominant",
+            "absent"
+          ],
+          "kind": "enum",
+          "name": "type_image_relation",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "none",
+            "grid"
+          ],
+          "kind": "enum",
+          "name": "baseline_grid_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "baseline_grid_unit",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "tracked-wide",
+            "normal",
+            "tight",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "letter_spacing",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:TypographyGrammar",
+      "id_format": {
+        "pattern": "style:TypographyGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "enum_values": [
+                "heading",
+                "body",
+                "caption",
+                "display",
+                "monospace"
+              ],
+              "kind": "enum",
+              "name": "role",
+              "required": true,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "latin-geometric-sans",
+                "latin-grotesque-sans",
+                "latin-humanist-sans",
+                "latin-slab-serif",
+                "latin-transitional-serif",
+                "latin-old-style-serif",
+                "latin-display-decorative",
+                "latin-blackletter",
+                "latin-handwritten",
+                "latin-comic-lettering",
+                "arabic-kufic",
+                "arabic-naskh",
+                "arabic-thuluth",
+                "arabic-diwani",
+                "arabic-ruqah",
+                "devanagari-display",
+                "devanagari-body",
+                "cjk-seal",
+                "cjk-clerical",
+                "cjk-regular",
+                "cjk-semi-cursive",
+                "cjk-cursive",
+                "cjk-sans",
+                "cjk-serif",
+                "monospace"
+              ],
+              "kind": "enum",
+              "name": "classification",
+              "required": true,
+              "validations": []
+            },
+            {
+              "item_field": {
+                "kind": "string",
+                "name": "exemplarsItem",
+                "required": true,
+                "validations": [
+                  {
+                    "kind": "min_length",
+                    "level": "error",
+                    "value": 1
+                  }
+                ]
+              },
+              "kind": "list",
+              "name": "exemplars",
+              "required": true,
+              "validations": []
+            },
+            {
+              "kind": "number",
+              "name": "weight_min",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 1
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 9
+                }
+              ]
+            },
+            {
+              "kind": "number",
+              "name": "weight_span",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_value",
+                  "level": "error",
+                  "value": 0
+                },
+                {
+                  "kind": "max_value",
+                  "level": "error",
+                  "value": 8
+                }
+              ]
+            },
+            {
+              "kind": "boolean",
+              "name": "permits_italic",
+              "required": true,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "required-uppercase",
+                "required-lowercase",
+                "sentence-case",
+                "free"
+              ],
+              "kind": "enum",
+              "name": "casing",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "TypographyGrammarTypefacesItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "modular-grid",
+            "panel-grid",
+            "axial",
+            "radial",
+            "diagonal",
+            "free",
+            "hierarchical"
+          ],
+          "kind": "enum",
+          "name": "layout_kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "layout_columns",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "layout_gutter",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_value",
+              "level": "error",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "horizontal",
+            "vertical"
+          ],
+          "kind": "enum",
+          "name": "layout_axis",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "layout_angle_degrees",
+          "required": false,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "size",
+              "weight",
+              "color",
+              "position",
+              "isolation",
+              "disruption"
+            ],
+            "kind": "enum",
+            "name": "hierarchy_methodsItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "hierarchy_methods",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "generous",
+            "compressed",
+            "functional",
+            "arbitrary"
+          ],
+          "kind": "enum",
+          "name": "negative_space",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "boolean",
+          "name": "permits_bleed",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:CompositionGrammar",
+      "id_format": {
+        "pattern": "style:CompositionGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "full",
+            "high-key",
+            "low-key",
+            "compressed",
+            "bimodal"
+          ],
+          "kind": "enum",
+          "name": "tonal_range",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "enum_values": [
+              "volume",
+              "emphasis",
+              "mood",
+              "information"
+            ],
+            "kind": "enum",
+            "name": "contrast_rolesItem",
+            "required": true,
+            "validations": []
+          },
+          "kind": "list",
+          "name": "contrast_roles",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:ContrastGrammar",
+      "id_format": {
+        "pattern": "style:ContrastGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "motifsItem",
+            "required": true,
+            "struct_id": "IconographyGrammarMotifsItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "motifs",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "idealized",
+            "caricatured",
+            "abstracted",
+            "realistic",
+            "absent",
+            "symbolic",
+            "atmospherically-dissolved"
+          ],
+          "kind": "enum",
+          "name": "figure_treatment",
+          "required": true,
+          "validations": []
+        },
+        {
+          "item_field": {
+            "kind": "struct",
+            "name": "figure_treatments_by_subgenreItem",
+            "required": true,
+            "struct_id": "IconographyGrammarFigureTreatmentsBySubgenreItem",
+            "validations": []
+          },
+          "kind": "list",
+          "name": "figure_treatments_by_subgenre",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "style:IconographyGrammar",
+      "id_format": {
+        "pattern": "style:IconographyGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      },
+      "inline_structs": [
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "name",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "string",
+              "name": "description",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "enum_values": [
+                "ubiquitous",
+                "frequent",
+                "occasional"
+              ],
+              "kind": "enum",
+              "name": "frequency",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "IconographyGrammarMotifsItem"
+        },
+        {
+          "fields": [
+            {
+              "kind": "string",
+              "name": "subgenre",
+              "required": true,
+              "validations": [
+                {
+                  "kind": "min_length",
+                  "level": "error",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "enum_values": [
+                "idealized",
+                "caricatured",
+                "abstracted",
+                "realistic",
+                "absent",
+                "symbolic",
+                "atmospherically-dissolved"
+              ],
+              "kind": "enum",
+              "name": "treatment",
+              "required": true,
+              "validations": []
+            },
+            {
+              "enum_values": [
+                "primary",
+                "minority"
+              ],
+              "kind": "enum",
+              "name": "dominance",
+              "required": true,
+              "validations": []
+            }
+          ],
+          "id": "IconographyGrammarFigureTreatmentsBySubgenreItem"
+        }
+      ]
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "grammar_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "static",
+            "animated"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "mechanical",
+            "organic",
+            "anticipatory",
+            "snappy",
+            "elastic",
+            "viscous"
+          ],
+          "kind": "enum",
+          "name": "character",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_squash_stretch",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_motion_blur",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "boolean",
+          "name": "uses_kinetic_marks",
+          "required": false,
+          "validations": []
+        }
+      ],
+      "id": "style:MotionGrammar",
+      "id_format": {
+        "pattern": "style:MotionGrammar:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "rule_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[A-Z][A-Z0-9]*-[A-Z]+-P?\\d{1,3}$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "requires",
+            "forbids"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "enum_values": [
+            "line",
+            "color",
+            "form",
+            "space",
+            "surface",
+            "typography",
+            "composition",
+            "contrast",
+            "iconography",
+            "motion"
+          ],
+          "kind": "enum",
+          "name": "section",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "statement",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "defining",
+            "strong",
+            "advisory"
+          ],
+          "kind": "enum",
+          "name": "weight",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:Rule",
+      "id_format": {
+        "pattern": "style:Rule:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "check_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^CC-[A-Z][A-Z0-9]*-\\d{1,3}$"
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "binary",
+            "threshold",
+            "qualitative"
+          ],
+          "kind": "enum",
+          "name": "kind",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "description",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "defining",
+            "strong",
+            "advisory"
+          ],
+          "kind": "enum",
+          "name": "weight",
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "threshold_metric",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "enum_values": [
+            "<",
+            "<=",
+            "=",
+            ">=",
+            ">"
+          ],
+          "kind": "enum",
+          "name": "threshold_operator",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "number",
+          "name": "threshold_value",
+          "required": false,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "threshold_unit",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "criteria",
+          "required": false,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "id": "style:ComplianceCheck",
+      "id_format": {
+        "pattern": "style:ComplianceCheck:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    },
+    {
+      "fields": [
+        {
+          "kind": "string",
+          "name": "reference_id",
+          "required": true,
+          "validations": [
+            {
+              "kind": "regex",
+              "level": "error",
+              "value": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "title",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "item_field": {
+            "kind": "string",
+            "name": "creatorsItem",
+            "required": true,
+            "validations": [
+              {
+                "kind": "min_length",
+                "level": "error",
+                "value": 1
+              }
+            ]
+          },
+          "kind": "list",
+          "name": "creators",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_items",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "number",
+          "name": "year",
+          "nullable": true,
+          "required": true,
+          "validations": []
+        },
+        {
+          "kind": "string",
+          "name": "medium",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "exemplifies",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "string",
+          "name": "source",
+          "required": true,
+          "validations": [
+            {
+              "kind": "min_length",
+              "level": "error",
+              "value": 1
+            }
+          ]
+        }
+      ],
+      "id": "style:CanonicalReference",
+      "id_format": {
+        "pattern": "style:CanonicalReference:{slug}",
+        "pattern_kind": "template",
+        "uniqueness": "global"
+      }
+    }
+  ],
+  "relation_types": [
+    {
+      "cardinality": "one-to-many",
+      "description": "StyleDefinition.grammar.<section> — the ten grammar sections the style is composed of. Exactly one edge per section; ../invariants.ts enforces completeness.",
+      "fields": [
+        {
+          "description": "Which of the ten grammar sections this edge carries.",
+          "enum_values": [
+            "line",
+            "color",
+            "form",
+            "space",
+            "surface",
+            "typography",
+            "composition",
+            "contrast",
+            "iconography",
+            "motion"
+          ],
+          "kind": "enum",
+          "name": "section",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:HasGrammar",
+      "name": "has_grammar",
+      "source_types": [
+        "style:Style"
+      ],
+      "target_types": [
+        "style:LineGrammar",
+        "style:ColorGrammar",
+        "style:FormGrammar",
+        "style:SpatialGrammar",
+        "style:SurfaceGrammar",
+        "style:TypographyGrammar",
+        "style:CompositionGrammar",
+        "style:ContrastGrammar",
+        "style:IconographyGrammar",
+        "style:MotionGrammar"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "The `rules` and `prohibitions` arrays of the source's `Ruled` base. The Rule's own `kind` distinguishes the two, so one edge type serves both buckets.",
+      "fields": [],
+      "id": "style:DeclaresRule",
+      "name": "declares_rule",
+      "source_types": [
+        "style:LineGrammar",
+        "style:ColorGrammar",
+        "style:FormGrammar",
+        "style:SpatialGrammar",
+        "style:SurfaceGrammar",
+        "style:TypographyGrammar",
+        "style:CompositionGrammar",
+        "style:ContrastGrammar",
+        "style:IconographyGrammar",
+        "style:MotionGrammar"
+      ],
+      "target_types": [
+        "style:Rule"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "ComplianceSpec.checks — the falsifiable criteria the style is judged by.",
+      "fields": [],
+      "id": "style:DeclaresCheck",
+      "name": "declares_check",
+      "source_types": [
+        "style:Style"
+      ],
+      "target_types": [
+        "style:ComplianceCheck"
+      ]
+    },
+    {
+      "cardinality": "many-to-one",
+      "description": "ComplianceCheck.testsRule — the rule this check operationalises. Exactly one per check; the check's weight must equal the rule's.",
+      "fields": [],
+      "id": "style:TestsRule",
+      "name": "tests_rule",
+      "source_types": [
+        "style:ComplianceCheck"
+      ],
+      "target_types": [
+        "style:Rule"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "Rule.exemplars — canonical references demonstrating the rule. A rule of weight `defining` must have at least one.",
+      "fields": [],
+      "id": "style:CitesExemplar",
+      "name": "cites_exemplar",
+      "source_types": [
+        "style:Rule"
+      ],
+      "target_types": [
+        "style:CanonicalReference"
+      ]
+    },
+    {
+      "cardinality": "one-to-many",
+      "description": "CanonicalReferences.primary / .secondary / .counterExamples. The bucket is an edge field, not a reference field, because the same work can be primary for one style and a counter-example for another.",
+      "fields": [
+        {
+          "description": "Which reference bucket this work occupies for this style.",
+          "enum_values": [
+            "primary",
+            "secondary",
+            "counter-example"
+          ],
+          "kind": "enum",
+          "name": "role",
+          "required": true,
+          "validations": []
+        }
+      ],
+      "id": "style:HasReference",
+      "name": "has_reference",
+      "source_types": [
+        "style:Style"
+      ],
+      "target_types": [
+        "style:CanonicalReference"
+      ]
+    },
+    {
+      "cardinality": "many-to-one",
+      "description": "StyleIdentity.parentMovement — the movement or school the style belongs to. Absent edge = no parent.",
+      "fields": [],
+      "id": "style:BelongsToMovement",
+      "name": "belongs_to_movement",
+      "source_types": [
+        "style:Style"
+      ],
+      "target_types": [
+        "style:Movement"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "StyleIdentity.negatedMovements — movements this style directly reacted against.",
+      "fields": [],
+      "id": "style:NegatesMovement",
+      "name": "negates_movement",
+      "source_types": [
+        "style:Style"
+      ],
+      "target_types": [
+        "style:Movement"
+      ]
+    },
+    {
+      "cardinality": "many-to-many",
+      "description": "StyleIdentity.influencedStyles. GRAPH_TOPOLOGY declares cycles PERMITTED here — reciprocal avant-garde exchange is historically attested — so traversals must maintain a visited set. Self-loops are rejected by ../invariants.ts.",
+      "fields": [],
+      "id": "style:InfluencesStyle",
+      "name": "influences_style",
+      "source_types": [
+        "style:Style"
+      ],
+      "target_types": [
+        "style:Style"
+      ]
+    },
+    {
+      "cardinality": "many-to-one",
+      "description": "MovementEntry.parentMovement. GRAPH_TOPOLOGY declares cycles FORBIDDEN here: the movement graph is a forest, enforced by ../invariants.ts.",
+      "fields": [],
+      "id": "style:ParentMovement",
+      "name": "parent_movement",
+      "source_types": [
+        "style:Movement"
+      ],
+      "target_types": [
+        "style:Movement"
+      ]
+    }
+  ],
+  "version": "3.1.0"
+}
