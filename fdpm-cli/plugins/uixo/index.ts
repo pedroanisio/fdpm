@@ -50,7 +50,7 @@ export { renderComponentTree } from "./renderers/component_tree.js";
 export {
   renderComponentSheet,
   componentSheetLayout,
-  boxHeaderCentre,
+  itemCentre,
   depthFill,
 } from "./renderers/component_sheet.js";
 export { renderDocumentPdf } from "./renderers/document_pdf.js";
@@ -71,6 +71,22 @@ export {
   type WireBox,
   type WireframeLayout,
 } from "./renderers/_wireframe.js";
+export { posterLayout, type Poster, type PosterItem } from "./renderers/_poster.js";
+export {
+  present,
+  colorTokens,
+  findings,
+  byClass,
+  shortClass,
+  hexToRgb,
+  readableInkOn,
+  type Presented,
+  type ColorToken,
+  type FindingRow,
+  type Value,
+  type Fact,
+  type Tone,
+} from "./renderers/_present.js";
 export {
   buildUixoWorkbook,
   parseUixoDocument,
@@ -177,15 +193,16 @@ export async function activate(ctx: PluginContext): Promise<void> {
   // Five views of one document. The markdown outline walks
   // `hasChildComponent` alone — the literal reading of containment. The
   // other four share ./renderers/_model.ts, whose spanning forest reaches
-  // every entity, and the two raster views share one geometry in
-  // ./renderers/_wireframe.ts, so the vector and the bitmap are the same
-  // drawing rather than two drawings that resemble each other.
+  // every entity, and ./renderers/_present.ts, which classifies each value
+  // so a colour renders as a swatch and a status as a badge rather than
+  // as text. The two visual views additionally share one geometry in
+  // ./renderers/_poster.ts, so the bitmap cannot disagree with its vector.
   //
   //   text/markdown    the outline — the containment list
-  //   text/html        the reviewable page, cross-links as anchors
-  //   application/pdf  the paginated artefact that leaves the workbook
-  //   image/svg+xml    the wireframe plus the edge and class censuses
-  //   image/png        the wireframe as pixels, for a ticket or a diff
+  //   text/html        the reviewable page: palette, findings, structure
+  //   application/pdf  the paginated artefact, with contents and folios
+  //   image/svg+xml    the poster: palette, breakpoints, findings, trees
+  //   image/png        the same poster as pixels, for a ticket or a diff
   const views: [string, string, RendererFn][] = [
     ["text/markdown", DOCUMENT_RENDERER_ID, renderDocumentOutline as RendererFn],
     ["text/html", DOCUMENT_HTML_RENDERER_ID, renderDocumentHtml as RendererFn],

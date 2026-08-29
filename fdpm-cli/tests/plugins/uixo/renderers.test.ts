@@ -25,7 +25,6 @@ import {
 import { renderDocumentHtml } from "../../../plugins/uixo/renderers/document_html.js";
 import { renderComponentTree } from "../../../plugins/uixo/renderers/component_tree.js";
 import {
-  boxHeaderCentre,
   componentSheetLayout,
   depthFill,
   renderComponentSheet,
@@ -228,8 +227,16 @@ describe("text/html — uixo:DocumentHtmlRenderer", () => {
 
   it("gives every entity an anchor, and every cross-link resolves to one", () => {
     const html = text(renderDocumentHtml(input).bytes);
-    const ids = new Set([...html.matchAll(/<section class="node" id="([^"]+)"/g)].map((m) => m[1]!));
-    expect(ids.size).toBe(readDocument(input).nodeCount);
+    const entityIds = new Set(
+      [...html.matchAll(/<article class="node" id="([^"]+)"/g)].map((m) => m[1]!),
+    );
+    expect(entityIds.size).toBe(readDocument(input).nodeCount);
+    // Section landmarks are link targets too; the contents nav points at
+    // them, and they are as much a part of "no dead links" as entities.
+    const ids = new Set([
+      ...entityIds,
+      ...[...html.matchAll(/<section id="([^"]+)"/g)].map((m) => m[1]!),
+    ]);
     const hrefs = [...html.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]!);
     expect(hrefs.length).toBeGreaterThan(0);
     for (const href of hrefs) {
@@ -328,19 +335,57 @@ describe("image/svg+xml — uixo:ComponentTreeRenderer", () => {
     expect(svg.trimEnd().endsWith("</svg>")).toBe(true);
   });
 
-  it("draws one box per entity, keyed by nesting depth", () => {
+  /**
+   * Boxes are drawn only for roots that actually nest. A root with no
+   * children is a record, not a hierarchy, and drawing every one as a box
+   * is what made the first version 118 identical pills — so standalone
+   * entities are chips instead. Between them the poster must still
+   * account for every entity: an entity in neither band is one the
+   * picture silently dropped.
+   */
+  it("accounts for every entity, as a nested box or a standalone chip", () => {
     const svg = text(renderComponentTree(input).bytes);
-    expect(svg.match(/data-box="/g) ?? []).toHaveLength(readDocument(input).nodeCount);
+    const boxes = (svg.match(/data-box="/g) ?? []).length;
+    const chips = (svg.match(/data-chip="/g) ?? []).length;
+    const doc = readDocument(input);
+    const nesting = doc.roots.filter((r) => (doc.nodes.get(r)?.children.length ?? 0) > 0);
+    const nested = [...doc.nodes.values()].filter(
+      (n) => n.parent !== undefined || nesting.includes(n.id),
+    ).length;
+    expect(boxes).toBe(nested);
+    expect(boxes + chips).toBeGreaterThanOrEqual(doc.nodeCount);
     expect(svg).toContain('data-depth="0"');
     expect(svg).toContain('data-depth="5"');
   });
 
-  it("carries both censuses", () => {
+  it("draws the palette as swatches, not as rows of text", () => {
+    const svg = text(renderComponentTree(input).bytes);
+    // The fixture declares no colours, so the band is absent; a document
+    // that does declare them must paint one swatch each.
+    const withColour = docWith((d) => {
+      const app = (d.entities as Json[]).find((e) => e["id"] === "ex:app")!;
+      app["extensions"] = {
+        ...(app["extensions"] as Record<string, unknown>),
+        value: "#C65D3B",
+        css: "--accent",
+      };
+    });
+    void svg;
+    return ingest(withColour, "uixo-svg-palette").then((withColourInput) => {
+      const painted = text(renderComponentTree(withColourInput).bytes);
+      expect(painted).toContain("PALETTE");
+      expect(painted).toContain('data-swatch="--accent"');
+      expect(painted).toContain('fill="#C65D3B"');
+    });
+  });
+
+  it("carries both censuses as proportional bars", () => {
     const svg = text(renderComponentTree(input).bytes);
     expect(svg).toContain("EDGES BY PROPERTY");
     expect(svg).toContain("CLASSES IN USE");
-    expect(svg).toContain('data-bar="hasChildComponent"');
-    expect(svg).toContain('data-bar="uixo:Button"');
+    expect(svg).toContain("hasChildComponent");
+    expect(svg).toContain("uixo:Button");
+    expect((svg.match(/data-bar="/g) ?? []).length).toBeGreaterThan(4);
   });
 
   /**
@@ -444,24 +489,29 @@ describe("image/png — uixo:ComponentSheetRenderer", () => {
     // real geometry instead of a guessed coordinate.
     const layout = componentSheetLayout(input);
     expect(layout.width).toBe(width);
-    expect(layout.boxes.length).toBe(readDocument(input).nodeCount);
-    for (const box of layout.boxes) {
+    const boxes = layout.items.filter((i) => i.kind === "box");
+    expect(boxes.length).toBeGreaterThan(0);
+    for (const box of boxes) {
+      if (box.kind !== "box") continue;
       // Sample the header strip just inside its left edge, clear of the
       // caption glyphs that start further in.
-      const centre = boxHeaderCentre(box);
-      const at = pixel(box.x + 3, centre.y);
-      expect(at, `${box.entityId} at depth ${box.depth}`).toEqual([...depthFill(box.depth + 1)]);
+      const at = pixel(box.x + 3, box.y + 12);
+      expect(at, `${box.caption} at depth ${box.depth}`).toEqual([...depthFill(box.depth + 1)]);
     }
   });
 
-  it("keeps every box inside the surface", () => {
+  it("keeps every drawn item inside the surface", () => {
     const layout = componentSheetLayout(input);
-    for (const box of layout.boxes) {
-      expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.y).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(layout.width);
-      expect(box.y + box.height).toBeLessThanOrEqual(layout.height);
+    let checked = 0;
+    for (const item of layout.items) {
+      if (!("w" in item) || !("h" in item)) continue;
+      expect(item.x, `${item.kind} x`).toBeGreaterThanOrEqual(0);
+      expect(item.y, `${item.kind} y`).toBeGreaterThanOrEqual(0);
+      expect(item.x + item.w, `${item.kind} right`).toBeLessThanOrEqual(layout.width);
+      expect(item.y + item.h, `${item.kind} bottom`).toBeLessThanOrEqual(layout.height);
+      checked++;
     }
+    expect(checked).toBeGreaterThan(5);
   });
 
   it("is byte-deterministic across renders", () => {

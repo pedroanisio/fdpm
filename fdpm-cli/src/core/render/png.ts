@@ -105,14 +105,67 @@ const FONT: Record<string, readonly string[]> = {
   "/": ["....#", "....#", "...#.", "..#..", ".#...", "#....", "#...."],
   "(": ["..##.", ".#...", "#....", "#....", "#....", ".#...", "..##."],
   ")": [".##..", "...#.", "....#", "....#", "....#", "...#.", ".##.."],
+  "<": ["...#.", "..#..", ".#...", "#....", ".#...", "..#..", "...#."],
+  ">": [".#...", "..#..", "...#.", "....#", "...#.", "..#..", ".#..."],
+  "=": [".....", ".....", "#####", ".....", "#####", ".....", "....."],
+  "+": [".....", "..#..", "..#..", "#####", "..#..", "..#..", "....."],
+  ",": [".....", ".....", ".....", ".....", ".##..", ".##..", ".#..."],
+  ";": [".....", ".##..", ".##..", ".....", ".##..", ".##..", ".#..."],
+  "!": ["..#..", "..#..", "..#..", "..#..", "..#..", ".....", "..#.."],
+  "?": [".###.", "#...#", "....#", "...#.", "..#..", ".....", "..#.."],
+  "%": ["##..#", "##.#.", "..#..", ".#...", "#.##.", "#.##.", "....."],
+  "&": [".##..", "#..#.", "#.#..", ".#...", "#.#.#", "#..#.", ".##.#"],
+  "*": [".....", "#.#.#", ".###.", "#####", ".###.", "#.#.#", "....."],
+  "[": [".###.", ".#...", ".#...", ".#...", ".#...", ".#...", ".###."],
+  "]": [".###.", "...#.", "...#.", "...#.", "...#.", "...#.", ".###."],
+  _: [".....", ".....", ".....", ".....", ".....", ".....", "#####"],
+  "'": ["..#..", "..#..", ".....", ".....", ".....", ".....", "....."],
+  '"': [".#.#.", ".#.#.", ".....", ".....", ".....", ".....", "....."],
+  "@": [".###.", "#...#", "#.###", "#.#.#", "#.###", "#....", ".###."],
 };
+
+/**
+ * Characters with no glyph in the 5×7 face, and the ASCII reading a
+ * technical reader would write instead.
+ *
+ * Exported because `./pdf.ts` needs the same readings for the code points
+ * WinAnsi cannot encode either. The two encoders differ only in what they
+ * KEEP — a PDF standard font draws an en dash and a bullet, this face
+ * does not — so the mapping lives here once and each applies its own
+ * keep-set on top. Dropping these silently was the previous behaviour,
+ * and it turned `≤ 767px` into `767px`: a bound that reads as a value.
+ */
+export const ASCII_FOLD: Record<string, string> = {
+  "–": "-", "—": "-", "‒": "-", "―": "-", "‑": "-", "−": "-",
+  "•": "*", "·": "-", "…": "...", "™": "(tm)", "©": "(c)", "®": "(r)", "°": "deg",
+  "‘": "'", "’": "'", "‚": "'", "“": '"', "”": '"', "„": '"', "‹": "<", "›": ">",
+  "«": "<<", "»": ">>", "×": "x", "÷": "/", "±": "+/-",
+  "→": "->", "←": "<-", "↔": "<->", "⇒": "=>", "⇐": "<=", "↑": "^", "↓": "v",
+  "≤": "<=", "≥": ">=", "≠": "!=", "≈": "~", "≡": "==",
+  "∧": " and ", "∨": " or ", "¬": "not ", "∈": " in ", "∅": "{}", "∞": "inf",
+  "★": "*", "☆": "*", "✓": "[x]", "✔": "[x]", "✗": "[ ]", "✘": "[ ]", "⚠": "(!)",
+  "⌘": "Cmd", "⌥": "Alt", "⇧": "Shift", "⌃": "Ctrl", "⎋": "Esc",
+  "⏎": "Enter", "↵": "Enter", "⌫": "Backspace", "⌦": "Delete", "␣": "Space",
+  "⇥": "Tab", "⇪": "CapsLock",
+  "\u00a0": " ", "\u2007": " ", "\u2009": " ", "\u202f": " ", "\u3000": " ",
+  "\u200b": "", "\u200c": "", "\u200d": "", "\ufeff": "",
+};
+
+/** Fold every character outside the face's repertoire to its ASCII reading. */
+export function foldToAscii(s: string): string {
+  let out = "";
+  for (const ch of s) out += ASCII_FOLD[ch] ?? ch;
+  return out;
+}
 
 /** Advance per character at `scale`, including the one-column gap. */
 export const charAdvance = (scale: number): number => (GLYPH_W + 1) * scale;
 
 /** Width in pixels of `s` drawn at `scale`. */
-export const textWidth = (s: string, scale: number): number =>
-  s.length === 0 ? 0 : s.length * charAdvance(scale) - scale;
+export const textWidth = (s: string, scale: number): number => {
+  const folded = foldToAscii(s);
+  return folded.length === 0 ? 0 : folded.length * charAdvance(scale) - scale;
+};
 
 /** Height in pixels of a line drawn at `scale`. */
 export const textHeight = (scale: number): number => GLYPH_H * scale;
@@ -160,13 +213,14 @@ export class Raster {
   }
 
   /**
-   * Draw `s` with its top-left at (x, y). The string is upper-cased
-   * because the face has no lowercase; a character with no glyph advances
-   * without painting.
+   * Draw `s` with its top-left at (x, y). The string is folded to the
+   * face's ASCII repertoire and upper-cased, because the face has no
+   * lowercase; a character with no glyph after folding advances without
+   * painting rather than substituting a wrong shape.
    */
   text(x: number, y: number, s: string, rgb: Rgb, scale = 1): void {
     let cursor = Math.trunc(x);
-    for (const ch of s.toUpperCase()) {
+    for (const ch of foldToAscii(s).toUpperCase()) {
       const glyph = FONT[ch];
       if (glyph !== undefined) {
         for (let row = 0; row < GLYPH_H; row++) {

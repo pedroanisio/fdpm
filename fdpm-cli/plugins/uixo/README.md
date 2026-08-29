@@ -234,10 +234,10 @@ are registered:
 | Target | Renderer id | What it is |
 |---|---|---|
 | `text/markdown` | `uixo:DocumentOutlineRenderer` | The containment list, walking `hasChildComponent` alone — the literal reading, and the profile's default. |
-| `text/html` | `uixo:DocumentHtmlRenderer` | The reviewable page. Containment nests as real elements, every entity gets an anchor, and every cross-link is a resolving `href` — so a reviewer can send a URL that lands on the node under discussion. |
-| `application/pdf` | `uixo:DocumentPdfRenderer` | The paginated artefact that leaves the workbook: title page with counts and provenance, the forest as an indented outline, both censuses, page numbers. |
-| `image/svg+xml` | `uixo:ComponentTreeRenderer` | The wireframe as vectors, depth colour-keyed, plus the edge-property and class censuses as proportional bars. |
-| `image/png` | `uixo:ComponentSheetRenderer` | The same wireframe as pixels — a thumbnail for a ticket, a chat, or a visual diff between revisions. |
+| `text/html` | `uixo:DocumentHtmlRenderer` | The reviewable page: a sticky index, the palette as swatches, findings surfaced as a table, then the containment forest with prose as prose and every cross-link a resolving `href`. |
+| `application/pdf` | `uixo:DocumentPdfRenderer` | The paginated artefact that leaves the workbook: title page, contents with leader dots and folios, printed palette, findings, structure, censuses, running head. |
+| `image/svg+xml` | `uixo:ComponentTreeRenderer` | The poster: palette, breakpoint scale, findings chips, the trees that actually nest, and both censuses as proportional bars. |
+| `image/png` | `uixo:ComponentSheetRenderer` | The same poster as pixels — a thumbnail for a ticket, a chat, or a visual diff between revisions. |
 
 ```bash
 fdpm render <workbook> text/html      --renderer-id uixo:DocumentHtmlRenderer    -o doc.html
@@ -273,6 +273,41 @@ still reaches every entity.
 **This forest is a view, not a claim the ontology makes.** The markdown
 outline remains the literal reading and is left as it was.
 
+### Rendering values as what they are
+
+The first version of these four put every attribute through one
+flattening function. On the reference document that turned the entire
+payload — the prose, the CSS custom properties, the hex colours, the
+measured contrast ratios — into a grey comma-separated run-on, and the
+PDF into 41 pages of it. Present but unreadable is worse than absent: it
+looks like the document has been rendered.
+
+[`renderers/_present.ts`](./renderers/_present.ts) classifies each value
+by shape and by the ontology's own naming, so every view can draw a
+colour as a swatch, a status as a badge, a reference as a link, and prose
+as prose. Nothing is keyed to a particular document: `#F6F3EC` is a
+colour because it matches the hex grammar, `hasSeverity` is a status
+because the ontology names it one.
+
+It also unpacks `extensions`. That field is a `z.record` on all 712
+classes — the ontology's open-world escape hatch — and it carries the
+writing: on the reference document `extensions.description` is present on
+**all 346** entities and `extensions.spec` on 100. Treating it as one
+opaque blob is faithful to the schema and useless to a reader, so
+`description` becomes the entity's prose and the rest keeps its structure
+as a nested fact tree.
+
+Two document-level cuts fall out of the same classification, and they are
+what make these views specialized rather than generic:
+
+- **`colorTokens`** — every colour the document declares, including those
+  inside a nested theme map. Eleven of the reference document's tokens
+  carry a hex directly; a twelfth carries a whole dark-theme override as
+  a `name -> hex` map, and stopping at the top level would have shown the
+  light theme and silently dropped the dark one.
+- **`findings`** — everything carrying a warning or error status, lifted
+  out of whatever depth containment buried it at.
+
 ### One layout, two rasterisations
 
 [`renderers/_wireframe.ts`](./renderers/_wireframe.ts) computes the
@@ -284,10 +319,28 @@ a screenshot cannot show you.
 
 A box too narrow to hold a legible caption stops nesting and reports its
 remaining descendants as a count on the header (`+N nested`) rather than
-dropping them silently. The PNG encoder is
-[`src/core/render/png.ts`](../../src/core/render/png.ts), shared with
-`plugins/style`; the PDF's WinAnsi sanitisation and wrapping are
-[`src/core/render/pdf.ts`](../../src/core/render/pdf.ts).
+dropping them silently. Roots with no children are not drawn as boxes at
+all — a record is not a hierarchy, and drawing 118 of them as nested
+boxes is what made the first version a 15,000-pixel wall of grey pills.
+They are grouped by class as chips instead.
+
+The PNG encoder is [`src/core/render/png.ts`](../../src/core/render/png.ts),
+shared with `plugins/style`; the PDF's WinAnsi sanitisation and wrapping
+are [`src/core/render/pdf.ts`](../../src/core/render/pdf.ts).
+
+### Characters both encoders cannot draw
+
+Both faces have a limited repertoire and both used to lose characters
+silently. The WinAnsi sanitiser replaced every code point above U+00FF
+with `?` — **111 substitutions** on the reference document, every em dash
+and arrow in the prose — and the 5x7 raster face dropped anything it had
+no glyph for, turning a `<=` bound into a bare value.
+
+`ASCII_FOLD` in `png.ts` now holds one table of readings and each encoder
+applies its own keep-set on top: the PDF font draws dashes, quotes and
+bullets, so those pass through unchanged; the raster face folds
+everything. `tests/render-text-fold.test.ts` asserts both, including that
+`toWinAnsi` never emits a code point `drawText` would throw on.
 
 ## Layout
 
@@ -300,7 +353,9 @@ plugins/uixo/
 ├── ingest.ts                # UIXO document -> validated workbook
 ├── renderers/
 │   ├── _model.ts            # graph -> DocumentView; the spanning forest
-│   ├── _wireframe.ts        # nested-box geometry, shared by SVG and PNG
+│   ├── _present.ts          # value typing: colours, statuses, refs, prose
+│   ├── _poster.ts           # poster bands, shared by SVG and PNG
+│   ├── _wireframe.ts        # nested-box geometry inside the structure band
 │   ├── document_outline.ts  # text/markdown (+ the class table)
 │   ├── document_html.ts     # text/html
 │   ├── document_pdf.ts      # application/pdf
@@ -315,7 +370,7 @@ plugins/uixo/
 ```bash
 npx tsx plugins/uixo/scripts/vendor-uixo.ts --check   # vendoring gate
 npx tsx plugins/uixo/scripts/run-bridge.ts --check    # drift gate
-npx vitest run tests/plugins/uixo                     # 86 tests
+npx vitest run tests/plugins/uixo                     # 87 tests
 ```
 
 ## Known limits

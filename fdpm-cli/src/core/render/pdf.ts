@@ -20,29 +20,57 @@
  */
 
 import type { PDFDocument, PDFFont, PDFPage, RGB } from "pdf-lib";
+import { ASCII_FOLD } from "./png.js";
 
 /** A4 in points, the page every renderer here targets. */
 export const A4_WIDTH = 595.276;
 export const A4_HEIGHT = 841.89;
 
 /**
- * Make `s` safe for pdf-lib's StandardFonts.
+ * Code points above U+00FF that WinAnsi (CP1252) DOES encode, at bytes
+ * 0x80–0x9F. Dropping these was the bug this table exists to prevent:
+ * an em dash and a bullet are the commonest non-ASCII characters in
+ * technical prose, the font renders them perfectly, and replacing them
+ * with `?` corrupted a document that had nothing wrong with it.
+ */
+const WINANSI_HIGH = new Set([
+  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160,
+  0x2039, 0x0152, 0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
+  0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x017e, 0x0178,
+]);
+
+/**
+ * Make `s` renderable by pdf-lib's StandardFonts.
  *
- * Those fonts are WinAnsi-encoded and `drawText` throws on a code point
- * they cannot represent. Since the text is document data — a label, an
- * attribute value — a throw means one exotic character makes the whole
- * render fail. Substituting is the correct trade here, and the substitute
- * is visible (`?`) rather than a silent deletion, so a reader can tell
- * that a character was lost rather than never written.
+ * Those fonts are WinAnsi-encoded and `drawText` THROWS on a code point
+ * they cannot represent, so a single exotic character in document data
+ * would fail the whole render. Three tiers, in order:
  *
- * A renderer needing real Unicode must embed a TTF and not call this.
+ *  1. **Encodable** — ASCII, Latin-1, and the CP1252 high table above
+ *     (dashes, curly quotes, bullet, ellipsis, trademark). Passed
+ *     through unchanged, because the font draws them correctly.
+ *  2. **Foldable** — arrows, comparison and logic operators, keyboard
+ *     glyphs. Replaced with the ASCII reading a technical reader would
+ *     write anyway: `→` becomes `->`, not `?`. The table is `ASCII_FOLD`
+ *     in ./png.ts, shared with the raster face, which has the same
+ *     problem and a smaller repertoire.
+ *  3. **Neither** — an emoji, a CJK glyph. Replaced with `?`, which is
+ *     visible: a reader can tell a character was lost rather than never
+ *     written. A renderer needing those must embed a TTF, not call this.
  */
 export function toWinAnsi(s: string): string {
   let out = "";
   for (const ch of s.replace(/\t/g, "    ").replace(/\r/g, "")) {
-    // Iterating by code POINT, so an astral character is one `ch` of
-    // length 2 and is replaced once rather than twice.
-    out += ch.length === 1 && ch.charCodeAt(0) <= 0xff ? ch : "?";
+    const cp = ch.codePointAt(0)!;
+    if (cp === 0x0a) {
+      out += ch;
+    } else if (cp < 0x20) {
+      out += " "; // other control characters have no glyph
+    } else if (cp <= 0x7e || (cp >= 0xa0 && cp <= 0xff) || WINANSI_HIGH.has(cp)) {
+      out += ch;
+    } else {
+      out += ASCII_FOLD[ch] ?? "?";
+    }
   }
   return out;
 }

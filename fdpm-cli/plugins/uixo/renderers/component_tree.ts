@@ -1,18 +1,10 @@
 /**
- * `image/svg+xml` — the document as a wireframe, with its two censuses.
+ * `image/svg+xml` — the document as a poster.
  *
- * Three bands, in the order a reviewer needs them:
- *
- *  1. **Structure.** The containment forest as nested boxes. Depth is
- *     colour-keyed, so how deeply a component sits is legible without
- *     counting rules, and each box carries its class, its name, and the
- *     counts that nesting hides — children too deep to draw, and edges
- *     that leave the tree.
- *  2. **Relations.** One row per edge property with a proportional bar.
- *     The edges are the model; a structure drawing alone shows the
- *     skeleton and none of the wiring.
- *  3. **Classes.** The same for the ontology classes actually used, which
- *     is the fastest way to see what a 712-class profile was used *for*.
+ * Layout is `_poster.ts`, shared with the PNG so the vector and the
+ * bitmap are the same drawing. This module only turns typed items into
+ * elements: it owns no coordinate and makes no decision about what to
+ * show.
  *
  * Fonts are named as generic families only. An SVG that names an
  * installed font renders differently on the next machine, and a diagram
@@ -20,10 +12,10 @@
  */
 
 import type { RendererInput, RendererOutput } from "../../../src/plugin/types.js";
-import { readDocument, type DocumentView } from "./_model.js";
-import { boxCaption, wireframeLayout, MARGIN, type WireBox } from "./_wireframe.js";
+import { readDocument } from "./_model.js";
+import { posterLayout, type PosterItem } from "./_poster.js";
+import { readableInkOn, type Tone } from "./_present.js";
 
-/** XML text escape. Every author-supplied string passes through it. */
 function esc(v: unknown): string {
   return String(v ?? "")
     .replace(/&/g, "&amp;")
@@ -35,146 +27,110 @@ function esc(v: unknown): string {
 
 const SANS = "ui-sans-serif, system-ui, sans-serif";
 const MONO = "ui-monospace, monospace";
-const W = 1120;
-const INK = "#16181d";
-const MUTED = "#6b7280";
-const LINE = "#c9cdd6";
 const GROUND = "#ffffff";
-const BAR = "#4b5563";
+const INK = "#16181d";
+const LINE = "#c9cdd6";
+const BAR = "#8b93a1";
 
-/**
- * Fill per nesting depth. Six steps then a repeat: past six levels the
- * absolute depth matters less than the local contrast between a box and
- * the one it sits in, and that alternation is what the cycle preserves.
- */
+const TONE_FILL: Record<Tone | "fg", string> = {
+  ok: "#1b7f4b",
+  warn: "#8a5a00",
+  error: "#b3261e",
+  info: "#2f5fa8",
+  muted: "#6b7280",
+  fg: INK,
+};
+
+/** Depth ramp, shared with the raster view so nesting keys alike. */
 const DEPTH_FILL = ["#f7f8fa", "#eef1f5", "#e5e9ef", "#dce1e9", "#d3dae3", "#cbd3de"];
-const fillFor = (depth: number): string => DEPTH_FILL[depth % DEPTH_FILL.length]!;
+export const depthFillHex = (depth: number): string => DEPTH_FILL[depth % DEPTH_FILL.length]!;
 
-/** Truncate to `max` characters so a caption cannot run out of its box. */
-const clip = (s: string, max: number): string =>
-  s.length <= max ? s : `${s.slice(0, Math.max(max - 1, 0))}…`;
+const safeHex = (hex: string): string | null =>
+  /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(hex) ? hex : null;
 
 function text(
   x: number,
   y: number,
   content: string,
-  opts: { size?: number; fill?: string; family?: string; weight?: number; anchor?: string } = {},
+  opts: { size?: number; fill?: string; family?: string; weight?: number } = {},
 ): string {
-  const attrs = [
-    `x="${x}"`,
-    `y="${y}"`,
-    `font-family="${opts.family ?? SANS}"`,
-    `font-size="${opts.size ?? 11}"`,
-    `fill="${opts.fill ?? INK}"`,
-  ];
-  if (opts.weight !== undefined) attrs.push(`font-weight="${opts.weight}"`);
-  if (opts.anchor !== undefined) attrs.push(`text-anchor="${opts.anchor}"`);
-  return `<text ${attrs.join(" ")}>${esc(content)}</text>`;
+  return (
+    `<text x="${x}" y="${y}" font-family="${opts.family ?? SANS}" font-size="${opts.size ?? 11}"` +
+    ` fill="${opts.fill ?? INK}"${opts.weight ? ` font-weight="${opts.weight}"` : ""}>` +
+    `${esc(content)}</text>`
+  );
 }
 
-function box(b: WireBox): string {
-  // ~6.2px per character at 11px in a system sans; the clip is deliberately
-  // conservative because an overrunning caption is the one defect the
-  // bounds test cannot catch (SVG text has no declared width).
-  const caption = clip(boxCaption(b), Math.max(Math.floor((b.width - 16) / 6.2), 4));
-  return [
-    `<g data-box="${esc(b.entityId)}" data-depth="${b.depth}">`,
-    `<rect x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}" rx="3" fill="${fillFor(b.depth)}" stroke="${LINE}"/>`,
-    `<rect x="${b.x}" y="${b.y}" width="${b.width}" height="${b.headerHeight}" rx="3" fill="${fillFor(b.depth + 1)}"/>`,
-    text(b.x + 8, b.y + 17, caption, { size: 11, weight: b.depth === 0 ? 700 : 500 }),
-    `</g>`,
-  ].join("\n");
-}
-
-/** A census band: one labelled row per entry, bars proportional to the max. */
-function census(
-  title: string,
-  rows: { label: string; count: number }[],
-  top: number,
-  limit: number,
-): { svg: string; height: number } {
-  const shown = rows.slice(0, limit);
-  const max = Math.max(...shown.map((r) => r.count), 1);
-  const rowH = 16;
-  const labelW = 260;
-  const barW = W - 2 * MARGIN - labelW - 60;
-
-  const parts = [text(MARGIN, top + 12, title, { size: 10, fill: MUTED, weight: 700 })];
-  shown.forEach((row, i) => {
-    const y = top + 26 + i * rowH;
-    parts.push(
-      text(MARGIN, y + 9, clip(row.label, 42), { size: 10, family: MONO }),
-      `<rect data-bar="${esc(row.label)}" x="${MARGIN + labelW}" y="${y + 2}" width="${(row.count / max) * barW}" height="9" fill="${BAR}"/>`,
-      text(MARGIN + labelW + barW + 8, y + 9, String(row.count), { size: 10, fill: MUTED }),
-    );
-  });
-  let height = 26 + shown.length * rowH;
-  if (rows.length > shown.length) {
-    parts.push(
-      text(MARGIN, top + height + 10, `+ ${rows.length - shown.length} more`, {
-        size: 10,
-        fill: MUTED,
-      }),
-    );
-    height += 16;
+function draw(item: PosterItem): string {
+  switch (item.kind) {
+    case "title":
+      return text(item.x, item.y, item.text, { size: item.size, weight: 700 });
+    case "label":
+      return text(item.x, item.y, item.text, { size: item.size, fill: TONE_FILL[item.tone] });
+    case "rule":
+      return `<line x1="${item.x}" y1="${item.y}" x2="${item.x + item.w}" y2="${item.y}" stroke="${INK}" stroke-width="${item.weight}"/>`;
+    case "swatch": {
+      const fill = safeHex(item.hex);
+      const ink = fill ? readableInkOn(fill) : INK;
+      return [
+        `<g data-swatch="${esc(item.name)}">`,
+        `<rect x="${item.x}" y="${item.y}" width="${item.w}" height="${item.h}" rx="3" fill="${fill ?? "none"}" stroke="${LINE}"/>`,
+        text(item.x + 7, item.y + item.h - 8, item.hex, { size: 10, family: MONO, fill: ink }),
+        text(item.x, item.y + item.h + 13, item.name, { size: 10, weight: 600 }),
+        item.css ? text(item.x, item.y + item.h + 24, item.css, { size: 9, fill: TONE_FILL.muted }) : "",
+        `</g>`,
+      ].join("");
+    }
+    case "box":
+      return [
+        `<g data-box="${esc(item.caption)}" data-depth="${item.depth}">`,
+        `<rect x="${item.x}" y="${item.y}" width="${item.w}" height="${item.h}" rx="3" fill="${depthFillHex(item.depth)}" stroke="${LINE}"/>`,
+        `<rect x="${item.x}" y="${item.y}" width="${item.w}" height="26" rx="3" fill="${depthFillHex(item.depth + 1)}"/>`,
+        text(item.x + 8, item.y + 17, item.caption, { size: 11, weight: item.depth === 0 ? 700 : 500 }),
+        `</g>`,
+      ].join("");
+    case "chip":
+      return [
+        `<g data-chip="${esc(item.text)}">`,
+        `<rect x="${item.x}" y="${item.y}" width="${item.w}" height="${item.h}" rx="${item.h / 2}" fill="none" stroke="${TONE_FILL[item.tone]}" stroke-width="0.9"/>`,
+        text(item.x + 9, item.y + item.h - 6, item.text, { size: 10, fill: TONE_FILL[item.tone] }),
+        `</g>`,
+      ].join("");
+    case "bar":
+      return [
+        `<rect data-bar="${esc(item.value)}" x="${item.x}" y="${item.y}" width="${item.w}" height="${item.h}" rx="2" fill="${BAR}"/>`,
+        text(item.x + item.w + 7, item.y + item.h - 1, item.value, {
+          size: 9.5,
+          fill: TONE_FILL.muted,
+          family: MONO,
+        }),
+      ].join("");
+    default:
+      return "";
   }
-  return { svg: parts.join("\n"), height: height + 12 };
 }
 
 export function renderComponentTree(input: RendererInput): RendererOutput {
-  const doc: DocumentView = readDocument(input);
-  const HEADER = 62;
-  const wire = wireframeLayout(doc, { width: W, top: HEADER });
+  const doc = readDocument(input);
+  const poster = posterLayout(doc);
 
-  const relations = census(
-    "EDGES BY PROPERTY",
-    doc.relationCensus.map((r) => ({ label: r.property, count: r.count })),
-    wire.height + 8,
-    20,
-  );
-  const classes = census(
-    "CLASSES IN USE",
-    doc.classCensus.map((c) => ({ label: c.className, count: c.count })),
-    wire.height + 8 + relations.height,
-    20,
-  );
-
-  const total = wire.height + 8 + relations.height + classes.height + MARGIN;
-
-  const parts: string[] = [];
-  parts.push(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${total}" viewBox="0 0 ${W} ${total}" role="img" aria-label="UIXO component tree">`,
-  );
-  parts.push(`<rect x="0" y="0" width="${W}" height="${total}" fill="${GROUND}"/>`);
-  parts.push(text(MARGIN, 30, "UIXO document", { size: 20, weight: 700 }));
-  parts.push(
-    text(
-      MARGIN,
-      48,
-      `${doc.nodeCount} entities · ${doc.edgeCount} edges · ${doc.roots.length} root(s) · depth ${wire.maxDepthReached} — ${doc.workbookId} on ${doc.profileId}`,
-      { size: 10, fill: MUTED },
-    ),
-  );
-
-  if (doc.nodeCount === 0) {
-    parts.push(text(MARGIN, HEADER + 16, "no uixo primitives in this workbook", { size: 12, fill: MUTED }));
-  }
-  for (const b of wire.boxes) parts.push(box(b));
-
-  parts.push(relations.svg);
-  parts.push(classes.svg);
+  const parts: string[] = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${poster.width}" height="${poster.height}"` +
+      ` viewBox="0 0 ${poster.width} ${poster.height}" role="img" aria-label="UIXO document poster">`,
+    `<rect x="0" y="0" width="${poster.width}" height="${poster.height}" fill="${GROUND}"/>`,
+    ...poster.items.map(draw),
+  ];
 
   if (doc.cycleBroken.length > 0) {
     parts.push(
-      text(MARGIN, total - 8, `${doc.cycleBroken.length} entity(ies) reachable only by breaking a cycle`, {
+      text(28, poster.height - 10, `${doc.cycleBroken.length} entity(ies) reachable only by breaking a cycle`, {
         size: 10,
-        fill: "#b3261e",
+        fill: TONE_FILL.error,
       }),
     );
   }
 
-  parts.push(`</svg>`);
-  parts.push("");
+  parts.push(`</svg>`, "");
 
   return {
     bytes: new TextEncoder().encode(parts.join("\n")),

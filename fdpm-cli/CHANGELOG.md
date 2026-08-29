@@ -33,6 +33,60 @@ upgrade.
 > visible rather than inferred.
 
 
+### Fixed
+
+#### The four `fdpm.uixo` views rendered the document but did not present it
+
+Reported by the operator, and correct on every count. The four renderers
+were four containers around one generic tree dump, and one of them was
+corrupting text.
+
+**Characters the fonts can draw were being destroyed.** `toWinAnsi`
+replaced every code point above U+00FF with `?`. WinAnsi encodes the em
+dash, en dash, bullet, ellipsis and curly quotes perfectly well, so this
+was corruption of valid data, not a font limitation: **111 substitutions**
+on the 346-entity reference document, in prose that had nothing wrong with
+it. The 5×7 raster face had the mirror defect, silently dropping anything
+it had no glyph for — `≤ 767px` became `767px`, a bound that reads as a
+value. One shared `ASCII_FOLD` table now holds the readings (`→` is `->`,
+`⌘` is `Cmd`) and each encoder applies its own keep-set; the raster face
+gained the 19 glyphs it was missing (`< > = + , ; ! ? % & * [ ] _ ' " @`).
+`tests/render-text-fold.test.ts` asserts both directions, including that
+`toWinAnsi` never emits a code point `drawText` would throw on. Remaining
+`?` in the reference render: 13, all of them genuine question marks.
+
+**Every value was flattened to one comma-separated line.** The whole
+payload — prose, CSS custom properties, hex colours, measured contrast
+ratios — arrived as grey run-on text. The new `renderers/_present.ts`
+classifies values by shape and by the ontology's own naming, so a colour
+draws as a swatch, a status as a badge, a reference as a link and prose as
+prose. It also unpacks `extensions`, the `z.record` that carries the
+writing (`description` on all 346 entities, `spec` on 100), instead of
+stringifying it.
+
+Per view:
+
+- **HTML** gained a sticky index, a palette of 22 swatches (11 declared
+  directly plus a dark-theme override that was previously invisible
+  because its hexes sit in a nested map), a findings table, and entity
+  cards where prose is prose and `spec` is an aligned definition list.
+- **PDF** was 41 pages of undifferentiated grey with an 80%-empty title
+  page and no contents. It now has a title page, a contents page with
+  leader dots and folios, a printed palette, a findings section, a
+  structure section with a measure capped near 72 characters and depth
+  shown by a left rule, census tables, and a running head.
+- **SVG and PNG** drew 118 identical pills 15,000 pixels tall — less
+  information than the markdown outline. They now share
+  `renderers/_poster.ts`: palette, a breakpoint scale, findings chips,
+  and only the roots that actually nest as boxes, with standalone
+  entities grouped by class as chips. A bug found while drawing it:
+  `contentMaxWidthPx` was being read as a range bound, which drew the
+  topmost breakpoint backwards.
+
+Verified by rendering `_ingest_bin/claude-app_uixo.json` and looking at
+every output. 40 tests across `tests/plugins/uixo/renderers.test.ts` and
+`tests/render-text-fold.test.ts`; full suite 187 files / 1861 tests.
+
 ### Added
 
 #### `fdpm.uixo` 0.1.0 → 0.2.0: HTML, PDF, SVG and PNG views of an interaction document
