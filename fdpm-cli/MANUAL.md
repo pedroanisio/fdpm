@@ -640,6 +640,26 @@ A prompt whose body lacks the three sections, or whose listing entry
 exceeds 600 bytes, is rejected at plugin activation; a missing required
 argument or an unknown one is a `validation` error naming the argument.
 
+The bundled plugins ship these:
+
+| Prompt id | Plugin | Use it when |
+|---|---|---|
+| `planning/triage_iteration` | `fdpm.planning` | Ranking Ready tasks and claiming work at an iteration checkpoint. |
+| `loop-forward/author_pipeline` | `fdpm.loop-forward` | Building a bounded multi-stage prompt pipeline, or extending one. |
+| `loop-forward/audit_pipeline` | `fdpm.loop-forward` | Reviewing a pipeline before running, approving or inheriting it. |
+
+```sh
+# Author a loop-forward pipeline: the call order that satisfies the
+# endpoint-before-edge rule, and the eight validator ids it can trip.
+fdpm plugin prompt loop-forward/author_pipeline --arg workbook_id=my-pipelines
+
+# Audit one: routes review through the five design-graph renderers.
+fdpm plugin prompt loop-forward/audit_pipeline --arg workbook_id=my-pipelines --json
+```
+
+`fdpm plugin prompts` is the discovery call — run it first rather than
+guessing an id, because the set grows with whatever plugins are active.
+
 ---
 
 ## 16. Rendering workbook output

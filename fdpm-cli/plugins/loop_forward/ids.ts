@@ -167,3 +167,17 @@ export const TERMINAL_STATE = [
 ] as const;
 export const EXAMPLE_KIND = ["few_shot", "golden", "adversarial"] as const;
 export const SAMPLING_KIND = ["deterministic", "temperature", "top_p"] as const;
+
+/**
+ * Renderer ids for the five design-graph views.
+ *
+ * These live here rather than in `index.ts` because `prompts.ts` names
+ * them in the audit procedure, and importing them from `index.ts` — which
+ * itself imports `prompts.ts` — would close an import cycle. `index.ts`
+ * re-exports them, so the public surface is unchanged.
+ */
+export const PIPELINE_GRAPH_RENDERER_ID = "lf:PipelineGraphRenderer" as const;
+export const VERIFICATION_SURFACE_RENDERER_ID = "lf:VerificationSurfaceRenderer" as const;
+export const AUTHORITY_MATRIX_RENDERER_ID = "lf:AuthorityMatrixRenderer" as const;
+export const BINDING_MATRIX_RENDERER_ID = "lf:BindingMatrixRenderer" as const;
+export const BUDGET_ENVELOPE_RENDERER_ID = "lf:BudgetEnvelopeRenderer" as const;

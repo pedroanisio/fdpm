@@ -53,6 +53,7 @@ renders the five controls as a page a reviewer can check.
 | Relation types | 22 |
 | Renderers | 5 |
 | Validators | 8 |
+| MCP prompts | 2 |
 
 ---
 
@@ -167,6 +168,57 @@ properties are asserted in
 
 ---
 
+## MCP prompts
+
+The renderers show what a pipeline *is*. They do not tell an agent how
+to **build** one or how to **decide whether one is safe to run**. Two
+plugin-shipped MCP prompts (SPEC-MCP-SERVER §13.5) carry that layer.
+
+| Prompt id | Use it when | Arguments |
+|---|---|---|
+| `loop-forward/author_pipeline` | Building a new pipeline, or extending one with a stage or a loop. | `workbook_id` (required), `pipeline_id` |
+| `loop-forward/audit_pipeline` | Before running, approving or inheriting a pipeline you did not author. | `workbook_id` (required), `pipeline_id` |
+
+Both are skills rather than templates: each names when to reach for it,
+the exact call order over real FDPM tools and resources, and the failure
+modes by the validator `rule_id` that actually rejects the write.
+
+```bash
+# Metadata only — what prompts/list returns.
+fdpm plugin prompts --json
+
+# The rendered body — what prompts/get returns.
+fdpm plugin prompt loop-forward/author_pipeline --arg workbook_id=my-pipelines
+fdpm plugin prompt loop-forward/audit_pipeline  --arg workbook_id=my-pipelines --json
+```
+
+Over MCP they arrive on `prompts/list` and `prompts/get`; through the
+SDK, `listPrompts(host)` and `renderPrompt(host, { id, args })`. No
+surface special-cases this plugin — registration is the whole wiring.
+
+### Why author_pipeline insists on an order
+
+Relation endpoints are resolved at write time, so an edge whose endpoint
+does not exist yet is rejected. The procedure therefore names every
+primitive before the relations over it: templates before
+`lf:TemplateDeclaresVariable`, stages before `lf:PipelineHasStage`,
+carries before `lf:LoopHasCarry`. An agent that batches edges first gets
+a wall of `not_found` and no partial write.
+
+### Two gates on the prompt bodies
+
+- **No drift.** Every `lf:` id a body cites is cross-checked against the
+  plugin's own sources. A prompt that teaches a renamed type is worse
+  than no prompt: it is a confident instruction to write something the
+  validators will reject.
+- **A budget.** `LOOP_FORWARD_PROMPT_BODY_CEILING_BYTES` is 4,500 B,
+  about 10 % over the larger measured body (4,089 B). A procedural
+  specification is re-sent on every step of a run, so its size is a
+  recurring cost, not a one-off. Raising the ceiling needs a CHANGELOG
+  line and a reason — the same ratchet the MCP tool catalog carries.
+
+---
+
 ## Layout
 
 ```
@@ -179,6 +231,7 @@ loop_forward/
 ├── validators.ts             # the layer that closes the flattening loss
 ├── ingest.ts                 # parse boundary: document -> workbook graph
 ├── _common.ts                # field builders
+├── prompts.ts                # the two MCP prompts (author / audit)
 ├── index.ts                  # profile + activate()
 ├── fdpm-plugin.json          # manifest (must match what activate registers)
 └── renderers/

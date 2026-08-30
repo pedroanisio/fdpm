@@ -89,6 +89,68 @@ every output. 40 tests across `tests/plugins/uixo/renderers.test.ts` and
 
 ### Added
 
+#### `fdpm.loop-forward`: two MCP prompts — how to author a pipeline, and how to audit one
+
+The profile could describe a pipeline and render five design-graph views
+of it. Neither told an agent how to **build** one or how to decide
+whether one was **safe to run**, and the plugin shipped zero prompts. It
+now ships two (SPEC-MCP-SERVER §13.5, ADR `decision:0010`):
+
+| Prompt id | Use it when |
+|---|---|
+| `loop-forward/author_pipeline` | Building a new bounded multi-stage pipeline, or extending one with a stage or a loop. |
+| `loop-forward/audit_pipeline` | Before running, approving or inheriting a pipeline you did not author. |
+
+`author_pipeline` teaches the order the graph actually requires: relation
+endpoints are resolved at write time, so every primitive is named before
+the relations over it — templates before `lf:TemplateDeclaresVariable`,
+stages before `lf:PipelineHasStage`, carries before `lf:LoopHasCarry`. An
+agent that batches edges first gets a wall of `not_found` and no partial
+write. Its failure-modes section names all eight validator rule ids
+(`lf:val:binding-source-arm` … `lf:val:example-reason`).
+
+`audit_pipeline` routes review through the five renderers as resources
+rather than reconstructing the graph by hand, and says what each view is
+evidence *of*: an unexpected carry back edge is unbounded context growth;
+a stage with no `lf:OutputValidator` consumes model output unchecked; a
+`lf:LoopConfig` budget under the structural bound means the loop can only
+ever end `exhausted`.
+
+No new surface was needed. `prompts/list`, `prompts/get`, `fdpm plugin
+prompts`, `fdpm plugin prompt` and the SDK's `listPrompts` /
+`renderPrompt` are all plugin-generic, so registration in `activate()` is
+the entire wiring — the server now advertises 4 prompts where it
+advertised 2.
+
+Two gates ship with them, both in
+`tests/plugins/loop_forward/prompts.test.ts`:
+
+- **A drift gate.** Every `lf:` identifier a prompt body cites is
+  cross-checked against the plugin's own sources, and every `fdpm.*` tool
+  name against the MCP manifest. A prompt that teaches a renamed type is
+  worse than no prompt: it is a confident instruction to write something
+  the validators will reject.
+- **A byte ratchet.** `LOOP_FORWARD_PROMPT_BODY_CEILING_BYTES` is 4,500 B
+  against measured bodies of 4,089 B and 3,023 B — about 10 % headroom,
+  the same discipline `tests/mcp/catalog-budget.test.ts` applies to the
+  tool catalog. A procedural specification is re-sent on every step of a
+  run, so its size is a recurring cost rather than a one-off; the host's
+  own `PROMPT_BODY_BUDGET_BYTES` (16,384) would have left 47 % slack and
+  passed while the body doubled. Raising this ceiling requires a
+  CHANGELOG line and a reason.
+
+`tests/plugins/loop_forward/prompts-surfaces.test.ts` adds the transport
+regression: the CLI binary and a spawned `fdpm-mcp` are exercised against
+a fresh data dir, so a plugin that registered prompts only after some
+earlier in-process load would fail there rather than pass silently.
+
+**Refactor riding along.** The five `*_RENDERER_ID` constants moved from
+`plugins/loop_forward/index.ts` to `plugins/loop_forward/ids.ts`, whose
+docstring already claimed to hold every id the plugin addresses.
+`prompts.ts` names them in the audit procedure and `index.ts` imports
+`prompts.ts`, so leaving them in `index.ts` would have closed an import
+cycle. `index.ts` re-exports them; no public name changed.
+
 #### `fdpm.uixo` 0.1.0 → 0.2.0: HTML, PDF, SVG and PNG views of an interaction document
 
 712 typed classes and 210 relation types rendered as one markdown list. A

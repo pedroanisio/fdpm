@@ -122,6 +122,7 @@ hypothesis, not a finished product — see "Eval design" below.
 | Plugin-contributed resource URI schemes (beyond render) | v2 |
 | Discovery tools (`list_verbs`, `describe_verb`, `applicable_operations`, `list_resources`) | v2 |
 | First plugin-shipped MCP prompt (`planning/triage_iteration`) via `prompts/list` / `prompts/get`, CLI and SDK | Shipped |
+| Plugin prompts as domain operating instructions — `loop-forward/author_pipeline` and `loop-forward/audit_pipeline`, with a drift gate over the ids they cite and a measured body-byte ratchet | Shipped |
 | Progressive-disclosure / Skills-shaped catalog summarization | v2 |
 | MCP change notifications (`tools`/`resources`/`prompts` list_changed) | v2 |
 | **Three-arm cold-agent eval gate** | **End of v2** |

@@ -275,6 +275,22 @@ const milestoneSpecs: PrimitiveSpec[] = [
 
 const acSpecs: PrimitiveSpec[] = [
   {
+    id: "ac:p1-domain-prompts",
+    type: PLAN_ACCEPTANCE_CRITERION,
+    scope: SCOPE_IDS.workbook,
+    fields: {
+      criterion:
+        "AC-P1-DP: a domain plugin ships MCP prompts that are operating instructions, not templates — reachable on prompts/list and prompts/get, through `fdpm plugin prompts|prompt` and through the SDK, with a drift gate asserting every plugin id and tool name a body cites is real, and a measured body-byte ceiling below the host budget.",
+      expression: 'graph.exists("task:p1-loop-forward-prompts")',
+      status: "open",
+      evidence_refs: [
+        "fdpm-cli/plugins/loop_forward/prompts.ts",
+        "fdpm-cli/tests/plugins/loop_forward/prompts.test.ts",
+        "fdpm-cli/tests/plugins/loop_forward/prompts-surfaces.test.ts",
+      ],
+    },
+  },
+  {
     id: "ac:p1-subs-and-sizecap",
     type: PLAN_ACCEPTANCE_CRITERION,
     scope: SCOPE_IDS.workbook,
@@ -508,6 +524,20 @@ const tasks: TaskDef[] = [
     priority: "P0",
     planned_start: "2026-08-28",
     planned_finish: "2026-08-28",
+    wbs: "wbs:p1-mcp-slice-2",
+  },
+  {
+    id: "task:p1-loop-forward-prompts",
+    name: "p1-loop-forward-prompts",
+    summary:
+      "fdpm.loop-forward ships loop-forward/author_pipeline (endpoint-before-edge call order, all eight lf:val:* failure modes) and loop-forward/audit_pipeline (review via the five renderers). Drift gate over cited ids; 4,500 B body ceiling; no new MCP tool.",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 60,
+    status: "In_review",
+    priority: "P1",
+    planned_start: "2026-08-30",
+    planned_finish: "2026-08-30",
     wbs: "wbs:p1-mcp-slice-2",
   },
   {
@@ -1026,6 +1056,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p1-4", type: PLAN_REL_VERIFIES, from: "task:p1-catalog-budget", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-5", type: PLAN_REL_VERIFIES, from: "task:p1-server-instructions", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-6", type: PLAN_REL_VERIFIES, from: "task:p1-plugin-prompts", to: "ac:p1-subs-and-sizecap" },
+  { id: "rel:ver-p1-7", type: PLAN_REL_VERIFIES, from: "task:p1-loop-forward-prompts", to: "ac:p1-domain-prompts" },
   { id: "rel:ver-p2-1", type: PLAN_REL_VERIFIES, from: "task:p2-dry-run", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-2", type: PLAN_REL_VERIFIES, from: "task:p2-idempotency", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-3", type: PLAN_REL_VERIFIES, from: "task:p2-audit-gates", to: "ac:p2-tier3-hardened" },
@@ -1093,6 +1124,7 @@ async function main(): Promise<void> {
     "task:p2-tests",
     "task:p2-audit-report",
     "task:p1-plugin-prompts",
+    "task:p1-loop-forward-prompts",
   ];
   for (const id of shipped) {
     const { report } = await host.patchPrimitive(PROJECT_ID, {

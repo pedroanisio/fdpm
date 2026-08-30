@@ -48,9 +48,13 @@ import type {
 } from "../../src/plugin/types.js";
 import type { PluginManifest } from "../../src/plugin/manifest.js";
 import {
+  AUTHORITY_MATRIX_RENDERER_ID,
+  BINDING_MATRIX_RENDERER_ID,
+  BUDGET_ENVELOPE_RENDERER_ID,
   CATEGORIES,
   DEFAULT_SCOPE_SET,
   HOST_COMPATIBILITY,
+  PIPELINE_GRAPH_RENDERER_ID,
   PLUGIN_ID,
   PLUGIN_VERSION,
   PROFILE_ID,
@@ -58,7 +62,9 @@ import {
   SCOPES,
   SCOPE_SETS,
   VENDOR,
+  VERIFICATION_SURFACE_RENDERER_ID,
 } from "./ids.js";
+import { LOOP_FORWARD_PROMPTS } from "./prompts.js";
 import { ALL_PRIMITIVES } from "./primitives.js";
 import { RELATIONS } from "./relations.js";
 import { ENTITY_VALIDATORS } from "./validators.js";
@@ -70,11 +76,14 @@ import { renderBudgetEnvelope } from "./renderers/budget_envelope.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export const PIPELINE_GRAPH_RENDERER_ID = "lf:PipelineGraphRenderer" as const;
-export const VERIFICATION_SURFACE_RENDERER_ID = "lf:VerificationSurfaceRenderer" as const;
-export const AUTHORITY_MATRIX_RENDERER_ID = "lf:AuthorityMatrixRenderer" as const;
-export const BINDING_MATRIX_RENDERER_ID = "lf:BindingMatrixRenderer" as const;
-export const BUDGET_ENVELOPE_RENDERER_ID = "lf:BudgetEnvelopeRenderer" as const;
+export {
+  PIPELINE_GRAPH_RENDERER_ID,
+  VERIFICATION_SURFACE_RENDERER_ID,
+  AUTHORITY_MATRIX_RENDERER_ID,
+  BINDING_MATRIX_RENDERER_ID,
+  BUDGET_ENVELOPE_RENDERER_ID,
+};
+export { LOOP_FORWARD_PROMPTS, AUTHOR_PIPELINE_PROMPT, AUDIT_PIPELINE_PROMPT } from "./prompts.js";
 
 export const PROFILE: DomainProfile = {
   id: PROFILE_ID,
@@ -111,6 +120,10 @@ export const manifest: PluginManifest = JSON.parse(manifestRaw) as PluginManifes
 export async function activate(ctx: PluginContext): Promise<void> {
   ctx.registerProfile(PROFILE);
 
+  for (const prompt of LOOP_FORWARD_PROMPTS) {
+    ctx.registerPrompt(prompt);
+  }
+
   for (const registration of ENTITY_VALIDATORS) {
     ctx.registerValidator(registration);
   }
@@ -129,6 +142,7 @@ export async function activate(ctx: PluginContext): Promise<void> {
   ctx.logger.info(
     `${PLUGIN_ID} activated: ${PROFILE.primitive_types.length} primitive types, ` +
       `${PROFILE.relation_types?.length ?? 0} relation types, ${ENTITY_VALIDATORS.length} validators, ` +
+      `${LOOP_FORWARD_PROMPTS.length} prompts, ` +
       `${views.length} renderers (${views.map(([target]) => target).join(", ")}). Profile id: ${PROFILE_ID}.`,
   );
 }
