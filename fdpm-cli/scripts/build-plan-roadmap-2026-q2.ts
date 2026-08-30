@@ -275,6 +275,21 @@ const milestoneSpecs: PrimitiveSpec[] = [
 
 const acSpecs: PrimitiveSpec[] = [
   {
+    id: "ac:p1-knowledge-cartridge",
+    type: PLAN_ACCEPTANCE_CRITERION,
+    scope: SCOPE_IDS.workbook,
+    fields: {
+      criterion:
+        "AC-P1-KC: a profile hosts six-layer talent cartridges where the generator protocol's verification pass runs as validators rather than a checklist — every normative claim gated on a KEY:ordinal, the discard rate counted from retained and discarded harvest rather than asserted, and the three checks a validator cannot make declared and rendered UNCHECKED.",
+      expression: 'graph.exists("task:p1-knowledge-cartridge")',
+      status: "open",
+      evidence_refs: [
+        "fdpm-cli/plugins/knowledge_cartridge/",
+        "fdpm-cli/tests/plugins/knowledge_cartridge/",
+      ],
+    },
+  },
+  {
     id: "ac:p1-domain-prompts",
     type: PLAN_ACCEPTANCE_CRITERION,
     scope: SCOPE_IDS.workbook,
@@ -524,6 +539,20 @@ const tasks: TaskDef[] = [
     priority: "P0",
     planned_start: "2026-08-28",
     planned_finish: "2026-08-28",
+    wbs: "wbs:p1-mcp-slice-2",
+  },
+  {
+    id: "task:p1-knowledge-cartridge",
+    name: "p1-knowledge-cartridge",
+    summary:
+      "profile:knowledge-cartridge:1.0 — 13 primitives (six are the layers), 6 relations, 9 validator rule ids running the generator protocol's Pass 6, 3 renderers and 1 MCP prompt. Discarded harvest retained so the discard rate is counted; 3 unenforceable checks declared, not dropped.",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 60,
+    status: "In_review",
+    priority: "P1",
+    planned_start: "2026-08-30",
+    planned_finish: "2026-08-30",
     wbs: "wbs:p1-mcp-slice-2",
   },
   {
@@ -1057,6 +1086,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p1-5", type: PLAN_REL_VERIFIES, from: "task:p1-server-instructions", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-6", type: PLAN_REL_VERIFIES, from: "task:p1-plugin-prompts", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-7", type: PLAN_REL_VERIFIES, from: "task:p1-loop-forward-prompts", to: "ac:p1-domain-prompts" },
+  { id: "rel:ver-p1-8", type: PLAN_REL_VERIFIES, from: "task:p1-knowledge-cartridge", to: "ac:p1-knowledge-cartridge" },
   { id: "rel:ver-p2-1", type: PLAN_REL_VERIFIES, from: "task:p2-dry-run", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-2", type: PLAN_REL_VERIFIES, from: "task:p2-idempotency", to: "ac:p2-tier3-hardened" },
   { id: "rel:ver-p2-3", type: PLAN_REL_VERIFIES, from: "task:p2-audit-gates", to: "ac:p2-tier3-hardened" },
@@ -1125,6 +1155,7 @@ async function main(): Promise<void> {
     "task:p2-audit-report",
     "task:p1-plugin-prompts",
     "task:p1-loop-forward-prompts",
+    "task:p1-knowledge-cartridge",
   ];
   for (const id of shipped) {
     const { report } = await host.patchPrimitive(PROJECT_ID, {

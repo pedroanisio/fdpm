@@ -89,6 +89,68 @@ every output. 40 tests across `tests/plugins/uixo/renderers.test.ts` and
 
 ### Added
 
+#### `fdpm.knowledge-cartridge` 0.1.0 — talent cartridges as a typed graph
+
+`profile:knowledge-cartridge:1.0`: a corpus compressed into an executable
+competence module. 13 primitive types, 6 relation types, 9 validator rule ids,
+3 renderers and 1 MCP prompt.
+
+The schema is a transcription, not an invention. `plugins/knowledge_cartridge/GENERATOR.md`
+— the seven-pass protocol, moved into the plugin from an untracked scratch path
+and now its source of truth — already specifies row shapes rather than prose:
+its Pass-5 layer contracts give L1 "one line per rule: ID, rule, value,
+citation", L4 "three columns: symptom / cause / correction", and L5 the only
+layer where "prose is permitted here and only here". Its Pass-3 transposition
+test is a five-arm discriminated union.
+
+**Six layers are six primitive types**, not one polymorphic item with a `layer`
+string. Pass 6 asks "L4 has >= 8 rows" and "L5 exists and is non-empty"; against
+a polymorphic type those are filters over a column and nothing stops a
+diagnostic shipping without a correction. Against six types they are cardinality
+checks and each register is a required field.
+
+**Discarded harvest is kept.** `kc:Harvest.retained` records the passages that
+failed the transposition test alongside the ones that passed, so the >= 50 %
+discard rate Pass 6 checks is arithmetic over the graph rather than a number its
+author asserted. That assertion is the SELF-CERTIFICATION failure Pass 6 exists
+to prevent, and it is the one place this plugin adds something the document did
+not ask for.
+
+**Where the citation check fires is forced, not chosen.** A citation is a
+`kc:CitesSource` edge, an edge needs both endpoints to exist, and the host
+validates each write against the proposed post-state — so a layer type demanding
+an inbound citation at creation could never be created, in a batch or otherwise.
+`kc:val:normative-claim-cited` therefore gates the `kc:Cartridge` header, which
+Pass 5 creates last: the header cannot be written while any normative claim is
+uncited, and the finding names every offender. Layer items stay writable
+throughout Pass 3, which is the only sequence that works.
+
+**Three Pass-6 checks cannot run in a validator** — ordinal resolution (a
+network call to the retrieval substrate), compression ratio (its numerator is
+the artifact, which post-dates validation), and quotation length (a heuristic
+would flag the ranged reads stored verbatim on purpose). They are declared in
+`KC_UNENFORCEABLE_CHECKS` and printed as `UNCHECKED` by the citation index. A
+scoreboard showing only enforceable checks would be the self-certification the
+protocol warns about.
+
+Renderers: `kc:CartridgeRenderer` (text/markdown) emits the artifact with
+declared gaps and unreconciled conflicts in the back matter — a view that
+printed the rules and hid the gaps would look perfectly fine and be the audit
+failure; `kc:CitationIndexRenderer` (text/html) inverts the evidence source by
+source plus the Pass-6 scoreboard; `kc:LayerMapRenderer` (image/svg+xml) shows
+depth per layer against its floor, hatched as well as coloured so an
+under-harvested layer survives a greyscale print.
+
+`knowledge-cartridge/build_cartridge` ships the protocol as an MCP prompt.
+Listing 554 B (budget 600 B), body 4,602 B against a pinned 5,000 B ceiling —
+about 11 % headroom, the ratchet `tests/mcp/catalog-budget.test.ts` applies to
+the tool catalog. No new MCP tool; catalog cost 0 bytes.
+
+65 tests across four suites: profile shape, Pass-6 validators including every
+failure path, the three renderers against a real Host with determinism
+assertions, and the prompt with a drift gate cross-checking every `kc:` id and
+`fdpm.*` tool name it cites against the plugin's own sources.
+
 #### `fdpm.loop-forward`: two MCP prompts — how to author a pipeline, and how to audit one
 
 The profile could describe a pipeline and render five design-graph views

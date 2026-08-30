@@ -647,6 +647,7 @@ The bundled plugins ship these:
 | `planning/triage_iteration` | `fdpm.planning` | Ranking Ready tasks and claiming work at an iteration checkpoint. |
 | `loop-forward/author_pipeline` | `fdpm.loop-forward` | Building a bounded multi-stage prompt pipeline, or extending one. |
 | `loop-forward/audit_pipeline` | `fdpm.loop-forward` | Reviewing a pipeline before running, approving or inheriting it. |
+| `knowledge-cartridge/build_cartridge` | `fdpm.knowledge-cartridge` | Compressing a corpus into a six-layer competence cartridge. |
 
 ```sh
 # Author a loop-forward pipeline: the call order that satisfies the

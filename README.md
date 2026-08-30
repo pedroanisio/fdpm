@@ -123,6 +123,7 @@ hypothesis, not a finished product — see "Eval design" below.
 | Discovery tools (`list_verbs`, `describe_verb`, `applicable_operations`, `list_resources`) | v2 |
 | First plugin-shipped MCP prompt (`planning/triage_iteration`) via `prompts/list` / `prompts/get`, CLI and SDK | Shipped |
 | Plugin prompts as domain operating instructions — `loop-forward/author_pipeline` and `loop-forward/audit_pipeline`, with a drift gate over the ids they cite and a measured body-byte ratchet | Shipped |
+| `profile:knowledge-cartridge:1.0` — talent cartridges as a typed graph, with the generator protocol's verification pass running as validators and the checks it cannot make declared rather than dropped | Shipped |
 | Progressive-disclosure / Skills-shaped catalog summarization | v2 |
 | MCP change notifications (`tools`/`resources`/`prompts` list_changed) | v2 |
 | **Three-arm cold-agent eval gate** | **End of v2** |

@@ -1,0 +1,113 @@
+{
+  "id": "fdpm.knowledge-cartridge",
+  "version": "0.1.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Knowledge Cartridges",
+  "description": "A corpus compressed into an executable competence module. Hosts the six layers deliberate practice deposits — primitives, invariants, constants, procedures, diagnostics, judgement — with a bounded competence envelope, tiered sources, and verbatim harvest keeping both its retained and discarded arms. Nine of the generator protocol's eleven verification checks run as validators at write time; the three that cannot are declared and rendered UNCHECKED.",
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2"
+  },
+  "permissions": [
+    "read:workbooks",
+    "read:primitives",
+    "read:relations",
+    "render:server"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "knowledge-cartridge",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "cartridge-markdown",
+      "entry": "renderCartridge",
+      "metadata": {
+        "renderer_id": "kc:CartridgeRenderer",
+        "target": "text/markdown",
+        "output_path": "cartridge.md"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "citation-index-html",
+      "entry": "renderCitationIndex",
+      "metadata": {
+        "renderer_id": "kc:CitationIndexRenderer",
+        "target": "text/html",
+        "output_path": "citation-index.html"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "layer-map-svg",
+      "entry": "renderLayerMap",
+      "metadata": {
+        "renderer_id": "kc:LayerMapRenderer",
+        "target": "image/svg+xml",
+        "output_path": "layer-map.svg"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "normative-claim-cited",
+      "entry": "validateClaimCited",
+      "metadata": {
+        "rule_id": "kc:val:normative-claim-cited",
+        "applies_to": "kc:Primitive, kc:Invariant, kc:Constant, kc:Step, kc:Diagnostic"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "harvest-retention-arm",
+      "entry": "validateHarvestArm",
+      "metadata": {
+        "rule_id": "kc:val:harvest-retention-arm",
+        "applies_to": "kc:Harvest"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "override-suspends-a-rule",
+      "entry": "validateOverrideTarget",
+      "metadata": {
+        "rule_id": "kc:val:override-suspends-a-rule",
+        "applies_to": "kc:Override"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "invariant-falsifiable",
+      "entry": "validateFalsifier",
+      "metadata": {
+        "rule_id": "kc:val:invariant-falsifiable",
+        "applies_to": "kc:Invariant"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "step-constrains-next",
+      "entry": "validateStepOrdering",
+      "metadata": {
+        "rule_id": "kc:val:step-constrains-next",
+        "applies_to": "kc:Step"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "cartridge-counts",
+      "entry": "validateCartridgeCounts",
+      "metadata": {
+        "rule_id": "kc:val:diagnostic-minimum",
+        "applies_to": "kc:Cartridge",
+        "also_emits": "kc:val:judgement-non-empty, kc:val:exclusions-non-empty, kc:val:discard-rate"
+      }
+    }
+  ]
+}
