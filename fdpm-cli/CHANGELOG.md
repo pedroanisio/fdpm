@@ -72,6 +72,12 @@ and MCP reload uses `SIGBREAK` on Windows. CI now runs the supported Node 24
 path on macOS and Windows in addition to the Linux Node 20/22/24 matrix, and
 the Python renderer is exercised on all three operating systems.
 
+Each Node matrix job now packs `@fdpm/zod-bridge` and `@fdpm/cli`, installs
+both tarballs into an isolated consumer project, and invokes npm's generated
+`fdpm` and `fdpm-mcp` command shims. This covers the Windows `.cmd` launch path
+and catches missing packaged files or unresolved workspace dependencies that
+source-tree binary smoke tests cannot expose.
+
 Workbook IDs now reject the Windows-reserved device basenames `con`, `prn`,
 `aux`, `nul`, `com1` through `com9`, and `lpt1` through `lpt9`; the existing
 128-character limit is also enforced consistently by operation and lifecycle

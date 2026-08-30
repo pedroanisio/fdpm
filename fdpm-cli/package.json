@@ -48,6 +48,7 @@
     "public:check": "node scripts/check-public-readiness.mjs",
     "release:check": "npm run check && npm run public:check && npm audit --omit=dev --audit-level=high",
     "render:acceptance": "tsx scripts/render-acceptance.ts",
+    "smoke:pack": "node scripts/smoke-packed-install.mjs",
     "test": "vitest run",
     "test:public-readiness": "node tests/_meta/public-readiness.test.mjs",
     "test:renderers:visual": "playwright test --config playwright.config.ts",

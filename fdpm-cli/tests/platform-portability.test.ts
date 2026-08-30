@@ -107,10 +107,9 @@ describe("portable package and CI entry points", () => {
     expect(workflow).toContain("macos-latest");
     expect(workflow).toContain("windows-latest");
     expect(workflow).toContain("npm run check");
-    expect(workflow).toContain("node dist/src/bin/fdpm.js version --json");
-    expect(workflow).toContain("node dist/src/bin/fdpm-mcp.js");
-    expect(workflow).toContain("FDPM_NO_PLUGINS");
-    expect(workflow).toContain("runner.temp");
+    expect(workflow).toContain("npm run smoke:pack");
+    expect(workflow).not.toContain("node dist/src/bin/fdpm.js version --json");
+    expect(workflow).not.toContain("node dist/src/bin/fdpm-mcp.js");
     expect(workflow).toContain("python-renderer:");
     expect(workflow).toContain("actions/setup-python@v6");
     expect(workflow).toContain(

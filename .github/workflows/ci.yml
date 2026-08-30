@@ -44,17 +44,8 @@ jobs:
           cache-dependency-path: fdpm-cli/package-lock.json
       - run: npm ci
       - run: npm run check
-      - name: Smoke CLI binary
-        run: node dist/src/bin/fdpm.js version --json
-        env:
-          FDPM_DATA_DIR: ${{ runner.temp }}/fdpm-cli-smoke
-          FDPM_REGISTRY_PATH: ${{ runner.temp }}/fdpm-registry.json
-      - name: Smoke MCP stdio binary
-        run: node dist/src/bin/fdpm-mcp.js
-        env:
-          FDPM_DATA_DIR: ${{ runner.temp }}/fdpm-mcp-smoke
-          FDPM_NO_PLUGINS: "1"
-          FDPM_REGISTRY_PATH: ${{ runner.temp }}/fdpm-registry.json
+      - name: Smoke packed npm install and command shims
+        run: npm run smoke:pack
 
   python-renderer:
     name: ${{ matrix.os }} / Python renderer
