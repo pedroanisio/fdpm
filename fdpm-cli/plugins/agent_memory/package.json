@@ -1,0 +1,19 @@
+{
+  "name": "@fdpm-plugins/agent-memory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The agent-memory contract as an FDPM profile: episode-scoped memory whose claims are superseded, never overwritten.",
+  "scripts": {
+    "test": "vitest run --root ../../ tests/plugins/agent_memory",
+    "typecheck": "tsc -p ../../tsconfig.json --noEmit",
+    "vendor:check": "tsx scripts/vendor-agent-memory.ts --source ../../../../../new-age/documents-base/src/agent-memory.schema.ts --check"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

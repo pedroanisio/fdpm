@@ -1,0 +1,17 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "schemas/agent-memory.ts": "5d0b8545d78fc290da092ee57c489d8353f19c14fb9da186f3a2110c82db6b6c"
+  },
+  "vendored_from": "/home/admin/new-age/documents-base/src/agent-memory.schema.ts",
+  "vendored_from_digest": "71e2a9da11f0c66d91c22b6685b7892620ba36fc7ea5514224766712d1162c7d",
+  "vendored_at": "2026-08-30T08:30:00Z",
+  "schema_version": "2.0.0",
+  "rewrites": [
+    {
+      "from": "from \"./loop-forward.schema.js\"",
+      "to": "from \"./_contract-types.js\""
+    }
+  ],
+  "note": "The source is external to this repository; --check runs only where it is checked out."
+}

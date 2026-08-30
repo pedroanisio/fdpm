@@ -1,0 +1,179 @@
+{
+  "id": "fdpm.agent-memory",
+  "version": "0.1.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Agent Memory",
+  "description": "The agent-memory contract as an FDPM profile: episode-scoped facts, hypotheses that owe live evidence, actions, artifacts and decisions, with claims superseded rather than overwritten so the chain of replacements survives as the account of how a claim changed.",
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2"
+  },
+  "permissions": [
+    "read:workbooks",
+    "read:primitives",
+    "read:relations"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "agent-memory",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "supersede-shape",
+      "metadata": {
+        "rule_id": "am:val:supersede-shape",
+        "type_id": "am:SupersededBy"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "evidence",
+      "metadata": {
+        "rule_id": "am:val:evidence",
+        "type_id": "am:Hypothesis"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-partition-episodeholds",
+      "metadata": {
+        "rule_id": "am:val:episode-partition",
+        "type_id": "am:EpisodeHolds"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-partition-supersededby",
+      "metadata": {
+        "rule_id": "am:val:episode-partition",
+        "type_id": "am:SupersededBy"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-partition-supports",
+      "metadata": {
+        "rule_id": "am:val:episode-partition",
+        "type_id": "am:Supports"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-partition-refutes",
+      "metadata": {
+        "rule_id": "am:val:episode-partition",
+        "type_id": "am:Refutes"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-partition-produced",
+      "metadata": {
+        "rule_id": "am:val:episode-partition",
+        "type_id": "am:Produced"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-partition-derivedfrom",
+      "metadata": {
+        "rule_id": "am:val:episode-partition",
+        "type_id": "am:DerivedFrom"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-episodeholds",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:EpisodeHolds"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-supersededby",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:SupersededBy"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-supports",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Supports"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-refutes",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Refutes"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-produced",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Produced"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-derivedfrom",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:DerivedFrom"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-fact",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Fact"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-hypothesis",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Hypothesis"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-artifact",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Artifact"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-action",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Action"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "episode-writable-decision",
+      "metadata": {
+        "rule_id": "am:val:episode-writable",
+        "type_id": "am:Decision"
+      }
+    }
+  ]
+}
