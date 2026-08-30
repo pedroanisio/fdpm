@@ -81,6 +81,13 @@ export interface ValidatorRegistration {
 
 export interface RendererInput {
   workbookId: string;
+  /**
+   * ISO-8601 snapshot time for time-sensitive views.
+   *
+   * PluginRuntime supplies one value per render invocation. Direct callers
+   * may inject a fixed value for reproducible artifacts and tests.
+   */
+  renderedAt?: string;
   workbook?: Workbook;
   primitives: readonly PrimitiveInstance[];
   relations: readonly RelationInstance[];

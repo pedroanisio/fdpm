@@ -171,7 +171,7 @@ describe("text/html — style:StyleHtmlRenderer", () => {
     const html = text(renderStyleHtml(empty).bytes);
     expect(html.startsWith("<!doctype html>")).toBe(true);
     expect(html).toContain("</html>");
-    expect(html).toContain("no style:Style primitives");
+    expect(html).toContain("No styles have been recorded yet.");
   });
 });
 

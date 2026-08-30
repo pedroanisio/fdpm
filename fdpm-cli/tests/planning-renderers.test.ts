@@ -254,6 +254,27 @@ describe("plan:RoadmapRenderer (text/markdown)", () => {
 // ---------------------------------------------------------------------------
 
 describe("plan:AgentBoardRenderer (text/markdown)", () => {
+  it("uses the explicit render clock for stable headers and stale-claim decisions", async () => {
+    const renderedAt = "2026-08-29T12:00:00.000Z";
+    const t = task("task:clocked", {
+      name: "clocked",
+      summary: "claim expired before the render snapshot",
+      executor_kind: "AI",
+      status: "Ready",
+      priority: "P1",
+      claim_holder_id: "actor:Bot:previous",
+      claim_until: "2026-08-29T11:59:59.000Z",
+    });
+    const clockedInput = { ...input([t]), renderedAt } as RendererInput & { renderedAt: string };
+
+    const first = new TextDecoder().decode((await renderAgentBoard(clockedInput)).bytes);
+    const second = new TextDecoder().decode((await renderAgentBoard(clockedInput)).bytes);
+
+    expect(first).toBe(second);
+    expect(first).toContain(`Generated at ${renderedAt}.`);
+    expect(first.split("---")[0]).toContain("🔄STALE");
+  });
+
   it("emits a documented header and the Available-to-claim queue", async () => {
     const t = task("task:claimable", {
       name: "claimable",
@@ -274,7 +295,8 @@ describe("plan:AgentBoardRenderer (text/markdown)", () => {
   });
 
   it("excludes Ready tasks with non-stale claims from the available queue", async () => {
-    const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const renderedAt = "2026-08-29T12:00:00.000Z";
+    const future = "2026-08-29T13:00:00.000Z";
     const t = task("task:claimed", {
       name: "claimed",
       summary: "ready but claimed",
@@ -287,7 +309,7 @@ describe("plan:AgentBoardRenderer (text/markdown)", () => {
       claim_until: future,
     });
     const md = new TextDecoder().decode(
-      (await renderAgentBoard(input([t]))).bytes,
+      (await renderAgentBoard({ ...input([t]), renderedAt })).bytes,
     );
     expect(md).toContain("## 🎯 Available to claim");
     // The available section says "no tasks available" because the only
@@ -298,7 +320,8 @@ describe("plan:AgentBoardRenderer (text/markdown)", () => {
   });
 
   it("includes Ready tasks whose claim is STALE (claim_until in the past) in available queue with 🔄STALE marker", async () => {
-    const past = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const renderedAt = "2026-08-29T12:00:00.000Z";
+    const past = "2026-08-29T11:00:00.000Z";
     const t = task("task:stale", {
       name: "stale",
       summary: "claim expired",
@@ -311,7 +334,7 @@ describe("plan:AgentBoardRenderer (text/markdown)", () => {
       claim_until: past,
     });
     const md = new TextDecoder().decode(
-      (await renderAgentBoard(input([t]))).bytes,
+      (await renderAgentBoard({ ...input([t]), renderedAt })).bytes,
     );
     const availableSection = md.split("---")[0]!;
     expect(availableSection).toContain("`task:stale`");
@@ -353,7 +376,7 @@ describe("plan:AgentBoardRenderer (text/markdown)", () => {
 // ---------------------------------------------------------------------------
 
 describe("plan:GanttSvgRenderer (image/svg+xml)", () => {
-  it("emits a syntactically valid SVG with viewBox and a <title>", async () => {
+  it("emits a syntactically valid, accessibly named SVG", async () => {
     const out = await renderGantt(input([], []));
     expect(out.contentType).toBe("image/svg+xml");
     expect(out.filename).toBe("gantt.svg");
@@ -362,8 +385,21 @@ describe("plan:GanttSvgRenderer (image/svg+xml)", () => {
     expect(svg).toContain("<svg");
     expect(svg).toContain('xmlns="http://www.w3.org/2000/svg"');
     expect(svg).toContain("viewBox=");
-    expect(svg).toContain("<title>demo — Gantt</title>");
+    expect(svg).toContain('role="img"');
+    expect(svg).toContain('aria-labelledby="gantt-title gantt-description"');
+    expect(svg).toContain('<title id="gantt-title">demo — Gantt</title>');
+    expect(svg).toContain('<desc id="gantt-description">');
     expect(svg).toContain("</svg>");
+  });
+
+  it("uses renderedAt for an empty timeline instead of the wall clock", async () => {
+    const renderAt = async (renderedAt: string): Promise<string> =>
+      new TextDecoder().decode((await renderGantt({ ...input([], []), renderedAt })).bytes);
+
+    const first = await renderAt("2026-01-15T12:00:00.000Z");
+    expect(first).toBe(await renderAt("2026-01-15T12:00:00.000Z"));
+    expect(first).toContain("2026-01-15");
+    expect(await renderAt("2027-02-16T12:00:00.000Z")).toContain("2027-02-16");
   });
 
   it("draws one <rect> per scheduled task", async () => {

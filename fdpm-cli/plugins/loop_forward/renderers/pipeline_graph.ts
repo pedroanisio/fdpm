@@ -315,7 +315,7 @@ function drawBox(box: GraphBox): string {
   return parts.join("");
 }
 
-function drawForward(edge: GraphForwardEdge, layout: PipelineGraphLayout): string {
+function drawForward(edge: GraphForwardEdge, layout: PipelineGraphLayout, markerId: string): string {
   const from = layout.boxes.find((box) => box.stageId === edge.fromStageId);
   const to = layout.boxes.find((box) => box.stageId === edge.toStageId);
   if (!from || !to) return "";
@@ -327,7 +327,7 @@ function drawForward(edge: GraphForwardEdge, layout: PipelineGraphLayout): strin
   return [
     `<g data-forward="${esc(edge.fromStageId)}->${esc(edge.toStageId)}">`,
     `<path d="M ${x1} ${baseY} C ${x1} ${apex}, ${x2} ${apex}, ${x2} ${baseY}"`,
-    ` fill="none" stroke="${FORWARD}" stroke-width="1.4" marker-end="url(#arrow-forward)"/>`,
+    ` fill="none" stroke="${FORWARD}" stroke-width="1.4" marker-end="url(#${markerId})"/>`,
     text((x1 + x2) / 2, apex + 10, clip(label, 40), {
       size: 9,
       family: MONO,
@@ -338,7 +338,7 @@ function drawForward(edge: GraphForwardEdge, layout: PipelineGraphLayout): strin
   ].join("");
 }
 
-function drawCarry(edge: GraphCarryEdge, layout: PipelineGraphLayout): string {
+function drawCarry(edge: GraphCarryEdge, layout: PipelineGraphLayout, markerId: string): string {
   const from = layout.boxes.find((box) => box.stageId === edge.fromStageId);
   if (!from) return "";
   const y = from.y + from.h + 18 + (edge.lane - 1) * CARRY_LANE;
@@ -348,7 +348,7 @@ function drawCarry(edge: GraphCarryEdge, layout: PipelineGraphLayout): string {
   return [
     `<g data-carry="${esc(edge.name)}">`,
     `<path d="M ${startX} ${from.y + from.h} L ${startX} ${y} L ${endX} ${y} L ${endX} ${from.y + from.h}"`,
-    ` fill="none" stroke="${CARRY}" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arrow-carry)"/>`,
+    ` fill="none" stroke="${CARRY}" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#${markerId})"/>`,
     text(endX + 10, y - 5, clip(label, 72), { size: 9, family: MONO, fill: CARRY }),
     "</g>",
   ].join("");
@@ -368,11 +368,24 @@ function drawStop(row: GraphStopRow, x: number, y: number): string {
   ].join("");
 }
 
-function svgFor(pipeline: PipelineView): string {
+interface PipelineDrawing {
+  width: number;
+  height: number;
+  title: string;
+  markup: string;
+}
+
+function drawingFor(pipeline: PipelineView, index: number): PipelineDrawing {
   const layout = pipelineGraphLayout(pipeline);
   const body: string[] = [];
+  const forwardMarkerId = `pipeline-${index}-arrow-forward`;
+  const carryMarkerId = `pipeline-${index}-arrow-carry`;
 
   body.push(
+    "<defs>",
+    `<marker id="${forwardMarkerId}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 8 4 L 0 8 z" fill="${FORWARD}"/></marker>`,
+    `<marker id="${carryMarkerId}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 8 4 L 0 8 z" fill="${CARRY}"/></marker>`,
+    "</defs>",
     `<rect x="0" y="0" width="${layout.width}" height="${layout.height}" fill="${GROUND}"/>`,
     text(MARGIN, 28, layout.title, { size: 17, weight: 700 }),
     text(MARGIN, 46, layout.subtitle, { size: 11, fill: MUTED }),
@@ -389,9 +402,9 @@ function svgFor(pipeline: PipelineView): string {
     }),
   );
 
-  for (const edge of layout.forward) body.push(drawForward(edge, layout));
+  for (const edge of layout.forward) body.push(drawForward(edge, layout, forwardMarkerId));
   for (const box of layout.boxes) body.push(drawBox(box));
-  for (const edge of layout.carries) body.push(drawCarry(edge, layout));
+  for (const edge of layout.carries) body.push(drawCarry(edge, layout, carryMarkerId));
 
   const stopsTop = layout.bandY + layout.bandH + 26;
   body.push(
@@ -409,33 +422,46 @@ function svgFor(pipeline: PipelineView): string {
     );
   }
 
-  return [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${layout.width}" height="${layout.height}"`,
-    ` viewBox="0 0 ${layout.width} ${layout.height}" role="img" aria-label="${esc(layout.title)} dataflow">`,
-    "<defs>",
-    `<marker id="arrow-forward" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 8 4 L 0 8 z" fill="${FORWARD}"/></marker>`,
-    `<marker id="arrow-carry" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 8 4 L 0 8 z" fill="${CARRY}"/></marker>`,
-    "</defs>",
-    body.join(""),
-    "</svg>",
-  ].join("");
+  return { width: layout.width, height: layout.height, title: layout.title, markup: body.join("") };
 }
 
-/** Renderer entry point. One `<svg>` per pipeline, stacked. */
+/** Renderer entry point. All pipelines are stacked inside one SVG document. */
 export function renderPipelineGraph(input: RendererInput): RendererOutput {
   const store = readStore(input);
-  const drawings =
-    store.pipelines.length === 0
-      ? [
-          `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="80" viewBox="0 0 560 80" role="img" aria-label="no pipelines">` +
-            `<rect x="0" y="0" width="560" height="80" fill="${GROUND}"/>` +
-            text(MARGIN, 44, "This workbook declares no pipeline.", { size: 12, fill: MUTED }) +
-            "</svg>",
-        ]
-      : store.pipelines.map(svgFor);
+  const gap = 24;
+  const drawings = store.pipelines.map((pipeline, index) => drawingFor(pipeline, index));
+  const width = drawings.length === 0 ? 560 : Math.max(...drawings.map((drawing) => drawing.width));
+  const height =
+    drawings.length === 0
+      ? 80
+      : drawings.reduce((sum, drawing) => sum + drawing.height, 0) + gap * (drawings.length - 1);
+  const title = drawings.length === 0 ? "No pipelines" : `Pipeline dataflow: ${drawings.map((drawing) => drawing.title).join(", ")}`;
+  const description =
+    drawings.length === 0
+      ? "This workbook declares no pipeline."
+      : `${drawings.length} pipeline${drawings.length === 1 ? "" : "s"}, stacked in workbook order.`;
+  const content: string[] = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="pipeline-graph-title pipeline-graph-description">`,
+    `<title id="pipeline-graph-title">${esc(title)}</title>`,
+    `<desc id="pipeline-graph-description">${esc(description)}</desc>`,
+  ];
+
+  if (drawings.length === 0) {
+    content.push(
+      `<rect x="0" y="0" width="560" height="80" fill="${GROUND}"/>`,
+      text(MARGIN, 44, description, { size: 12, fill: MUTED }),
+    );
+  } else {
+    let y = 0;
+    for (const drawing of drawings) {
+      content.push(`<g transform="translate(0 ${y})">${drawing.markup}</g>`);
+      y += drawing.height + gap;
+    }
+  }
+  content.push("</svg>");
 
   return {
-    bytes: new TextEncoder().encode(drawings.join("\n")),
+    bytes: new TextEncoder().encode(content.join("")),
     contentType: "image/svg+xml",
     filename: "pipeline-graph.svg",
   };

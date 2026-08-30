@@ -714,7 +714,8 @@ export class PluginRuntime implements PluginRuntimeFacade {
       );
 
     let output: RendererOutput;
-    let enrichedInput: RendererInput = input;
+    const renderedAt = input.renderedAt ?? new Date().toISOString();
+    let enrichedInput: RendererInput = { ...input, renderedAt };
     try {
       const slice = this.host.getProject(input.workbookId);
       const docCandidates = Object.values(slice.primitives)
@@ -723,6 +724,7 @@ export class PluginRuntime implements PluginRuntimeFacade {
       const defaultDoc = docCandidates[0];
       enrichedInput = {
         ...input,
+        renderedAt,
         workbook: slice.workbook,
         templates: Object.values(slice.templates),
         renderDsl: this.host.renderDsl.createFacade({

@@ -17,7 +17,9 @@
     "build": "tsc -p . && npm run copy-plugin-assets && chmod +x dist/src/bin/fdpm.js dist/src/bin/fdpm-mcp.js",
     "copy-plugin-assets": "node scripts/copy-plugin-assets.mjs",
     "dev": "tsx src/bin/fdpm.ts",
+    "render:acceptance": "tsx scripts/render-acceptance.ts",
     "test": "vitest run",
+    "test:renderers:visual": "playwright test --config playwright.config.ts",
     "test:watch": "vitest",
     "typecheck": "tsc -p . --noEmit"
   },
@@ -36,6 +38,8 @@
     "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
     "@types/archiver": "^7.0.0",
     "@types/node": "^22.5.4",
     "@types/shell-quote": "^1.7.5",

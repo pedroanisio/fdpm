@@ -237,7 +237,14 @@ describe("text/html — uixo:DocumentHtmlRenderer", () => {
       ...entityIds,
       ...[...html.matchAll(/<section id="([^"]+)"/g)].map((m) => m[1]!),
     ]);
-    const hrefs = [...html.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]!);
+    // This invariant is about graph links emitted by entity cards. The
+    // standalone document shell also owns a global skip link, which points to
+    // the content landmark rather than to a graph entity and belongs to the
+    // cross-renderer accessibility acceptance suite.
+    const entityMarkup = [...html.matchAll(/<ul class="links [^"]+">[\s\S]*?<\/ul>/g)]
+      .map((match) => match[0])
+      .join("\n");
+    const hrefs = [...entityMarkup.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]!);
     expect(hrefs.length).toBeGreaterThan(0);
     for (const href of hrefs) {
       expect(ids.has(href), `dangling anchor #${href}`).toBe(true);
@@ -265,7 +272,7 @@ describe("text/html — uixo:DocumentHtmlRenderer", () => {
     const empty = { ...input, primitives: [], relations: [] } as RendererInput;
     const html = text(renderDocumentHtml(empty).bytes);
     expect(html.startsWith("<!doctype html>")).toBe(true);
-    expect(html).toContain("no uixo primitives");
+    expect(html).toContain("No UIXO entities have been recorded yet.");
   });
 });
 

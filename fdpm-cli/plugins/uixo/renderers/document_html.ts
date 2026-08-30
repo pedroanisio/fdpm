@@ -35,6 +35,7 @@
  */
 
 import type { RendererInput, RendererOutput } from "../../../src/plugin/types.js";
+import { renderStandaloneDocument } from "../../../src/core/render/document.js";
 import { displayName, readDocument, type DocumentView, type NodeView } from "./_model.js";
 import {
   byClass,
@@ -287,31 +288,27 @@ function indexNav(doc: DocumentView, hasPalette: boolean, hasFindings: boolean):
 }
 
 const PAGE_CSS = `
-:root { color-scheme: light dark;
-  --bg:#fbfbfc; --panel:#ffffff; --fg:#15171c; --muted:#666e7b; --line:#dfe3ea;
-  --accent:#2f5fa8; --ok:#1b7f4b; --warn:#8a5a00; --err:#b3261e; --nav:280px; }
-@media (prefers-color-scheme: dark) { :root {
-  --bg:#0e1014; --panel:#15181d; --fg:#e7e9ee; --muted:#98a0ad; --line:#272c34;
-  --accent:#84a9e0; --ok:#4bbd83; --warn:#d0a03e; --err:#e2796f; } }
+:root { --ok:var(--fdpm-ok); --warn:var(--fdpm-warn); --err:var(--fdpm-bad); --nav:280px; }
 * { box-sizing: border-box; }
 body { margin:0; background:var(--bg); color:var(--fg);
-  font:15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  font:15px/1.55 var(--fdpm-body-font); }
 .layout { display:grid; grid-template-columns:var(--nav) minmax(0,1fr); gap:2.5rem; max-width:96rem; margin:0 auto; padding:2rem 1.5rem 6rem; }
-@media (max-width:60rem) { .layout { grid-template-columns:1fr; } #index { position:static; max-height:none; } }
+@media (max-width:60rem) { .layout { grid-template-columns:minmax(0,1fr); } #index { position:static; max-height:none; } }
 #index { position:sticky; top:2rem; align-self:start; max-height:calc(100vh - 4rem); overflow:auto; font-size:.83rem; }
 #index b { display:block; margin:1rem 0 .35rem; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
 #index b:first-child { margin-top:0; }
 #index ul { list-style:none; margin:0; padding:0; }
 #index li { display:flex; justify-content:space-between; gap:.5rem; padding:.12rem 0; }
 #index li span { color:var(--muted); font-variant-numeric:tabular-nums; }
-a { color:var(--accent); text-decoration:none; }
-a:hover { text-decoration:underline; }
+a { color:var(--accent); text-decoration:underline; text-underline-offset:.14em; }
+#index a { text-decoration:none; }
+a:hover { text-decoration-thickness:.12em; }
 h1 { font-size:1.85rem; margin:0 0 .2rem; letter-spacing:-.01em; }
 h2 { font-size:1.15rem; margin:2.5rem 0 .75rem; padding-bottom:.4rem; border-bottom:2px solid var(--fg); display:flex; align-items:baseline; gap:.6rem; }
 h3 { font-size:.95rem; margin:0; font-weight:650; }
 h2 .count { font-size:.75rem; font-weight:400; color:var(--muted); }
 .lede { color:var(--muted); margin:0 0 .5rem; }
-code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.84em; }
+code { font-family:var(--fdpm-code-font); font-size:.84em; }
 .muted { color:var(--muted); }
 .num { font-variant-numeric:tabular-nums; }
 .sep { color:var(--line); margin:0 .35em; }
@@ -325,7 +322,7 @@ code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fon
 .swatch { margin:0; }
 .swatch .well { display:flex; align-items:flex-end; height:4.5rem; padding:.35rem .5rem; border:1px solid var(--line);
   border-radius:6px; text-decoration:none; }
-.swatch .well span { font-family:ui-monospace,monospace; font-size:.72rem; }
+.swatch .well span { font-family:var(--fdpm-code-font); font-size:.72rem; }
 .setname { margin:1.25rem 0 .5rem; font-size:.78rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
 .setname .count { text-transform:none; letter-spacing:0; }
 .swatch figcaption { display:flex; flex-direction:column; gap:.1rem; margin-top:.35rem; font-size:.78rem; line-height:1.4; }
@@ -342,7 +339,7 @@ code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fon
 
 .node { border:1px solid var(--line); border-radius:7px; background:var(--panel); padding:.6rem .8rem; margin:.5rem 0; }
 .node header { display:flex; flex-wrap:wrap; align-items:center; gap:.45rem; }
-.node .cls { font-family:ui-monospace,monospace; font-size:.72rem; color:var(--muted); }
+.node .cls { font-family:var(--fdpm-code-font); font-size:.72rem; color:var(--muted); }
 .node .eid { margin-left:auto; color:var(--muted); font-size:.72rem; }
 .node .prose { margin:.4rem 0 .3rem; font-size:.88rem; max-width:68ch; }
 .node .token { margin:.25rem 0; display:flex; gap:.75rem; align-items:center; font-size:.8rem; }
@@ -356,7 +353,7 @@ dl.facts > dd, dl.nested > dd { margin:0; min-width:0; overflow-wrap:anywhere; }
 ul.links { list-style:none; margin:.3rem 0 0; padding:0; font-size:.78rem; }
 ul.links li { display:flex; gap:.45rem; padding:.05rem 0; }
 ul.links .prop { color:var(--muted); flex:none; min-width:9rem; }
-ul.links.in { opacity:.72; }
+ul.links.in { border-left:2px solid var(--line); padding-left:.55rem; }
 ul.links.in .prop::before { content:"← "; }
 ul.links.out .prop::before { content:"→ "; }
 
@@ -369,6 +366,14 @@ td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; width:3.5r
 .census-cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(20rem,1fr)); gap:0 2rem; }
 .warn-note { color:var(--err); font-weight:600; }
 .empty { color:var(--muted); font-style:italic; }
+@media (max-width:42rem) {
+  .layout { padding:1.5rem 1rem 6rem; }
+  .census-cols, .swatches { grid-template-columns:minmax(0,1fr); }
+  dl.facts, dl.nested { grid-template-columns:minmax(0,1fr); }
+  ul.links li { flex-wrap:wrap; }
+  ul.links .prop { min-width:0; }
+}
+@media print { #index { display:none !important; } .layout { display:block; max-width:none; padding:0; } .census-cols { display:block; } }
 `.trim();
 
 export function renderDocumentHtml(input: RendererInput): RendererOutput {
@@ -377,15 +382,6 @@ export function renderDocumentHtml(input: RendererInput): RendererOutput {
   const flagged = findings(doc);
 
   const parts: string[] = [
-    `<!doctype html>`,
-    `<html lang="en">`,
-    `<head>`,
-    `<meta charset="utf-8">`,
-    `<meta name="viewport" content="width=device-width, initial-scale=1">`,
-    `<title>UIXO document — ${esc(doc.workbookId)}</title>`,
-    `<style>${PAGE_CSS}</style>`,
-    `</head>`,
-    `<body>`,
     `<div class="layout">`,
     indexNav(doc, tokens.length > 0, flagged.length > 0),
     `<main>`,
@@ -412,7 +408,7 @@ export function renderDocumentHtml(input: RendererInput): RendererOutput {
   ];
 
   if (doc.nodeCount === 0) {
-    parts.push(`<p class="empty">no uixo primitives in this workbook</p>`);
+    parts.push(`<p class="empty">No UIXO entities have been recorded yet.</p>`);
   } else {
     const seen = new Set<string>();
     for (const root of doc.roots) {
@@ -441,10 +437,16 @@ export function renderDocumentHtml(input: RendererInput): RendererOutput {
   );
   parts.push(`</div></section>`);
 
-  parts.push(`</main>`, `</div>`, `</body>`, `</html>`, ``);
+  parts.push(`</main>`, `</div>`);
+  const html = renderStandaloneDocument({
+    title: `UIXO document — ${doc.workbookId}`,
+    body: parts.join("\n"),
+    styles: PAGE_CSS,
+    accent: "jade",
+  });
 
   return {
-    bytes: new TextEncoder().encode(parts.join("\n")),
+    bytes: new TextEncoder().encode(html),
     contentType: "text/html",
     filename: "uixo-document.html",
   };

@@ -43,11 +43,11 @@ export const renderAgentBoard: RendererFn = (input): RendererOutput => {
 
   const tasks = primitives.filter((p) => p.type_id === "plan:Task");
 
-  // Renderer pulls "now" from the workbook graph indirectly: each task's
-  // claim_until is compared against env.NOW frozen in the activation. CEL
-  // evaluator enforces env.NOW determinism. For renderers, we use the
-  // wall clock on entry — same string for the lifetime of this render.
-  const now = new Date().toISOString();
+  // Time is an input to this view: it changes both the header and whether a
+  // claim is stale. PluginRuntime freezes one timestamp for each invocation;
+  // direct callers can supply the same clock explicitly. The workbook time is
+  // a stable fallback for callers that invoke the renderer function directly.
+  const now = input.renderedAt ?? input.workbook?.created_at ?? "1970-01-01T00:00:00.000Z";
 
   const lines: string[] = [];
   lines.push(`# ${workbookId} — Agent Board`);

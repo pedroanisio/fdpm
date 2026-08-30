@@ -12,6 +12,7 @@
  */
 
 import type { RendererInput, RendererOutput } from "../../../src/plugin/types.js";
+import { renderStandaloneDocument } from "../../../src/core/render/document.js";
 
 interface Prim { id: string; type_id: string; field_values: Record<string, unknown> }
 interface Rel { id: string; type_id: string; source_id: string; target_id: string }
@@ -467,6 +468,25 @@ function apparatusMarkdown(m: PaperModel, sectionId: string): string[] {
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+const PAPER_CSS = `
+body { padding: 3rem 1.5rem 5rem; font: 17px/1.7 var(--fdpm-reading-font); }
+.paper { max-width: 44rem; margin: 0 auto; }
+h1 { font: 600 clamp(2.05rem, 7vw, 3.1rem)/1.08 var(--fdpm-reading-font); letter-spacing: -.025em; margin: 0 0 .65rem; }
+.byline { font: 600 1rem/1.5 var(--fdpm-body-font); color: var(--muted); margin: 0 0 .25rem; }
+.meta { font: 650 .75rem/1.4 var(--fdpm-body-font); color: var(--muted); letter-spacing: .075em; text-transform: uppercase; margin: 0 0 2.5rem; }
+h2 { font: 650 1.33rem/1.25 var(--fdpm-body-font); margin: 2.6rem 0 .7rem; }
+h3, h4, h5 { font: 650 1.07rem/1.3 var(--fdpm-body-font); margin: 1.8rem 0 .45rem; }
+.claim { margin: 1rem 0; padding: .7rem 0 .7rem 1rem; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--fdpm-accent-soft), transparent 72%); }
+.claim .kind { font: 700 .7rem/1 var(--fdpm-body-font); letter-spacing: .075em; text-transform: uppercase; color: var(--accent); }
+.claim p { margin: .35rem 0; }
+blockquote { margin: .65rem 0 .65rem 1rem; color: var(--muted); font-size: .95rem; }
+ol.refs { padding-left: 1.3rem; }
+ol.refs li { margin: .45rem 0; font-size: .95rem; }
+.empty-state { color: var(--muted); font-style: italic; }
+@media (max-width: 42rem) { body { padding: 2rem 1rem 5rem; } .claim { margin-inline: -.25rem; } }
+@media print { .claim { background: transparent; border-left-color: #555; } }
+`;
+
 /** The same apparatus as `apparatusMarkdown`, escaped for the HTML target. */
 function apparatusHtml(m: PaperModel, sectionId: string): string[] {
   const H: string[] = [];
@@ -483,27 +503,12 @@ export function renderPaperHtml(input: RendererInput): RendererOutput {
   const p = m.paper;
   const title = str(p, "title") || input.workbook?.name || "Paper";
   const H: string[] = [
-    "<!doctype html>",
-    '<html lang="en"><head><meta charset="utf-8">',
-    `<title>${esc(title)}</title>`,
-    "<style>",
-    ":root{--ink:#111418;--muted:#5b6270;--rule:#dfe3ea;--bg:#fff}",
-    "body{margin:0;padding:3rem 1.5rem;background:var(--bg);color:var(--ink);font:17px/1.7 Georgia,'Iowan Old Style',serif}",
-    "main{max-width:42rem;margin:0 auto}",
-    "h1{font-size:2.1rem;line-height:1.15;margin:0 0 .5rem;font-weight:600}",
-    ".byline{font-size:1rem;color:var(--muted);margin:0 0 .25rem}",
-    ".meta{font-size:.85rem;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;margin:0 0 2rem}",
-    "h2{font-size:1.25rem;margin:2.2rem 0 .6rem;font-weight:600}",
-    "h3{font-size:1.05rem;margin:1.6rem 0 .4rem;font-weight:600}",
-    ".claim{margin:.8rem 0;padding-left:.9rem;border-left:3px solid var(--rule)}",
-    ".claim .kind{font:600 .72rem/1 -apple-system,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}",
-    "blockquote{margin:.5rem 0 .5rem 1rem;color:var(--muted);font-size:.95rem}",
-    "ol.refs{padding-left:1.3rem}ol.refs li{margin:.35rem 0;font-size:.95rem}",
-    "@media print{body{padding:0;font-size:11pt}h2{break-after:avoid}.claim{break-inside:avoid}}",
-    "@media (prefers-color-scheme:dark){:root{--ink:#e9ebef;--muted:#9aa2b1;--rule:#333a46;--bg:#15171b}}",
-    "</style></head><body><main>",
+    '<main class="paper">',
     `<h1>${esc(title)}</h1>`,
   ];
+  if (input.primitives.length === 0) {
+    H.push('<p class="empty-state">No paper content has been recorded yet.</p>');
+  }
   if (m.authors.length) {
     H.push(
       `<p class="byline">${esc(
@@ -592,9 +597,15 @@ export function renderPaperHtml(input: RendererInput): RendererOutput {
     }
     H.push("</ol>");
   }
-  H.push("</main></body></html>");
+  H.push("</main>");
+  const html = renderStandaloneDocument({
+    title,
+    body: H.join("\n"),
+    styles: PAPER_CSS,
+    accent: "plum",
+  });
   return {
-    bytes: new TextEncoder().encode(H.join("\n") + "\n"),
+    bytes: new TextEncoder().encode(html),
     contentType: "text/html",
     filename: "paper.html",
   };

@@ -95,6 +95,24 @@ describe("A1 pipeline graph (image/svg+xml)", () => {
     expect(svg.trimEnd().endsWith("</svg>")).toBe(true);
   });
 
+  it("test_multiple_pipelines_share_one_valid_svg_document", () => {
+    const base = inputFor();
+    const pipeline = base.primitives.find((primitive) => primitive.type_id === "lf:Pipeline")!;
+    const secondPipeline = {
+      ...pipeline,
+      id: `${pipeline.id}:second`,
+      field_values: { ...pipeline.field_values, name: "second pipeline" },
+    };
+    const svg = decode(
+      renderPipelineGraph({ ...base, primitives: [...base.primitives, secondPipeline] }).bytes,
+    );
+
+    expect(svg.match(/<svg\b/g)).toHaveLength(1);
+    expect(svg).toContain('aria-labelledby="pipeline-graph-title pipeline-graph-description"');
+    expect(svg.match(/<g transform="translate\(0 /g)).toHaveLength(2);
+    expect(svg).toContain('id="pipeline-0-arrow-forward"');
+  });
+
   it("test_every_stage_gets_a_box_in_execution_order", () => {
     const layout = pipelineGraphLayout(readStore(inputFor()).pipelines[0]!);
     expect(layout.boxes.map((b) => b.name)).toEqual(["draft", "review", "revise"]);
@@ -263,6 +281,12 @@ describe("A4 binding matrix (text/html)", () => {
     expect(kinds["draft"]).toBe("stage_output");
     expect(kinds["critique"]).toBe("stage_output");
     expect(kinds["history"]).toBe("carried");
+  });
+
+  it("test_wide_variable_matrices_are_keyboard_reachable", () => {
+    const html = decode(renderBindingMatrix(inputFor()).bytes);
+    expect(html).toContain('class="scroll" tabindex="0" role="region"');
+    expect(html).toContain('aria-label="Variables for draft"');
   });
 
   it("test_a_typed_input_binding_is_verified_not_assumed", () => {

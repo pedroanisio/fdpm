@@ -11,6 +11,7 @@ import {
 } from "./_common.js";
 import type { PrimitiveInstance } from "../../../src/core/models/instance.js";
 import type { DomainProfile } from "../../../src/core/models/meta.js";
+import { renderStandaloneDocument } from "../../../src/core/render/document.js";
 
 /**
  * `text/html` renderer for the formal_specification profile.
@@ -24,14 +25,7 @@ export const renderHtml: RendererFn = (input): RendererOutput => {
   const tree = buildDocumentTreeAuto(input);
   const out: string[] = [];
 
-  out.push("<!doctype html>");
-  out.push('<html lang="en">');
-  out.push("<head>");
-  out.push('<meta charset="utf-8">');
-  out.push(`<title>${esc(tree.workbook_id)}</title>`);
-  out.push(`<style>${BASE_CSS}</style>`);
-  out.push("</head>");
-  out.push("<body>");
+  out.push('<main class="fdpm-specification">');
   out.push("<header class=\"fdpm-header\">");
   out.push(`<h1>${esc(tree.workbook_id)}</h1>`);
   out.push(
@@ -43,6 +37,10 @@ export const renderHtml: RendererFn = (input): RendererOutput => {
     out.push(`<aside class="fdpm-finding" data-rule="${esc(f.expression)}">${esc(f.message)}</aside>`);
   }
   out.push("</header>");
+
+  if (tree.sections.length === 0 && tree.unsectioned.length === 0 && tree.citations.length === 0) {
+    out.push('<p class="fdpm-empty">No specification sections or primitives have been recorded yet.</p>');
+  }
 
   for (const block of tree.sections) appendSection(out, block, tree.profile);
 
@@ -69,11 +67,17 @@ export const renderHtml: RendererFn = (input): RendererOutput => {
     out.push("</section>");
   }
 
-  out.push("</body>");
-  out.push("</html>");
+  out.push("</main>");
+
+  const html = renderStandaloneDocument({
+    title: tree.workbook_id,
+    body: out.join("\n"),
+    styles: BASE_CSS,
+    accent: "cobalt",
+  });
 
   return {
-    bytes: new TextEncoder().encode(out.join("\n")),
+    bytes: new TextEncoder().encode(html),
     contentType: "text/html",
     filename: `${tree.workbook_id}.html`,
     ...(tree.findings.length > 0 ? { findings: tree.findings } : {}),
@@ -128,27 +132,23 @@ function esc(s: string): string {
 }
 
 const BASE_CSS = `
-:root {
-  --fg: #1a1a1a;
-  --muted: #666;
-  --rule: #ddd;
-  --code-bg: #f6f6f6;
-  --accent: #003366;
-}
 * { box-sizing: border-box; }
 body {
-  font-family: "Charter", "Georgia", serif;
+  padding: 2.5rem 1rem 5rem;
+  font-family: var(--fdpm-reading-font);
   color: var(--fg);
-  max-width: 48em;
-  margin: 2em auto;
-  padding: 0 1em;
-  line-height: 1.5;
+  line-height: 1.58;
 }
-h1, h2, h3 { font-family: "Inter", "Helvetica Neue", sans-serif; color: var(--accent); }
+.fdpm-specification {
+  max-width: 48em;
+  margin: 0 auto;
+}
+h1, h2, h3 { font-family: var(--fdpm-body-font); color: var(--accent); }
 h1 { font-size: 2em; margin-bottom: 0.2em; }
 h2 { font-size: 1.4em; margin-top: 2em; border-bottom: 1px solid var(--rule); padding-bottom: 0.2em; }
 h3 { font-size: 1.1em; margin-top: 1.4em; }
 .fdpm-meta { color: var(--muted); font-size: 0.9em; }
+.fdpm-empty { color: var(--muted); font-style: italic; }
 .fdpm-status {
   font-weight: normal;
   font-size: 0.7em;
@@ -165,13 +165,12 @@ h3 { font-size: 1.1em; margin-top: 1.4em; }
 dl { margin: 0.5em 0; }
 dt { font-weight: 600; margin-top: 0.5em; }
 dd { margin: 0.2em 0 0.5em 1.2em; }
-code, pre { font-family: "JetBrains Mono", "Fira Code", monospace; }
+code, pre { font-family: var(--fdpm-code-font); }
 pre { background: var(--code-bg); padding: 0.6em 0.8em; overflow-x: auto; }
 @media print {
-  body { max-width: none; margin: 0; padding: 0.5in; font-size: 11pt; }
   h1 { font-size: 18pt; }
-  h2 { page-break-before: always; }
-  h2:first-of-type { page-break-before: auto; }
+  .fdpm-section { break-before: page; }
+  .fdpm-section:first-of-type { break-before: auto; }
   .fdpm-primitive { page-break-inside: avoid; }
 }
 `;

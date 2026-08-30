@@ -15,6 +15,8 @@
  * receives, and these pages exist to be read.
  */
 
+import { renderStandaloneDocument } from "../../../src/core/render/document.js";
+
 export type Verdict = "ok" | "warn" | "bad" | "muted";
 
 export function esc(value: unknown): string {
@@ -28,14 +30,16 @@ export function esc(value: unknown): string {
 
 const STYLE = `
 :root {
-  --ground: #ffffff; --ink: #16181d; --muted: #6b7280; --line: #d7dbe2;
-  --band: #f7f8fa; --ok: #1b7f4b; --warn: #8a5a00; --bad: #b3261e; --accent: #2f5fa8;
-  --ok-bg: #e8f4ed; --warn-bg: #fdf3e2; --bad-bg: #fdeceb;
+  --band: color-mix(in srgb, var(--panel) 88%, var(--ink));
+  --ok: var(--fdpm-ok); --warn: var(--fdpm-warn); --bad: var(--fdpm-bad);
+  --ok-bg: color-mix(in srgb, var(--fdpm-ok) 13%, transparent);
+  --warn-bg: color-mix(in srgb, var(--fdpm-warn) 13%, transparent);
+  --bad-bg: color-mix(in srgb, var(--fdpm-bad) 13%, transparent);
 }
 * { box-sizing: border-box; }
 body {
   margin: 0; padding: 32px 28px 64px; background: var(--ground); color: var(--ink);
-  font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 14px/1.55 var(--fdpm-body-font);
 }
 main { max-width: 1180px; margin: 0 auto; }
 h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
@@ -49,7 +53,7 @@ caption { text-align: left; font-size: 12px; color: var(--muted); padding-bottom
 th, td { text-align: left; padding: 6px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { background: var(--band); font-weight: 600; font-size: 11.5px; white-space: nowrap; }
 td.num { text-align: right; font-variant-numeric: tabular-nums; }
-code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+code, .mono { font-family: var(--fdpm-code-font); font-size: 11.5px; }
 .cell { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 11.5px; white-space: nowrap; }
 .ok { background: var(--ok-bg); color: var(--ok); }
 .warn { background: var(--warn-bg); color: var(--warn); }
@@ -61,13 +65,7 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-
 .summary .v { display: block; font-size: 19px; font-variant-numeric: tabular-nums; }
 .findings { margin: 12px 0 0; padding-left: 18px; }
 .findings li { margin: 3px 0; font-size: 13px; }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ground: #14161a; --ink: #e8eaed; --muted: #9aa2ad; --line: #2c313a;
-    --band: #1c1f25; --ok: #6cc48f; --warn: #e0ac5a; --bad: #f08b83; --accent: #7aa5e8;
-    --ok-bg: #17301f; --warn-bg: #332612; --bad-bg: #37191a;
-  }
-}
+@media (max-width: 42rem) { body { padding: 24px 16px 72px; } }
 `.trim();
 
 export function cell(verdict: Verdict, label: string): string {
@@ -81,23 +79,20 @@ export function page(args: {
   workbookId: string;
   body: string;
 }): string {
-  return [
-    "<!doctype html>",
-    '<html lang="en">',
-    "<head>",
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    `<title>${esc(args.title)}</title>`,
-    `<style>${STYLE}</style>`,
-    "</head>",
-    "<body><main>",
+  const body = [
+    "<main>",
     `<h1>${esc(args.title)}</h1>`,
     `<p class="lede">${esc(args.lede)}</p>`,
     `<p class="lede">Workbook <code>${esc(args.workbookId)}</code></p>`,
     args.body,
-    "</main></body>",
-    "</html>",
+    "</main>",
   ].join("\n");
+  return renderStandaloneDocument({
+    title: args.title,
+    body,
+    styles: STYLE,
+    accent: "crimson",
+  });
 }
 
 /** A stat strip. Values are pre-formatted so the caller controls units. */

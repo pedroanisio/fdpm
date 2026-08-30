@@ -165,7 +165,7 @@ function pipelineSection(pipeline: PipelineView): string {
         : `<code>${esc(row.templateName)}</code>`,
       row.cells.length === 0
         ? `<span class="muted">${row.templateName === null ? "cannot resolve" : "no variables declared"}</span>`
-        : `<div class="scroll"><table><thead><tr>${row.cells
+        : `<div class="scroll" tabindex="0" role="region" aria-label="Variables for ${esc(row.stageName)}"><table><thead><tr>${row.cells
             .map((entry) => `<th>${esc(entry.variableName)}<br><code>${esc(entry.declaredType)}</code></th>`)
             .join("")}</tr></thead><tbody><tr>${row.cells
             .map((entry) => `<td>${cellMarkup(entry)}</td>`)

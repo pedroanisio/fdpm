@@ -22,6 +22,7 @@
  */
 
 import type { RendererInput, RendererOutput } from "../../../src/plugin/types.js";
+import { renderStandaloneDocument } from "../../../src/core/render/document.js";
 import { readRegistry, readableInkOn, type StyleView, type RegistryView } from "./_model.js";
 
 /** HTML text escape. Applied to every interpolated value without exception. */
@@ -332,18 +333,16 @@ function styleArticle(style: StyleView): string {
  * light/dark preference and leaves the colour to the swatches.
  */
 const PAGE_CSS = `
-:root { color-scheme: light dark; --bg:#ffffff; --fg:#16181d; --muted:#5b616e; --line:#d8dbe2; --panel:#f6f7f9; }
-@media (prefers-color-scheme: dark) { :root { --bg:#101215; --fg:#e6e8ec; --muted:#9aa1ad; --line:#2a2e36; --panel:#171a1f; } }
 * { box-sizing: border-box; }
 body { margin:0; padding:2rem 1.25rem 5rem; background:var(--bg); color:var(--fg);
-  font:15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  font:15px/1.55 var(--fdpm-body-font); }
 main { max-width: 62rem; margin: 0 auto; }
 h1 { font-size: 1.7rem; margin: 0 0 .25rem; }
 h2 { font-size: 1.35rem; margin: 2.5rem 0 .5rem; border-top: 2px solid var(--fg); padding-top: .75rem; }
 h3 { font-size: 1.05rem; margin: 1.75rem 0 .5rem; }
 h4 { font-size: .9rem; margin: 1.1rem 0 .4rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 small { font-weight: 400; color: var(--muted); }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86em; }
+code { font-family: var(--fdpm-code-font); font-size: .86em; }
 code.code { border:1px solid var(--line); border-radius:3px; padding:0 .35em; }
 .subtitle { color: var(--muted); margin: 0 0 1rem; }
 table { border-collapse: collapse; width: 100%; margin: .5rem 0 1rem; display:block; overflow-x:auto; }
@@ -355,16 +354,16 @@ cite { color: var(--muted); font-size: .85rem; font-style: normal; }
 .swatches { display: flex; flex-wrap: wrap; gap: .75rem; margin: .5rem 0 1rem; }
 .swatch { margin: 0; width: 9.5rem; }
 .chip { height: 4rem; border: 1px solid var(--line); border-radius: 4px; display: flex; align-items: flex-end;
-  padding: .3rem .4rem; font-family: ui-monospace, monospace; font-size: .78rem; }
+  padding: .3rem .4rem; font-family: var(--fdpm-code-font); font-size: .78rem; }
 .swatch figcaption { font-size: .78rem; color: var(--muted); margin-top: .3rem; line-height: 1.35; }
 .swatch figcaption b { color: var(--fg); }
 .sample { display:inline-block; padding: .1rem .5rem; border: 1px solid var(--line); border-radius: 3px; }
 .badge { display:inline-block; padding: 0 .45em; border-radius: 999px; font-size: .72rem; border: 1px solid currentColor; }
-.badge-defining { color: #b3261e; }
-.badge-strong { color: #8a5a00; }
+.badge-defining { color: var(--fdpm-bad); }
+.badge-strong { color: var(--fdpm-warn); }
 .badge-advisory { color: var(--muted); }
-[data-verdict="pass"] { color: #1b7f4b; font-weight: 600; }
-[data-verdict="fail"] { color: #b3261e; font-weight: 600; }
+[data-verdict="pass"] { color: var(--fdpm-ok); font-weight: 600; }
+[data-verdict="fail"] { color: var(--fdpm-bad); font-weight: 600; }
 [data-verdict="unresolved"] { color: var(--muted); }
 .grammar { border: 1px solid var(--line); border-radius: 6px; padding: .5rem .9rem 1rem; margin: .6rem 0; background: var(--panel); }
 .grammar h4 { margin-top: .6rem; color: var(--fg); }
@@ -374,22 +373,15 @@ cite { color: var(--muted); font-size: .85rem; font-style: normal; }
 .empty { color: var(--muted); font-style: italic; }
 .stance b { font-weight: 600; }
 .prompt { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: .5rem .75rem; }
+@media (max-width: 42rem) { body { padding: 1.5rem .85rem 5rem; } .swatch { width: min(100%, 10.5rem); } }
 `.trim();
 
 export function renderStyleHtml(input: RendererInput): RendererOutput {
   const registry: RegistryView = readRegistry(input);
-  const lang = registry.styles[0]?.locale.split("-")[0] ?? "en";
+  const locale = registry.styles[0]?.locale ?? "en";
+  const lang = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(locale) ? locale : "en";
 
-  const head = [
-    `<!doctype html>`,
-    `<html lang="${esc(lang)}">`,
-    `<head>`,
-    `<meta charset="utf-8">`,
-    `<meta name="viewport" content="width=device-width, initial-scale=1">`,
-    `<title>Style registry — ${esc(registry.workbookId)}</title>`,
-    `<style>${PAGE_CSS}</style>`,
-    `</head>`,
-    `<body>`,
+  const body = [
     `<main>`,
     `<h1>Style registry</h1>`,
     `<p class="subtitle">${registry.styles.length} style(s), ${registry.movements.length} movement(s) — workbook <code>${esc(
@@ -397,10 +389,10 @@ export function renderStyleHtml(input: RendererInput): RendererOutput {
     )}</code> on <code>${esc(registry.profileId)}</code>.</p>`,
   ];
 
-  const body: string[] = [];
+  const sections: string[] = [];
   if (registry.movements.length > 0) {
-    body.push(`<h2>Movements</h2>`);
-    body.push(
+    sections.push(`<h2>Movements</h2>`);
+    sections.push(
       table(
         ["Movement", "Period", "Parent", "Aliases"],
         registry.movements.map((m) => [
@@ -414,12 +406,19 @@ export function renderStyleHtml(input: RendererInput): RendererOutput {
   }
 
   if (registry.styles.length === 0) {
-    body.push(`<p class="empty">no style:Style primitives in this workbook</p>`);
+    sections.push(`<p class="empty">No styles have been recorded yet.</p>`);
   } else {
-    for (const style of registry.styles) body.push(styleArticle(style));
+    for (const style of registry.styles) sections.push(styleArticle(style));
   }
 
-  const html = [...head, ...body, `</main>`, `</body>`, `</html>`, ``].join("\n");
+  body.push(...sections, `</main>`);
+  const html = renderStandaloneDocument({
+    title: `Style registry — ${registry.workbookId}`,
+    body: body.join("\n"),
+    styles: PAGE_CSS,
+    accent: "ochre",
+    lang,
+  });
 
   return {
     bytes: new TextEncoder().encode(html),

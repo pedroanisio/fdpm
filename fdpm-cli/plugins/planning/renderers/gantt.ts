@@ -182,9 +182,10 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
       a.primitive.id.localeCompare(b.primitive.id),
   );
 
-  // X-axis range. If no scheduled tasks, render a 7-day range starting today
-  // so the SVG is non-degenerate (the renderer never throws on empty input).
-  const todayMs = Math.floor(Date.now() / MS_PER_DAY) * MS_PER_DAY;
+  // X-axis range. If no scheduled tasks, render a non-degenerate 7-day range
+  // from the caller-provided instant so repeated renders remain byte-stable.
+  const renderedAtMs = new Date(input.renderedAt ?? "1970-01-01T00:00:00.000Z").getTime();
+  const todayMs = Math.floor((Number.isNaN(renderedAtMs) ? 0 : renderedAtMs) / MS_PER_DAY) * MS_PER_DAY;
   const minStart = scheduled.length > 0 ? scheduled[0]!.start : todayMs;
   const maxEnd =
     scheduled.length > 0
@@ -245,9 +246,9 @@ export const renderGantt: RendererFn = (input): RendererOutput => {
   const lines: string[] = [];
   lines.push(
     `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${chartWidth} ${chartHeight}" width="${chartWidth}" height="${chartHeight}" font-family="sans-serif" font-size="12">`,
-    `<title>${escapeXml(workbookId)} — Gantt</title>`,
-    `<desc>Profile: ${escapeXml(profile.id)} v${escapeXml(profile.version)}. ${scheduled.length} scheduled, ${unscheduled.length} unscheduled.</desc>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${chartWidth} ${chartHeight}" width="${chartWidth}" height="${chartHeight}" font-family="sans-serif" font-size="12" role="img" aria-labelledby="gantt-title gantt-description">`,
+    `<title id="gantt-title">${escapeXml(workbookId)} — Gantt</title>`,
+    `<desc id="gantt-description">Profile: ${escapeXml(profile.id)} v${escapeXml(profile.version)}. ${scheduled.length} scheduled, ${unscheduled.length} unscheduled.</desc>`,
     `<style><![CDATA[
   .grid { stroke: #e5e7eb; stroke-width: 1; }
   .axis-label { fill: #6b7280; font-size: 10px; }

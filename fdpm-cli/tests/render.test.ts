@@ -209,6 +209,31 @@ export default {
     return { dir, pluginId: args.id };
   }
 
+  it("injects an ISO render timestamp and preserves an explicit caller snapshot", async () => {
+    const { dir, pluginId } = makeRendererPlugin({
+      id: "test.render-clock",
+      target: "text/plain",
+      fnSrc: `(input) => ({ bytes: new TextEncoder().encode(String(input.renderedAt)), contentType: "text/plain" })`,
+    });
+    const host = new Host({ dataDir: null, builtinDirs: [], pluginPaths: [dir] });
+    await host.load();
+    await host.plugins.enable(pluginId);
+    const baseInput = {
+      workbookId: "x",
+      primitives: [],
+      relations: [],
+      profile: { id: "p:x:1.0" } as never,
+    };
+
+    const generated = await host.plugins.runRenderer("text/plain", baseInput);
+    expect(new TextDecoder().decode(generated.bytes)).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+
+    const renderedAt = "2026-08-29T12:00:00.000Z";
+    const explicit = await host.plugins.runRenderer("text/plain", { ...baseInput, renderedAt } as never);
+    expect(new TextDecoder().decode(explicit.bytes)).toBe(renderedAt);
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   it("rejects output whose contentType does not match the declared target", async () => {
     const { dir, pluginId } = makeRendererPlugin({
       id: "test.mime-liar",

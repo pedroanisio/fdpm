@@ -15,6 +15,7 @@
  */
 
 import type { RendererInput, RendererOutput } from "../../../src/plugin/types.js";
+import { renderStandaloneDocument } from "../../../src/core/render/document.js";
 
 interface Prim {
   id: string;
@@ -223,6 +224,27 @@ export function renderSrsMarkdown(input: RendererInput): RendererOutput {
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+const SRS_CSS = `
+body { padding: 3rem 1.5rem 5rem; font: 16px/1.65 var(--fdpm-body-font); }
+.srs { max-width: 50rem; margin: 0 auto; }
+h1 { font-size: clamp(2rem, 6vw, 2.85rem); line-height: 1.12; letter-spacing: -.025em; margin: 0 0 .35rem; }
+h2 { font-size: 1.3rem; margin: 2.7rem 0 .8rem; padding-bottom: .4rem; border-bottom: 2px solid var(--rule); }
+h3 { font-size: 1.05rem; margin: 1.8rem 0 .45rem; }
+.meta { color: var(--muted); font-size: .88rem; margin: 0 0 1.5rem; }
+.badges { display: flex; flex-wrap: wrap; gap: .4rem; margin: .35rem 0 .6rem; }
+.badge { font-size: .7rem; font-weight: 650; letter-spacing: .045em; text-transform: uppercase; padding: .15rem .5rem; border: 1px solid var(--rule); border-radius: 999px; color: var(--muted); }
+.badge.p-must, .badge.p-critical { border-color: var(--accent); color: var(--accent); background: var(--fdpm-accent-soft); }
+article { margin: 1.1rem 0; padding: .8rem 1rem; border-left: 3px solid var(--rule); background: color-mix(in srgb, var(--panel) 72%, transparent); }
+article h3 { margin-top: 0; }
+blockquote { margin: .6rem 0; padding: .5rem .9rem; border-left: 3px solid var(--rule); color: var(--muted); }
+table { border-collapse: collapse; width: 100%; margin: .75rem 0; }
+th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); font-size: .94rem; }
+th { color: var(--muted); font-weight: 650; font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; }
+ul { margin: .4rem 0 .8rem; padding-left: 1.2rem; }
+.trace { font-size: .86rem; color: var(--muted); }
+@media (max-width: 42rem) { body { padding: 2rem 1rem 5rem; } article { padding-inline: .75rem; } }
+`;
+
 /**
  * A print-ready SRS. Styles are inline because the artefact travels on its
  * own — attached to a ticket, mailed to a reviewer — and a stylesheet that
@@ -235,30 +257,7 @@ export function renderSrsHtml(input: RendererInput): RendererOutput {
   const title = fv(spec, "project") || input.workbook?.name || "Software Requirements Specification";
 
   H.push(
-    "<!doctype html>",
-    '<html lang="en"><head><meta charset="utf-8">',
-    `<title>${esc(title)}</title>`,
-    "<style>",
-    ":root{--ink:#16181d;--muted:#5b6270;--rule:#d8dce4;--accent:#1f4fd8;--bg:#fff}",
-    "*{box-sizing:border-box}",
-    "body{margin:0;padding:3rem 1.5rem;background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}",
-    "main{max-width:46rem;margin:0 auto}",
-    "h1{font-size:2rem;line-height:1.2;margin:0 0 .25rem}",
-    "h2{font-size:1.3rem;margin:2.5rem 0 .75rem;padding-bottom:.35rem;border-bottom:2px solid var(--rule)}",
-    "h3{font-size:1.05rem;margin:1.75rem 0 .4rem}",
-    ".meta{color:var(--muted);font-size:.9rem;margin:0 0 1.5rem}",
-    ".badges{display:flex;flex-wrap:wrap;gap:.4rem;margin:.35rem 0 .6rem}",
-    ".badge{font-size:.72rem;letter-spacing:.02em;text-transform:uppercase;padding:.15rem .5rem;border:1px solid var(--rule);border-radius:999px;color:var(--muted)}",
-    ".badge.p-must,.badge.p-critical{border-color:var(--accent);color:var(--accent)}",
-    "blockquote{margin:.6rem 0;padding:.5rem .9rem;border-left:3px solid var(--rule);color:var(--muted)}",
-    "table{border-collapse:collapse;width:100%;margin:.75rem 0}",
-    "th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--rule);font-size:.94rem}",
-    "th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}",
-    "ul{margin:.4rem 0 .8rem;padding-left:1.2rem}",
-    ".trace{font-size:.88rem;color:var(--muted)}",
-    "@media print{body{padding:0;font-size:11pt}h2{break-after:avoid}h3{break-after:avoid}article{break-inside:avoid}}",
-    "@media (prefers-color-scheme:dark){:root{--ink:#e8eaee;--muted:#9aa2b1;--rule:#333846;--bg:#14161a;--accent:#7aa2ff}}",
-    "</style></head><body><main>",
+    '<main class="srs">',
     `<h1>${esc(title)}</h1>`,
   );
   if (spec) {
@@ -272,6 +271,9 @@ export function renderSrsHtml(input: RendererInput): RendererOutput {
   H.push(
     `<p class="meta">${m.counts.requirements} requirement(s) · ${m.counts.boundaries} scope boundary/ies · ${m.counts.agreed} agreement edge(s).</p>`,
   );
+  if (m.counts.requirements === 0) {
+    H.push('<p class="empty">No requirements have been recorded yet.</p>');
+  }
 
   if (m.inScope.length || m.outOfScope.length) {
     H.push("<h2>Scope</h2>");
@@ -311,10 +313,16 @@ export function renderSrsHtml(input: RendererInput): RendererOutput {
     for (const g of m.glossary) H.push(`<li><strong>${esc(fv(g, "term"))}</strong> — ${esc(fv(g, "definition"))}</li>`);
     H.push("</ul>");
   }
-  H.push("</main></body></html>");
+  H.push("</main>");
+  const html = renderStandaloneDocument({
+    title,
+    body: H.join("\n"),
+    styles: SRS_CSS,
+    accent: "cobalt",
+  });
 
   return {
-    bytes: new TextEncoder().encode(H.join("\n") + "\n"),
+    bytes: new TextEncoder().encode(html),
     contentType: "text/html",
     filename: "srs.html",
   };
