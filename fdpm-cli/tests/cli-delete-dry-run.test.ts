@@ -15,8 +15,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Host } from "../src/core/host.js";
 import { TEST_PROFILE } from "./fixtures.js";
+import { NODE_COMMAND, tsxArgs } from "./_helpers/process.js";
 
-const TSX = join(process.cwd(), "node_modules", ".bin", "tsx");
 const BIN = join(process.cwd(), "src", "bin", "fdpm.ts");
 const WB = "wb-cli-dry";
 const TIMEOUT_MS = 60_000;
@@ -47,7 +47,7 @@ function fdpm(...argv: string[]): { status: number | null; stdout: string; stder
   for (const [k, v] of Object.entries(process.env)) {
     if (v !== undefined && !k.startsWith("FDPM_")) env[k] = v;
   }
-  const r = spawnSync(TSX, [BIN, ...argv], {
+  const r = spawnSync(NODE_COMMAND, tsxArgs([BIN, ...argv]), {
     env: { ...env, FDPM_DATA_DIR: dataDir, FDPM_NO_PLUGINS: "1" },
     encoding: "utf8",
     timeout: TIMEOUT_MS,

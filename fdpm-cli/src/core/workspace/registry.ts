@@ -1,14 +1,15 @@
 /**
  * Operator-local workspace registry — SPEC-WORKSPACE §12.
  *
- * Per-operator-per-machine catalog of known workspaces, located at
- * `${FDPM_REGISTRY_PATH:-${XDG_STATE_HOME:-~/.local/state}/fdpm/workspaces.json}`.
+ * Per-operator-per-machine catalog of known workspaces. `FDPM_REGISTRY_PATH`
+ * overrides the native default: XDG state on Linux, Application Support on
+ * macOS, and LocalAppData on Windows.
  * Reads are tolerant (missing file → empty registry); writes are atomic
  * (temp + rename) so concurrent writers may lose updates but never
  * corrupt the file.
  */
 import { promises as fs, existsSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, posix, win32 } from "node:path";
 import { homedir } from "node:os";
 import { FDPMException } from "../errors/fdpm-exception.js";
 import {
@@ -17,12 +18,45 @@ import {
   WorkspaceRegistry,
 } from "./types.js";
 
-export function defaultRegistryPath(): string {
-  if (process.env["FDPM_REGISTRY_PATH"]) {
-    return process.env["FDPM_REGISTRY_PATH"];
+export interface PlatformRegistryPathOptions {
+  platform: NodeJS.Platform;
+  home: string;
+  env: Readonly<Record<string, string | undefined>>;
+}
+
+/**
+ * Resolve the operator-local registry in the native state directory for the
+ * target platform. The pure options object makes Windows and macOS behavior
+ * testable without mutating `process.platform` or depending on the test host.
+ */
+export function platformRegistryPath({
+  platform,
+  home,
+  env,
+}: PlatformRegistryPathOptions): string {
+  const explicit = env["FDPM_REGISTRY_PATH"];
+  if (explicit) return explicit;
+
+  if (platform === "win32") {
+    const stateRoot =
+      env["LOCALAPPDATA"] ?? env["APPDATA"] ?? win32.join(home, "AppData", "Local");
+    return win32.join(stateRoot, "fdpm", "workspaces.json");
   }
-  const xdg = process.env["XDG_STATE_HOME"] ?? join(homedir(), ".local", "state");
-  return join(xdg, "fdpm", "workspaces.json");
+
+  const xdgStateHome = env["XDG_STATE_HOME"];
+  if (xdgStateHome) return posix.join(xdgStateHome, "fdpm", "workspaces.json");
+  if (platform === "darwin") {
+    return posix.join(home, "Library", "Application Support", "fdpm", "workspaces.json");
+  }
+  return posix.join(home, ".local", "state", "fdpm", "workspaces.json");
+}
+
+export function defaultRegistryPath(): string {
+  return platformRegistryPath({
+    platform: process.platform,
+    home: homedir(),
+    env: process.env,
+  });
 }
 
 function emptyRegistry(): WorkspaceRegistry {
@@ -58,8 +92,8 @@ export async function readRegistry(path: string = defaultRegistryPath()): Promis
 
 /**
  * Atomic write: serialize to a sibling temp file, fsync, rename. The
- * registry's parent directory is created on demand because XDG_STATE_HOME
- * may not exist on a fresh machine.
+ * registry's parent directory is created on demand because the native state
+ * directory may not exist on a fresh machine.
  */
 export async function writeRegistry(
   registry: WorkspaceRegistry,

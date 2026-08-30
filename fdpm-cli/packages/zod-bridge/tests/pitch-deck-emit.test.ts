@@ -4,10 +4,9 @@
  * file under a stable on-disk root so the operator can list and
  * inspect the output.
  *
- * The output directory is /tmp/pitch-deck-bridge-out — emptied each
- * run (no pollution across CI runs because /tmp is process-local
- * here, and the run is deterministic so two invocations produce
- * byte-equal trees).
+ * The output directory is created below the operating system's temporary
+ * directory and emptied each run. The run is deterministic, so two
+ * invocations produce byte-equal trees.
  *
  * This test covers:
  *
@@ -19,8 +18,16 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import {
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { Schemas } from "../../../../static/schemas/pitch-deck.schema.v2.js";
@@ -42,7 +49,7 @@ const __dirname = dirname(__filename);
 // up 4 = .../fdpm-cli (the outer fdpm-cli that holds /static, /docs, etc.)
 const REPO_ROOT = resolve(__dirname, "..", "..", "..", "..");
 // Hermetic CI path (test isolation).
-const TMP_OUT = "/tmp/pitch-deck-bridge-out";
+const TMP_OUT = join(tmpdir(), `pitch-deck-bridge-out-${process.pid}`);
 // In-repo committed snapshot — the deterministic output is part of the
 // repository so reviewers can diff schema changes against generated
 // plugin shape without running the bridge.
@@ -185,7 +192,7 @@ function emitTo(dir: string): void {
 
 function assertExpectedTree(root: string): void {
   const tree = listTree(root);
-  const rels = tree.map((e) => e.path.replace(root + "/", ""));
+  const rels = tree.map((e) => relative(root, e.path).split(sep).join("/"));
   const entityNames = Object.keys(buildPitchDeckSidecar().entities);
   expect(rels).toContain("fdpm-plugin.json");
   expect(rels).toContain("index.ts");
@@ -201,7 +208,7 @@ function assertExpectedTree(root: string): void {
 }
 
 describe("pitch-deck v2 — full emission", () => {
-  it("writes every artefact + scaffold + per-entity capability emission to /tmp", () => {
+  it("writes every artefact + scaffold + per-entity capability emission to a temporary directory", () => {
     emitTo(TMP_OUT);
     const tree = listTree(TMP_OUT);
 
@@ -217,11 +224,24 @@ describe("pitch-deck v2 — full emission", () => {
     assertExpectedTree(TMP_OUT);
   });
 
-  it("writes the same tree to the in-repo committed snapshot", () => {
+  it("matches the in-repo committed snapshot without rewriting it", () => {
     // The repo path is the source of truth diffed by reviewers when
-    // the schema or sidecar changes. The /tmp path is hermetic CI;
+    // the schema or sidecar changes. The temporary path is hermetic CI;
     // this path is what the operator commits.
-    emitTo(REPO_OUT);
-    assertExpectedTree(REPO_OUT);
+    emitTo(TMP_OUT);
+    const generatedPaths = listTree(TMP_OUT).map((entry) =>
+      relative(TMP_OUT, entry.path).split(sep).join("/"),
+    );
+    const snapshotPaths = listTree(REPO_OUT)
+      .map((entry) => relative(REPO_OUT, entry.path).split(sep).join("/"))
+      .filter((path) => path !== "README.md");
+
+    expect(generatedPaths).toEqual(snapshotPaths);
+    for (const path of generatedPaths) {
+      const segments = path.split("/");
+      expect(readFileSync(join(TMP_OUT, ...segments))).toEqual(
+        readFileSync(join(REPO_OUT, ...segments)),
+      );
+    }
   });
 });

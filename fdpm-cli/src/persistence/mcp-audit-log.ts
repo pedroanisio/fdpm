@@ -78,8 +78,9 @@ export interface McpAuditCompleteEntry {
 }
 
 /**
- * Reload entry — emitted by `fdpm-mcp` when SIGHUP triggers a
- * `Host.reload()`. Allows post-incident reviewers to correlate a gap
+ * Reload entry — emitted by `fdpm-mcp` when the platform reload signal
+ * (SIGHUP on macOS/Linux, SIGBREAK on Windows) triggers `Host.reload()`.
+ * Allows post-incident reviewers to correlate a gap
  * in tool calls with the operator-driven freshness reset, and to see
  * how many workbooks were live at the moment of the reload.
  */

@@ -9,7 +9,7 @@
  */
 import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Host } from "../src/core/host.js";
 import { LocalWorkspace, _resetAutoMintWarnings } from "../src/core/workspace/local.js";
@@ -111,8 +111,9 @@ describe("registry — atomic file CRUD", () => {
   });
 
   it("defaultRegistryPath honours FDPM_REGISTRY_PATH", () => {
-    process.env["FDPM_REGISTRY_PATH"] = "/tmp/custom-reg.json";
-    expect(defaultRegistryPath()).toBe("/tmp/custom-reg.json");
+    const customRegistryPath = join(tmpdir(), "custom-reg.json");
+    process.env["FDPM_REGISTRY_PATH"] = customRegistryPath;
+    expect(defaultRegistryPath()).toBe(customRegistryPath);
   });
 });
 
@@ -180,7 +181,7 @@ describe("LocalWorkspace — auto-mint and identity round-trip", () => {
     // dataDir basename so auto-mint must pick a -2 suffix.
     const existing = upsertEntry(await readRegistry(registryPath), {
       id: "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-      name: dataDir.split("/").pop()!,
+      name: basename(dataDir),
       path: "/elsewhere",
     });
     await writeRegistry(existing, registryPath);

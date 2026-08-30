@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import { existsSync } from "node:fs";
-import { dirname, join, resolve, isAbsolute } from "node:path";
+import { delimiter, dirname, join, resolve, isAbsolute } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseManifest } from "./manifest.js";
@@ -10,7 +10,7 @@ import { PluginError } from "./errors.js";
 /**
  * §6.3 Discovery — two sources, evaluated in order:
  *  1. Built-in plugins shipped in-tree under `cli/plugins/<id>/`.
- *  2. Filesystem fallback under `$FDPM_PLUGIN_PATH` (colon-separated;
+ *  2. Filesystem fallback under `$FDPM_PLUGIN_PATH` (platform-delimited;
  *     default `~/.fdpm/plugins`).
  *
  * The Python entry-points source from the SPEC (§6.3 (1)) is N/A for a
@@ -112,8 +112,24 @@ async function scanDir(dir: string, builtin: boolean): Promise<DiscoveredPlugin[
 
 export function defaultPluginPaths(): string[] {
   const env = process.env["FDPM_PLUGIN_PATH"];
-  if (env) return env.split(":").filter(Boolean);
+  if (env) return parsePluginPathList(env);
   return [join(homedir(), ".fdpm", "plugins")];
+}
+
+/**
+ * Parse a PATH-like plugin search list without corrupting Windows drive
+ * letters. `node:path.delimiter` is `:` on POSIX and `;` on Windows; the
+ * explicit parameter keeps all platform branches directly testable on one
+ * host.
+ */
+export function parsePluginPathList(
+  value: string,
+  separator: string = delimiter,
+): string[] {
+  return value
+    .split(separator)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 /**

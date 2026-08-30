@@ -36,12 +36,15 @@
     "packages/zod-bridge"
   ],
   "scripts": {
-    "build": "tsc -p . && npm run copy-plugin-assets && chmod +x dist/src/bin/fdpm.js dist/src/bin/fdpm-mcp.js",
+    "build": "tsc -p . && npm run copy-plugin-assets && node scripts/ensure-bin-mode.mjs",
+    "build:zod-bridge": "npm run build --workspace @fdpm/zod-bridge",
     "check": "npm run typecheck && npm run build && npm test && npm run test:public-readiness",
     "copy-plugin-assets": "node scripts/copy-plugin-assets.mjs",
     "dev": "tsx src/bin/fdpm.ts",
+    "prebuild": "npm run build:zod-bridge",
     "prepack": "npm run build",
     "prepublishOnly": "npm run release:check",
+    "pretypecheck": "npm run build:zod-bridge",
     "public:check": "node scripts/check-public-readiness.mjs",
     "release:check": "npm run check && npm run public:check && npm audit --omit=dev --audit-level=high",
     "render:acceptance": "tsx scripts/render-acceptance.ts",

@@ -304,7 +304,8 @@ describe("expression runtime Tier-A and Tier-B surface", () => {
   });
 
   it("auto-probes Tier-B git bindings from the host cwd when permission is present", () => {
-    const host = new Host({ dataDir: null, noPlugins: true, cwd: "/tmp/fake-git-root" });
+    const fakeGitRoot = join(tmpdir(), "fake-git-root");
+    const host = new Host({ dataDir: null, noPlugins: true, cwd: fakeGitRoot });
     expect(
       host.expr.evaluateValidationCEL(
         "env.GIT_SHA != null && env.GIT_BRANCH != null && env.GIT_DIRTY == false",
@@ -315,7 +316,7 @@ describe("expression runtime Tier-A and Tier-B surface", () => {
         "rule:tier-b-probe",
         {
           permissions: new Set(["read:vcs"]),
-          gitProbeDir: "/tmp/fake-git-root",
+          gitProbeDir: fakeGitRoot,
           gitProbe: () => ({ sha: "abc123", branch: "main", dirty: false }),
         },
       ),

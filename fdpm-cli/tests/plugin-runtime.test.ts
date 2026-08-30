@@ -482,10 +482,10 @@ describe("plugin runtime — CWD-independent built-in discovery", () => {
    * discovery module's own filesystem location, which makes built-in
    * loading CWD-independent.
    */
-  it("loads in-tree formal_specification when invoked from /tmp", async () => {
+  it("loads in-tree formal_specification when invoked from the OS temp directory", async () => {
     const previous = process.cwd();
     try {
-      process.chdir("/tmp");
+      process.chdir(tmpdir());
       const host = new Host({ dataDir: null });
       await host.load();
       const ids = host.plugins.list().map((r) => r.id).sort();

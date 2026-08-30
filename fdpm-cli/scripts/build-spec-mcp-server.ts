@@ -83,7 +83,7 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "0.1.7 — prompts amendment (§13.5): plugins ship MCP prompts as skills via ctx.registerPrompt (when to use, call order, failure modes; listing ≤600 B, body ≤16 KB, validated on install and get); prompts/list + prompts/get on fdpm-mcp; first prompt planning/triage_iteration; instructions budget 4,500.",
+      "0.1.9 — cross-platform reload amendment (§10.1, §15.4, §17, §23.4): fdpm-mcp uses SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows; restart remains the fallback when no console is attached.",
     source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-mcp",
@@ -921,7 +921,8 @@ const toolEntries: Array<{
     exposure: "never",
     description:
       "Operator action only; not for LLMs. Reload Host state from disk (e.g., after out-of-band CLI write).",
-    backed_by: "host.reload() — operator-only via SIGHUP / process restart",
+    backed_by:
+      "host.reload() — operator-only via SIGHUP on macOS/Linux, Ctrl+Break (SIGBREAK) on Windows, or process restart",
   },
   {
     id: "spec:tool:persistence-write-raw",
@@ -1401,7 +1402,7 @@ const conformance: PrimitiveSpec[] = [
       procedure:
         "While the MCP server is running, run a `fdpm` CLI command that mutates the workbook. Then issue a Tier 2 MCP call against the same workbook.",
       expected:
-        "Tier 2 call returns isError=true with category='permission' and evidence.reason='stale_state'. After SIGHUP-triggered Host.reload(), the call succeeds.",
+        "Tier 2 call returns isError=true with category='permission' and evidence.reason='stale_state'. After the native reload signal — SIGHUP on macOS/Linux or Ctrl+Break (SIGBREAK) on Windows — triggers Host.reload(), the call succeeds.",
     },
   },
   {
@@ -2114,6 +2115,19 @@ const revisions: PrimitiveSpec[] = [
       kind: "patch",
     },
   },
+  {
+    id: "spec:rev:0-1-9",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.9",
+      date: "2026-08-30",
+      title: "Cross-platform reload amendment.",
+      notes:
+        "Updates §10.1, §15.4, §17, and §23.4 for Windows compatibility: fdpm-mcp selects SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows before installing its reload listener; successful reload behavior and list-changed notifications remain identical on both paths. Stale-state advice, server instructions, plugin prompts, and operator documentation name both platform signals. Restarting fdpm-mcp remains the fallback when no Windows console is attached. The historical v0.1.8 SIGHUP behavior remains the POSIX path.",
+      affected_sections: ["10", "15", "17", "23"],
+      kind: "patch",
+    },
+  },
 ];
 
 // ── §0..§N Sections (the document tree) ────────────────────────────────────
@@ -2342,7 +2356,7 @@ const sections: PrimitiveSpec[] = [
       body_md: [
         "The MCP server holds a `Host` in memory and faces the same concurrency problem the REPL does ([SPEC-REPL.md](./SPEC-REPL.md) §7). The freshness model is identical: per-workbook `stat` against `JsonlLogStore` log paths, profile-directory stat for tools that read `profile_id`, and the explicit `Host.reload()` and `Host.reloadProjectTail(workbook_id)` methods SPEC-REPL §13 requires.",
         "",
-        "Strict mode for Tier 2 / Tier 3 tools: refuse with the `permission` error envelope carrying `evidence.reason: \"stale_state\"` if any addressed workbook's log has changed out-of-band. Lenient mode for Tier 1: incremental tail-replay then dispatch. Operators trigger `Host.reload()` via SIGHUP or process restart.",
+        "Strict mode for Tier 2 / Tier 3 tools: refuse with the `permission` error envelope carrying `evidence.reason: \"stale_state\"` if any addressed workbook's log has changed out-of-band. Lenient mode for Tier 1: incremental tail-replay then dispatch. Operators trigger `Host.reload()` via SIGHUP on macOS/Linux, Ctrl+Break (SIGBREAK) on Windows, or process restart when no console is attached.",
         "",
         "The server MUST NOT silently background-reload Tier 2/3 calls. Staleness is surfaced; the LLM and the client can react.",
         "",
@@ -2487,9 +2501,9 @@ const sections: PrimitiveSpec[] = [
         "",
         "On stdin EOF or SIGTERM: drain in-flight calls, flush persistence, flush audit log, exit 0. SIGINT is treated as SIGTERM. The MCP server is not interactive.",
         "",
-        "### 15.4 Reload (SIGHUP) (v0.1.8)",
+        "### 15.4 Reload (SIGHUP on macOS/Linux; SIGBREAK on Windows) (v0.1.9)",
         "",
-        "SIGHUP is the operator's reload signal, not a shutdown: `Host.reload()` → clear the session freshness map → append a `reload` audit entry → emit the §10.1 `list_changed` notifications. The process keeps serving throughout, on the post-reload state when the reload succeeded and on the pre-reload state when it did not.",
+        "The operator's reload signal is SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows. It is not a shutdown: `Host.reload()` → clear the session freshness map → append a `reload` audit entry → emit the §10.1 `list_changed` notifications. The process keeps serving throughout, on the post-reload state when the reload succeeded and on the pre-reload state when it did not. Restart `fdpm-mcp` when no console is attached to a Windows process.",
       ].join("\n"),
     },
   },

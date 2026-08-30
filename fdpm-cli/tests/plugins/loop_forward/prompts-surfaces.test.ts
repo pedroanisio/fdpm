@@ -29,6 +29,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { NODE_COMMAND, tsxArgs } from "../../_helpers/process.js";
 
 /**
  * Anchor on this file, not `process.cwd()`. The package sits one level
@@ -37,7 +38,6 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
  * spawn fails with ENOENT rather than a useful assertion.
  */
 const PKG_ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..", "..", "..");
-const TSX = join(PKG_ROOT, "node_modules", ".bin", "tsx");
 const CLI_BIN = join(PKG_ROOT, "src", "bin", "fdpm.ts");
 const MCP_BIN = join(PKG_ROOT, "src", "bin", "fdpm-mcp.ts");
 const TIMEOUT_MS = 120_000;
@@ -63,7 +63,7 @@ function cleanEnv(extra: Record<string, string> = {}): Record<string, string> {
 }
 
 function fdpm(...argv: string[]): { status: number | null; stdout: string; stderr: string } {
-  const r = spawnSync(TSX, [CLI_BIN, ...argv], {
+  const r = spawnSync(NODE_COMMAND, tsxArgs([CLI_BIN, ...argv]), {
     env: cleanEnv(),
     encoding: "utf8",
     timeout: TIMEOUT_MS,
@@ -140,8 +140,8 @@ describe("fdpm plugin prompts — loop-forward", () => {
 
 async function connect(): Promise<{ client: Client; close: () => Promise<void> }> {
   const transport = new StdioClientTransport({
-    command: TSX,
-    args: [MCP_BIN],
+    command: NODE_COMMAND,
+    args: tsxArgs([MCP_BIN]),
     env: cleanEnv(),
   });
   const client = new Client({ name: "lf-prompt-test", version: "0.0.0" }, { capabilities: {} });

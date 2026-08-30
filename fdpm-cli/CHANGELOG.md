@@ -61,6 +61,29 @@ self-checked because its source lives in another repository.
 
 ### Fixed
 
+#### CLI, MCP, build, and test paths are portable across Linux, macOS, and Windows
+
+The release candidate no longer assumes POSIX shell utilities, `/tmp`, colon-
+separated search paths, XDG state directories, or `SIGHUP`. Build and test
+subprocesses now launch through Node, temporary paths use the host operating
+system, plugin search paths use the native delimiter, workspace registries use
+XDG state on Linux, Application Support on macOS, and LocalAppData on Windows,
+and MCP reload uses `SIGBREAK` on Windows. CI now runs the supported Node 24
+path on macOS and Windows in addition to the Linux Node 20/22/24 matrix, and
+the Python renderer is exercised on all three operating systems.
+
+Workbook IDs now reject the Windows-reserved device basenames `con`, `prn`,
+`aux`, `nul`, `com1` through `com9`, and `lpt1` through `lpt9`; the existing
+128-character limit is also enforced consistently by operation and lifecycle
+payload schemas. This is an intentional compatibility restriction for the
+first public-release candidate because workbook IDs become directory names.
+
+Persisted profiles now use a bounded lowercase slug plus a SHA-256 suffix from
+the original profile ID. Distinct IDs can no longer overwrite each other when
+punctuation is normalized or when a macOS/Windows filesystem folds case, and
+long IDs no longer exceed a filesystem component limit. Existing legacy
+profile `.json` filenames remain discoverable and require no migration.
+
 #### Custom validators registered against a relation type were never dispatched
 
 `ValidationPipeline.runRelation` ran the core checks — type resolution,

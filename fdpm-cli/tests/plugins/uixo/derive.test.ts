@@ -21,6 +21,7 @@ import {
 } from "../../../plugins/uixo/derive.js";
 import { RELATION_TYPES, UIXO_SOURCE_SHA256 } from "../../../plugins/uixo/sidecar.js";
 import profile from "../../../plugins/uixo/generated/profile.json" with { type: "json" };
+import { NODE_COMMAND, tsxArgs } from "../../_helpers/process.js";
 
 describe("the vendored source", () => {
   it("is the ontology build this plugin was derived from", () => {
@@ -31,8 +32,11 @@ describe("the vendored source", () => {
 
   it("still carries the vendoring header, unedited in the body", () => {
     const out = execFileSync(
-      join(process.cwd(), "node_modules", ".bin", "tsx"),
-      [join(process.cwd(), "plugins", "uixo", "scripts", "vendor-uixo.ts"), "--check"],
+      NODE_COMMAND,
+      tsxArgs([
+        join(process.cwd(), "plugins", "uixo", "scripts", "vendor-uixo.ts"),
+        "--check",
+      ]),
       { encoding: "utf8", cwd: process.cwd() },
     );
     expect(out).toContain("header intact");

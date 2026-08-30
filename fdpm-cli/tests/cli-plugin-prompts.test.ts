@@ -8,8 +8,8 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { NODE_COMMAND, tsxArgs } from "./_helpers/process.js";
 
-const TSX = join(process.cwd(), "node_modules", ".bin", "tsx");
 const BIN = join(process.cwd(), "src", "bin", "fdpm.ts");
 const TIMEOUT_MS = 90_000;
 
@@ -24,7 +24,7 @@ afterEach(() => {
 function fdpm(...argv: string[]): { status: number | null; stdout: string; stderr: string } {
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(process.env)) if (v !== undefined && !k.startsWith("FDPM_")) env[k] = v;
-  const r = spawnSync(TSX, [BIN, ...argv], {
+  const r = spawnSync(NODE_COMMAND, tsxArgs([BIN, ...argv]), {
     env: { ...env, FDPM_DATA_DIR: dataDir },
     encoding: "utf8",
     timeout: TIMEOUT_MS,

@@ -8,8 +8,8 @@
  * against one data dir.
  *
  * The two surfaces produce different operator-facing advice — the
- * REPL says ":reload or restart", MCP says "operator must SIGHUP
- * fdpm-mcp" — so the advice is a constructor parameter rather than
+ * REPL says ":reload or restart", while MCP names SIGHUP on POSIX and
+ * SIGBREAK / restart on Windows — so the advice is a constructor parameter rather than
  * a hardcoded string. This is the single helper both call so they
  * can't diverge on category, evidence shape, or message phrasing.
  */
@@ -22,7 +22,7 @@ export interface StaleStateOptions {
    * Surface-specific recovery hint surfaced to the operator (and to
    * any LLM agent driving the REPL). Examples:
    *   - REPL strict mode: "run :reload or restart the REPL"
-   *   - MCP server: "operator must SIGHUP fdpm-mcp"
+   *   - MCP server: SIGHUP on POSIX; Ctrl+Break / SIGBREAK on Windows
    */
   advice: string;
   /**

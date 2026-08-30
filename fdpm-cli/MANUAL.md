@@ -145,7 +145,7 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
-| `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths (colon-separated). |
+| `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths separated by the OS path-list delimiter (`:` on POSIX, `;` on Windows). |
 | `FDPM_LOG_LEVEL` | `info` | Plugin logger threshold: debug \| info \| warn \| error \| silent. |
 | `FDPM_DEBUG` | unset | Truthy -> also emit plugin debug logs. |
 | `FDPM_VERBOSE` | unset | Truthy -> expand human-mode error output. |
@@ -167,9 +167,15 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | `FDPM_MCP_CONFIRMATION_TOKEN` | unset | Fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty. |
 | `FDPM_MCP_CATALOG_BUDGET_BYTES` | `26000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
 | `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when FDPM_DATA_DIR is set. |
-| `FDPM_REGISTRY_PATH` | `$XDG_STATE_HOME/fdpm/workspaces.json` | SPEC-WORKSPACE §12: override path to the operator-local workspace registry. |
+| `FDPM_REGISTRY_PATH` | `platform state directory` | SPEC-WORKSPACE §12: override the native operator-local registry path (XDG state on Linux, Application Support on macOS, LocalAppData on Windows). |
 
 <!-- END GENERATED: env-vars -->
+
+Path-list values follow the host operating system: use `:` between entries in
+`FDPM_PLUGIN_PATH` on Linux and macOS, and `;` on Windows. Unless overridden,
+the workspace registry lives under the XDG state directory on Linux,
+`~/Library/Application Support/fdpm/workspaces.json` on macOS, and
+`%LOCALAPPDATA%\fdpm\workspaces.json` on Windows.
 
 One-shot CLI ergonomics:
 - `fdpm` one-shot commands default plugin startup logs to `warn`, so human command output is not preceded by plugin activation banners.

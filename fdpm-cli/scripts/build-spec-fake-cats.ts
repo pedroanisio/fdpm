@@ -3,12 +3,13 @@
  * then dumps the resulting workbook slice as JSON.
  *
  * Run:
- *   FDPM_DATA_DIR=/tmp/fdpm-fake-cats npx tsx fdpm-cli/scripts/build-spec-fake-cats.ts
+ *   FDPM_DATA_DIR=<scratch-dir> npm exec -- tsx fdpm-cli/scripts/build-spec-fake-cats.ts
  *
- * Output: /tmp/fdpm-fake-cats/spec-fake-cats.primitives.json
+ * Output: <scratch-dir>/spec-fake-cats.primitives.json
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { Host } from "../src/core/host.js";
 import {
   DnisHostAdapter,
@@ -46,7 +47,8 @@ async function createSection(
 }
 
 async function main(): Promise<void> {
-  const dataDir = process.env.FDPM_DATA_DIR ?? "/tmp/fdpm-fake-cats";
+  const dataDir =
+    process.env.FDPM_DATA_DIR ?? join(tmpdir(), "fdpm-fake-cats");
   mkdirSync(dataDir, { recursive: true });
 
   const host = new Host({

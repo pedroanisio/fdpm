@@ -12,6 +12,7 @@
  */
 export const CORE_ID_PATTERN = /^[a-z0-9-]+(:[A-Za-z0-9._-]+)+$/;
 export const SIMPLE_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+const WINDOWS_RESERVED_DEVICE_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
 
 /** §11.3 reserved namespaces — Core-owned. */
 export const RESERVED_NAMESPACE_PREFIXES = ["core:", "fdpm:"] as const;
@@ -24,7 +25,15 @@ export function isValidCoreId(id: string): boolean {
   return CORE_ID_PATTERN.test(id);
 }
 
-/** Workbook IDs are flat slugs, not colon-namespaced (operator-friendly). */
+/**
+ * Workbook IDs are flat slugs, not colon-namespaced (operator-friendly).
+ * They also become directory names, so names reserved by Windows are invalid
+ * on every platform to keep workbooks portable between hosts.
+ */
 export function isValidProjectId(id: string): boolean {
-  return SIMPLE_ID_PATTERN.test(id) && id.length <= 128;
+  return (
+    SIMPLE_ID_PATTERN.test(id) &&
+    id.length <= 128 &&
+    !WINDOWS_RESERVED_DEVICE_NAME.test(id)
+  );
 }

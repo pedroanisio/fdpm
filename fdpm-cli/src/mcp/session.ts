@@ -20,8 +20,9 @@
  *      not measuring time deltas, we are detecting "did the bytes on
  *      disk change at all since I last looked?". Any change → stale.
  *
- *      The map is purely in-memory; SIGHUP / `Host.reload()` clears it
- *      (see `clearFreshnessMap`) so the next call re-seeds.
+ *      The map is purely in-memory; the platform reload signal
+ *      (SIGHUP on macOS/Linux, SIGBREAK on Windows) / `Host.reload()`
+ *      clears it (see `clearFreshnessMap`) so the next call re-seeds.
  *
  *   3. The Tier-3 idempotency cache (§8.7). `(tool, idempotency_key)` →
  *      the first execution's result, TTL-bounded and capped, so a retried
@@ -92,7 +93,7 @@ export interface McpSession {
   /**
    * Record (or refresh) the (mtime_ns, size) tuple for each workbook_id.
    * Called on first encounter and after a successful tail-replay /
-   * SIGHUP reload.
+   * operator-triggered reload.
    */
   recordSeen(host: Host, project_ids: readonly string[]): void;
   /**

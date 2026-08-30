@@ -6,12 +6,13 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import {
   assembleDomainProfileFromSidecar,
   stableStringify,
 } from "@fdpm/zod-bridge";
 import { buildBusinessDeckSidecar } from "../../../plugins/acme_business_deck/sidecar.js";
+import { NODE_COMMAND, tsxArgs } from "../../_helpers/process.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..", "..");
@@ -34,8 +35,9 @@ describe("acme.business-deck — bridge determinism", () => {
   });
 
   it("scripts/run-bridge.ts --check passes against the committed snapshot", () => {
-    const result = execSync(
-      `npx tsx ${join(PLUGIN_DIR, "scripts", "run-bridge.ts")} --check`,
+    const result = execFileSync(
+      NODE_COMMAND,
+      tsxArgs([join(PLUGIN_DIR, "scripts", "run-bridge.ts"), "--check"]),
       { cwd: REPO_ROOT, encoding: "utf8" },
     );
     expect(result).toContain("no drift");

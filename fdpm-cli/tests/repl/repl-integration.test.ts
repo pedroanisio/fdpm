@@ -29,6 +29,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { appendRawOp } from "../_helpers/oob-write.js";
+import { NODE_COMMAND, tsxArgs } from "../_helpers/process.js";
 
 const REPL_BIN = "src/bin/fdpm.ts";
 
@@ -46,7 +47,6 @@ function runRepl(opts: {
   const scriptPath = join(opts.dataDir, "_script.txt");
   writeFileSync(scriptPath, opts.scriptText, "utf8");
   const args = [
-    "tsx",
     REPL_BIN,
     "repl",
     "--script",
@@ -54,7 +54,7 @@ function runRepl(opts: {
     "--no-banner",
     ...(opts.flags ?? []),
   ];
-  const res = spawnSync("npx", args, {
+  const res = spawnSync(NODE_COMMAND, tsxArgs(args), {
     env: { ...process.env, FDPM_DATA_DIR: opts.dataDir, FDPM_LOG_LEVEL: "warn" },
     encoding: "utf8",
     cwd: process.cwd(),
@@ -70,7 +70,7 @@ function runOneShot(opts: {
   dataDir: string;
   args: string[];
 }): ReplResult {
-  const res = spawnSync("npx", ["tsx", REPL_BIN, ...opts.args], {
+  const res = spawnSync(NODE_COMMAND, tsxArgs([REPL_BIN, ...opts.args]), {
     env: { ...process.env, FDPM_DATA_DIR: opts.dataDir, FDPM_LOG_LEVEL: "warn" },
     encoding: "utf8",
     cwd: process.cwd(),

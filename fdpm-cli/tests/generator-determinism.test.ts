@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PROFILE_ID } from "../plugins/formal_specification/index.js";
+import { NODE_COMMAND, tsxArgs } from "./_helpers/process.js";
 
 /**
  * Pass-3 stabilization — generator must produce deterministic output.
@@ -22,8 +23,8 @@ const GENERATOR = "scripts/generate-build-from-transfer.ts";
 
 function runGenerator(transferPath: string, outPath: string): { stdout: string; stderr: string; status: number | null } {
   const res = spawnSync(
-    "npx",
-    ["tsx", GENERATOR, transferPath, outPath],
+    NODE_COMMAND,
+    tsxArgs([GENERATOR, transferPath, outPath]),
     {
       env: { ...process.env, FDPM_LOG_LEVEL: "warn" },
       encoding: "utf8",

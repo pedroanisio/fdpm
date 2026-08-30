@@ -117,6 +117,7 @@ describe("Tier 2 stale-state — strict refusal", () => {
     expect(env.category).toBe("permission");
     expect(env.evidence?.reason).toBe("stale_state");
     expect(env.evidence?.advice).toMatch(/SIGHUP/);
+    expect(env.evidence?.advice).toMatch(/SIGBREAK/);
 
     // No new in-memory write happened (the OOB op is on disk only).
     expect(host.getLog("p1").length).toBe(before);

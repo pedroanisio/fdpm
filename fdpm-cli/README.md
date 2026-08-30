@@ -23,6 +23,10 @@ release process is documented in
 
 - Node.js 20 or newer
 - npm 10 or newer for development from the workspace
+- Linux, macOS, or Windows
+
+CI exercises Node.js 20, 22, and 24 on Linux and Node.js 24 on macOS and
+Windows. Build scripts use Node APIs instead of relying on POSIX utilities.
 
 ## Install from source
 
@@ -58,6 +62,17 @@ fdpm workbook list --json
 Run `fdpm --help` for the command groups and `fdpm <group> --help` for a
 specific surface. State is persisted under `FDPM_DATA_DIR` (or the resolved
 FDPM workspace) as an append-only JSONL operation log.
+
+In PowerShell, set the quick-start directory with:
+
+```powershell
+$env:FDPM_DATA_DIR = Join-Path $PWD ".fdpm-data"
+```
+
+`FDPM_PLUGIN_PATH` uses the operating system's path-list separator: `:` on
+Linux and macOS, and `;` on Windows. The workspace registry defaults to XDG
+state storage on Linux, `~/Library/Application Support` on macOS, and
+`%LOCALAPPDATA%` on Windows. `FDPM_REGISTRY_PATH` overrides that location.
 
 ## MCP server
 

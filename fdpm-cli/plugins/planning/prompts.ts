@@ -51,7 +51,7 @@ export const TRIAGE_ITERATION_PROMPT: PromptRegistration = {
       `- plan:val:blocked-task-has-blocker — status Blocked requires a plan:BlockedBy edge to an open plan:Blocker.`,
       `- plan:val:claim-has-expiry — claim_holder_id without a future claim_until is rejected.`,
       `- plan:val:no-circular-deps — a DependsOn edge that closes a cycle is rejected; check step 4 before adding edges.`,
-      `- permission/stale_state — another process changed the log; ask the operator to SIGHUP fdpm-mcp and re-read from step 1.`,
+      `- permission/stale_state — another process changed the log; ask the operator to send SIGHUP on macOS/Linux or press Ctrl+Break (SIGBREAK) on Windows (restart if no console is attached), then re-read from step 1.`,
       `- ok:false envelopes carry validation_report.findings[] with the rule_id above: fix the input, retry; nothing was written.`,
     ].join("\n");
     return [{ role: "user", content: { type: "text", text } }];

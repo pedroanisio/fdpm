@@ -1,5 +1,6 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
+import { pathToFileURL } from "node:url";
 
 export function listPluginManifestPaths(rootDir) {
   return walk(rootDir)
@@ -82,6 +83,6 @@ function walk(dir) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   copyPluginAssets("plugins", "dist/plugins");
 }

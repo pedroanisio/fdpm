@@ -20,6 +20,7 @@ import { renderDocumentOutline, renderClassTable } from "../../../plugins/uixo/r
 import { PROFILE_ID, ENTITY_NAMES, RELATION_TYPES } from "../../../plugins/uixo/sidecar.js";
 import type { RendererInput } from "../../../src/plugin/types.js";
 import manifest from "../../../plugins/uixo/fdpm-plugin.json" with { type: "json" };
+import { NODE_COMMAND, tsxArgs } from "../../_helpers/process.js";
 
 type Json = Record<string, unknown>;
 const WB = "uixo-ingest";
@@ -114,8 +115,11 @@ beforeAll(async () => {
 describe("bridge determinism", () => {
   it("`run-bridge --check` reports no drift against the committed files", () => {
     const out = execFileSync(
-      join(process.cwd(), "node_modules", ".bin", "tsx"),
-      [join(process.cwd(), "plugins", "uixo", "scripts", "run-bridge.ts"), "--check"],
+      NODE_COMMAND,
+      tsxArgs([
+        join(process.cwd(), "plugins", "uixo", "scripts", "run-bridge.ts"),
+        "--check",
+      ]),
       { encoding: "utf8", cwd: process.cwd(), maxBuffer: 64 * 1024 * 1024 },
     );
     expect(out).toContain("no drift");

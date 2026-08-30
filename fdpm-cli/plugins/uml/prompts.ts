@@ -65,7 +65,7 @@ export const MODEL_A_DOMAIN_PROMPT: PromptRegistration = {
       `- core:relation:endpoint-type — the relation's endpoints are not allowed by the profile, e.g. ${REL.OwnsAttribute} pointed at anything but a uml:Property, ${REL.Signals} at a classifier that is not a uml:Signal, ${REL.OwnsPort} from an interface (only a component, class or association class has internal structure), or ${REL.Provides} at anything but a uml:Interface.`,
       `- "requires at least 2" — a uml:Connector was given fewer than two ends (§11.2); a connector joins roles, so one end is never a model.`,
       `- core:field:undeclared (warning) — a field the metaclass does not define is tolerated but never validated; remove it or model it properly.`,
-      `- permission/stale_state — another process changed the log; ask the operator to SIGHUP fdpm-mcp, then re-read from step 1.`,
+      `- permission/stale_state — another process changed the log; ask the operator to send SIGHUP on macOS/Linux or press Ctrl+Break (SIGBREAK) on Windows (restart if no console is attached), then re-read from step 1.`,
       `- ok:false with isError:false means the write was REJECTED and nothing was written: read validation_report.findings[], fix, retry.`,
     ].join("\n");
     return [{ role: "user", content: { type: "text", text } }];

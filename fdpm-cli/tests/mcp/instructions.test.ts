@@ -76,6 +76,7 @@ describe("SERVER_INSTRUCTIONS — content contract", () => {
       expect(SERVER_INSTRUCTIONS, reason).toContain(reason);
     }
     expect(SERVER_INSTRUCTIONS).toContain("SIGHUP");
+    expect(SERVER_INSTRUCTIONS).toContain("SIGBREAK");
     expect(SERVER_INSTRUCTIONS).toContain("_confirmation_token");
     expect(SERVER_INSTRUCTIONS).toContain("--enable-destructive");
   });

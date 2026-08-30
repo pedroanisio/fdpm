@@ -16,7 +16,8 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     name: "FDPM_PLUGIN_PATH",
     defaultValue: "unset",
     exampleValue: "~/.fdpm/plugins",
-    summary: "extra plugin search paths (colon-separated)",
+    summary:
+      "extra plugin search paths separated by the OS path-list delimiter (`:` on POSIX, `;` on Windows)",
   },
   {
     name: "FDPM_LOG_LEVEL",
@@ -154,9 +155,10 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
   },
   {
     name: "FDPM_REGISTRY_PATH",
-    defaultValue: "$XDG_STATE_HOME/fdpm/workspaces.json",
-    exampleValue: "/etc/fdpm/workspaces.json",
-    summary: "SPEC-WORKSPACE §12: override path to the operator-local workspace registry",
+    defaultValue: "platform state directory",
+    exampleValue: "./.fdpm-state/workspaces.json",
+    summary:
+      "SPEC-WORKSPACE §12: override the native operator-local registry path (XDG state on Linux, Application Support on macOS, LocalAppData on Windows)",
   },
 ] as const;
 

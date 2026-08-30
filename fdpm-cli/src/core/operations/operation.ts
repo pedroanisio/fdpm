@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidProjectId } from "../identity/id-rules.js";
 import { OperationKind } from "./kinds.js";
 
 /**
@@ -10,7 +11,7 @@ export const Operation = z
     op_id: z.string().length(26), // ulid
     parent_op_id: z.string().length(26).nullable().optional(),
     kind: OperationKind,
-    workbook_id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
+    workbook_id: z.string().refine(isValidProjectId, "invalid workbook id"),
     payload: z.record(z.string(), z.unknown()),
     actor: z.string(),
     plugin_id: z.string().nullable().optional(),

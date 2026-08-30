@@ -1,6 +1,7 @@
 /**
- * Operator-triggered reload (SIGHUP): swap the live Host and tell
- * connected clients that the server's live-computed lists changed.
+ * Operator-triggered reload (SIGHUP on POSIX, SIGBREAK on Windows):
+ * swap the live Host and tell connected clients that the server's
+ * live-computed lists changed.
  *
  * `resources/list` and `prompts/list` are answered from the live Host on
  * every request, so a workbook (or plugin prompt) that appeared on disk
@@ -25,6 +26,18 @@ import type { McpAuditReloadEntry } from "../persistence/mcp-audit-log.js";
 
 /** Outcome of one reload attempt; mirrors the audit log's `outcome`. */
 export type ReloadOutcome = "ok" | "host_compat" | "internal";
+
+/** Signals operators can use to reload the long-running MCP process. */
+export type ReloadSignal = "SIGHUP" | "SIGBREAK";
+
+/** Recovery text shared by MCP instructions and stale-state envelopes. */
+export const MCP_RELOAD_ADVICE =
+  "operator must send SIGHUP on macOS/Linux or press Ctrl+Break (SIGBREAK) on Windows; restart fdpm-mcp if no console is attached";
+
+/** Select the reload event Node can receive without terminating on the host OS. */
+export function reloadSignalForPlatform(platform: NodeJS.Platform): ReloadSignal {
+  return platform === "win32" ? "SIGBREAK" : "SIGHUP";
+}
 
 /** The Host surface a reload touches (structural: the real Host satisfies it). */
 export interface ReloadableHost {
@@ -53,6 +66,8 @@ export interface ReloadDeps {
   audit: ReloadAuditSink;
   session: FreshnessResettable;
   notifier: ListChangedNotifier;
+  /** Signal that triggered this attempt; defaults to the native platform signal. */
+  signal?: ReloadSignal;
   /** Operator log sink; defaults to stderr (stdout carries JSON-RPC). */
   log?: (line: string) => void;
 }
@@ -60,8 +75,9 @@ export interface ReloadDeps {
 export async function handleReload(deps: ReloadDeps): Promise<ReloadOutcome> {
   const { host, audit, session, notifier } = deps;
   const log = deps.log ?? ((line: string): void => void process.stderr.write(line));
+  const signal = deps.signal ?? reloadSignalForPlatform(process.platform);
 
-  log("fdpm-mcp: SIGHUP received — invoking host.reload()\n");
+  log(`fdpm-mcp: ${signal} received — invoking host.reload()\n`);
   let result: { reloadedAt: number; workbooks: readonly string[] };
   try {
     result = await host.reload();

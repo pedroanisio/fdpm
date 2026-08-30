@@ -11,6 +11,7 @@ import {
   TIER_A_BINDINGS,
   TIER_B_BINDINGS,
 } from "../scripts/_spec-shared.js";
+import { NODE_COMMAND, tsxArgs } from "./_helpers/process.js";
 
 /**
  * Pass-3 stabilization regression test.
@@ -31,13 +32,12 @@ import {
  */
 
 const REPO_ROOT = join(__dirname, "..");
-const TSX = join(REPO_ROOT, "node_modules", ".bin", "tsx");
 
 function runScript(scriptPath: string, dataDir: string): string {
   // Returns stdout. Throws on non-zero exit.
   const out = execFileSync(
-    TSX,
-    [scriptPath],
+    NODE_COMMAND,
+    tsxArgs([scriptPath]),
     {
       cwd: REPO_ROOT,
       env: { ...process.env, FDPM_DATA_DIR: dataDir },
@@ -50,8 +50,8 @@ function runScript(scriptPath: string, dataDir: string): string {
 
 function runCli(args: string[], dataDir: string): string {
   return execFileSync(
-    TSX,
-    ["src/bin/fdpm.ts", ...args],
+    NODE_COMMAND,
+    tsxArgs(["src/bin/fdpm.ts", ...args]),
     {
       cwd: REPO_ROOT,
       env: { ...process.env, FDPM_DATA_DIR: dataDir },
@@ -81,15 +81,15 @@ function buildAndValidate(scriptPath: string, workbookId: string): {
     );
     const summary = JSON.parse(validateJson).summary as ValidateSummary;
     const rendered = execFileSync(
-      TSX,
-      [
+      NODE_COMMAND,
+      tsxArgs([
         "src/bin/fdpm.ts",
         "render",
         workbookId,
         "text/markdown",
         "--renderer-id",
         "spec:SpecMarkdownRenderer",
-      ],
+      ]),
       {
         cwd: REPO_ROOT,
         env: { ...process.env, FDPM_DATA_DIR: dataDir },

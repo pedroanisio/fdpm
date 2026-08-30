@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts"
-revision: "0.1.7 — prompts amendment (§13.5): plugins ship MCP prompts as skills via ctx.registerPrompt (when to use, call order, failure modes; listing ≤600 B, body ≤16 KB, validated on install and get); prompts/list + prompts/get on fdpm-mcp; first prompt planning/triage_iteration; instructions budget 4,500."
+revision: "0.1.9 — cross-platform reload amendment (§10.1, §15.4, §17, §23.4): fdpm-mcp uses SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows; restart remains the fallback when no console is attached."
 status: "Proposal"
 ---
 
@@ -379,7 +379,7 @@ The audit log is only useful if something reads it. The server MUST make its own
 
 The MCP server holds a `Host` in memory and faces the same concurrency problem the REPL does ([SPEC-REPL.md](./SPEC-REPL.md) §7). The freshness model is identical: per-workbook `stat` against `JsonlLogStore` log paths, profile-directory stat for tools that read `profile_id`, and the explicit `Host.reload()` and `Host.reloadProjectTail(workbook_id)` methods SPEC-REPL §13 requires.
 
-Strict mode for Tier 2 / Tier 3 tools: refuse with the `permission` error envelope carrying `evidence.reason: "stale_state"` if any addressed workbook's log has changed out-of-band. Lenient mode for Tier 1: incremental tail-replay then dispatch. Operators trigger `Host.reload()` via SIGHUP or process restart.
+Strict mode for Tier 2 / Tier 3 tools: refuse with the `permission` error envelope carrying `evidence.reason: "stale_state"` if any addressed workbook's log has changed out-of-band. Lenient mode for Tier 1: incremental tail-replay then dispatch. Operators trigger `Host.reload()` via SIGHUP on macOS/Linux, Ctrl+Break (SIGBREAK) on Windows, or process restart when no console is attached.
 
 The server MUST NOT silently background-reload Tier 2/3 calls. Staleness is surfaced; the LLM and the client can react.
 
@@ -494,9 +494,9 @@ Freshness check → input schema validation → tier-based authorization gate �
 
 On stdin EOF or SIGTERM: drain in-flight calls, flush persistence, flush audit log, exit 0. SIGINT is treated as SIGTERM. The MCP server is not interactive.
 
-### 15.4 Reload (SIGHUP) (v0.1.8)
+### 15.4 Reload (SIGHUP on macOS/Linux; SIGBREAK on Windows) (v0.1.9)
 
-SIGHUP is the operator's reload signal, not a shutdown: `Host.reload()` → clear the session freshness map → append a `reload` audit entry → emit the §10.1 `list_changed` notifications. The process keeps serving throughout, on the post-reload state when the reload succeeded and on the pre-reload state when it did not.
+The operator's reload signal is SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows. It is not a shutdown: `Host.reload()` → clear the session freshness map → append a `reload` audit entry → emit the §10.1 `list_changed` notifications. The process keeps serving throughout, on the post-reload state when the reload succeeded and on the pre-reload state when it did not. Restart `fdpm-mcp` when no console is attached to a Windows process.
 
 ---
 
@@ -615,7 +615,7 @@ Invariants are the non-negotiable properties the implementation MUST preserve. C
 - **3. Validation rejection surfaces with isError=false** — Call `fdpm.primitive.create` with a primitive that violates a §7 rule (e.g., max_length).
   - expected: isError=false, structuredContent.ok=false, validation_report.status='fail' with findings populated. The protocol call succeeded; the operation was rejected.
 - **4. Stale-state refusal on concurrent CLI write** — While the MCP server is running, run a `fdpm` CLI command that mutates the workbook. Then issue a Tier 2 MCP call against the same workbook.
-  - expected: Tier 2 call returns isError=true with category='permission' and evidence.reason='stale_state'. After SIGHUP-triggered Host.reload(), the call succeeds.
+  - expected: Tier 2 call returns isError=true with category='permission' and evidence.reason='stale_state'. After the native reload signal — SIGHUP on macOS/Linux or Ctrl+Break (SIGBREAK) on Windows — triggers Host.reload(), the call succeeds.
 - **5. HTTP transport refusal in v0.1** — Start `fdpm-mcp --http-port 8080` (or any HTTP transport flag).
   - expected: Process refuses to start with a clear message pointing to SPEC-MCP-SERVER §6.1 and v0.2 deferral.
 
@@ -738,6 +738,12 @@ Other open questions (defaulted):
 ---
 
 ## 30. Revision history
+
+### 0.1.9 — 2026-08-30 — Cross-platform reload amendment.
+
+Updates §10.1, §15.4, §17, and §23.4 for Windows compatibility: fdpm-mcp selects SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows before installing its reload listener; successful reload behavior and list-changed notifications remain identical on both paths. Stale-state advice, server instructions, plugin prompts, and operator documentation name both platform signals. Restarting fdpm-mcp remains the fallback when no Windows console is attached. The historical v0.1.8 SIGHUP behavior remains the POSIX path.
+
+Affected sections: 10, 15, 17, 23
 
 ### 0.1.8 — 2026-08-28 — Reload-notification amendment.
 

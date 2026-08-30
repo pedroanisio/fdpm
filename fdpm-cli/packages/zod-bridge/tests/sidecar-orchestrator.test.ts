@@ -15,6 +15,8 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { z } from "zod";
 import {
   assembleDomainProfileFromSidecar,
@@ -319,7 +321,10 @@ describe("assembleDomainProfileFromSidecar — declaredLoss", () => {
 
 describe("assembleDomainProfileFromSidecar — __schemaHash drift", () => {
   it("throws sidecar:hash-drift when a declared file hash does not match", () => {
-    const fakeFile = "/tmp/nonexistent-test-fixture.ts";
+    const fakeFile = join(
+      tmpdir(),
+      `nonexistent-test-fixture-${process.pid}.ts`,
+    );
     expect(() =>
       assembleDomainProfileFromSidecar({
         domain: defineDomain({

@@ -26,10 +26,16 @@ import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Host } from "../../src/core/host.js";
 import { FDPMException } from "../../src/core/errors/fdpm-exception.js";
-import { handleReload, type ReloadableHost } from "../../src/mcp/reload.js";
+import {
+  MCP_RELOAD_ADVICE,
+  handleReload,
+  reloadSignalForPlatform,
+  type ReloadableHost,
+} from "../../src/mcp/reload.js";
 import { listResources } from "../../src/mcp/resources/registry.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { NODE_COMMAND, tsxArgs } from "../_helpers/process.js";
 
 const FS_PROFILE = "profile:formal-specification:3.0";
 
@@ -81,6 +87,20 @@ function sessionStub(): { cleared: number; clearFreshnessMap(): void } {
 
 /** Swallow the handler's operator log so vitest output stays readable. */
 const quiet = (): void => {};
+
+describe("platform-native reload controls", () => {
+  it("uses SIGHUP on POSIX and SIGBREAK on Windows", () => {
+    expect(reloadSignalForPlatform("linux")).toBe("SIGHUP");
+    expect(reloadSignalForPlatform("darwin")).toBe("SIGHUP");
+    expect(reloadSignalForPlatform("win32")).toBe("SIGBREAK");
+  });
+
+  it("gives operators recovery instructions for both platform families", () => {
+    expect(MCP_RELOAD_ADVICE).toContain("SIGHUP");
+    expect(MCP_RELOAD_ADVICE).toContain("SIGBREAK");
+    expect(MCP_RELOAD_ADVICE).toContain("restart");
+  });
+});
 
 describe("handleReload — successful reload", () => {
   it("enumerates the new workbook and notifies resources + prompts", async () => {
@@ -176,6 +196,20 @@ describe("handleReload — notification transport failure", () => {
     expect(audit.entries[0]).toMatchObject({ phase: "reload", outcome: "ok" });
     expect(lines.join("")).toContain("transport closed");
   });
+
+  it("logs the signal that actually triggered the reload", async () => {
+    const host = await freshHost();
+    const lines: string[] = [];
+    await handleReload({
+      host,
+      audit: auditSink(),
+      session: sessionStub(),
+      notifier: recordingNotifier(),
+      signal: "SIGBREAK",
+      log: (line) => void lines.push(line),
+    });
+    expect(lines.join("")).toContain("SIGBREAK received");
+  });
 });
 
 /**
@@ -189,8 +223,12 @@ describe("fdpm-mcp over stdio — declared list-changed capabilities", () => {
     "declares listChanged on the live-computed lists and not on the frozen tool list",
     async () => {
       const transport = new StdioClientTransport({
-        command: join(process.cwd(), "node_modules", ".bin", "tsx"),
-        args: [join(process.cwd(), "src", "bin", "fdpm-mcp.ts"), "--data-dir", dataDir],
+        command: NODE_COMMAND,
+        args: tsxArgs([
+          join(process.cwd(), "src", "bin", "fdpm-mcp.ts"),
+          "--data-dir",
+          dataDir,
+        ]),
         env: {
           ...Object.fromEntries(
             Object.entries(process.env).filter(

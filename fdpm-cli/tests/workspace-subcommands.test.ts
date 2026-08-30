@@ -18,6 +18,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { findById, readRegistry } from "../src/core/workspace/registry.js";
+import { NODE_COMMAND, tsxArgs } from "./_helpers/process.js";
 
 const FDPM_BIN = "src/bin/fdpm.ts";
 
@@ -45,8 +46,8 @@ interface RunResult {
 
 function runCli(args: string[], extraEnv: NodeJS.ProcessEnv = {}): RunResult {
   const res = spawnSync(
-    "npx",
-    ["tsx", FDPM_BIN, "--data-dir", dataDir, ...args],
+    NODE_COMMAND,
+    tsxArgs([FDPM_BIN, "--data-dir", dataDir, ...args]),
     {
       env: {
         ...process.env,

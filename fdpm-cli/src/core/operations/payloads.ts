@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { CORE_ID_PATTERN } from "../identity/id-rules.js";
+import {
+  CORE_ID_PATTERN,
+  isValidProjectId,
+} from "../identity/id-rules.js";
 import { ULID_PATTERN, UID_LENGTH } from "../identity/uid.js";
 import { OPERATION_KINDS } from "./kinds.js";
 
@@ -13,7 +16,7 @@ import { OPERATION_KINDS } from "./kinds.js";
 
 const NamespacedId = z.string().regex(CORE_ID_PATTERN);
 const InstanceId = z.string().min(1).max(256);
-const WorkbookId = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
+const WorkbookId = z.string().refine(isValidProjectId, "invalid workbook id");
 const Uid = z.string().length(UID_LENGTH).regex(ULID_PATTERN);
 
 const FieldValuesPayload = z.record(z.string(), z.unknown());

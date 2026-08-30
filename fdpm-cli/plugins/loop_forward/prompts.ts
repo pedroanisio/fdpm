@@ -107,7 +107,7 @@ export const AUTHOR_PIPELINE_PROMPT: PromptRegistration = {
       `- ${"lf:val:example-reason"} — an example that records an outcome without the reason that explains it.`,
       `- not_found on a relation — the endpoint primitive was not created yet; go back to the step that creates it.`,
       `- ok:false with isError:false — validation rejected the write and nothing was written. Read validation_report.findings[] for rule_id and field_path, fix, retry.`,
-      `- permission / stale_state — another process appended to the log; ask the operator to SIGHUP fdpm-mcp, then re-read from step 1.`,
+      `- permission / stale_state — another process appended to the log; ask the operator to send SIGHUP on macOS/Linux or press Ctrl+Break (SIGBREAK) on Windows (restart if no console is attached), then re-read from step 1.`,
     ].join("\n");
     return [{ role: "user", content: { type: "text", text } }];
   },

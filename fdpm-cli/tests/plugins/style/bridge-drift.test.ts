@@ -7,6 +7,7 @@
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { NODE_COMMAND, tsxArgs } from "../../_helpers/process.js";
 import manifest from "../../../plugins/style/fdpm-plugin.json" with { type: "json" };
 import profile from "../../../plugins/style/generated/profile.json" with { type: "json" };
 import audit from "../../../plugins/style/generated/audit.json" with { type: "json" };
@@ -21,8 +22,11 @@ import {
 describe("bridge determinism", () => {
   it("`run-bridge --check` reports no drift against the committed files", () => {
     const out = execFileSync(
-      join(process.cwd(), "node_modules", ".bin", "tsx"),
-      [join(process.cwd(), "plugins", "style", "scripts", "run-bridge.ts"), "--check"],
+      NODE_COMMAND,
+      tsxArgs([
+        join(process.cwd(), "plugins", "style", "scripts", "run-bridge.ts"),
+        "--check",
+      ]),
       { encoding: "utf8", cwd: process.cwd() },
     );
     expect(out).toContain("no drift");

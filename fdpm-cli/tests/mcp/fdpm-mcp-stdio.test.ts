@@ -31,8 +31,8 @@ import { DEFAULT_CATALOG_BUDGET } from "../../src/mcp/catalog.js";
 import { PROFILE_SCHEMA_URI, SCHEMA_MIME } from "../../src/mcp/resources/schema.js";
 import { SERVER_INSTRUCTIONS } from "../../src/mcp/instructions.js";
 import { GUIDE_MIME, GUIDE_URI } from "../../src/mcp/resources/guide.js";
+import { NODE_COMMAND, tsxArgs } from "../_helpers/process.js";
 
-const TSX = join(process.cwd(), "node_modules", ".bin", "tsx");
 const BIN = join(process.cwd(), "src", "bin", "fdpm-mcp.ts");
 const SPAWN_TIMEOUT_MS = 60_000;
 
@@ -58,8 +58,8 @@ async function connect(extra: Record<string, string> = {}): Promise<{
   close: () => Promise<void>;
 }> {
   const transport = new StdioClientTransport({
-    command: TSX,
-    args: [BIN, "--data-dir", dataDir],
+    command: NODE_COMMAND,
+    args: tsxArgs([BIN, "--data-dir", dataDir]),
     env: serverEnv(extra),
     stderr: "pipe",
   });
@@ -236,11 +236,15 @@ describe("fdpm-mcp over stdio — catalog budget end to end", () => {
   it(
     "a budget smaller than the catalog refuses boot: exit 2, violations and the env var named on stderr",
     () => {
-      const result = spawnSync(TSX, [BIN, "--data-dir", dataDir], {
+      const result = spawnSync(
+        NODE_COMMAND,
+        tsxArgs([BIN, "--data-dir", dataDir]),
+        {
         env: serverEnv({ FDPM_MCP_CATALOG_BUDGET_BYTES: "1000" }),
         encoding: "utf8",
         timeout: SPAWN_TIMEOUT_MS,
-      });
+        },
+      );
       expect(result.status).toBe(2);
       expect(result.stderr).toMatch(/exceeds its byte budget/);
       expect(result.stderr).toMatch(/catalog total \d+ B exceeds budget 1000 B/);
@@ -253,11 +257,15 @@ describe("fdpm-mcp over stdio — catalog budget end to end", () => {
   it(
     "a malformed budget value refuses boot with exit 2 before any MCP frame",
     () => {
-      const result = spawnSync(TSX, [BIN, "--data-dir", dataDir], {
+      const result = spawnSync(
+        NODE_COMMAND,
+        tsxArgs([BIN, "--data-dir", dataDir]),
+        {
         env: serverEnv({ FDPM_MCP_CATALOG_BUDGET_BYTES: "lots" }),
         encoding: "utf8",
         timeout: SPAWN_TIMEOUT_MS,
-      });
+        },
+      );
       expect(result.status).toBe(2);
       expect(result.stderr).toMatch(/FDPM_MCP_CATALOG_BUDGET_BYTES must be a positive integer/);
       expect(result.stdout).toBe("");

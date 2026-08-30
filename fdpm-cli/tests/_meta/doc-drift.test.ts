@@ -25,6 +25,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { NODE_COMMAND, tsxArgs } from "../_helpers/process.js";
 
 const CLI_ROOT = resolve(__dirname, "..", "..");
 const REPO_ROOT = resolve(CLI_ROOT, "..");
@@ -33,7 +34,7 @@ describe("doc drift: repository census", () => {
   it("docs/architecture/CENSUS.md is not stale vs build-arch-census.ts", () => {
     // `--check` re-renders in memory and exits non-zero on any difference.
     expect(() =>
-      execFileSync("npx", ["tsx", "scripts/build-arch-census.ts", "--check"], {
+      execFileSync(NODE_COMMAND, tsxArgs(["scripts/build-arch-census.ts", "--check"]), {
         cwd: CLI_ROOT,
         stdio: "pipe",
       }),
@@ -69,7 +70,7 @@ describe("doc drift: repository census", () => {
  */
 describe("doc drift: the census describes the committed tree", () => {
   const census = (): string =>
-    execFileSync("npx", ["tsx", "scripts/build-arch-census.ts", "--print"], {
+    execFileSync(NODE_COMMAND, tsxArgs(["scripts/build-arch-census.ts", "--print"]), {
       cwd: CLI_ROOT,
       stdio: "pipe",
       encoding: "utf8",
@@ -104,7 +105,7 @@ describe("doc drift: the census describes the committed tree", () => {
 describe("doc drift: environment-variable documentation", () => {
   it("README.md and .env.example are not stale vs FDPM_ENV_VARS", () => {
     expect(() =>
-      execFileSync("npx", ["tsx", "scripts/build-env-docs.ts", "--check"], {
+      execFileSync(NODE_COMMAND, tsxArgs(["scripts/build-env-docs.ts", "--check"]), {
         cwd: CLI_ROOT,
         stdio: "pipe",
       }),

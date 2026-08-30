@@ -26,7 +26,8 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -250,20 +251,21 @@ function buildBaseManifest(
   // The scaffold writes both fdpm-plugin.json and index.ts. We only
   // need the manifest, so write to a tmp dir, read the manifest back,
   // discard the dir.
-  const tmp = `/tmp/acme-pitch-deck-base-${process.pid}`;
-  rmSync(tmp, { recursive: true, force: true });
-  mkdirSync(tmp, { recursive: true });
-  writePluginScaffold(result, {
-    outputDir: tmp,
-    pluginName: "Acme Pitch Deck",
-    pluginDescription:
-      "Strategic pitch-deck plugin auto-generated from schemas/pitch-deck.schema.v2.ts via @fdpm/zod-bridge. Models 8 entities (Audience, Source, DataPoint, StrategicClaim, Risk, Competitor, AntiPattern, Slide) and 8 cross-entity relations. Cross-deck invariants (audience coverage, time budget, source freshness, displayNumber contiguity) lift to a deck-coherence cap:validator. The four optional capabilities (renderer / importer / exporter / expr-helper) are derived per Entity by the bridge.",
-    authors: ["acme"],
-    license: "MIT",
-  });
-  const baseManifestRaw = readFileSync(join(tmp, "fdpm-plugin.json"), "utf8");
-  rmSync(tmp, { recursive: true, force: true });
-  return JSON.parse(baseManifestRaw) as Record<string, unknown>;
+  const tmp = mkdtempSync(join(tmpdir(), "acme-pitch-deck-base-"));
+  try {
+    writePluginScaffold(result, {
+      outputDir: tmp,
+      pluginName: "Acme Pitch Deck",
+      pluginDescription:
+        "Strategic pitch-deck plugin auto-generated from schemas/pitch-deck.schema.v2.ts via @fdpm/zod-bridge. Models 8 entities (Audience, Source, DataPoint, StrategicClaim, Risk, Competitor, AntiPattern, Slide) and 8 cross-entity relations. Cross-deck invariants (audience coverage, time budget, source freshness, displayNumber contiguity) lift to a deck-coherence cap:validator. The four optional capabilities (renderer / importer / exporter / expr-helper) are derived per Entity by the bridge.",
+      authors: ["acme"],
+      license: "MIT",
+    });
+    const baseManifestRaw = readFileSync(join(tmp, "fdpm-plugin.json"), "utf8");
+    return JSON.parse(baseManifestRaw) as Record<string, unknown>;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 function stableSortCaps(caps: CapabilityEntry[]): CapabilityEntry[] {

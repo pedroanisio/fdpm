@@ -23,11 +23,13 @@
 import { createHash } from "node:crypto";
 import {
   existsSync,
+  mkdtempSync,
   mkdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -316,23 +318,24 @@ function buildBaseManifest(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result: any,
 ): Record<string, unknown> {
-  const tmp = `/tmp/fdpm-academic-paper-base-${process.pid}`;
-  rmSync(tmp, { recursive: true, force: true });
-  mkdirSync(tmp, { recursive: true });
-  writePluginScaffold(result, {
-    outputDir: tmp,
-    pluginName: "FDPM Academic Paper",
-    pluginDescription:
-      "Academic paper plugin auto-generated from schemas/academic-paper.ts via @fdpm/zod-bridge. 18 entities covering empirical, theoretical, methodological, literary-critical, review, historical, essay, and monograph genres. Paper-coherence cap:validator enforces referential integrity and kind-conditional required-ness rules.",
-    authors: ["fdpm"],
-    license: "MIT",
-  });
-  const baseManifestRaw = readFileSync(
-    join(tmp, "fdpm-plugin.json"),
-    "utf8",
-  );
-  rmSync(tmp, { recursive: true, force: true });
-  return JSON.parse(baseManifestRaw) as Record<string, unknown>;
+  const tmp = mkdtempSync(join(tmpdir(), "fdpm-academic-paper-base-"));
+  try {
+    writePluginScaffold(result, {
+      outputDir: tmp,
+      pluginName: "FDPM Academic Paper",
+      pluginDescription:
+        "Academic paper plugin auto-generated from schemas/academic-paper.ts via @fdpm/zod-bridge. 18 entities covering empirical, theoretical, methodological, literary-critical, review, historical, essay, and monograph genres. Paper-coherence cap:validator enforces referential integrity and kind-conditional required-ness rules.",
+      authors: ["fdpm"],
+      license: "MIT",
+    });
+    const baseManifestRaw = readFileSync(
+      join(tmp, "fdpm-plugin.json"),
+      "utf8",
+    );
+    return JSON.parse(baseManifestRaw) as Record<string, unknown>;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 function stableSortCaps(caps: CapabilityEntry[]): CapabilityEntry[] {

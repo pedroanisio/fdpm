@@ -34,6 +34,7 @@
 
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { staleStateException } from "../core/errors/stale-state.js";
+import { MCP_RELOAD_ADVICE } from "./reload.js";
 import type { Host } from "../core/host.js";
 import type { McpToolEntry, DispatchCtx, Tier } from "./types.js";
 import { findTool } from "./manifest.js";
@@ -265,7 +266,7 @@ async function dispatchOne(
           const env = errorEnvelope(
             staleStateException({
               workbook_id: first,
-              advice: "operator must SIGHUP fdpm-mcp",
+              advice: MCP_RELOAD_ADVICE,
               detail,
             }),
           );

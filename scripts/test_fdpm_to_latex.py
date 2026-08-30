@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pytest
 
@@ -46,9 +47,10 @@ def _build(primitives, relations=None) -> Workbook:
         "primitives": {p["id"]: p for p in primitives},
         "relations": {r["id"]: r for r in (relations or [])},
     }
-    tmp = Path("/tmp/_fdpm_test_input.json")
-    tmp.write_text(json.dumps(data), encoding="utf-8")
-    return Workbook.load(tmp)
+    with TemporaryDirectory(prefix="fdpm-latex-test-") as temp_dir:
+        fixture = Path(temp_dir) / "input.json"
+        fixture.write_text(json.dumps(data), encoding="utf-8")
+        return Workbook.load(fixture)
 
 
 # ---------------------------------------------------------------------------

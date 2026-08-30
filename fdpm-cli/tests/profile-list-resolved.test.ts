@@ -11,6 +11,7 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { NODE_COMMAND, tsxArgs } from "./_helpers/process.js";
 
 const FDPM_BIN = "src/bin/fdpm.ts";
 let dataDir: string;
@@ -29,7 +30,7 @@ interface RunResult {
 }
 
 function runCli(args: string[]): RunResult {
-  const res = spawnSync("npx", ["tsx", FDPM_BIN, "--data-dir", dataDir, ...args], {
+  const res = spawnSync(NODE_COMMAND, tsxArgs([FDPM_BIN, "--data-dir", dataDir, ...args]), {
     env: { ...process.env, FDPM_LOG_LEVEL: "silent" },
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,

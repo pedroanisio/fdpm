@@ -21,7 +21,8 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -220,20 +221,21 @@ function buildBaseManifest(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result: any,
 ): Record<string, unknown> {
-  const tmp = `/tmp/acme-business-deck-base-${process.pid}`;
-  rmSync(tmp, { recursive: true, force: true });
-  mkdirSync(tmp, { recursive: true });
-  writePluginScaffold(result, {
-    outputDir: tmp,
-    pluginName: "Acme Business Deck",
-    pluginDescription:
-      "Business presentation deck plugin auto-generated from schemas/business-deck.ts via @fdpm/zod-bridge. 13 entities, 12 cross-entity relations. Cross-deck invariants (referential integrity, slug uniqueness, slide-number contiguity, claim-parent acyclicity) lift to a deck-coherence cap:validator.",
-    authors: ["acme"],
-    license: "MIT",
-  });
-  const baseManifestRaw = readFileSync(join(tmp, "fdpm-plugin.json"), "utf8");
-  rmSync(tmp, { recursive: true, force: true });
-  return JSON.parse(baseManifestRaw) as Record<string, unknown>;
+  const tmp = mkdtempSync(join(tmpdir(), "acme-business-deck-base-"));
+  try {
+    writePluginScaffold(result, {
+      outputDir: tmp,
+      pluginName: "Acme Business Deck",
+      pluginDescription:
+        "Business presentation deck plugin auto-generated from schemas/business-deck.ts via @fdpm/zod-bridge. 13 entities, 12 cross-entity relations. Cross-deck invariants (referential integrity, slug uniqueness, slide-number contiguity, claim-parent acyclicity) lift to a deck-coherence cap:validator.",
+      authors: ["acme"],
+      license: "MIT",
+    });
+    const baseManifestRaw = readFileSync(join(tmp, "fdpm-plugin.json"), "utf8");
+    return JSON.parse(baseManifestRaw) as Record<string, unknown>;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 function stableSortCaps(caps: CapabilityEntry[]): CapabilityEntry[] {

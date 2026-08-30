@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import { existsSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -25,6 +26,22 @@ function logPathFor(dataDir: string, workbook_id: string): string {
 
 function manifestPath(dataDir: string): string {
   return join(dataDir, "manifest.json");
+}
+
+/**
+ * Produce a bounded, case-fold-safe filename while retaining a readable
+ * prefix. The digest uses the original ID, so punctuation and case variants
+ * remain distinct even on case-insensitive filesystems.
+ */
+export function profileFilenameFor(id: string): string {
+  const slug =
+    id
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 96) || "profile";
+  const digest = createHash("sha256").update(id, "utf8").digest("hex");
+  return `${slug}--${digest}.json`;
 }
 
 export interface DataLayout {
@@ -102,9 +119,11 @@ export class JsonlLogStore {
   async writeProfile(id: string, profile: unknown): Promise<void> {
     const dir = this.profileDir();
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    // Slugify the id for filesystem safety.
-    const safe = id.replace(/[^a-z0-9_-]/gi, "_");
-    await fs.writeFile(join(dir, `${safe}.json`), JSON.stringify(profile, null, 2), "utf8");
+    await fs.writeFile(
+      join(dir, profileFilenameFor(id)),
+      JSON.stringify(profile, null, 2),
+      "utf8",
+    );
   }
 
   async readProfileFile(path: string): Promise<unknown> {

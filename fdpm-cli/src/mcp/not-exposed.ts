@@ -18,7 +18,8 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // `load` is the constructor-companion init; not callable over MCP.
   "load",
   // `reload` is a SPEC-REPL §13 lifecycle method invoked by the
-  // operator (SIGHUP / process restart). LLM clients MUST NOT trigger
+  // operator (SIGHUP on macOS/Linux, Ctrl+Break / SIGBREAK on Windows,
+  // or process restart). LLM clients MUST NOT trigger
   // a Host rebuild; staleness is surfaced to the LLM as
   // `permission`+`evidence.reason: "stale_state"` instead.
   "reload",
@@ -31,8 +32,8 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // lenient mode, but it is never advertised as a tool.
   "reloadProjectTail",
   // `reloadPlugins` re-runs plugin discovery + activation only
-  // (SPEC-REPL §10.3 `:reload plugins`). Operator-triggered via SIGHUP
-  // / `:reload plugins` meta-command; never an MCP tool because LLMs
+  // (SPEC-REPL §10.3 `:reload plugins`). Operator-triggered via the
+  // platform reload signal / `:reload plugins` meta-command; never an MCP tool because LLMs
   // shouldn't be able to mutate the host's capability surface.
   "reloadPlugins",
   // `registerPluginProfile` is the plugin-activation path for shipping a

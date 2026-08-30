@@ -59,7 +59,7 @@ import {
 } from "../mcp/confirmation-token.js";
 import { createDispatcher } from "../mcp/dispatch.js";
 import type { DispatchCtx } from "../mcp/types.js";
-import { handleReload } from "../mcp/reload.js";
+import { handleReload, reloadSignalForPlatform } from "../mcp/reload.js";
 import { McpAuditLog } from "../persistence/mcp-audit-log.js";
 import { HOST_VERSION } from "../core/version/spec.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
@@ -432,11 +432,13 @@ async function main(): Promise<void> {
   };
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
-  process.on("SIGHUP", () => {
+  const reloadSignal = reloadSignalForPlatform(process.platform);
+  process.on(reloadSignal, () => {
     void handleReload({
       host,
       audit,
       session,
+      signal: reloadSignal,
       notifier: {
         sendResourceListChanged: () => server.sendResourceListChanged(),
         sendPromptListChanged: () => server.sendPromptListChanged(),

@@ -111,6 +111,7 @@ describe("SPEC-MCP-SERVER §23.4 — stale-state refusal on concurrent CLI write
     expect(env.category).toBe("permission");
     expect(env.evidence?.reason).toBe("stale_state");
     expect(env.evidence?.advice).toMatch(/SIGHUP/);
+    expect(env.evidence?.advice).toMatch(/SIGBREAK/);
 
     // SIGHUP-triggered reload (the production handler does
     // `host.reload()` then `session.clearFreshnessMap()`).
