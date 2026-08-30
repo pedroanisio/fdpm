@@ -14,6 +14,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const CLI_ROOT = resolve(dirname(SCRIPT_PATH), "..");
 const MAX_BUFFER = 64 * 1024 * 1024;
+const WINDOWS_INVALID_COMPONENT = /[<>:"\\|?*\u0000-\u001f]/u;
+const WINDOWS_RESERVED_COMPONENT =
+  /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
 
 /** Run npm through npm-cli.js so Windows does not need a shell for npm.cmd. */
 export function npmInvocation(
@@ -94,6 +97,69 @@ function runNpm(label, args, options) {
   return runInvocation(label, npmInvocation(args), options);
 }
 
+/**
+ * Validate the exact file list npm intends to publish.
+ *
+ * npm can build and install a package successfully on one host while the
+ * tarball still contains a path that another host cannot materialize. Check
+ * the strictest common constraints here so every CI runner proves that both
+ * workspace tarballs are extractable on default Windows and macOS filesystems.
+ */
+export function assertPortablePackReport(label, report) {
+  const packageReport = Array.isArray(report) ? report[0] : undefined;
+  if (!packageReport || typeof packageReport !== "object") {
+    throw new Error(`${label} did not report a package.`);
+  }
+  if (typeof packageReport.filename !== "string" || packageReport.filename === "") {
+    throw new Error(`${label} did not report a tarball filename.`);
+  }
+  if (!Array.isArray(packageReport.files) || packageReport.files.length === 0) {
+    throw new Error(`${label} did not report any packaged files.`);
+  }
+
+  const portablePaths = new Map();
+  for (const file of packageReport.files) {
+    const path = file?.path;
+    if (typeof path !== "string" || path === "") {
+      throw new Error(`${label} reported a packaged file without a path.`);
+    }
+    if (path.startsWith("/") || path.endsWith("/")) {
+      throw new Error(`${label} reported a non-relative packaged path: ${path}`);
+    }
+
+    const components = path.split("/");
+    for (const component of components) {
+      if (component === "" || component === "." || component === "..") {
+        throw new Error(`${label} reported a non-canonical packaged path: ${path}`);
+      }
+      if (
+        WINDOWS_INVALID_COMPONENT.test(component) ||
+        WINDOWS_RESERVED_COMPONENT.test(component) ||
+        /[ .]$/u.test(component)
+      ) {
+        throw new Error(`${label} reported a Windows-incompatible packaged path: ${path}`);
+      }
+      if (component.length > 255 || Buffer.byteLength(component, "utf8") > 255) {
+        throw new Error(`${label} reported an overlong packaged path component: ${path}`);
+      }
+    }
+
+    // Default Windows filesystems fold case; default macOS filesystems also
+    // fold case and normalize Unicode. NFD catches canonically equivalent
+    // composed/decomposed spellings while keeping the check deterministic.
+    const portableKey = path.normalize("NFD").toLowerCase();
+    const previous = portablePaths.get(portableKey);
+    if (previous !== undefined && previous !== path) {
+      throw new Error(
+        `${label} reported colliding packaged paths on macOS/Windows: ${previous} and ${path}`,
+      );
+    }
+    portablePaths.set(portableKey, path);
+  }
+
+  return { filename: packageReport.filename, fileCount: packageReport.files.length };
+}
+
 function packedTarball(label, args, options, packDir) {
   const result = runNpm(label, args, options);
   let report;
@@ -102,10 +168,7 @@ function packedTarball(label, args, options, packDir) {
   } catch (error) {
     throw new Error(`${label} did not emit valid npm pack JSON.`, { cause: error });
   }
-  const filename = Array.isArray(report) ? report[0]?.filename : undefined;
-  if (typeof filename !== "string" || filename === "") {
-    throw new Error(`${label} did not report a tarball filename.`);
-  }
+  const { filename } = assertPortablePackReport(label, report);
   return join(packDir, filename);
 }
 

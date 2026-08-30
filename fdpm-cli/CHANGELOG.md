@@ -76,7 +76,10 @@ Each Node matrix job now packs `@fdpm/zod-bridge` and `@fdpm/cli`, installs
 both tarballs into an isolated consumer project, and invokes npm's generated
 `fdpm` and `fdpm-mcp` command shims. This covers the Windows `.cmd` launch path
 and catches missing packaged files or unresolved workspace dependencies that
-source-tree binary smoke tests cannot expose.
+source-tree binary smoke tests cannot expose. Before installation, the same
+gate inspects npm's exact file list and rejects Windows-reserved or otherwise
+invalid path components, overlong components, and case or Unicode-normalization
+collisions that default macOS and Windows filesystems cannot materialize.
 
 Workbook IDs now reject the Windows-reserved device basenames `con`, `prn`,
 `aux`, `nul`, `com1` through `com9`, and `lpt1` through `lpt9`; the existing
