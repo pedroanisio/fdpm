@@ -77,7 +77,7 @@ alias fdpm='node /path/to/repo/fdpm-cli/dist/src/bin/fdpm.js'
 # 4. Smoke test.
 fdpm version --json
 # => { "spec_core": "1.1", "spec_core_revision": "1.1.1",
-#      "host": "fdpm-cli", "host_version": "1.1.0" }
+#      "host": "fdpm-cli", "host_version": "1.2.0" }
 
 fdpm health readyz
 # => ready profiles=N

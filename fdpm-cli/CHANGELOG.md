@@ -22,15 +22,15 @@ upgrade.
 ## [Unreleased]
 
 > **Release state.** No `@fdpm/cli` version has ever been released or tagged.
-> `package.json` has read `1.1.0` since the file first appeared and has never
-> been bumped, so there is no 1.0.0 → 1.1.0 boundary to split this section
-> along — everything below is genuinely unreleased, and `1.1.0` is a
-> development version rather than a shipped one. `@fdpm/zod-bridge` is
-> versioned separately and does have releases; its newest git tag is
-> `@fdpm/zod-bridge@0.2.0` while the package is at `0.4.0`, so **0.3.0 and
-> 0.4.0 are documented but untagged**. Cutting those tags is an operator
-> action. Recorded here by the 2026-08-29 doc-hygiene pass so the gap is
-> visible rather than inferred.
+> `package.json` now reads `1.2.0`, aligned with the runtime's
+> `HOST_VERSION`, as the first public-release candidate. The earlier `1.1.0`
+> value was a development version rather than a shipped release, so there is
+> still no truthful historical boundary at which to split this section.
+> `@fdpm/zod-bridge` is versioned separately and does have releases; its
+> newest git tag is `@fdpm/zod-bridge@0.2.0` while the package is at `0.4.0`,
+> so **0.3.0 and 0.4.0 are documented but untagged**. Cutting tags remains an
+> operator action. The 2026-08-29 doc-hygiene finding is preserved here with
+> the 2026-08-30 candidate state made explicit rather than inferred.
 
 
 ### Fixed

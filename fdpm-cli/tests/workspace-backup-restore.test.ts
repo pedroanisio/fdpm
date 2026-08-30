@@ -185,7 +185,7 @@ describe("restore — round-trip and atomicity", () => {
     // bypass the high-level helper and use archiver directly with a
     // hand-crafted manifest that lies about the data sha. Then prove
     // restore detects the mismatch and leaves the target untouched.
-    const archiver = (await import("archiver")).default;
+    const { ZipArchive } = await import("archiver");
     const host = await freshHost();
     await host.createProject({
       workbook_id: "proj-t",
@@ -223,7 +223,7 @@ describe("restore — round-trip and atomicity", () => {
 
     await new Promise<void>((resolveP, reject) => {
       const w = (require("node:fs") as typeof import("node:fs")).createWriteStream(out);
-      const a = archiver("zip");
+      const a = new ZipArchive();
       a.on("error", reject);
       w.on("close", resolveP);
       a.pipe(w);
@@ -336,13 +336,13 @@ describe("restore — round-trip and atomicity", () => {
 
   it("missing backup-manifest.json surfaces verification/manifest_invalid", async () => {
     // Build a zip with no manifest at all.
-    const archiver = (await import("archiver")).default;
+    const { ZipArchive } = await import("archiver");
     const out = join(bundleDir, "no-manifest.fdpmbak");
     const ws = (await freshHost()).workspace as LocalWorkspace;
     void ws; // hostside is incidental; we just need a writable bundle
     await new Promise<void>((resolveP, reject) => {
       const w = (require("node:fs") as typeof import("node:fs")).createWriteStream(out);
-      const a = archiver("zip");
+      const a = new ZipArchive();
       a.on("error", reject);
       w.on("close", resolveP);
       a.pipe(w);

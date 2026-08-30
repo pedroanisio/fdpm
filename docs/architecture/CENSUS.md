@@ -33,28 +33,29 @@ and plugin `generated/` trees.
 | Area | Lines (nearest 1,000) |
 |---|---:|
 | `src/` | ≈29K |
-| `plugins/` | ≈74K |
+| `plugins/` | ≈76K |
 | `tests/` | ≈45K |
 | `scripts/` | ≈42K |
 | `packages/zod-bridge/` | ≈7K |
-| **Total** | **≈196K** |
+| **Total** | **≈200K** |
 
 ## Counts
 
 | Fact | Value | Derivation |
 |---|---:|---|
-| Plugin directories | 19 | `plugins/*/` |
+| Plugin directories | 20 | `plugins/*/` |
 | `FDPM_*` environment variables | 24 | `FDPM_ENV_VARS` in `src/core/config/env.ts` |
-| CI workflows | 4 | `.github/workflows/*.yml` |
+| CI workflows | 3 | `.github/workflows/*.yml` |
 | `SPEC-*.md` documents | 13 | `docs/specs/SPEC-*.md` |
 | Distinct MCP tool ids | 29 | `fdpm.<group>.<verb>` literals under `src/mcp/` |
 
-## Plugin directories (19)
+## Plugin directories (20)
 
 - `_starter`
 - `academic_paper_v0_4_1`
 - `acme_business_deck`
 - `acme_pitch_deck`
+- `agent_memory`
 - `dnis`
 - `document_plan`
 - `document_plan_dnis`
@@ -71,12 +72,11 @@ and plugin `generated/` trees.
 - `uixo`
 - `uml`
 
-## CI workflows (4)
+## CI workflows (3)
 
-- `.github/workflows/plugin-acme-business-deck.yml`
-- `.github/workflows/plugin-acme-pitch-deck.yml`
-- `.github/workflows/plugin-document-plan.yml`
-- `.github/workflows/plugin-uml.yml`
+- `.github/workflows/ci.yml`
+- `.github/workflows/codeql.yml`
+- `.github/workflows/release.yml`
 
 ## SPEC documents (13)
 

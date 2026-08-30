@@ -1,7 +1,24 @@
 {
   "name": "@fdpm/cli",
-  "version": "1.1.0",
-  "description": "FDPM Core SPEC v1.1 — full CLI implementation",
+  "version": "1.2.0",
+  "description": "Typed, event-sourced workbooks with a CLI, SDK, plugin runtime, renderers, and an MCP server.",
+  "author": "Pedro Anisio Silva <pedroanisio@arc4d3.com>",
+  "keywords": [
+    "fdpm",
+    "mcp",
+    "workbook",
+    "typed-graph",
+    "cli"
+  ],
+  "homepage": "https://github.com/pedroanisio/fdpm-cli#readme",
+  "bugs": {
+    "url": "https://github.com/pedroanisio/fdpm-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pedroanisio/fdpm-cli.git",
+    "directory": "fdpm-cli"
+  },
   "type": "module",
   "bin": {
     "fdpm": "./dist/src/bin/fdpm.js",
@@ -11,26 +28,37 @@
     ".": "./dist/src/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "workspaces": [
+    "packages/zod-bridge"
   ],
   "scripts": {
     "build": "tsc -p . && npm run copy-plugin-assets && chmod +x dist/src/bin/fdpm.js dist/src/bin/fdpm-mcp.js",
+    "check": "npm run typecheck && npm run build && npm test && npm run test:public-readiness",
     "copy-plugin-assets": "node scripts/copy-plugin-assets.mjs",
     "dev": "tsx src/bin/fdpm.ts",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run release:check",
+    "public:check": "node scripts/check-public-readiness.mjs",
+    "release:check": "npm run check && npm run public:check && npm audit --omit=dev --audit-level=high",
     "render:acceptance": "tsx scripts/render-acceptance.ts",
     "test": "vitest run",
+    "test:public-readiness": "node tests/_meta/public-readiness.test.mjs",
     "test:renderers:visual": "playwright test --config playwright.config.ts",
     "test:watch": "vitest",
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "@fdpm/zod-bridge": "file:packages/zod-bridge",
+    "@fdpm/zod-bridge": "^0.4.0",
     "@marcbachmann/cel-js": "^7.6.1",
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "archiver": "^7.0.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "archiver": "^8.0.0",
     "commander": "^12.1.0",
     "pdf-lib": "^1.17.1",
-    "shell-quote": "^1.8.3",
+    "shell-quote": "^1.10.0",
     "ulid": "^2.3.0",
     "uuid": "^11.1.1",
     "yauzl": "^3.3.0",
@@ -40,17 +68,24 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
-    "@types/archiver": "^7.0.0",
+    "@types/archiver": "^8.0.0",
     "@types/node": "^22.5.4",
     "@types/shell-quote": "^1.7.5",
     "@types/yauzl": "^2.10.3",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^4.1.11",
     "ajv": "^8.17.1",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "allowScripts": {
+    "esbuild@0.27.2": true
   }
 }

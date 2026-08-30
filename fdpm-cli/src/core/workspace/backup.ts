@@ -9,7 +9,7 @@
  * Compression policy follows §13: text/json/jsonl/yaml/svg are
  * deflated; pre-compressed types (pdf/png/jpeg) are stored.
  */
-import archiver from "archiver";
+import { ZipArchive } from "archiver";
 import { createHash } from "node:crypto";
 import {
   createReadStream,
@@ -217,7 +217,7 @@ export async function backupWorkspace(
     if (!existsSync(dir)) await fs.mkdir(dir, { recursive: true });
   }
 
-  const archive = archiver("zip", {
+  const archive = new ZipArchive({
     zlib: { level: opts.compressionLevel ?? 6 },
   });
 

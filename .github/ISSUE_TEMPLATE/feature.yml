@@ -1,0 +1,40 @@
+name: Feature request
+description: Propose a user-visible capability or contract change.
+title: "proposal: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user or agent task that cannot be completed today, with evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      description: Explain the present workaround or failure mode.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Required outcome
+      description: State observable acceptance criteria without prescribing an implementation unless necessary.
+    validations:
+      required: true
+  - type: textarea
+    id: contracts
+    attributes:
+      label: Contract and compatibility impact
+      description: Identify affected specifications, schemas, persistence, CLI, SDK, MCP, plugins, or generated artifacts.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and roadmap documents.
+          required: true
+        - label: I have identified any destructive or security-sensitive behavior.
+          required: true

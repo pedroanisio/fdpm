@@ -23,7 +23,9 @@ This work is subject to the methodological caveats and commitments described in 
 `v0.4.0` — sidecar-driven plugin emission is implemented and tested. The bridge
 now writes deterministic `generated/*.json` artefacts, `fdpm-plugin.json`, and
 `index.ts`, and derives the optional `cap:renderer`, `cap:importer`,
-`cap:exporter`, and `cap:expr-helper` surfaces from schemas.
+`cap:exporter`, and `cap:expr-helper` surfaces from schemas. The package has
+not completed its first npm publication; the command below applies after that
+release exists.
 
 ## Specification
 
@@ -68,6 +70,16 @@ npm install @fdpm/zod-bridge zod@^4
 
 `zod` is a peer dependency. The bridge itself depends only on
 `@marcbachmann/cel-js` for offline CEL syntax compatibility.
+
+For development before the first npm release, install from the repository
+workspace instead:
+
+```bash
+git clone https://github.com/pedroanisio/fdpm-cli.git
+cd fdpm-cli/fdpm-cli
+npm ci
+npm run build --workspace @fdpm/zod-bridge
+```
 
 ## Quick start
 
@@ -248,3 +260,9 @@ upgrading.
 - Plugin contract: `spec-plugin-authoring-howto`
 - Host CEL evaluator: `@marcbachmann/cel-js@^7`
 - Zod: `^4.0.0` (peer dep)
+
+## License
+
+An open-source license has not yet been selected. npm publication is blocked
+until the repository and both package tarballs carry the same license text and
+their manifests carry its SPDX expression.

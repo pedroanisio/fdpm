@@ -166,7 +166,7 @@ function pluginDirs(): string[] {
 }
 
 function workflowFiles(): string[] {
-  return under(`${CLI_PREFIX}.github/workflows`, (p) => p.endsWith(".yml") || p.endsWith(".yaml"))
+  return under(".github/workflows", (p) => p.endsWith(".yml") || p.endsWith(".yaml"))
     .map((e) => e.path.split("/").pop()!)
     .sort();
 }

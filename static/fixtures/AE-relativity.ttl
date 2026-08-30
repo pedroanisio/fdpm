@@ -3,7 +3,10 @@
 # Comprehensive RDF fixture for static/schemas/scientific-paper-cwa-shacl-rev2.ttl
 # (Layer B), modelling the 1920 English-translation publication of Einstein's
 # "Relativity: The Special and General Theory" (Robert W. Lawson, trans.;
-# Methuen & Co Ltd). Source PDF at static/fixtures/AE-relativity.pdf.
+# Methuen & Co Ltd). The previously bundled archive PDF was removed before
+# public release because the code and tests do not consume it and its separate
+# GNU Free Documentation License obligations were not represented in this
+# repository. This structured fixture remains the canonical test input.
 #
 # This file is the second-pass full-mapping replacement of the earlier sample
 # fixture: every chapter (1–32, plus preface), every appendix that survives in

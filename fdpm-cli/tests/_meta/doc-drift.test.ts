@@ -22,8 +22,7 @@
  * rots.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -39,6 +38,16 @@ describe("doc drift: repository census", () => {
         stdio: "pipe",
       }),
     ).not.toThrow();
+  });
+
+  it("counts the repository-root public workflows", () => {
+    const census = readFileSync(
+      join(REPO_ROOT, "docs/architecture/CENSUS.md"),
+      "utf8",
+    );
+    for (const workflow of ["ci.yml", "codeql.yml", "release.yml"]) {
+      expect(census).toContain(`- \`.github/workflows/${workflow}\``);
+    }
   });
 });
 

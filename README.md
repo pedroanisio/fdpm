@@ -22,6 +22,18 @@ This work is subject to the methodological caveats and commitments described in 
 > runtime bug. All LLM output must be treated as untrusted and validated
 > explicitly.
 
+## Public release status
+
+The repository has been hardened for public collaboration, but it is **not yet
+an open-source release**. An open-source license still has to be selected, the
+GitHub repository is currently private, and neither npm package has completed
+its first publication. The release gate blocks publication until the root and
+both package license files agree with their SPDX metadata.
+
+See [`docs/PUBLIC-READINESS.md`](docs/PUBLIC-READINESS.md) for the verified
+state and operator actions, [`CONTRIBUTING.md`](CONTRIBUTING.md) for the change
+workflow, and [`SECURITY.md`](SECURITY.md) for private vulnerability reports.
+
 ## Who this is for
 
 The primary user of an FDPM workbook is an **LLM agent**, talking to
@@ -272,12 +284,28 @@ implemented.
 
 ## Install / build
 
+From a source checkout (the currently available installation path):
+
 ```bash
-npm --prefix fdpm-cli install
+npm --prefix fdpm-cli ci
 npm --prefix fdpm-cli run build              # tsc → fdpm-cli/dist/
 npm --prefix fdpm-cli test                   # vitest run
 npm --prefix fdpm-cli run dev -- version     # tsx, no build needed
 ```
+
+Use `npm --prefix fdpm-cli install` only when intentionally changing the
+dependency graph and regenerating `package-lock.json`; ordinary checkouts and
+CI should use the reproducible `npm ci` path above.
+
+After the first public npm release, install the CLI globally:
+
+```bash
+npm install --global @fdpm/cli
+fdpm version --json
+```
+
+Node.js 20 or newer is required. npm and `fdpm-cli/package-lock.json`
+are the canonical package manager and lockfile.
 
 ## Environment variables
 
@@ -956,7 +984,11 @@ Everything listed in SPEC §20 (Out of Scope) plus:
 
 ## License
 
-License file is not currently checked into this repository snapshot.
+An open-source license has not yet been selected. Source visibility does not
+grant redistribution or open-source use rights. Publication remains blocked
+until `LICENSE`, `fdpm-cli/LICENSE`, and
+`fdpm-cli/packages/zod-bridge/LICENSE` contain the selected license text and
+both package manifests contain its SPDX expression.
 
 ## See also
 
@@ -969,3 +1001,6 @@ License file is not currently checked into this repository snapshot.
 - [docs/adrs/decisions.md](docs/adrs/decisions.md) — architectural decision records, generated from `sw:Decision` primitives by [fdpm-cli/scripts/build-adrs.ts](fdpm-cli/scripts/build-adrs.ts).
 - [CLAUDE.md](CLAUDE.md) — workbook-level engineering rules.
 - [PURPOSE.md](PURPOSE.md) — repository purpose and non-goals.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — contribution workflow and validation.
+- [GOVERNANCE.md](GOVERNANCE.md) — decision and release authority.
+- [RELEASING.md](RELEASING.md) — npm bootstrap and publication procedure.

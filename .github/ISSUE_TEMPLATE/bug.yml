@@ -1,0 +1,54 @@
+name: Bug report
+description: Report reproducible incorrect behavior in the current FDPM source or release.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report vulnerabilities here. Use the private process in SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Output of `fdpm version --json` or the exact commit SHA.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Node.js version, and installation method.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include sanitized input and the exact commands needed to reproduce the problem.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include complete, sanitized output and relevant logs.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Cite a specification or documented contract when possible.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: This report contains no credentials, personal data, or undisclosed vulnerability details.
+          required: true

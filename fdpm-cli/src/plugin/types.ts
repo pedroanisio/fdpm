@@ -57,13 +57,30 @@ export interface PluginLogger {
 
 /**
  * Optional 4th parameter handed to validators by the pipeline. Carries
- * data the validator may need beyond the instance — today only
- * `relations` (so graph predicates like `has_incoming` / `has_outgoing`
- * / `acyclic` can run). The argument is OPTIONAL on the signature so
- * an existing single-arg validator keeps working unchanged.
+ * data the validator may need beyond the instance — `relations` (so
+ * graph predicates like `has_incoming` / `has_outgoing` / `acyclic` can
+ * run) and the workbook slice the write lands in. The argument is
+ * OPTIONAL on the signature so an existing single-arg validator keeps
+ * working unchanged.
+ *
+ * `workbook` was already being forwarded verbatim by `Host` (see
+ * `validationContext`) and by the plugin adapter in `context.ts`; only
+ * this declaration was missing, so a validator needing another
+ * primitive's field values had to cast over an undocumented shape. A
+ * rule that cannot read a sibling primitive is not a rule a plugin can
+ * enforce — cross-primitive constraints (a replacement observed after
+ * the fact it replaces; a write into a settled parent) live here.
+ *
+ * It is OPTIONAL at runtime as well: a caller invoking the pipeline
+ * outside a workbook supplies none. A validator that needs it must
+ * therefore fail explicitly when it is absent, never skip its check.
  */
 export interface ValidatorContext {
   relations: readonly RelationInstance[];
+  workbook?: {
+    readonly primitives: Readonly<Record<string, PrimitiveInstance>>;
+    readonly relations: Readonly<Record<string, RelationInstance>>;
+  };
 }
 
 export type ValidatorFn = (
