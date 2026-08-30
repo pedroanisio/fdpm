@@ -848,10 +848,22 @@ export class Host {
   } {
     try {
       const slice = this.store.getProject(workbook_id);
+      // `projectFingerprint` hashes the whole operation log, which grows
+      // with every write, so computing it eagerly makes a run of N writes
+      // O(N^2) in log size. Only the CEL-rule loop in `runPrimitive` reads
+      // it, and only when a profile declares an expression rule for the
+      // type being written — the relation path never touches it. So it is
+      // computed on first read and memoised, and a write that nobody asks
+      // about pays nothing.
+      let fingerprint: string | undefined;
+      const self = this;
       return {
         relations: Object.values(slice.relations),
         workbook: slice,
-        projectFingerprint: this.projectFingerprint(workbook_id),
+        get projectFingerprint(): string {
+          fingerprint ??= self.projectFingerprint(workbook_id);
+          return fingerprint;
+        },
         gitProbeDir: this.hostOptions.cwd ?? process.cwd(),
       };
     } catch {
@@ -890,7 +902,7 @@ export class Host {
       const profile = this.requireResolvedProfile(workbook_id);
       const slice = this.store.getProject(workbook_id);
       const prims = new Map(Object.entries(slice.primitives));
-      return this.pipeline.runRelation(proposed, profile, prims);
+      return this.pipeline.runRelation(proposed, profile, prims, this.validationContext(workbook_id));
     });
   }
 
@@ -917,7 +929,7 @@ export class Host {
       };
       const profile = this.requireResolvedProfile(workbook_id);
       const prims = new Map(Object.entries(slice.primitives));
-      return this.pipeline.runRelation(proposed, profile, prims);
+      return this.pipeline.runRelation(proposed, profile, prims, this.validationContext(workbook_id));
     });
   }
 
@@ -945,7 +957,7 @@ export class Host {
       const profile = this.requireResolvedProfile(workbook_id);
       const prims = new Map(Object.entries(slice.primitives));
       if (fullValidate) {
-        return this.pipeline.runRelation(merged, profile, prims);
+        return this.pipeline.runRelation(merged, profile, prims, this.validationContext(workbook_id));
       }
       const touched = new Set<string>(Object.keys(patch.field_values));
       return this.pipeline.runRelationFieldPatch(merged, profile, prims, touched);
@@ -1192,7 +1204,7 @@ export class Host {
             };
             const slice = this.store.getProject(workbook_id);
             const prims = new Map(Object.entries(slice.primitives));
-            report = this.pipeline.runRelation(proposed, profile, prims);
+            report = this.pipeline.runRelation(proposed, profile, prims, this.validationContext(workbook_id));
             input = buildInput("relation.create", { ...intent.relation, uid });
             break;
           }
@@ -1660,7 +1672,7 @@ export class Host {
     const relationReports: ValidationReport[] = [];
     for (const r of Object.values(slice.relations)) {
       if (opts?.targetIds && !opts.targetIds.has(r.id)) continue;
-      const rep = filterFindings(this.pipeline.runRelation(r, profile, prims));
+      const rep = filterFindings(this.pipeline.runRelation(r, profile, prims, ctx));
       if (rep.findings.length > 0) relationReports.push(rep);
     }
 

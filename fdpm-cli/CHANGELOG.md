@@ -33,7 +33,59 @@ upgrade.
 > the 2026-08-30 candidate state made explicit rather than inferred.
 
 
+### Added
+
+#### `fdpm.agent-memory` — the agent-memory v2 contract as `profile:agent-memory:2.0`
+
+Episode-scoped memory for an autonomous agent: six primitive types
+(`am:Episode`, `am:Fact`, `am:Hypothesis`, `am:Artifact`, `am:Action`,
+`am:Decision`) and six relation types, with 19 validator registrations
+carrying the rules a per-field schema cannot express — the partition
+boundary, supersession shape and ordering, the evidence a settled
+hypothesis owes, and the refusal of any write into a settled episode.
+
+The import makes three departures from the source contract, each argued
+in the file where it lands and summarised in
+`plugins/agent_memory/README.md`: the contract's discriminated union
+becomes six types rather than one flattened type; `episode_id` becomes
+the `am:EpisodeHolds` edge so endpoint existence and kind are the host's
+checks rather than restated rules; and the `superseded` boolean is
+dropped, because in a graph the edge already is the index and carrying
+both would need policing no write order can satisfy.
+
+Limits are recorded in the plugin README rather than implied: reopening a
+settled episode is not refused (a validator never sees the instance it
+replaces), there is no retrieval surface, no memory tiering and no
+valid-time axis, and the vendored contract's provenance cannot be
+self-checked because its source lives in another repository.
+
 ### Fixed
+
+#### Custom validators registered against a relation type were never dispatched
+
+`ValidationPipeline.runRelation` ran the core checks — type resolution,
+endpoint existence, endpoint kind, field shape, extra fields — and
+returned. It had no Step 6, so a `cap:validator` capability naming a
+relation type id was accepted by the manifest, registered by the plugin
+context, and then never called. It also took no `CustomValidatorContext`,
+so even once dispatched a relation validator could not see the workbook's
+other relations or primitives.
+
+No plugin in the tree had registered a relation validator, so no test
+failed and the gap was silent by construction. It surfaced when
+`fdpm.agent-memory` registered four relation-level rules and watched every
+one of them accept a graph it forbids.
+
+`runRelation` now dispatches custom validators behind the same exception
+barrier and the same `validatorAppliesToProfile` scoping the primitive
+path uses, and `Host` supplies the validation context at all five
+`runRelation` call sites. `runRelationFieldPatch` forwards it too.
+`ValidatorContext` additionally declares the `workbook` field that `Host`
+was already passing, so a cross-primitive rule reads a typed contract
+rather than casting over an undocumented shape.
+
+Regression: `tests/relation-custom-validators.test.ts`, written against
+the core pipeline and independent of any plugin.
 
 #### The four `fdpm.uixo` views rendered the document but did not present it
 

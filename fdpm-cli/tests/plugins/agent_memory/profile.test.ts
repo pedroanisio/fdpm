@@ -331,14 +331,22 @@ describe("live host", () => {
       target_id: FACT_LIVE,
     });
 
-    await expect(
-      host.createRelation("wb-am", {
+    const refused = await host
+      .createRelation("wb-am", {
         id: "am:rel:bad",
         type_id: R.SupersededBy,
         source_id: ACTION,
         target_id: FACT_LIVE,
-      }),
-    ).rejects.toThrow(/source type am:Action not in/u);
+      })
+      .then(() => null)
+      .catch((err: unknown) => err as { findings?: { rule_id: string; message: string }[] });
+
+    expect(refused, "a wrong-kind endpoint was accepted").not.toBeNull();
+    const findings = refused?.findings ?? [];
+    expect(messages(findings)).toContain("source type am:Action not in");
+    // core:, not am: — the host owns this check, which is why the
+    // profile does not restate it.
+    expect(findings.some((f) => f.rule_id === "core:relation:source-type")).toBe(true);
   });
 
   it("test_a_write_into_a_settled_episode_is_refused_through_the_real_pipeline", async () => {
@@ -358,13 +366,22 @@ describe("live host", () => {
       field_values: fact(FACT_STALE, 3).field_values,
     });
 
-    await expect(
-      host.createRelation("wb-am2", {
+    // The refusal arrives as a validation exception carrying the
+    // findings; assert on the rule that produced it, not on the generic
+    // "validation failed" wrapper, or the test passes for any refusal.
+    const refused = await host
+      .createRelation("wb-am2", {
         id: "am:rel:holds-late",
         type_id: R.EpisodeHolds,
         source_id: EP,
         target_id: FACT_STALE,
-      }),
-    ).rejects.toThrow(/is complete and accepts no writes/u);
+      })
+      .then(() => null)
+      .catch((err: unknown) => err as { findings?: { rule_id: string; message: string }[] });
+
+    expect(refused, "the write into a settled episode was accepted").not.toBeNull();
+    const findings = refused?.findings ?? [];
+    expect(messages(findings)).toContain("is complete and accepts no writes");
+    expect(findings.some((f) => f.rule_id === RULE.episodeWritable)).toBe(true);
   });
 });

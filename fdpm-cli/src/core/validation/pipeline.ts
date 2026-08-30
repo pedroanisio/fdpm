@@ -649,10 +649,18 @@ export class ValidationPipeline {
     return { target_id: instance.id, accepted, findings };
   }
 
+  /**
+   * Validate one relation instance.
+   *
+   * `context` is optional for the same reason it is on `runPrimitive`:
+   * a caller outside a workbook has none to give. A custom validator
+   * that needs it must fail explicitly rather than stand down.
+   */
   runRelation(
     instance: RelationInstance,
     profile: DomainProfile,
     primitives: Map<string, PrimitiveInstance>,
+    context?: CustomValidatorContext,
   ): ValidationReport {
     const findings: ValidationFinding[] = [];
     const type = findRelationType(profile, instance.type_id);
@@ -735,8 +743,50 @@ export class ValidationPipeline {
       }
     }
     findings.push(...detectExtraFields(instance.id, instance.field_values, type.fields));
+    findings.push(...this.runCustomValidators(instance, type, profile, context));
     const accepted = !findings.some((f) => f.level === "error");
     return { target_id: instance.id, accepted, findings };
+  }
+
+  /**
+   * Step 6 for relations: custom validators, behind the same exception
+   * barrier and the same profile scoping the primitive path uses.
+   *
+   * Relations had no such step at all. `cap:validator` accepted a
+   * relation type id, the plugin context registered it, and the
+   * registration was then never dispatched — a capability that could be
+   * declared but not exercised. Nothing in-tree had registered one, so
+   * no test failed; the gap was silent by construction rather than by
+   * accident.
+   */
+  private runCustomValidators(
+    instance: RelationInstance,
+    type: RelationTypeDef,
+    profile: DomainProfile,
+    context?: CustomValidatorContext,
+  ): ValidationFinding[] {
+    const findings: ValidationFinding[] = [];
+    for (const v of this.validators.filter(
+      (r) => r.type_id === type.id && validatorAppliesToProfile(r, profile),
+    )) {
+      try {
+        findings.push(...v.fn(instance, type, profile, context));
+      } catch (err) {
+        findings.push({
+          level: "error",
+          rule_id: `plugin-validator-raised:${v.rule_id}`,
+          target_id: instance.id,
+          field_path: null,
+          message: "validator raised; see evidence",
+          evidence: {
+            failure_kind: "validator-runtime-error",
+            error: err instanceof Error ? err.message : String(err),
+            rule_id: v.rule_id,
+          },
+        });
+      }
+    }
+    return findings;
   }
 
   /**
@@ -753,8 +803,9 @@ export class ValidationPipeline {
     profile: DomainProfile,
     primitives: Map<string, PrimitiveInstance>,
     touchedPaths: ReadonlySet<string>,
+    context?: CustomValidatorContext,
   ): ValidationReport {
-    if (touchedPaths.has("")) return this.runRelation(instance, profile, primitives);
+    if (touchedPaths.has("")) return this.runRelation(instance, profile, primitives, context);
 
     const findings: ValidationFinding[] = [];
     const type = findRelationType(profile, instance.type_id);

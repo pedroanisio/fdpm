@@ -14,3 +14,4 @@ docs/hygiene/doc-quarantine.sh
 docs/hygiene/quarantine-manifest.json
 docs/hygiene/quarantine-summaries.md
 .repo/
+.vite/vitest/results.json
