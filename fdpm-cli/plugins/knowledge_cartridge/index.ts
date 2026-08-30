@@ -32,7 +32,7 @@
  * because a scoreboard that showed only enforceable checks would be the
  * self-certification the protocol warns about.
  *
- * WHAT IT RENDERS. Three views:
+ * WHAT IT RENDERS. Four views — three for a reader, one for an agent:
  *
  *   text/markdown   the cartridge itself — the deliverable, laid out to the
  *                   Pass-5 register contracts, with gaps and conflicts in the
@@ -41,6 +41,11 @@
  *                   plus the Pass-6 scoreboard including what it cannot check
  *   image/svg+xml   the layer map — depth per layer against its floor, which
  *                   is how you see a textbook wearing a cartridge's clothes
+ *   application/json  the bounded state projection an agent loads, which caps
+ *                   its own size and declares whatever it had to drop
+ *
+ * WHAT IT MOVES. `kc-jsonl` exports and re-imports a cartridge, because a
+ * module that cannot leave the workspace that built it is not a module.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -65,6 +70,7 @@ import {
   PROFILE_VERSION,
   SCOPES,
   SCOPE_SETS,
+  STATE_RENDERER_ID,
   VENDOR,
 } from "./ids.js";
 import { ALL_PRIMITIVES } from "./primitives.js";
@@ -74,6 +80,8 @@ import { KNOWLEDGE_CARTRIDGE_PROMPTS } from "./prompts.js";
 import { renderCartridge } from "./renderers/cartridge_md.js";
 import { renderCitationIndex } from "./renderers/citation_index.js";
 import { renderLayerMap } from "./renderers/layer_map.js";
+import { renderStateJson } from "./renderers/state_json.js";
+import { KC_JSONL_FORMAT, kcJsonlExporter, kcJsonlImporter } from "./io.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -81,6 +89,7 @@ export {
   CARTRIDGE_RENDERER_ID,
   CITATION_INDEX_RENDERER_ID,
   LAYER_MAP_RENDERER_ID,
+  STATE_RENDERER_ID,
   PLUGIN_ID,
   PLUGIN_VERSION,
   PROFILE_ID,
@@ -90,7 +99,9 @@ export {
 };
 export { KNOWLEDGE_CARTRIDGE_PROMPTS, BUILD_CARTRIDGE_PROMPT } from "./prompts.js";
 export { KC_VALIDATORS, KC_UNENFORCEABLE_CHECKS, RULE } from "./validators.js";
-export { renderCartridge, renderCitationIndex, renderLayerMap };
+export { renderCartridge, renderCitationIndex, renderLayerMap, renderStateJson };
+export { KC_JSONL_FORMAT, kcJsonlExporter, kcJsonlImporter } from "./io.js";
+export { KC_STATE_BUDGET_BYTES } from "./renderers/state_json.js";
 export * from "./ids.js";
 
 export const PROFILE: DomainProfile = {
@@ -132,15 +143,20 @@ export async function activate(ctx: PluginContext): Promise<void> {
     ["text/markdown", CARTRIDGE_RENDERER_ID, renderCartridge as RendererFn],
     ["text/html", CITATION_INDEX_RENDERER_ID, renderCitationIndex as RendererFn],
     ["image/svg+xml", LAYER_MAP_RENDERER_ID, renderLayerMap as RendererFn],
+    ["application/json", STATE_RENDERER_ID, renderStateJson as RendererFn],
   ];
   for (const [target, rendererId, fn] of views) {
     ctx.registerRenderer({ target, rendererId, fn });
   }
 
+  ctx.registerImporter({ format: KC_JSONL_FORMAT, fn: kcJsonlImporter });
+  ctx.registerExporter({ format: KC_JSONL_FORMAT, fn: kcJsonlExporter });
+
   ctx.logger.info(
     `${PLUGIN_ID} activated: ${PROFILE.primitive_types.length} primitive types, ` +
       `${PROFILE.relation_types?.length ?? 0} relation types, ${KC_VALIDATORS.length} validators, ` +
-      `${KNOWLEDGE_CARTRIDGE_PROMPTS.length} prompt, ${views.length} renderers. Profile id: ${PROFILE_ID}.`,
+      `${KNOWLEDGE_CARTRIDGE_PROMPTS.length} prompt, ${views.length} renderers, ` +
+      `1 importer + 1 exporter (${KC_JSONL_FORMAT}). Profile id: ${PROFILE_ID}.`,
   );
 }
 

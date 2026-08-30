@@ -51,8 +51,9 @@ is its control.
 | Primitive types | 13 |
 | Relation types | 6 |
 | Validators | 5 registrations, 9 rule ids |
-| Renderers | 3 |
+| Renderers | 4 |
 | MCP prompts | 1 |
+| Transfer format | `kc-jsonl` (importer + exporter) |
 
 ---
 
@@ -146,6 +147,7 @@ self-certification the protocol warns about.
 | `text/markdown` | `kc:CartridgeRenderer` | The artifact, laid out to the Pass-5 registers, with gaps and unreconciled conflicts in the back matter rather than hidden. |
 | `text/html` | `kc:CitationIndexRenderer` | The evidence **inverted** — source by source, every claim resting on it. Reading a cartridge you can only ask "is this cited"; reading this you can ask "does the source say all of that". |
 | `image/svg+xml` | `kc:LayerMapRenderer` | Depth per layer against its floor. A cartridge heavy in L1/L2 and empty in L4/L5 has harvested facts and no expertise, and that shows here in one glance. |
+| `application/json` | `kc:StateRenderer` | The projection an **agent** loads, rather than a person. Bounded, and honest about it. |
 
 Several plugins register `text/html` and `text/markdown`, so ask by id:
 
@@ -155,9 +157,61 @@ fdpm render <workbook> text/html     --renderer-id kc:CitationIndexRenderer -o c
 fdpm render <workbook> image/svg+xml --renderer-id kc:LayerMapRenderer -o layer-map.svg
 ```
 
-All three are pure functions of their input — no clock, no randomness — and sort
+All four are pure functions of their input — no clock, no randomness — and sort
 before emitting, because primitive and relation collections are sets. Asserted
 in [`renderers.test.ts`](../../tests/plugins/knowledge_cartridge/renderers.test.ts).
+
+### `kc:StateRenderer` is a different kind of view
+
+The other three are read by a person; this one is loaded by an agent, which
+changes what it must guarantee.
+
+**Bounded.** `KC_STATE_BUDGET_BYTES` is 16 KB — roughly 4,000 tokens — and the
+render never exceeds it. A cartridge grows without limit; a context window does
+not.
+
+**Honest about truncation.** This is the load-bearing property. A view that
+silently drops rows makes the agent's knowledge silently *wrong*: it reasons
+confidently from a projection it believes is complete, and nothing downstream
+can tell. `_truncated` is emitted whenever anything was evicted — carrying the
+count, the policy and a per-layer breakdown — and its absence is a positive
+claim that nothing was.
+
+**Eviction is recency, with one derived pin.** ULIDs are minted monotonically,
+so sorting by `uid` descending is chronological with no extra field and no
+clock. The exception: an invariant that an override suspends is never dropped,
+because emitting an exception to a rule that is not there is a projection that
+contradicts itself. The pin is computed from the graph, so it cannot drift.
+
+---
+
+## Transfer — `kc-jsonl`
+
+A cartridge is sold as a *module*: something you hand to a practitioner who has
+never read the sources. Without an export path it can only exist in the
+workspace that built it, which makes that claim false.
+
+```bash
+fdpm transfer export <workbook> --format kc-jsonl -o cartridge.kc-jsonl
+fdpm transfer import cartridge.kc-jsonl --format kc-jsonl --id my-cartridge
+```
+
+One `{kind, data}` record per line, filtered to the `kc:` prefix so a mixed
+workbook exports only its cartridge.
+
+The importer **raises on a malformed line and names the line number** rather
+than skipping it. A skipped line deletes a claim from a document whose whole
+contract is that every claim is accounted for, and it does so invisibly — the
+discard rate on the far side would still read as clean. It does not gate
+content: it builds a `ProjectTransfer` and stops, so every row still meets the
+§7 pipeline on its way in, including the Pass-6 header gate. Import is a parse
+boundary, not a second, weaker validator.
+
+> **Host change shipped alongside.** `cap:exporter` had no invocation path
+> anywhere — no `findExporter`, no `runExporter`, no CLI or SDK route — so the
+> five bundled exporters (`plan-jsonl`, `sw-jsonl`, `fs-jsonl`, `spec-jsonl`,
+> `recipe-jsonl`) were registered and uncallable. `PluginRuntime.runExporter`
+> now mirrors `runImporter`, including its §6.4 exception barrier.
 
 ---
 
@@ -189,13 +243,15 @@ knowledge_cartridge/
 ├── relations.ts              # 6 relation types; kc:CitesSource carries the ordinal
 ├── validators.ts             # Pass 6, executed — plus what it cannot execute
 ├── prompts.ts                # the generator protocol as an MCP prompt
+├── io.ts                     # the kc-jsonl importer/exporter pair
 ├── index.ts                  # profile + activate()
 ├── fdpm-plugin.json          # manifest
 └── renderers/
     ├── _model.ts             # the one graph walk all three views share
     ├── cartridge_md.ts       # the artifact
     ├── citation_index.ts     # the verification surface
-    └── layer_map.ts          # layer depth vs floors
+    ├── layer_map.ts          # layer depth vs floors
+    └── state_json.ts         # the bounded projection an agent loads
 ```
 
 ## Tests

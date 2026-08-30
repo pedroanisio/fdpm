@@ -595,6 +595,59 @@ export class PluginRuntime implements PluginRuntimeFacade {
   }
 
   /**
+   * Locate the (single) exporter registered for a format. Mirrors
+   * `findImporter`: exporters are keyed by `{pluginId}:{format}` and a
+   * format collision across plugins is rejected at registration time, so
+   * at most one match is possible.
+   */
+  findExporter(format: string): (ExporterRegistration & { pluginId: string }) | undefined {
+    for (const reg of this.exporters.values()) {
+      if (reg.format === format) return reg;
+    }
+    return undefined;
+  }
+
+  /**
+   * Run a registered exporter for `format`.
+   *
+   * `cap:exporter` had no invocation path at all until this method: five
+   * plugins registered exporters (`plan-jsonl`, `sw-jsonl`, `fs-jsonl`,
+   * `spec-jsonl`, `recipe-jsonl`) that nothing could call, so the capability
+   * was a declaration rather than a feature. The lifecycle and exception
+   * semantics deliberately mirror `runImporter` exactly, including the §6.4
+   * distinction between input rejection and plugin defect: a plugin raising
+   * `FDPMException(verification)` is reporting bad input and is passed
+   * through, anything else is a defect and quarantines the owner.
+   */
+  async runExporter(format: string, transfer: ProjectTransfer): Promise<Uint8Array> {
+    const reg = this.findExporter(format);
+    if (!reg)
+      throw new PluginError("lifecycle", `no exporter registered for format: ${format}`);
+    const owner = this.requireRecord(reg.pluginId);
+    if (owner.state !== "active")
+      throw new PluginError(
+        "lifecycle",
+        `exporter ${format} owner ${reg.pluginId} is not active (state=${owner.state})`,
+        { pluginId: reg.pluginId },
+      );
+    try {
+      return await Promise.resolve(reg.fn(transfer));
+    } catch (err) {
+      if (err instanceof FDPMException && err.category === "verification") {
+        throw err;
+      }
+      this.quarantine(owner, `exporter ${format} raised`, err);
+      throw new PluginError(
+        "capability",
+        `exporter ${format} (${reg.pluginId}) raised: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+        { pluginId: reg.pluginId },
+      );
+    }
+  }
+
+  /**
    * Locate a registered renderer by `target` (the MIME type or symbolic
    * id the renderer was registered under).
    *

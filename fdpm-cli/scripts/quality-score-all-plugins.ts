@@ -16,8 +16,8 @@
  * subcommand is a follow-up; this runner exists so the rubric has a
  * mechanical evidence trail today.
  */
-import { resolve } from "node:path";
-import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { existsSync, readdirSync } from "node:fs";
 import { Host } from "../src/core/host.js";
 import { scorePlugin, type PluginScoreReport } from "../src/quality/score-workbook.js";
 
@@ -161,10 +161,33 @@ function guessReadmePath(pluginId: string): string | null {
 
 function guessTestFilePath(pluginId: string): string | null {
   const localName = pluginId.replace(/^fdpm\./, "").replace(/^acme\./, "");
+  const snake = localName.replace(/-/g, "_");
+
+  // Per-plugin suite directory. This is where every plugin added since the
+  // convention changed puts its tests — knowledge_cartridge, loop_forward,
+  // style, uixo, uml, document_plan and both deck plugins among them. Probing
+  // only the flat `tests/<name>-*.test.ts` forms scored 14 of 19 plugins at
+  // 0/10 on the test-surface axis while they held hundreds of passing tests
+  // between them, which made the axis measure naming convention rather than
+  // test coverage and left the published scoreboard misleading.
+  const suiteDir = resolve(process.cwd(), `tests/plugins/${snake}`);
+  if (existsSync(suiteDir)) {
+    const entries = readdirSync(suiteDir)
+      .filter((f) => f.endsWith(".test.ts"))
+      .sort();
+    // Prefer the profile/contract suite when present so the reported path is
+    // the one a reader should open first; otherwise any suite proves the axis.
+    const preferred =
+      entries.find((f) => f === "profile.test.ts") ??
+      entries.find((f) => f === "validators.test.ts") ??
+      entries[0];
+    if (preferred !== undefined) return join(suiteDir, preferred);
+  }
+
   const candidates = [
     resolve(process.cwd(), `tests/${localName}-plugin.test.ts`),
     resolve(process.cwd(), `tests/${localName}-plugin-contract.test.ts`),
-    resolve(process.cwd(), `tests/${localName.replace(/-/g, "_")}-plugin.test.ts`),
+    resolve(process.cwd(), `tests/${snake}-plugin.test.ts`),
     resolve(process.cwd(), `tests/${localName}-content.test.ts`),
     resolve(process.cwd(), `tests/${localName}-validators.test.ts`),
   ];

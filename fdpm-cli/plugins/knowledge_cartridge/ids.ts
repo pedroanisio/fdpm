@@ -58,6 +58,7 @@ export const R = {
 export const CARTRIDGE_RENDERER_ID = "kc:CartridgeRenderer" as const;
 export const CITATION_INDEX_RENDERER_ID = "kc:CitationIndexRenderer" as const;
 export const LAYER_MAP_RENDERER_ID = "kc:LayerMapRenderer" as const;
+export const STATE_RENDERER_ID = "kc:StateRenderer" as const;
 
 export const CAT = {
   envelope: "cat:knowledge-cartridge:envelope",

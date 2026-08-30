@@ -13,9 +13,11 @@
     "fdpm": ">=1.1,<2"
   },
   "permissions": [
-    "read:workbooks",
+    "export:workbook",
+    "import:workbook",
     "read:primitives",
     "read:relations",
+    "read:workbooks",
     "render:server"
   ],
   "capabilities": [
@@ -52,15 +54,6 @@
         "renderer_id": "kc:LayerMapRenderer",
         "target": "image/svg+xml",
         "output_path": "layer-map.svg"
-      }
-    },
-    {
-      "capability_id": "cap:validator",
-      "local_name": "normative-claim-cited",
-      "entry": "validateClaimCited",
-      "metadata": {
-        "rule_id": "kc:val:normative-claim-cited",
-        "applies_to": "kc:Primitive, kc:Invariant, kc:Constant, kc:Step, kc:Diagnostic"
       }
     },
     {
@@ -106,7 +99,33 @@
       "metadata": {
         "rule_id": "kc:val:diagnostic-minimum",
         "applies_to": "kc:Cartridge",
-        "also_emits": "kc:val:judgement-non-empty, kc:val:exclusions-non-empty, kc:val:discard-rate"
+        "also_emits": "kc:val:normative-claim-cited, kc:val:judgement-non-empty, kc:val:exclusions-non-empty, kc:val:discard-rate"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "state-json",
+      "entry": "renderStateJson",
+      "metadata": {
+        "renderer_id": "kc:StateRenderer",
+        "target": "application/json",
+        "output_path": "cartridge-state.json"
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "local_name": "kc-jsonl-importer",
+      "entry": "kcJsonlImporter",
+      "metadata": {
+        "format": "kc-jsonl"
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "local_name": "kc-jsonl-exporter",
+      "entry": "kcJsonlExporter",
+      "metadata": {
+        "format": "kc-jsonl"
       }
     }
   ]

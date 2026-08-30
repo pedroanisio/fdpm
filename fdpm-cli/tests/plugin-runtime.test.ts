@@ -622,3 +622,109 @@ export default {
     rmSync(dir, { recursive: true, force: true });
   });
 });
+
+describe("plugin runtime — runExporter", () => {
+  /**
+   * `cap:exporter` had no invocation path until `runExporter` existed. Five
+   * bundled plugins registered exporters — plan-jsonl, sw-jsonl, fs-jsonl,
+   * spec-jsonl, recipe-jsonl — that nothing in the host, the CLI or the SDK
+   * could call, so the capability was a declaration rather than a feature.
+   * These cases pin the lifecycle and exception semantics to `runImporter`'s,
+   * which is the contract the rest of the runtime already keeps.
+   */
+  const EMPTY_TRANSFER = {
+    spec_core: "1.1.0",
+    workbook: {
+      id: "x",
+      name: "x",
+      profile_id: "profile:x:1.0",
+      created_at: "2026-01-01T00:00:00.000Z",
+      revision: 0,
+    },
+    primitives: [],
+    relations: [],
+    templates: [],
+    test_suites: [],
+  } as never;
+
+  it("runs a registered exporter and returns its bytes", async () => {
+    const host = new Host({
+      dataDir: null,
+      builtinDirs: [join(process.cwd(), "plugins")],
+      pluginPaths: [],
+    });
+    await host.load();
+    const bytes = await host.plugins.runExporter("plan-jsonl", EMPTY_TRANSFER);
+    expect(bytes).toBeInstanceOf(Uint8Array);
+  });
+
+  it("makes every bundled exporter reachable, not just the newest one", async () => {
+    const host = new Host({
+      dataDir: null,
+      builtinDirs: [join(process.cwd(), "plugins")],
+      pluginPaths: [],
+    });
+    await host.load();
+    const formats = host.plugins.listExporters().map((e) => e.format);
+    expect(formats.length).toBeGreaterThanOrEqual(5);
+    for (const f of formats) {
+      expect(host.plugins.findExporter(f), `${f} must resolve`).toBeDefined();
+    }
+  });
+
+  it("refuses an unregistered format rather than returning empty bytes", async () => {
+    const host = new Host({ dataDir: null, builtinDirs: [], pluginPaths: [] });
+    await host.load();
+    await expect(host.plugins.runExporter("nope-jsonl", EMPTY_TRANSFER)).rejects.toThrow(
+      /no exporter registered/,
+    );
+  });
+
+  it("quarantines a raising exporter's plugin without crashing the host", async () => {
+    const dir = tmpPluginDir();
+    writePlugin(
+      dir,
+      "test.raising-exporter",
+      {
+        id: "test.raising-exporter",
+        version: "0.1.0",
+        spec_version: "1.1.0",
+        kind: "server",
+        host_compatibility: { fdpm: ">=1.0,<2" },
+        permissions: ["export:workbook"],
+        capabilities: [{ capability_id: "cap:exporter", local_name: "boom", entry: "fn" }],
+      },
+      `
+const manifest = ${JSON.stringify({
+  id: "test.raising-exporter",
+  version: "0.1.0",
+  spec_version: "1.1.0",
+  kind: "server",
+  host_compatibility: { fdpm: ">=1.0,<2" },
+  permissions: ["export:workbook"],
+  capabilities: [{ capability_id: "cap:exporter", local_name: "boom" }],
+})};
+const fn = () => { throw new Error("kaboom-export"); };
+export default {
+  manifest,
+  activate: (ctx) => { ctx.registerExporter({ format: "boom", fn }); },
+};
+`,
+    );
+
+    const host = new Host({ dataDir: null, builtinDirs: [], pluginPaths: [dir] });
+    await host.load();
+    await host.plugins.enable("test.raising-exporter");
+    expect(host.plugins.get("test.raising-exporter")?.state).toBe("active");
+
+    await expect(host.plugins.runExporter("boom", EMPTY_TRANSFER)).rejects.toThrow(
+      /kaboom-export|raised/,
+    );
+    const r = host.plugins.get("test.raising-exporter");
+    expect(r?.state).toBe("quarantined");
+    expect(r?.errorMessage).toContain("kaboom-export");
+    expect(host.listProjects()).toEqual([]);
+
+    rmSync(dir, { recursive: true, force: true });
+  });
+});
