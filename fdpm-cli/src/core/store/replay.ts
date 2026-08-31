@@ -495,12 +495,58 @@ export function replay(log: Operation[], from?: StoreState): StoreState {
 export function sliceProject(state: StoreState, workbook_id: string): ProjectStateSlice | null {
   const workbook = state.workbooks[workbook_id];
   if (!workbook) return null;
-  return structuredClone({
+  return {
     workbook,
     primitives: state.primitives[workbook_id] ?? {},
     relations: state.relations[workbook_id] ?? {},
     templates: state.templates[workbook_id] ?? {},
     test_suites: state.test_suites[workbook_id] ?? {},
     scope_membership: state.scope_membership[workbook_id] ?? {},
-  });
+  };
+}
+
+/**
+ * Deep-copied slice, detached from live state.
+ *
+ * `sliceProject` deliberately returns a *view*: it is on the read path
+ * (`Store.getProject`, and through it `Host.validationContext`), which
+ * runs at least twice per write and once per read. Deep-copying there
+ * made every read O(workbook) and every write O(workbook) — a measured
+ * 89 % of write-path CPU and an O(n^2) build cost for a workbook.
+ * See `docs/architecture/PERFORMANCE-IO-ANALYSIS.md`.
+ *
+ * Callers that must retain a slice across subsequent mutation of the
+ * projection use this instead. Rollback does NOT: it restores by
+ * replaying the workbook's log (`Store.rollbackProject`), which costs
+ * nothing on the happy path.
+ */
+export function sliceProjectIsolated(
+  state: StoreState,
+  workbook_id: string,
+): ProjectStateSlice | null {
+  const view = sliceProject(state, workbook_id);
+  return view === null ? null : structuredClone(view);
+}
+
+/**
+ * Drop every projection entry belonging to one workbook, including its
+ * `uid_index` entries.
+ *
+ * The uid sweep is the part that is easy to forget and impossible to
+ * detect later: `applyPrimitiveCreate`/`applyRelationCreate` reject a
+ * uid already present in the index, so a projection discarded without
+ * its uids cannot be rebuilt from its own log — every create replays
+ * into a spurious `uid collision`. `applyProjectDelete` has always done
+ * this sweep; rebuild and rollback now share it.
+ */
+export function clearProjectProjection(state: StoreState, workbook_id: string): void {
+  delete state.workbooks[workbook_id];
+  delete state.primitives[workbook_id];
+  delete state.relations[workbook_id];
+  delete state.templates[workbook_id];
+  delete state.test_suites[workbook_id];
+  delete state.scope_membership[workbook_id];
+  for (const [uid, entry] of Object.entries(state.uid_index)) {
+    if (entry.workbook_id === workbook_id) delete state.uid_index[uid];
+  }
 }
