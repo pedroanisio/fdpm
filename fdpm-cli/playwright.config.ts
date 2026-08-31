@@ -1,5 +1,10 @@
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "@playwright/test";
+
+const configuredChromium = process.env["FDPM_CHROMIUM_EXECUTABLE_PATH"];
+const chromiumExecutable =
+  configuredChromium ?? (existsSync("/snap/bin/chromium") ? "/snap/bin/chromium" : undefined);
 
 export default defineConfig({
   testDir: "./tests/renderers",
@@ -24,7 +29,7 @@ export default defineConfig({
     locale: "en-US",
     timezoneId: "UTC",
     launchOptions: {
-      executablePath: process.env["FDPM_CHROMIUM_EXECUTABLE_PATH"] ?? "/snap/bin/chromium",
+      ...(chromiumExecutable === undefined ? {} : { executablePath: chromiumExecutable }),
       args: ["--no-sandbox", "--disable-dev-shm-usage"],
     },
   },

@@ -10,6 +10,8 @@ import { renderArgumentGraph } from "../../plugins/academic_paper_v0_4_1/rendere
 import { renderDeckContactSheet } from "../../plugins/acme_business_deck/renderers/deck_document.js";
 import { renderPitchDeckPhaseMap } from "../../plugins/acme_pitch_deck/renderers/deck_document.js";
 import { renderHtml as renderFormalSpecificationHtml } from "../../plugins/formal_specification/renderers/html.js";
+import { renderCitationIndex } from "../../plugins/knowledge_cartridge/renderers/citation_index.js";
+import { renderLayerMap } from "../../plugins/knowledge_cartridge/renderers/layer_map.js";
 import { renderAuthorityMatrix } from "../../plugins/loop_forward/renderers/authority_matrix.js";
 import { renderBindingMatrix } from "../../plugins/loop_forward/renderers/binding_matrix.js";
 import { renderPipelineGraph } from "../../plugins/loop_forward/renderers/pipeline_graph.js";
@@ -46,6 +48,7 @@ for (const raw of fixtureHost.profiles.listRaw()) {
 const HTML_RENDERERS: readonly RendererSpec[] = [
   ["Academic paper", "acad:PaperHtmlRenderer", renderPaperHtml],
   ["Formal specification", "fs:SpecHtmlRenderer", renderFormalSpecificationHtml],
+  ["Knowledge cartridge citation index", "kc:CitationIndexRenderer", renderCitationIndex],
   ["Authority matrix", "lf:AuthorityMatrixRenderer", renderAuthorityMatrix],
   ["Binding matrix", "lf:BindingMatrixRenderer", renderBindingMatrix],
   ["Verification surface", "lf:VerificationSurfaceRenderer", renderVerificationSurface],
@@ -59,6 +62,7 @@ const SVG_RENDERERS: readonly RendererSpec[] = [
   ["Business deck contact sheet", "acme:DeckContactSheetRenderer", renderDeckContactSheet],
   ["Pitch deck phase map", "acme.pitch-deck:PhaseMapRenderer", renderPitchDeckPhaseMap],
   ["Loop-forward pipeline graph", "lf:PipelineGraphRenderer", renderPipelineGraph],
+  ["Knowledge cartridge layer map", "kc:LayerMapRenderer", renderLayerMap],
   ["Planning Gantt", "plan:GanttSvgRenderer", renderGantt],
   ["Style specimen", "style:StyleSpecimenRenderer", renderStyleSpecimen],
   ["UIXO component tree", "uixo:ComponentTreeRenderer", renderComponentTree],

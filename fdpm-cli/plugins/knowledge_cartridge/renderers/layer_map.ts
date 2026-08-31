@@ -39,18 +39,19 @@ export function renderLayerMap(input: RendererInput): RendererOutput {
   }));
   const max = Math.max(1, ...rows.map((r) => Math.max(r.count, r.floor)));
   const height = PAD * 2 + 44 + rows.length * ROW_H + 56;
+  const cartridgeId = m.cartridge ? String(m.cartridge.field_values["cartridge_id"] ?? "") : "cartridge";
 
   const svg: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${height}" viewBox="0 0 ${W} ${height}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${height}" viewBox="0 0 ${W} ${height}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" role="img" aria-labelledby="kc-layer-map-title kc-layer-map-desc">`,
+    `<title id="kc-layer-map-title">Layer depth for ${esc(cartridgeId)}</title>`,
+    '<desc id="kc-layer-map-desc">Rows per knowledge layer compared with Pass-6 floors. Hatched bars are below their required floor.</desc>',
     "<defs>",
     '<pattern id="under" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">',
     '<rect width="6" height="6" fill="#b45309"/><rect width="3" height="6" fill="#f59e0b"/>',
     "</pattern>",
     "</defs>",
     `<rect width="${W}" height="${height}" fill="#ffffff"/>`,
-    `<text x="${PAD}" y="${PAD + 14}" font-size="15" font-weight="600">Layer depth — ${esc(
-      m.cartridge ? String(m.cartridge.field_values["cartridge_id"] ?? "") : "cartridge",
-    )}</text>`,
+    `<text x="${PAD}" y="${PAD + 14}" font-size="15" font-weight="600">Layer depth — ${esc(cartridgeId)}</text>`,
     `<text x="${PAD}" y="${PAD + 32}" fill="#6b7280">Bars show rows per layer; the vertical rule is the Pass-6 floor. Hatched bars are under it.</text>`,
   ];
 

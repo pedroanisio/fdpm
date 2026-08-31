@@ -1,8 +1,8 @@
 /**
- * The one graph walk all three renderers share.
+ * The one graph walk all five renderers share.
  *
  * Built once per render from the flat primitive and relation lists the host
- * hands a renderer, because each of the three views needs the same four joins
+ * hands a renderer, because each of the five views needs the same four joins
  * — item to its citations, citation to its source, override to the invariant
  * it suspends, gap to its envelope item — and doing them three times invites
  * three subtly different answers to "is this claim cited".

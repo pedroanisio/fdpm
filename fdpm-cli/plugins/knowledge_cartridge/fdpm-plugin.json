@@ -38,6 +38,16 @@
     },
     {
       "capability_id": "cap:renderer",
+      "local_name": "cartridge-pdf",
+      "entry": "renderCartridgePdf",
+      "metadata": {
+        "renderer_id": "kc:CartridgePdfRenderer",
+        "target": "application/pdf",
+        "output_path": "knowledge-cartridge.pdf"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
       "local_name": "citation-index-html",
       "entry": "renderCitationIndex",
       "metadata": {

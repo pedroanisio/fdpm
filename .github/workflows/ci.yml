@@ -63,6 +63,28 @@ jobs:
       - run: python -m pip install --disable-pip-version-check pytest
       - run: python -m pytest scripts/test_fdpm_to_latex.py -q
 
+  renderer-visual:
+    name: Renderer browser and PDF regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: fdpm-cli
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: fdpm-cli/package-lock.json
+      - run: npm ci
+      - name: Install Chromium and PDF inspection tools
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes poppler-utils
+      - run: npm run test:renderers:visual
+
   package:
     name: Package and audit
     runs-on: ubuntu-latest

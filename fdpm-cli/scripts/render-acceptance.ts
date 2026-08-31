@@ -4,7 +4,9 @@ import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { PDFDocument } from "pdf-lib";
 import { Host } from "../src/core/host.js";
+import { A4_HEIGHT, A4_WIDTH } from "../src/core/render/pdf.js";
 import type { FieldDefT, DomainProfile, PrimitiveTypeDef, RelationTypeDef } from "../src/core/models/meta.js";
 import type { PrimitiveInstance, RelationInstance, Workbook } from "../src/core/models/instance.js";
 import type { RendererInput, RendererOutput } from "../src/plugin/types.js";
@@ -184,7 +186,14 @@ export function buildFixture(profile: DomainProfile, state: FixtureState): Pick<
   return { primitives, relations };
 }
 
-function structuralProblems(output: RendererOutput, expectedTarget: string): { problems: string[]; metrics: Record<string, number> } {
+function pointLabel(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+export async function structuralProblems(
+  output: RendererOutput,
+  expectedTarget: string,
+): Promise<{ problems: string[]; metrics: Record<string, number> }> {
   const problems: string[] = [];
   const metrics: Record<string, number> = { bytes: output.bytes.byteLength };
   if (output.contentType !== expectedTarget) problems.push(`content type ${output.contentType} does not match ${expectedTarget}`);
@@ -218,6 +227,32 @@ function structuralProblems(output: RendererOutput, expectedTarget: string): { p
   } else if (expectedTarget === "application/pdf") {
     const header = new TextDecoder().decode(output.bytes.slice(0, 5));
     if (header !== "%PDF-") problems.push("PDF header is invalid");
+    try {
+      const pdf = await PDFDocument.load(output.bytes);
+      const pages = pdf.getPages();
+      metrics["pages"] = pages.length;
+      if (pages.length === 0) {
+        problems.push("PDF has no pages");
+      } else {
+        const widths = pages.map((page) => page.getWidth());
+        const heights = pages.map((page) => page.getHeight());
+        metrics["minPageWidth"] = Math.min(...widths);
+        metrics["maxPageWidth"] = Math.max(...widths);
+        metrics["minPageHeight"] = Math.min(...heights);
+        metrics["maxPageHeight"] = Math.max(...heights);
+        pages.forEach((page, index) => {
+          const width = page.getWidth();
+          const height = page.getHeight();
+          if (Math.abs(width - A4_WIDTH) > 0.01 || Math.abs(height - A4_HEIGHT) > 0.01) {
+            problems.push(
+              `PDF page ${index + 1} is not A4 (${pointLabel(width)} x ${pointLabel(height)} pt)`,
+            );
+          }
+        });
+      }
+    } catch {
+      problems.push("PDF cannot be parsed");
+    }
   }
   return { problems, metrics };
 }
@@ -282,7 +317,7 @@ async function main(): Promise<void> {
           Promise.resolve(renderer.fn(input)),
           Promise.resolve(renderer.fn(input)),
         ]);
-        const { problems, metrics } = structuralProblems(output, renderer.target);
+        const { problems, metrics } = await structuralProblems(output, renderer.target);
         const digest = createHash("sha256").update(output.bytes).digest("hex");
         const replayDigest = createHash("sha256").update(replay.bytes).digest("hex");
         if (digest !== replayDigest) problems.push("output is not deterministic");
@@ -325,6 +360,18 @@ async function main(): Promise<void> {
   }
 
   const failedCases = results.flatMap((renderer) => renderer.states.filter((state) => state.status === "failed"));
+  const targetSummaries = [...new Set(results.map((renderer) => renderer.target))]
+    .sort()
+    .map((target) => {
+      const states = results
+        .filter((renderer) => renderer.target === target)
+        .flatMap((renderer) => renderer.states);
+      return {
+        target,
+        cases: states.length,
+        passed: states.filter((state) => state.status === "passed").length,
+      };
+    });
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -349,6 +396,14 @@ async function main(): Promise<void> {
     await mkdir(dirname(absolute), { recursive: true });
     await writeFile(absolute, `${JSON.stringify(report, null, 2)}\n`, "utf8");
     process.stdout.write(`${absolute}\n`);
+    process.stdout.write(
+      `Renderer acceptance: ${report.summary.passed}/${report.summary.cases} passed; ` +
+        `${report.summary.failed} failed; ${report.summary.renderers} renderers; ` +
+        `${report.summary.profiles} profiles; ${report.summary.unboundRenderers} unbound.\n`,
+    );
+    process.stdout.write(
+      `By target: ${targetSummaries.map((item) => `${item.target} ${item.passed}/${item.cases}`).join("; ")}\n`,
+    );
   } else {
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   }

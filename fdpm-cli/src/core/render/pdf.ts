@@ -75,6 +75,52 @@ export function toWinAnsi(s: string): string {
   return out;
 }
 
+const FONT_CHARACTER_SETS = new WeakMap<PDFFont, ReadonlySet<number>>();
+
+function characterSetOf(font: PDFFont): ReadonlySet<number> {
+  const cached = FONT_CHARACTER_SETS.get(font);
+  if (cached) return cached;
+  const supported = new Set(font.getCharacterSet());
+  FONT_CHARACTER_SETS.set(font, supported);
+  return supported;
+}
+
+/**
+ * Make `text` safe for a custom embedded font without discarding glyphs that
+ * the font actually owns.
+ *
+ * Standard-font renderers still use `toWinAnsi`. Custom fonts expose their
+ * character set through pdf-lib, so their sanitizer can preserve supported
+ * Unicode (for example Portuguese diacritics) and only fold or visibly mark
+ * unsupported code points. This prevents both silent loss and fontkit's
+ * save-time missing-glyph error.
+ */
+export function toPdfFontText(text: string, font: PDFFont): string {
+  const supported = characterSetOf(font);
+  const fallback = supported.has(0x25a1) ? "□" : "?";
+  let out = "";
+  for (const ch of text.replace(/\t/g, "    ").replace(/\r/g, "")) {
+    const cp = ch.codePointAt(0)!;
+    if (cp === 0x0a || supported.has(cp)) {
+      out += ch;
+      continue;
+    }
+    if (cp < 0x20) {
+      out += " ";
+      continue;
+    }
+    const folded = ASCII_FOLD[ch];
+    if (folded && [...folded].every((candidate) => supported.has(candidate.codePointAt(0)!))) {
+      out += folded;
+    } else {
+      out += fallback;
+    }
+  }
+  return out;
+}
+
+export type PdfTextSanitizer = (text: string, font: PDFFont) => string;
+
 /**
  * Break `text` into lines that fit `maxWidth` at `size`.
  *
@@ -88,8 +134,9 @@ export function wrapToWidth(
   font: PDFFont,
   size: number,
   maxWidth: number,
+  sanitize: PdfTextSanitizer = toWinAnsi,
 ): string[] {
-  const safe = toWinAnsi(text);
+  const safe = sanitize(text, font);
   if (safe === "") return [""];
   if (font.widthOfTextAtSize(safe, size) <= maxWidth) return [safe];
 
@@ -114,16 +161,19 @@ export function wrapToWidth(
     }
     // Hard-split an unbreakable run. `cut` always advances by at least
     // one character, so the remainder strictly shrinks.
-    let rest = word;
-    while (font.widthOfTextAtSize(rest, size) > maxWidth && rest.length > 1) {
+    let rest = [...word];
+    while (font.widthOfTextAtSize(rest.join(""), size) > maxWidth && rest.length > 1) {
       let cut = 1;
-      while (cut < rest.length && font.widthOfTextAtSize(rest.slice(0, cut + 1), size) <= maxWidth) {
+      while (
+        cut < rest.length &&
+        font.widthOfTextAtSize(rest.slice(0, cut + 1).join(""), size) <= maxWidth
+      ) {
         cut++;
       }
-      lines.push(rest.slice(0, cut));
+      lines.push(rest.slice(0, cut).join(""));
       rest = rest.slice(cut);
     }
-    current = rest;
+    current = rest.join("");
   }
   flush();
   return lines.length > 0 ? lines : [""];

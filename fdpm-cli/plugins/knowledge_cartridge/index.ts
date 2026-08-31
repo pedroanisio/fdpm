@@ -59,6 +59,7 @@ import type {
 import type { PluginManifest } from "../../src/plugin/manifest.js";
 import {
   CARTRIDGE_RENDERER_ID,
+  CARTRIDGE_PDF_RENDERER_ID,
   CATEGORIES,
   CITATION_INDEX_RENDERER_ID,
   DEFAULT_SCOPE_SET,
@@ -78,6 +79,7 @@ import { RELATIONS } from "./relations.js";
 import { KC_VALIDATORS } from "./validators.js";
 import { KNOWLEDGE_CARTRIDGE_PROMPTS } from "./prompts.js";
 import { renderCartridge } from "./renderers/cartridge_md.js";
+import { renderCartridgePdf } from "./renderers/cartridge_pdf.js";
 import { renderCitationIndex } from "./renderers/citation_index.js";
 import { renderLayerMap } from "./renderers/layer_map.js";
 import { renderStateJson } from "./renderers/state_json.js";
@@ -87,6 +89,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export {
   CARTRIDGE_RENDERER_ID,
+  CARTRIDGE_PDF_RENDERER_ID,
   CITATION_INDEX_RENDERER_ID,
   LAYER_MAP_RENDERER_ID,
   STATE_RENDERER_ID,
@@ -99,7 +102,7 @@ export {
 };
 export { KNOWLEDGE_CARTRIDGE_PROMPTS, BUILD_CARTRIDGE_PROMPT } from "./prompts.js";
 export { KC_VALIDATORS, KC_UNENFORCEABLE_CHECKS, RULE } from "./validators.js";
-export { renderCartridge, renderCitationIndex, renderLayerMap, renderStateJson };
+export { renderCartridge, renderCartridgePdf, renderCitationIndex, renderLayerMap, renderStateJson };
 export { KC_JSONL_FORMAT, kcJsonlExporter, kcJsonlImporter } from "./io.js";
 export { KC_STATE_BUDGET_BYTES } from "./renderers/state_json.js";
 export * from "./ids.js";
@@ -141,6 +144,7 @@ export async function activate(ctx: PluginContext): Promise<void> {
 
   const views: [string, string, RendererFn][] = [
     ["text/markdown", CARTRIDGE_RENDERER_ID, renderCartridge as RendererFn],
+    ["application/pdf", CARTRIDGE_PDF_RENDERER_ID, renderCartridgePdf as RendererFn],
     ["text/html", CITATION_INDEX_RENDERER_ID, renderCitationIndex as RendererFn],
     ["image/svg+xml", LAYER_MAP_RENDERER_ID, renderLayerMap as RendererFn],
     ["application/json", STATE_RENDERER_ID, renderStateJson as RendererFn],

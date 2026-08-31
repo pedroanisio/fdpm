@@ -2,7 +2,7 @@
  * Type ids, categories, scopes and closed vocabularies for the
  * knowledge-cartridge profile.
  *
- * Every id the profile, the validators and the three renderers address is
+ * Every id the profile, the validators and the five renderers address is
  * declared here once. A renderer that hard-codes `"kc:Invariant"` inline
  * cannot be found by a grep for the type it reads, and a rename then leaves
  * the renderer silently matching nothing — the failure mode is an empty page,
@@ -56,6 +56,7 @@ export const R = {
 /** Renderer ids. Declared here so `prompts.ts` can name them without an
  *  import cycle through `index.ts`. */
 export const CARTRIDGE_RENDERER_ID = "kc:CartridgeRenderer" as const;
+export const CARTRIDGE_PDF_RENDERER_ID = "kc:CartridgePdfRenderer" as const;
 export const CITATION_INDEX_RENDERER_ID = "kc:CitationIndexRenderer" as const;
 export const LAYER_MAP_RENDERER_ID = "kc:LayerMapRenderer" as const;
 export const STATE_RENDERER_ID = "kc:StateRenderer" as const;

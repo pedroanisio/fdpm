@@ -51,7 +51,7 @@ is its control.
 | Primitive types | 13 |
 | Relation types | 6 |
 | Validators | 5 registrations, 9 rule ids |
-| Renderers | 4 |
+| Renderers | 5 |
 | MCP prompts | 1 |
 | Transfer format | `kc-jsonl` (importer + exporter) |
 
@@ -145,6 +145,7 @@ self-certification the protocol warns about.
 | Target | Renderer id | What it shows that the others cannot |
 |---|---|---|
 | `text/markdown` | `kc:CartridgeRenderer` | The artifact, laid out to the Pass-5 registers, with gaps and unreconciled conflicts in the back matter rather than hidden. |
+| `application/pdf` | `kc:CartridgePdfRenderer` | The portable practitioner edition: A4 cover and contents, one typed register per layer, citations beside claims, running heads and folios, and the audit back matter in the reading sequence. |
 | `text/html` | `kc:CitationIndexRenderer` | The evidence **inverted** — source by source, every claim resting on it. Reading a cartridge you can only ask "is this cited"; reading this you can ask "does the source say all of that". |
 | `image/svg+xml` | `kc:LayerMapRenderer` | Depth per layer against its floor. A cartridge heavy in L1/L2 and empty in L4/L5 has harvested facts and no expertise, and that shows here in one glance. |
 | `application/json` | `kc:StateRenderer` | The projection an **agent** loads, rather than a person. Bounded, and honest about it. |
@@ -153,13 +154,31 @@ Several plugins register `text/html` and `text/markdown`, so ask by id:
 
 ```bash
 fdpm render <workbook> text/markdown --renderer-id kc:CartridgeRenderer -o cartridge.md
+fdpm render <workbook> application/pdf --renderer-id kc:CartridgePdfRenderer -o knowledge-cartridge.pdf
 fdpm render <workbook> text/html     --renderer-id kc:CitationIndexRenderer -o citations.html
 fdpm render <workbook> image/svg+xml --renderer-id kc:LayerMapRenderer -o layer-map.svg
 ```
 
-All four are pure functions of their input — no clock, no randomness — and sort
+All five are pure functions of their input — no clock, no randomness — and sort
 before emitting, because primitive and relation collections are sets. Asserted
 in [`renderers.test.ts`](../../tests/plugins/knowledge_cartridge/renderers.test.ts).
+
+### PDF typography and verification
+
+The practitioner PDF embeds four closed, distributable faces from the packaged
+Fontsource dependencies: Noto Sans regular, bold, and italic, plus Noto Sans
+Mono regular. The PDF therefore does not depend on fonts installed on the
+reader's machine, and Western-Latin source text such as `composição — ação`
+remains searchable and extractable. Characters outside the packaged Latin
+glyph set are replaced with a visible fallback instead of being silently
+deleted or causing the render to fail. Expanding script coverage requires
+adding the corresponding licensed font subsets and regression fixtures.
+
+`tests/renderers/pdf-visual.spec.ts` verifies the delivered bytes with Poppler:
+all font programs must be embedded and Unicode-mapped, multilingual extraction
+must survive, and representative cover, register, and audit pages must match
+the inspected raster baselines. The PDF is not tagged PDF/UA; that limitation
+is documented in the repository renderer quality report.
 
 ### `kc:StateRenderer` is a different kind of view
 
@@ -247,8 +266,9 @@ knowledge_cartridge/
 ├── index.ts                  # profile + activate()
 ├── fdpm-plugin.json          # manifest
 └── renderers/
-    ├── _model.ts             # the one graph walk all three views share
+    ├── _model.ts             # the one graph walk all five views share
     ├── cartridge_md.ts       # the artifact
+    ├── cartridge_pdf.ts      # the portable practitioner edition
     ├── citation_index.ts     # the verification surface
     ├── layer_map.ts          # layer depth vs floors
     └── state_json.ts         # the bounded projection an agent loads
@@ -258,4 +278,8 @@ knowledge_cartridge/
 
 ```bash
 npx vitest run tests/plugins/knowledge_cartridge
+npm run test:renderers:visual -- --grep "Knowledge cartridge|knowledge cartridge"
 ```
+
+The visual command requires Chromium and the Poppler utilities `pdffonts`,
+`pdftotext`, and `pdftoppm`. CI installs both toolchains on Ubuntu 24.04.
