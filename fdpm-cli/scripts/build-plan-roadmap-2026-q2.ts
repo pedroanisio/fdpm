@@ -28,20 +28,20 @@
  *     resource-size-cap design call + the codemod-byte-equal design call).
  *
  * Run:
- *   rm -rf /tmp/fdpm-plan-roadmap-q2
- *   FDPM_DATA_DIR=/tmp/fdpm-plan-roadmap-q2 npx tsx \
+ *   rm -rf _tmp/plan-roadmap-q2
+ *   FDPM_DATA_DIR=_tmp/plan-roadmap-q2 npx tsx \
  *     fdpm-cli/scripts/build-plan-roadmap-2026-q2.ts
  *
  * Render:
- *   FDPM_DATA_DIR=/tmp/fdpm-plan-roadmap-q2 npx tsx fdpm-cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=_tmp/plan-roadmap-q2 npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render plan-roadmap-2026-q2 text/markdown \
  *     --renderer-id plan:RoadmapRenderer \
  *     -o docs/planning/roadmap-2026-q2.md
- *   FDPM_DATA_DIR=/tmp/fdpm-plan-roadmap-q2 npx tsx fdpm-cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=_tmp/plan-roadmap-q2 npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render plan-roadmap-2026-q2 image/svg+xml \
  *     --renderer-id plan:GanttSvgRenderer \
  *     -o docs/planning/roadmap-2026-q2-gantt.svg
- *   FDPM_DATA_DIR=/tmp/fdpm-plan-roadmap-q2 npx tsx fdpm-cli/src/bin/fdpm.ts \
+ *   FDPM_DATA_DIR=_tmp/plan-roadmap-q2 npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render plan-roadmap-2026-q2 text/markdown \
  *     --renderer-id plan:AgentBoardRenderer \
  *     -o docs/planning/roadmap-2026-q2-board.md
@@ -306,6 +306,21 @@ const acSpecs: PrimitiveSpec[] = [
     },
   },
   {
+    id: "ac:p1-batch-settled-reports",
+    type: PLAN_ACCEPTANCE_CRITERION,
+    scope: SCOPE_IDS.workbook,
+    fields: {
+      criterion:
+        "AC-P1-BSR: the validation reports a batch returns describe the workbook that batch produced, not the intermediate states it passed through. A cross-entity finding the batch itself falsified is absent; one that exists only once the batch is complete rejects and rolls back the batch. Proven in both directions, and by the asymmetric case where only the first entry carries the violation.",
+      expression: 'graph.exists("task:p1-batch-settled-reports")',
+      status: "open",
+      evidence_refs: [
+        "fdpm-cli/src/core/host.ts",
+        "fdpm-cli/tests/batch-settled-validation.test.ts",
+      ],
+    },
+  },
+  {
     id: "ac:p1-domain-prompts",
     type: PLAN_ACCEPTANCE_CRITERION,
     scope: SCOPE_IDS.workbook,
@@ -565,6 +580,20 @@ const tasks: TaskDef[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 60,
+    status: "In_review",
+    priority: "P0",
+    planned_start: "2026-08-31",
+    planned_finish: "2026-08-31",
+    wbs: "wbs:p1-mcp-slice-2",
+  },
+  {
+    id: "task:p1-batch-settled-reports",
+    name: "p1-batch-settled-reports",
+    summary:
+      "Each entry was validated against the projection as it stood at that entry, so a 57-entry batch reported a layer holding zero diagnostics in the batch that created four. Entries are re-validated once the batch settles; a collective violation rejects it. 15 tests, 2 over stdio.",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 45,
     status: "In_review",
     priority: "P0",
     planned_start: "2026-08-31",
@@ -1112,6 +1141,7 @@ const relations: RelationSpec[] = [
   { id: "rel:ver-p1-1", type: PLAN_REL_VERIFIES, from: "task:p1-subscribe", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-2", type: PLAN_REL_VERIFIES, from: "task:p1-sizecap", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-9", type: PLAN_REL_VERIFIES, from: "task:p1-resource-guard", to: "ac:p1-resource-guard" },
+  { id: "rel:ver-p1-10", type: PLAN_REL_VERIFIES, from: "task:p1-batch-settled-reports", to: "ac:p1-batch-settled-reports" },
   { id: "rel:ver-p1-3", type: PLAN_REL_VERIFIES, from: "task:p1-providers", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-4", type: PLAN_REL_VERIFIES, from: "task:p1-catalog-budget", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-5", type: PLAN_REL_VERIFIES, from: "task:p1-server-instructions", to: "ac:p1-subs-and-sizecap" },
@@ -1205,7 +1235,7 @@ async function main(): Promise<void> {
   console.log("");
   console.log("Render:");
   console.log(
-    `  FDPM_DATA_DIR=${process.env["FDPM_DATA_DIR"] ?? "/tmp/fdpm-plan-roadmap-q2"} npx tsx fdpm-cli/src/bin/fdpm.ts \\`,
+    `  FDPM_DATA_DIR=${process.env["FDPM_DATA_DIR"] ?? "_tmp/plan-roadmap-q2"} npx tsx fdpm-cli/src/bin/fdpm.ts \\`,
   );
   console.log(
     `    render ${PROJECT_ID} text/markdown --renderer-id plan:RoadmapRenderer \\`,

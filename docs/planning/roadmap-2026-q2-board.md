@@ -1,6 +1,6 @@
 # plan-roadmap-2026-q2 — Agent Board
 
-> Profile: `profile:planning:0.1` v0.1.0. 35 tasks. Generated at 2026-08-31T14:29:06.179Z.
+> Profile: `profile:planning:0.1` v0.1.0. 36 tasks. Generated at 2026-08-31T16:40:38.418Z.
 
 ## 🎯 Available to claim
 
@@ -16,10 +16,11 @@
 - `task:p1-subscribe` _(Either/P0)_ — Wire ResourceSubscribeRequestSchema + the watcher loop. On subscribe, take a (mtime\_ns, size) snapshot via host.statProjectLog and poll on a 250-500ms cadence; emit notifications/resources/updated when the snapshot changes.
 - `task:p1-providers` _(Either/P1)_ — Add three more resource providers: (a) workbook transfer at fdpm://workbook/{id}/transfer, (b) validate report at fdpm://workbook/{id}/validate, (c) primitive view at fdpm://workbook/{id}/primitive/{pid}. Each ~50 lines under src/mcp/resources/.
 
-### In_review (2)
+### In_review (3)
 
 - `task:p1-sizecap` _(Either/P0)_ — Add FDPM\_MCP\_MAX\_RESOURCE\_BYTES (default 1 MiB). Reject oversized renders in resources/read with a \`quota\` envelope carrying \`evidence.bytes\` and \`evidence.cap\`. Cap also applies after base64 expansion for binary blobs.
 - `task:p1-resource-guard` _(Either/P0)_ — resources/read was ungated while tools/call was not. read-guard.ts adds the shared rate limit, a resource\_read audit entry recording size never content, and the byte ceiling. ResourceProvider.readsWorkbookState makes the freshness contract declared. 22 tests, 5 over stdio.
+- `task:p1-batch-settled-reports` _(Either/P0)_ — Each entry was validated against the projection as it stood at that entry, so a 57-entry batch reported a layer holding zero diagnostics in the batch that created four. Entries are re-validated once the batch settles; a collective violation rejects it. 15 tests, 2 over stdio.
 
 ### Backlog (21)
 

@@ -48,7 +48,7 @@ export const SERVER_INSTRUCTIONS: string = [
   ``,
   `RESPONSE CONTRACT`,
   `- Read-only tools: structuredContent is the result.`,
-  `- Write tools return { ok, operation, validation_report, post_state_summary }. \`ok: false\` together with \`isError: false\` means the call succeeded but validation REJECTED the write and nothing was written: read validation_report.findings[] (rule_id, field_path, message), fix the input, retry. Batch tools return operations[] and validation_reports[] on success, and one validation_report (the failing entry) on rejection — the whole batch is discarded.`,
+  `- Write tools return { ok, operation, validation_report, post_state_summary }. \`ok: false\` together with \`isError: false\` means the call succeeded but validation REJECTED the write and nothing was written: read validation_report.findings[] (rule_id, field_path, message), fix the input, retry. Batch tools return operations[] and validation_reports[] on success (each describes the settled workbook, not an intermediate state), and one validation_report (the failing entry) on rejection — the whole batch is discarded.`,
   `- \`isError: true\` is a protocol/host error: structuredContent.error.category is not_found, conflict, validation (malformed arguments), permission, or host_compat, with evidence.reason when applicable:`,
   `  - permission/destructive_disabled — Tier-3 delete tools are gated; the operator restarts fdpm-mcp with --enable-destructive.`,
   `  - permission/stale_state — another process changed the workbook log; ${MCP_RELOAD_ADVICE}, then retry.`,

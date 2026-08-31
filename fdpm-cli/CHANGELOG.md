@@ -35,6 +35,57 @@ upgrade.
 
 ### Fixed
 
+#### Batch validation reports described intermediate states, not the workbook the batch produced
+
+A 57-entry `fdpm.primitive.create_batch` returned `ok: true` carrying a
+warning that its L4 layer held zero diagnostics — in the same batch that
+created four of them. The report was not merely stale; it was a
+confident false statement about a workbook that was fine, and an agent
+acting on it goes and fixes a problem that does not exist.
+
+`Host.appendBatchWithCausation` interleaves validation with synthesis so
+that a later entry can reference an earlier one — `create A`, then
+`relate to A` has to work. Each entry was therefore validated against the
+projection as it stood *at that entry*, and an entry validated first was
+judged against a workbook missing every entry after it. A cross-entity
+validator on entry 0 emitted findings the same batch immediately
+falsified.
+
+After the commit loop the host now re-validates every target against the
+settled projection and replaces its report. Two behaviours follow, and
+the second is a change, not only a repair:
+
+- A finding the batch itself falsified is gone.
+- A finding that only exists once the batch is complete rejects the
+  batch. Four items created under a header that permits three are each
+  individually valid; the violation is collective and belongs to the
+  header, which was validated first against zero items. Such a batch is
+  now rejected and rolled back through the existing snapshot path, where
+  it previously committed and reported success.
+
+Every entry is re-checked, not only those that already carried findings:
+a finding can appear at settle time as well as vanish, and re-checking
+only the dirty entries would catch the vanishing case while keeping the
+appearing one. A target the settled projection no longer holds was
+deleted by a later entry in the same batch; its mid-batch report is the
+only one there can be and it stands.
+
+The settled pass runs the pipeline once more per entry, so the
+validation half of a batch write does twice the work it did; the
+complexity class is unchanged and the pass adds no I/O, since it reads
+the projection already in memory and runs before anything is persisted.
+
+`tests/batch-settled-validation.test.ts` covers both directions,
+order-independence, rollback, and the asymmetric case that forces
+re-validating all entries. `tests/mcp/batch-settled-stdio.test.ts` proves
+the same two directions over a spawned `fdpm-mcp`, on
+`profile:knowledge-cartridge:1.0` — whose header validator counts the
+rest of the graph and is what emitted the original warning. The host test
+alone would not show that an agent ever receives the settled reports. The two MCP batch tool descriptions and
+`initialize.instructions` now state the settled-report contract; MANUAL
+§9.1 documents it. `fdpm edit` is unaffected — it returns per-operation
+outcomes, not validation reports.
+
 #### Write path: O(n^2) writes, undurable appends, and log corruption under concurrent writers
 
 Four defects on the persistence and projection path, measured and

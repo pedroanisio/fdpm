@@ -40,7 +40,7 @@ see the repository [`README.md`](../README.md). For the SPEC, see
 6. [Editing primitives](#6-editing-primitives) — five surfaces
 7. [Editing relations](#7-editing-relations)
 8. [Structural edits — reorder & reparent](#8-structural-edits--reorder--reparent)
-9. [Batch transactions](#9-batch-transactions)
+9. [Batch transactions](#9-batch-transactions) — and what batch reports mean
 10. [Importing legacy data with cap:importer plugins](#10-importing-legacy-data-with-capimporter-plugins)
 11. [Inspecting the operation log](#11-inspecting-the-operation-log)
 12. [Time-travel and undo](#12-time-travel-and-undo)
@@ -438,6 +438,40 @@ fdpm edit roadmap-v04 -f /tmp/batch.json --json
 `expected_project_revision` is optional optimistic-concurrency. If any
 operation in the batch fails validation, the whole transaction is rolled
 back — no partial state lands in the log.
+
+### 9.1 Batch validation reports describe the finished workbook
+
+The MCP batch tools — `fdpm.primitive.create_batch` and
+`fdpm.relation.create_batch` — return one `validation_report` per entry.
+Those reports describe the workbook the batch produced, not the
+intermediate states it passed through.
+
+The distinction matters because entries apply in array order so that a
+later entry can reference an earlier one: `create A`, then `relate to A`
+has to work, which means each entry is first checked against the
+workbook as it stood when that entry applied. A cross-entity rule on the
+first entry would therefore be judged against a workbook missing every
+entry after it. Creating a header and its three children in one batch
+would report the header as childless.
+
+After the batch commits, every entry is re-validated against the settled
+workbook and its report replaced. Two consequences:
+
+- A finding the same batch falsified is gone. The header above reports
+  three children, because it has three.
+- A finding that only exists once the batch is complete now rejects it.
+  Four items created under a header that permits three are each
+  individually valid and violate the header's rule collectively; that
+  batch is rejected and rolled back, where it previously committed and
+  reported success.
+
+The second case is the reason to re-read a report rather than assume a
+batch that assembled cleanly is accepted. `ok: false` with
+`isError: false` still means *rejected, nothing written* — see
+[§21](#operation---json-says-accepted-false-but-no-exception).
+
+`fdpm edit` (above) is a different path: it returns per-operation
+outcomes, not validation reports, so this re-check does not apply to it.
 
 ---
 

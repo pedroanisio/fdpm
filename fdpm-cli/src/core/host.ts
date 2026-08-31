@@ -1211,12 +1211,23 @@ export class Host {
    *      atomicity with rollback if any append fails (see store.ts
    *      `appendBatch`).
    *   4. Persists every committed op to the JSONL log.
+   *   5. Re-validates every entry against the settled projection and
+   *      replaces its report, so `reports` describes the workbook the
+   *      batch produced rather than the states it passed through.
    *
    * The validation pass is interleaved with synthesis so the projection
    * snapshot the validator sees reflects the prior intent's state for
    * graph-traversal predicates. (Two intents creating two nodes that
    * reference each other still validate correctly because we walk the
    * intent list in order.)
+   *
+   * That ordering is what makes a mutually-referencing batch writable;
+   * it is not what the returned reports describe. An entry validated
+   * first is judged against a workbook missing every entry after it, so
+   * step 5 re-runs the pipeline over every target against the settled
+   * projection and replaces its report. A batch whose completed state
+   * violates a cross-entity rule is rejected there and rolled back by
+   * the same path an in-loop rejection takes.
    *
    * The DNIS host adapter is the only intended caller for now.
    */
@@ -1372,6 +1383,57 @@ export class Host {
         // dnis:Node primitives to already exist; a delete in entry N
         // is visible to entry N+1).
         outputs.push(this.store.append(input));
+      }
+
+      // Settled pass. The loop above validates each entry against the
+      // projection AS IT STOOD AT THAT ENTRY, which is what lets entry N+1
+      // reference entry N. It also means an entry validated early was judged
+      // against a workbook missing everything after it, so a cross-entity
+      // validator could emit a finding the same batch immediately falsified —
+      // a 57-entry batch returning `ok: true` alongside "L4 holds 0
+      // diagnostics" in a batch that created four.
+      //
+      // Re-validate every entry against the workbook the batch actually
+      // produced and return THOSE reports. A caller reading
+      // `validation_reports[]` is asking about the workbook it now has, and
+      // that is the only state it can act on.
+      //
+      // Every entry, not just the ones that already carried findings: a
+      // finding can appear at settle time as well as vanish. Four items
+      // created after a header that permits three are each individually
+      // valid, and only the header — validated first, against zero items —
+      // is violated. Re-checking only dirty entries would miss it.
+      //
+      // A settled error rolls the batch back through the catch below. That is
+      // the same atomicity contract the in-loop path keeps: a batch whose own
+      // result violates an error-level rule must not commit.
+      const settledCtx = this.validationContext(workbook_id);
+      const settledSlice = this.store.getProject(workbook_id);
+      // `runRelation` resolves endpoints from a primitive map; build it once
+      // rather than per entry, since the projection is settled and shared.
+      const settledPrims = new Map(Object.entries(settledSlice.primitives));
+      for (let i = 0; i < reports.length; i += 1) {
+        const previous = reports[i]!;
+        const primitive = settledSlice.primitives[previous.target_id];
+        const relation = settledSlice.relations[previous.target_id];
+        const settled = primitive
+          ? this.pipeline.runPrimitive(primitive, profile, settledCtx)
+          : relation
+            ? this.pipeline.runRelation(relation, profile, settledPrims, settledCtx)
+            : null;
+        // A target the settled projection no longer holds was deleted by a
+        // later entry in the same batch. Its mid-batch report is the only one
+        // there can be, so it stands.
+        if (settled !== null) reports[i] = settled;
+      }
+
+      const rejected = reports.find((r) => !r.accepted);
+      if (rejected !== undefined) {
+        throw new FDPMException(
+          "validation",
+          `batch rejected: ${rejected.target_id} is invalid once the batch settles`,
+          { findings: rejected.findings },
+        );
       }
     } catch (err) {
       // Roll back: restore log + projection. We do NOT persist anything

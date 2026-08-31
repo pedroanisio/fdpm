@@ -8,6 +8,13 @@
  * relation in a batch sees the first relation's source/target
  * references as already-present, so cardinality bounds are checked
  * against the in-flight projection, not just the pre-batch state.
+ *
+ * The in-flight projection is what makes a batch of mutually
+ * referencing relations writable; it is not what the returned reports
+ * describe. Once the batch commits the host re-checks every entry
+ * against the settled projection, so a cardinality bound satisfied
+ * only mid-batch — an upper bound the last entry pushes past, a lower
+ * bound the batch fills — is judged on the finished workbook.
  */
 
 import { z } from "zod";
@@ -59,7 +66,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.relation.create_batch",
   tier: "validating_write",
   description:
-    "Atomically create 1..500 relations: ALL validate and persist together or the WHOLE batch rolls back. BEFORE calling: fdpm.profile.type_info for each distinct type_id (source_type_id / target_type_id, id_pattern). Source and target primitives MUST already exist in the workbook — run fdpm.primitive.create_batch first when they are new. Entries validate in array order; cardinality bounds account for the in-flight projection. Success returns `operations[]` and `validation_reports[]` of length N; a rejection carries a single `validation_report` for the failing entry and discards the entire batch.",
+    "Atomically create 1..500 relations: ALL validate and persist together or the WHOLE batch rolls back. BEFORE calling: fdpm.profile.type_info for each distinct type_id (source_type_id / target_type_id, id_pattern). Source and target primitives MUST already exist in the workbook — run fdpm.primitive.create_batch first when they are new. Entries apply in array order; all are then re-validated against the settled workbook, so cardinality bounds and `validation_reports[]` describe the final state, not an intermediate one. Success returns `operations[]` and `validation_reports[]` of length N; a rejection carries a single `validation_report` for the failing entry and discards the entire batch.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },

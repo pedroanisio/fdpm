@@ -10,6 +10,12 @@
  * entry that fails validation, the entire batch is rolled back —
  * no partial state, no half-written log.
  *
+ * `validation_reports[]` describes the workbook the batch produced,
+ * not the intermediate states it passed through: the host re-checks
+ * every entry against the settled projection once the batch commits.
+ * A cross-entity rule that only the finished batch violates therefore
+ * rejects it, and a finding the batch itself falsified is gone.
+ *
  * Why this exists: real-session evidence shows LLMs producing
  * coherent multi-primitive batches (one author, one moment, one
  * intent). Fragmenting that into N round-trips wastes audit-log
@@ -83,7 +89,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.primitive.create_batch",
   tier: "validating_write",
   description:
-    "Atomically create 1..500 primitives: ALL validate and persist together or the WHOLE batch rolls back — no partial writes. BEFORE calling: fdpm.profile.type_info for each distinct type_id (id_pattern, required_field_names). Entries validate in array order and later entries see earlier ones, so id-ref fields may reference siblings in the batch. Success returns `operations[]` and `validation_reports[]` of length N; a rejection carries a single `validation_report` for the failing entry and discards the entire batch — resubmit one corrected batch. Prefer this over a loop of fdpm.primitive.create.",
+    "Atomically create 1..500 primitives: ALL validate and persist together or the WHOLE batch rolls back — no partial writes. BEFORE calling: fdpm.profile.type_info for each distinct type_id (id_pattern, required_field_names). Entries apply in array order so id-ref fields may reference siblings; all entries are then re-validated against the settled workbook, so `validation_reports[]` describes the final state and a cross-entity rule the finished batch violates rejects it. Success returns `operations[]` and `validation_reports[]` of length N; a rejection carries a single `validation_report` for the failing entry and discards the entire batch — resubmit one corrected batch. Prefer this over a loop of fdpm.primitive.create.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: false },
