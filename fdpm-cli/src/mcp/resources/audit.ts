@@ -45,6 +45,8 @@ export function parseAuditUri(uri: string): AuditUriMatch | null {
 
 export const auditResourceProvider: ResourceProvider<AuditUriMatch> = {
   id: "fdpm.audit",
+  /** Reads mcp-audit.jsonl from disk on every call, so it is fresh by construction. */
+  readsWorkbookState: false,
 
   templates(_host: Host): readonly ResourceTemplateEntry[] {
     return [

@@ -51,6 +51,8 @@ export function parseSchemaUri(uri: string): SchemaUriMatch | null {
 
 export const schemaResourceProvider: ResourceProvider<SchemaUriMatch> = {
   id: "fdpm.schema",
+  /** Serves a static JSON Schema derived from a Zod type. */
+  readsWorkbookState: false,
 
   templates(_host: Host): readonly ResourceTemplateEntry[] {
     return [

@@ -77,6 +77,20 @@ export interface ResourceProvider<MatchedT = unknown> {
   /** Stable, human-readable provider id. Used in audit logs. */
   readonly id: string;
 
+  /**
+   * Whether `read` consults workbook state that another process can change
+   * under it.
+   *
+   * Declared, not inferred. Exactly one provider reads workbook state today
+   * (`render`) and it refreshed by hand, while the rest had nothing to
+   * refresh — correct, but only by accident. A provider added later that
+   * reads workbook state and forgets the refresh would serve stale content
+   * with nothing to catch it. `read-guard.ts` performs the tail replay for
+   * every provider that declares `true`, so the next one inherits freshness
+   * or states in one word that it does not need it.
+   */
+  readonly readsWorkbookState: boolean;
+
   /** URI templates this provider advertises. */
   templates(host: Host): readonly ResourceTemplateEntry[];
 

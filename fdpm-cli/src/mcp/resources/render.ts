@@ -92,6 +92,8 @@ export function buildRenderUri(
 
 export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
   id: "fdpm.render",
+  /** Reads the workbook slice and renders it. */
+  readsWorkbookState: true,
 
   templates(_host: Host): readonly ResourceTemplateEntry[] {
     return [

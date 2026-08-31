@@ -30,6 +30,8 @@ export function parseGuideUri(uri: string): GuideUriMatch | null {
 
 export const guideResourceProvider: ResourceProvider<GuideUriMatch> = {
   id: "fdpm.guide",
+  /** Serves the static SERVER_INSTRUCTIONS text. */
+  readsWorkbookState: false,
 
   templates(_host: Host): readonly ResourceTemplateEntry[] {
     return [

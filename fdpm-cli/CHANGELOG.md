@@ -132,6 +132,58 @@ errors across seven plugins. CI ran exactly that sequence. Adding
 
 ### Added
 
+#### The MCP resource surface is gated like the tool surface
+
+`createDispatcher` gated `tools/call`. `ReadResourceRequestSchema` called
+`dispatchRead` directly, one handler away, so `resources/read` had **no rate
+limit, no audit entry and no size ceiling** — and it is the surface that moves
+the most content, since `fdpm://workbook/{id}/render/{target}` serves an entire
+rendered workbook. The careful gating was on the smaller surface.
+
+Found auditing `fdpm-mcp` against the `KC-MCP-001` knowledge cartridge, whose
+`kc:invariant:consent-before-data` reads: *"a server must not transmit resource
+data without permission."*
+
+`src/mcp/read-guard.ts` now carries the three controls that apply to a read:
+
+- **Rate limit** — the *same* `session.rateLimiter` bucket tool calls draw on.
+  A second bucket would let a caller spend the tool budget and the read budget
+  in one minute and stay inside both, which is not a limit.
+- **Audit trail** — one `resource_read` entry per read, successful or refused,
+  carrying URI, provider, duration and byte count. Never the content: the audit
+  log is reviewed by people not necessarily entitled to it, and a log that
+  embedded renders would become a second copy of every workbook it polices.
+- **Byte ceiling** — `FDPM_MCP_MAX_RESOURCE_BYTES`, default 1 MiB, refusing
+  with a `quota` envelope that names both the size and the cap. Measured on the
+  string that crosses the wire, so a base64 blob cannot slip through at 1.33x.
+  A malformed value is a startup refusal (exit 2), not a silent fallback.
+
+**Not routed through the tool dispatcher.** Four of its seven gates are
+write-side by construction — a read has no tier to refuse, nothing to confirm,
+no idempotency key to replay, no post-write freshness stamp. Threading them
+through would have meant four branches that are always false.
+
+**A declared freshness contract.** `ResourceProvider.readsWorkbookState` is now
+required. Exactly one provider reads workbook state (`fdpm.render`) and it
+refreshed by hand while the other four had nothing to refresh — correct, but by
+accident. The guard performs the tail replay for any provider declaring `true`,
+so the next one inherits freshness or states in one word that it does not need
+it. This replaced the "freshness parity" fix originally proposed: investigation
+showed `audit` reads from disk each call, `profile` reads the in-memory
+registry, and `schema`/`guide` are static, so there was no staleness bug to
+fix — only an undeclared contract.
+
+**Audit report.** `AuditEntry` gains a `resource_read` arm and `AuditReport` a
+`resources` summary (reads, ok, failed, bytes_served, refused-by-reason).
+Without the parse arm every resource read would have counted as `skipped`, the
+counter that means *this log is corrupt* — a healthy server would have looked
+damaged.
+
+22 tests: 17 in process over the guard, 5 spawning the real `fdpm-mcp` and
+speaking MCP through the SDK client. The stdio suite exists because the binary
+*was* the defect — a unit test alone would have passed against the bug it was
+written to catch.
+
 #### `fdpm.agent-memory` — the agent-memory v2 contract as `profile:agent-memory:2.0`
 
 Episode-scoped memory for an autonomous agent: six primitive types

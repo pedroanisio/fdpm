@@ -163,6 +163,7 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | `FDPM_MCP_ENABLE_DESTRUCTIVE` | unset | Fdpm-mcp: truthy -> expose Tier-3 destructive tools (off by default). |
 | `FDPM_MCP_ENABLE_PLUGINS` | `""` | Fdpm-mcp: comma-separated plugin ids whose MCP tools are exposed. |
 | `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | Fdpm-mcp: per-session rate limit on tool calls. |
+| `FDPM_MCP_MAX_RESOURCE_BYTES` | `1048576` | Fdpm-mcp: cap on the bytes one resources/read may serve; over-cap reads are refused with a `quota` envelope. |
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | Fdpm-mcp: truthy -> log full args (default: sha256 hash only). |
 | `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN` | unset | SPEC-MCP-SERVER §9.3: exactly `1` gates Tier 2/3 calls behind an `_confirmation_token` argument; requires FDPM_MCP_CONFIRMATION_TOKEN. |
 | `FDPM_MCP_CONFIRMATION_TOKEN` | unset | Fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty. |
@@ -627,6 +628,37 @@ mkdir -p ~/.fdpm/plugins/acme.thing
 # ...drop fdpm-plugin.json + index.js into that dir
 FDPM_PLUGIN_PATH=~/.fdpm/plugins fdpm plugin list
 ```
+
+### The resource surface is gated like the tool surface
+
+`resources/read` moves more content than any tool call —
+`fdpm://workbook/{id}/render/{target}` serves an entire rendered workbook — so
+it carries the three controls that apply to a read:
+
+| Control | Behaviour |
+|---|---|
+| Rate limit | The **same** `FDPM_MCP_MAX_CALLS_PER_MINUTE` bucket tool calls draw on. One budget per session, not one per surface. |
+| Audit trail | One `resource_read` line per read in `mcp-audit.jsonl`, successful or refused, carrying the URI, the provider, the duration and the byte count — never the content. |
+| Byte ceiling | `FDPM_MCP_MAX_RESOURCE_BYTES` (default 1 MiB). An over-cap read is refused with a `quota` envelope naming both the size and the ceiling. |
+
+Tier gating, the confirmation token and idempotency do **not** apply: a read has
+no tier to refuse, nothing to confirm and nothing to replay.
+
+```sh
+# Refuse anything over 256 KiB, and see the reads in the report.
+FDPM_MCP_MAX_RESOURCE_BYTES=262144 fdpm-mcp
+fdpm mcp audit-report --window 24h --json | jq .resources
+```
+
+A malformed ceiling is a **startup refusal** (exit 2), not a silent fallback —
+an operator who mistypes `1MB` learns at boot rather than believing a limit is
+in force that is not.
+
+Providers declare whether they read workbook state
+(`ResourceProvider.readsWorkbookState`). The guard performs the tail replay for
+those that do, so a provider added later inherits freshness rather than having
+to remember it. Today only the render provider declares `true`; the guide,
+schema, profile and audit providers serve static or already-fresh content.
 
 ### Plugin-shipped MCP prompts
 

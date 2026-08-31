@@ -110,6 +110,8 @@ export function profilesIndexUri(): string {
 
 export const profileResourceProvider: ResourceProvider<ProfileUriMatchKind> = {
   id: "fdpm.profile",
+  /** Reads the in-memory profile registry, which changes only on an operator-driven plugin reload. */
+  readsWorkbookState: false,
 
   templates(_host: Host): readonly ResourceTemplateEntry[] {
     // The MCP `ResourceTemplate` shape is RFC 6570 Level 1 (simple

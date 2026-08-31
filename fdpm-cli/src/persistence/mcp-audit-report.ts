@@ -91,7 +91,37 @@ const ReloadEntry = z
   })
   .passthrough();
 
-export const AuditEntry = z.discriminatedUnion("phase", [StartEntry, CompleteEntry, ReloadEntry]);
+/**
+ * Resource-read entry (see `mcp-audit-log.ts`).
+ *
+ * Parsed here rather than left to fall through: `readEntries` counts an
+ * unparseable line as `skipped`, and that counter means "this log is
+ * corrupt". Without this arm a perfectly healthy log would report a large
+ * skipped count purely because the server serves resources, which would read
+ * as damage.
+ */
+const ResourceEntry = z
+  .object({
+    ts: z.string(),
+    call_id: z.string(),
+    phase: z.literal("resource_read"),
+    session: z.string(),
+    uri: z.string(),
+    provider: z.string().optional(),
+    ok: z.boolean(),
+    duration_ms: z.number().nonnegative(),
+    bytes: z.number().nonnegative().optional(),
+    error_category: z.string().optional(),
+    error_reason: z.string().optional(),
+  })
+  .passthrough();
+
+export const AuditEntry = z.discriminatedUnion("phase", [
+  StartEntry,
+  CompleteEntry,
+  ReloadEntry,
+  ResourceEntry,
+]);
 export type AuditEntry = z.infer<typeof AuditEntry>;
 export type AuditCompleteEntry = z.infer<typeof CompleteEntry>;
 
@@ -153,6 +183,22 @@ export interface AuditReportSource {
   skipped: number;
 }
 
+/**
+ * Resource-surface totals for the window.
+ *
+ * Reported separately from tool rows because the two surfaces answer
+ * different questions: a tool row is about what an agent tried to change, a
+ * resource row is about how much content left the server.
+ */
+export interface AuditResourceSummary {
+  reads: number;
+  ok: number;
+  failed: number;
+  bytes_served: number;
+  /** Refusals by reason, e.g. `rate_limited`, `resource_too_large`. */
+  refused: Record<string, number>;
+}
+
 export interface AuditToolRow {
   tool: string;
   calls: number;
@@ -195,6 +241,8 @@ export interface AuditReport {
   slo: { target: number; success_rate: number | null; met: boolean | null; shortfall: number };
   per_tool: AuditToolRow[];
   error_classes: AuditErrorClass[];
+  /** Resource-surface totals; zeroed when no read fell in the window. */
+  resources: AuditResourceSummary;
 }
 
 const EMPTY_SOURCE: AuditReportSource = { path: null, exists: false, lines: 0, parsed: 0, skipped: 0 };
@@ -314,6 +362,33 @@ export function buildAuditReport(
     })
     .sort((a, b) => b.calls - a.calls || a.tool.localeCompare(b.tool));
 
+  // Resource-surface totals. Kept separate from `totals`, which counts tool
+  // calls: mixing them would make the SLO success rate depend on how much
+  // content was served, which is a different question from whether writes
+  // succeeded.
+  const resources: AuditResourceSummary = {
+    reads: 0,
+    ok: 0,
+    failed: 0,
+    bytes_served: 0,
+    refused: {},
+  };
+  for (const e of entries) {
+    if (e.phase !== "resource_read") continue;
+    const ts = Date.parse(e.ts);
+    if (sinceMs !== null && ts < sinceMs) continue;
+    if (untilMs !== null && ts > untilMs) continue;
+    resources.reads += 1;
+    if (e.ok) {
+      resources.ok += 1;
+      resources.bytes_served += typeof e.bytes === "number" ? e.bytes : 0;
+    } else {
+      resources.failed += 1;
+      const reason = typeof e.error_reason === "string" ? e.error_reason : "unknown";
+      resources.refused[reason] = (resources.refused[reason] ?? 0) + 1;
+    }
+  }
+
   const error_classes = [...classes.values()]
     .map((c) => ({ ...c, share: totals.calls > 0 ? c.count / totals.calls : 0 }))
     .sort((a, b) => b.count - a.count || a.class.localeCompare(b.class))
@@ -338,6 +413,7 @@ export function buildAuditReport(
     },
     per_tool,
     error_classes,
+    resources,
   };
 }
 

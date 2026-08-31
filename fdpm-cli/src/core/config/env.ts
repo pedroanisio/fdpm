@@ -123,6 +123,13 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     summary: "fdpm-mcp: per-session rate limit on tool calls",
   },
   {
+    name: "FDPM_MCP_MAX_RESOURCE_BYTES",
+    defaultValue: "1048576",
+    exampleValue: "1048576",
+    summary:
+      "fdpm-mcp: cap on the bytes one resources/read may serve; over-cap reads are refused with a `quota` envelope",
+  },
+  {
     name: "FDPM_MCP_AUDIT_FULL_ARGS",
     defaultValue: "unset",
     exampleValue: "1",

@@ -290,6 +290,22 @@ const acSpecs: PrimitiveSpec[] = [
     },
   },
   {
+    id: "ac:p1-resource-guard",
+    type: PLAN_ACCEPTANCE_CRITERION,
+    scope: SCOPE_IDS.workbook,
+    fields: {
+      criterion:
+        "AC-P1-RG: resources/read carries the three controls that apply to a read — the same rate-limit bucket tool calls draw on, one resource_read audit entry per read recording size but never content, and a byte ceiling — proven over a spawned fdpm-mcp rather than in process only, since the binary was the defect.",
+      expression: 'graph.exists("task:p1-resource-guard")',
+      status: "open",
+      evidence_refs: [
+        "fdpm-cli/src/mcp/read-guard.ts",
+        "fdpm-cli/tests/mcp/resource-guard.test.ts",
+        "fdpm-cli/tests/mcp/resource-guard-stdio.test.ts",
+      ],
+    },
+  },
+  {
     id: "ac:p1-domain-prompts",
     type: PLAN_ACCEPTANCE_CRITERION,
     scope: SCOPE_IDS.workbook,
@@ -492,7 +508,7 @@ const tasks: TaskDef[] = [
     kind: "Implementation",
     executor: "Either",
     ai_minutes: 30,
-    status: "Ready",
+    status: "In_review",
     priority: "P0",
     planned_start: "2026-05-13",
     planned_finish: "2026-05-15",
@@ -539,6 +555,20 @@ const tasks: TaskDef[] = [
     priority: "P0",
     planned_start: "2026-08-28",
     planned_finish: "2026-08-28",
+    wbs: "wbs:p1-mcp-slice-2",
+  },
+  {
+    id: "task:p1-resource-guard",
+    name: "p1-resource-guard",
+    summary:
+      "resources/read was ungated while tools/call was not. read-guard.ts adds the shared rate limit, a resource_read audit entry recording size never content, and the byte ceiling. ResourceProvider.readsWorkbookState makes the freshness contract declared. 22 tests, 5 over stdio.",
+    kind: "Implementation",
+    executor: "Either",
+    ai_minutes: 60,
+    status: "In_review",
+    priority: "P0",
+    planned_start: "2026-08-31",
+    planned_finish: "2026-08-31",
     wbs: "wbs:p1-mcp-slice-2",
   },
   {
@@ -994,7 +1024,7 @@ const blockerSpecs: PrimitiveSpec[] = [
     scope: SCOPE_IDS.workbook,
     fields: {
       description:
-        "FDPM_MCP_MAX_RESOURCE_BYTES default needs operator agreement: 1 MiB is friendly to LLM context budgets but rejects most real PDF outputs. Options: (a) 1 MiB hard cap with --enable-large-resources opt-in; (b) different caps per content_type (text=1MB, binary=10MB); (c) no cap, document the risk. Decision blocks p1-sizecap.",
+        "FDPM_MCP_MAX_RESOURCE_BYTES default needs operator agreement. Options: (a) 1 MiB hard cap with --enable-large-resources opt-in; (b) per-content_type caps; (c) no cap. MEASURED 2026-08-31: the two largest PDF renders in the corpus are 280 KB and 217 KB base64 on the wire, both well under 1 MiB, so the premise that 1 MiB rejects most real PDFs does not hold for this corpus. Shipped at (a) without the opt-in; decision still open.",
       severity: "Medium",
       discovered_at: "2026-05-05",
     },
@@ -1081,6 +1111,7 @@ const relations: RelationSpec[] = [
   // ── Verifies edges ─────────────────────────────────────────────
   { id: "rel:ver-p1-1", type: PLAN_REL_VERIFIES, from: "task:p1-subscribe", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-2", type: PLAN_REL_VERIFIES, from: "task:p1-sizecap", to: "ac:p1-subs-and-sizecap" },
+  { id: "rel:ver-p1-9", type: PLAN_REL_VERIFIES, from: "task:p1-resource-guard", to: "ac:p1-resource-guard" },
   { id: "rel:ver-p1-3", type: PLAN_REL_VERIFIES, from: "task:p1-providers", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-4", type: PLAN_REL_VERIFIES, from: "task:p1-catalog-budget", to: "ac:p1-subs-and-sizecap" },
   { id: "rel:ver-p1-5", type: PLAN_REL_VERIFIES, from: "task:p1-server-instructions", to: "ac:p1-subs-and-sizecap" },

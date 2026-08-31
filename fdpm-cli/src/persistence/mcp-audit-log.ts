@@ -93,10 +93,40 @@ export interface McpAuditReloadEntry {
   error_message?: string;
 }
 
+/**
+ * Resource-read entry — emitted by `read-guard.ts` for every
+ * `resources/read`, successful or refused.
+ *
+ * One entry per read rather than the start/complete pair tool calls use: a
+ * read has no pre-execution intent worth recording separately, because there
+ * is nothing it can destroy between the two entries.
+ *
+ * `bytes` is the size of the payload that would cross the wire; the payload
+ * itself is never recorded. The audit log is reviewed by people who are not
+ * necessarily entitled to the content, and a log that embedded renders would
+ * become a second copy of every workbook it was meant to police.
+ */
+export interface McpAuditResourceEntry {
+  ts: string;
+  call_id: string;
+  phase: "resource_read";
+  session: string;
+  uri: string;
+  /** Provider id that matched, absent when none did. */
+  provider?: string;
+  ok: boolean;
+  duration_ms: number;
+  /** Size of the served payload; base64 length for a blob, UTF-8 bytes for text. */
+  bytes?: number;
+  error_category?: string;
+  error_reason?: string;
+}
+
 export type McpAuditEntry =
   | McpAuditStartEntry
   | McpAuditCompleteEntry
-  | McpAuditReloadEntry;
+  | McpAuditReloadEntry
+  | McpAuditResourceEntry;
 
 export class McpAuditLog {
   readonly path: string;

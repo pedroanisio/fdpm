@@ -50,6 +50,19 @@ export function formatAuditReport(r: AuditReport): string {
       lines.push(`  ${c.count}  ${pct(c.share)}  ${c.class}`);
     }
   }
+  // The resource surface, reported apart from the tool totals above: a tool
+  // row is about what an agent tried to change, a resource row about how much
+  // content left the server. Printed even at zero, because "no reads" and
+  // "reads not counted" look identical when the section is omitted.
+  lines.push("");
+  lines.push(
+    `resources: ${r.resources.reads} read(s): ${r.resources.ok} ok, ` +
+      `${r.resources.failed} refused, ${r.resources.bytes_served} B served`,
+  );
+  const refusals = Object.entries(r.resources.refused).sort((a, b) => b[1] - a[1]);
+  for (const [reason, count] of refusals) {
+    lines.push(`  ${count}  ${reason}`);
+  }
   return lines.join("\n");
 }
 

@@ -58,16 +58,13 @@ import {
   type ConfirmationTokenPolicy,
 } from "../mcp/confirmation-token.js";
 import { createDispatcher } from "../mcp/dispatch.js";
+import { createReadGuard, resolveMaxResourceBytes } from "../mcp/read-guard.js";
 import type { DispatchCtx } from "../mcp/types.js";
 import { handleReload, reloadSignalForPlatform } from "../mcp/reload.js";
 import { McpAuditLog } from "../persistence/mcp-audit-log.js";
 import { HOST_VERSION } from "../core/version/spec.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
-import {
-  dispatchRead,
-  listResources,
-  listTemplates,
-} from "../mcp/resources/registry.js";
+import { listResources, listTemplates } from "../mcp/resources/registry.js";
 
 interface ParsedFlags {
   /** Resolved synchronously from --data-dir; empty string when absent. */
@@ -76,6 +73,7 @@ interface ParsedFlags {
   enableDestructive: boolean;
   enabledPlugins: string[];
   maxCallsPerMinute: number;
+  maxResourceBytes: number;
   auditFullArgs: boolean;
   catalogBudget: CatalogBudget;
   confirmationTokenPolicy: ConfirmationTokenPolicy;
@@ -142,6 +140,19 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
     process.exit(2);
   }
 
+  // Resolve the resource ceiling at boot, so a malformed value is a startup
+  // refusal rather than a limit an operator believes is in force. Same shape
+  // as the catalog budget: fail where the operator is watching.
+  let maxResourceBytes: number;
+  try {
+    maxResourceBytes = resolveMaxResourceBytes(process.env);
+  } catch (err) {
+    process.stderr.write(
+      `fdpm-mcp: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    process.exit(2);
+  }
+
   const auditFullArgs =
     flag("--audit-full-args") || process.env["FDPM_MCP_AUDIT_FULL_ARGS"] === "1";
 
@@ -173,6 +184,7 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
     enableDestructive,
     enabledPlugins,
     maxCallsPerMinute,
+    maxResourceBytes,
     auditFullArgs,
     catalogBudget,
     confirmationTokenPolicy,
@@ -283,6 +295,16 @@ async function main(): Promise<void> {
 
   const dispatcher = createDispatcher(host, ctx, audit);
 
+  // The read surface carries the three controls that apply to a read: the
+  // shared rate limit, the audit trail, and the byte ceiling. See
+  // `read-guard.ts` for why it is not the tool dispatcher.
+  const readGuard = createReadGuard({
+    host,
+    session,
+    audit,
+    maxResourceBytes: flags.maxResourceBytes,
+  });
+
   // -- MCP server wiring ----------------------------------------------
   // Per SPEC-MCP-SERVER §11.3, the server advertises its tool-manifest
   // version. The MCP `Implementation` schema permits additional fields;
@@ -381,7 +403,7 @@ async function main(): Promise<void> {
 
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const uri = request.params.uri;
-    const result = await dispatchRead(host, uri);
+    const result = await readGuard.read(uri);
     // MCP's ReadResourceResult carries a `contents[]` array; each
     // entry is either a TextResourceContents or BlobResourceContents.
     // We always emit exactly one — the URI addresses one render.
