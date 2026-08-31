@@ -56,22 +56,96 @@ const SNAPSHOT_EVERY_OPS = parseInt(
   10,
 );
 
+/**
+ * Backing store for lazily-materialised workbooks.
+ *
+ * Synchronous by necessity: the projection is read through synchronous
+ * entry points, so the load behind them cannot await.
+ */
+export interface ProjectLoader {
+  /** Operations for one workbook, any order. Empty if it has no log. */
+  loadProject(workbook_id: string): Operation[];
+  /** Every workbook id the backing store knows about. */
+  listProjectIds(): string[];
+}
+
 export class Store {
   private state: StoreState;
   private readonly snapshotEvery: number;
+  private loader: ProjectLoader | null = null;
+  /**
+   * Workbooks whose log has been materialised into the projection. An id
+   * is added *before* its operations are applied, so a load that reaches
+   * back into the Store cannot recurse into itself.
+   */
+  private readonly materialised = new Set<string>();
 
   constructor(snapshotEvery = SNAPSHOT_EVERY_OPS) {
     this.state = emptyState();
     this.snapshotEvery = snapshotEvery;
   }
 
+  /**
+   * Attach a lazy loader. Without one the Store behaves exactly as
+   * before: everything it holds was put there by `loadFromOperations`
+   * or by `append`.
+   *
+   * With one, a workbook's log is read the first time something asks for
+   * it. `Host.load()` used to read every workbook in the data directory
+   * before returning, so opening one workbook cost the whole corpus —
+   * 1.5 s at 50 MB, 59 s at 1.8 GB, on every process start. Now it costs
+   * the workbook actually touched.
+   */
+  attachLoader(loader: ProjectLoader): void {
+    this.loader = loader;
+  }
+
+  /**
+   * Workbooks currently materialised in the projection. Diagnostics —
+   * and the only way to observe that lazy loading actually stayed lazy.
+   */
+  materialisedProjectIds(): string[] {
+    return [...this.materialised];
+  }
+
+  /** Treat these workbooks as already materialised (they were loaded eagerly). */
+  markMaterialised(ids: Iterable<string>): void {
+    for (const id of ids) this.materialised.add(id);
+  }
+
+  /**
+   * Materialise one workbook if a loader is attached and it has not been
+   * loaded yet. Cheap and idempotent after the first call.
+   */
+  private ensureLoaded(workbook_id: string): void {
+    if (this.loader === null || this.materialised.has(workbook_id)) return;
+    this.materialised.add(workbook_id);
+    const ops = this.loader.loadProject(workbook_id);
+    if (ops.length === 0) return;
+    const sorted = [...ops].sort((a, b) => a.revision - b.revision);
+    for (const op of sorted) applyOperation(this.state, op);
+    this.state.operation_log[workbook_id] = sorted;
+  }
+
+  /**
+   * Materialise every known workbook. Required by the two operations
+   * whose answer depends on workbooks nobody has named — enumerating
+   * workbooks, and resolving a uid to whichever workbook holds it.
+   */
+  private ensureAllLoaded(): void {
+    if (this.loader === null) return;
+    for (const id of this.loader.listProjectIds()) this.ensureLoaded(id);
+  }
+
   /** §6.5: discard projection and replay log from start (or snapshot). */
   rebuildFromLog(): void {
+    this.ensureAllLoaded();
     const allLogs = Object.values(this.state.operation_log).flat();
     this.state = replay(allLogs);
   }
 
   rebuildProject(workbook_id: string): void {
+    this.ensureLoaded(workbook_id);
     const log = this.state.operation_log[workbook_id] ?? [];
     // Discard projection for this project, uid_index entries included —
     // without the uid sweep every create in the log replays into a
@@ -115,6 +189,7 @@ export class Store {
    * projection, persists. Either all of it happens or none does.
    */
   append(input: AppendInput): AppendOutput {
+    this.ensureLoaded(input.workbook_id);
     verifyOperationPayload({ kind: input.kind, payload: input.payload });
 
     const projectLog = this.state.operation_log[input.workbook_id] ?? [];
@@ -175,6 +250,7 @@ export class Store {
     const request_id = inputs[0]!.request_id ?? uuidv7();
     if (inputs.some((i) => i.workbook_id !== workbook_id))
       throw new FDPMException("verification", "batch must target a single workbook");
+    this.ensureLoaded(workbook_id);
 
     // Rollback marker: the pre-batch log. Restoring it and rebuilding
     // reproduces the pre-batch projection exactly, so no deep copy of
@@ -207,6 +283,7 @@ export class Store {
    * references rather than a full `structuredClone`.
    */
   snapshotProjectForRollback(workbook_id: string): { log: Operation[] } {
+    this.ensureLoaded(workbook_id);
     return { log: [...(this.state.operation_log[workbook_id] ?? [])] };
   }
 
@@ -232,6 +309,7 @@ export class Store {
   // -- Read API --------------------------------------------------------
 
   listProjects(): { id: string; name: string; profile_id: string; revision: number }[] {
+    this.ensureAllLoaded();
     return Object.values(this.state.workbooks).map((p) => ({
       id: p.id,
       name: p.name,
@@ -241,6 +319,7 @@ export class Store {
   }
 
   getProject(id: string): ProjectStateSlice {
+    this.ensureLoaded(id);
     const slice = sliceProject(this.state, id);
     if (!slice) throw new FDPMException("not_found", `workbook not found: ${id}`);
     return slice;
@@ -250,14 +329,18 @@ export class Store {
   lookupUid(
     uid: string,
   ): { workbook_id: string; kind: "primitive" | "relation"; id: string } | null {
+    // A uid names no workbook, so the answer can live in any of them.
+    this.ensureAllLoaded();
     return this.state.uid_index[uid] ?? null;
   }
 
   getOperationLog(workbook_id: string): Operation[] {
+    this.ensureLoaded(workbook_id);
     return [...(this.state.operation_log[workbook_id] ?? [])];
   }
 
   getProjectAt(workbook_id: string, revision: number): ProjectStateSlice {
+    this.ensureLoaded(workbook_id);
     const log = this.state.operation_log[workbook_id];
     if (!log) throw new FDPMException("not_found", `workbook not found: ${workbook_id}`);
     const slice = log.filter((op) => op.revision <= revision);
@@ -272,6 +355,7 @@ export class Store {
   }
 
   takeSnapshot(workbook_id: string, revision: number): void {
+    this.ensureLoaded(workbook_id);
     // Isolated on purpose: a snapshot outlives the mutations that follow
     // it, so it is one of the few places a deep copy is load-bearing.
     const slice = sliceProjectIsolated(this.state, workbook_id);
@@ -281,6 +365,7 @@ export class Store {
   }
 
   getSnapshots(workbook_id: string): ProjectSnapshot[] {
+    this.ensureLoaded(workbook_id);
     return [...(this.state.snapshots[workbook_id] ?? [])];
   }
 
@@ -304,6 +389,8 @@ export class Store {
     for (const id of Object.keys(this.state.operation_log)) {
       this.state.operation_log[id]!.sort((a, b) => a.revision - b.revision);
     }
+    // These came from disk already; a lazy loader must not re-apply them.
+    this.markMaterialised(Object.keys(this.state.operation_log));
   }
 
   /**
@@ -328,6 +415,7 @@ export class Store {
    */
   appendReplayedOps(workbook_id: string, newOps: readonly Operation[]): void {
     if (newOps.length === 0) return;
+    this.ensureLoaded(workbook_id);
     const log = this.state.operation_log[workbook_id] ?? [];
     const currentRev = log.length > 0 ? log[log.length - 1]!.revision : 0;
 

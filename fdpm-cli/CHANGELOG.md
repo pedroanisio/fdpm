@@ -92,6 +92,36 @@ copy should use the new `sliceProjectIsolated`.
 `Store.snapshotProjectForRollback` now returns `{ log }` instead of a
 copied slice.
 
+#### Opening one workbook read the entire corpus
+
+`Host.load()` called `readAllLogs()`: every workbook in the data
+directory was read, Zod-parsed and replayed before `load()` returned, so
+a CLI invocation touching one document paid for all of them — 369 ms at
+100 workbooks, 1,451 ms at 400, 59 s at a 1.8 GB corpus, on every process
+start.
+
+Workbooks are now materialised on first access. `load()` is flat at ~8 ms
+from 1.2 MB to 626 MB of corpus, and opening a single workbook costs
+2–8 ms where reading 50 MB of corpus cost 1,451 ms. `listProjects` and
+`lookupUid` still materialise everything, because their answers span
+workbooks; that work simply moved out of `load()`, where it used to
+happen unconditionally.
+
+Persisted snapshots were evaluated and not built: they can only remove
+the replay half of a load (measured 50.3 % of 1,303 ms for a
+100,001-operation workbook), because the full log must still be read to
+keep `operation_log` complete for `getOperationLog`, `getProjectAt`,
+`rebuildProject` and `reloadProjectTail`. A 2.01× ceiling on a rare
+workload did not justify a new on-disk format in the rollback and audit
+paths. `docs/architecture/PERFORMANCE-IO-ANALYSIS.md` §6.6 records it.
+
+##### Added for embedders
+
+`Store.attachLoader`, `Store.markMaterialised`,
+`Store.materialisedProjectIds`, and the `ProjectLoader` interface;
+`JsonlLogStore.readLogSync` and `listProjectIdsSync`. A Store with no
+loader attached behaves exactly as before.
+
 #### Clean checkouts could not typecheck or build
 
 `@fdpm/zod-bridge` resolves to `./dist`, which is git-ignored, and the
