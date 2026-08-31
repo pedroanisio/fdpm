@@ -314,7 +314,46 @@ The profile id is `profile:<leaf>:<version>`, not `profile:<full-path>:<version>
 
 Leaf-only profile ids are unambiguous because **leaves are globally unique** (§3.6). This is why §3.6's restriction is stricter than the obvious per-rung uniqueness rule.
 
-The version tail uses `<major>.<minor>`, NOT `<major>.<minor>.<patch>` — patch-level releases that don't change the type catalogue should not produce profile-id churn.
+#### 5.5.1 The version tail is a compatibility series, not the profile's version
+
+The tail MUST be exactly two segments, `<major>.<minor>`, never
+`<major>.<minor>.<patch>`.
+
+**It names a compatibility series, not a release.** It is fixed when the
+series is created and moves only when the type catalogue changes in a way
+that existing workbooks cannot survive. It does NOT track
+`DomainProfile.version`, and a reader who wants to know which version of a
+profile they are holding MUST read `version` from the profile rather than
+parse it out of the id.
+
+The reason is that a profile id is a durable reference and a version is not.
+The id is recorded in the `workbook.create` operation of every workbook that
+uses it, and that log is append-only. Changing a profile id therefore does not
+rename anything — it makes every existing log refer to a profile that no
+longer exists, and no profile-id migration exists in the host to repair them.
+A `version` field costs nothing to change; an id costs every workbook ever
+created under it.
+
+So the two move on different schedules, on purpose:
+
+| Change | `version` | id tail |
+| --- | --- | --- |
+| Fix a description, a label, a validator message | bumps | unchanged |
+| Add an optional field, add a type | bumps | unchanged |
+| Remove a type, make an optional field required, retype a field | bumps | **moves** |
+
+A profile whose tail disagrees with `version`'s `<major>.<minor>` is
+therefore normal and expected — it means the catalogue has grown compatibly
+since the series began. `profile:formal-specification:3.0` at version 3.1.0
+and `profile:software-architecture:1.0` at version 1.1.0 are both correct
+under this rule.
+
+**Grandfathered exception.** `profile:academic-paper:0.4.1` carries a
+three-segment tail, which this rule forbids. It predates the rule and has
+workbooks in the field, so it is exempt by name rather than renamed —
+consistent with how §9 grandfathers the other naming gates. The exemption is
+a single entry in the gate below; a new profile cannot join it without
+editing that list, which is the point.
 
 ### 5.6 The `profile:` prefix is normative
 
@@ -435,6 +474,7 @@ Three mechanisms, matching the SPEC's three layers.
 | Leaf is globally unique across the taxonomy | New: scan every `fdpm-plugin.json`, extract leaves, assert no duplicates (excluding the legacy-prefix whitelist). |
 | Directory mirrors the path (or matches the legacy whitelist) | New: scan `plugins/**/fdpm-plugin.json`, assert path matches directory tree. Grandfathered plugins covered by whitelist. |
 | Profile id matches the leaf | New: import each plugin's `PROFILE_ID`, parse as `profile:<leaf>:<version>`, assert `<leaf>` matches the manifest id's leaf. |
+| Profile id tail is exactly `<major>.<minor>` (§5.5.1) | `fdpm-cli/tests/_meta/profile-contract.test.ts`: parse every shipped `PROFILE_ID`, assert the tail has exactly two numeric segments. One grandfathered id (`profile:academic-paper:0.4.1`) is exempt by name. |
 | Type prefix matches the leaf OR is in the legacy whitelist (`sw`, `fs`, `plan`, `spec`) | New: walk each profile's `primitive_types` and `relation_types`, extract prefix, assert it is in `{<leaf>, ...legacy_whitelist}`. |
 | `structural_shape` is in the §4.1 catalogue or `null` | New: assert each manifest's `structural_shape` field. |
 | `composes_with_shapes` is a subset of the §4.1 catalogue | New: assert each manifest's array. |

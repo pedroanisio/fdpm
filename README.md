@@ -439,6 +439,12 @@ Server-side plugin runtime under `fdpm-cli/src/plugin/`. Capabilities supported:
 | `cap:exporter`           | `ProjectTransfer` egress; gated by `export:workbook`. |
 | `cap:lifecycle-hook`     | One callback per `on-install`/`on-enable`/`on-disable`/`on-uninstall` event. |
 
+Every profile the shipped plugins contribute — with its type counts, the
+validators, renderers, importers and MCP prompts that come with it, and the
+`extends` chains between them — is catalogued in
+[docs/architecture/PROFILES.md](docs/architecture/PROFILES.md), generated from
+the running host by `fdpm-cli/scripts/build-profile-atlas.ts`.
+
 Out of scope by design (not a CLI concern): `cap:route` (no HTTP server),
 all `cap:ui:*` (no frontend).
 
