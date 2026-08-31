@@ -10,8 +10,14 @@ import { buildProgram } from "./program.js";
 import { handleError } from "./error-handling.js";
 import { resolveOneShotCliRuntimeOptions } from "./runtime-options.js";
 import { resolveWorkspaceDataDir } from "../core/workspace/resolve.js";
+import { loadDotenv } from "../core/config/dotenv.js";
 
 async function main(): Promise<void> {
+  // Configuration first: every resolution below reads `process.env`. An
+  // exported shell variable still wins over the file, so a one-off
+  // `FDPM_DATA_DIR=… fdpm …` behaves as it always did.
+  loadDotenv();
+
   const argv = process.argv.slice(2);
 
   if (argv.length === 0) {

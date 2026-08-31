@@ -144,6 +144,7 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
+| `FDPM_ENV_FILE` | `~/.fdpm/.env then ./.env (layered)` | Explicit .env file for the CLI and MCP server, replacing the layered default search; a variable already set in the environment always wins, and only documented FDPM_* names are applied. |
 | `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
 | `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths separated by the OS path-list delimiter (`:` on POSIX, `;` on Windows). |
 | `FDPM_FSYNC` | `1` | 0 -> skip the fsync after each operation-log write (faster bulk import, loses the tail on host crash). |

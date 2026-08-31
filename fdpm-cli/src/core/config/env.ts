@@ -7,6 +7,13 @@ export interface EnvVarSpec {
 
 export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
   {
+    name: "FDPM_ENV_FILE",
+    defaultValue: "~/.fdpm/.env then ./.env (layered)",
+    exampleValue: "~/.fdpm/.env",
+    summary:
+      "explicit .env file for the CLI and MCP server, replacing the layered default search; a variable already set in the environment always wins, and only documented FDPM_* names are applied",
+  },
+  {
     name: "FDPM_DATA_DIR",
     defaultValue: "~/.fdpm-cli",
     exampleValue: "~/.fdpm-cli",

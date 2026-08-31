@@ -35,6 +35,7 @@ import {
 import { Host } from "../core/host.js";
 import { defaultDataDir } from "../persistence/jsonl-log.js";
 import { resolveWorkspaceDataDir } from "../core/workspace/resolve.js";
+import { describeDotenvLoad, loadDotenv } from "../core/config/dotenv.js";
 import { MANIFEST } from "../mcp/manifest.js";
 import { MCP_TOOL_MANIFEST_VERSION } from "../mcp/schemas.js";
 import {
@@ -192,6 +193,12 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
 }
 
 async function main(): Promise<void> {
+  // Configuration first. Everything below reads `process.env`, and a
+  // long-running server receives that once, at spawn — so a `.env` read
+  // after the first consumer is a `.env` that does nothing. A variable the
+  // client already set in its own `env` block still wins.
+  const dotenv = loadDotenv();
+
   const flags = parseArgs(process.argv.slice(2));
 
   // SPEC-WORKSPACE §8.3 precedence: --data-dir > FDPM_DATA_DIR
@@ -199,9 +206,11 @@ async function main(): Promise<void> {
   const resolved = await resolveWorkspaceDataDir({ cliDataDir: flags.cliDataDir });
   flags.dataDir = resolved.dataDir ?? defaultDataDir();
 
+  const dotenvLine = describeDotenvLoad(dotenv);
   process.stderr.write(
     [
       `fdpm-mcp: starting`,
+      ...(dotenvLine === "" ? [] : [`  ${dotenvLine}`]),
       `  data_dir=${flags.dataDir} (source=${resolved.source})`,
       `  manifest_version=${MCP_TOOL_MANIFEST_VERSION}`,
       `  destructive_enabled=${flags.enableDestructive}`,
