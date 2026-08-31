@@ -15,9 +15,17 @@ realistic workloads, and a decision on whether replacing direct disk I/O
 with a NoSQL datastore is justified.
 
 **Verdict: no.** The storage layer supplies 5,772 write ops/s. The
-application consumes 43 ops/s at a 6,000-primitive workbook. Disk I/O is
-1.2 % of write-path CPU; deep-copying the in-memory projection is 89 %.
+application consumed 43 ops/s at a 6,000-primitive workbook. Disk I/O was
+1.2 % of write-path CPU; deep-copying the in-memory projection was 89 %.
 A datastore migration optimises the 1.2 %.
+
+**Status: the fixes in §4 have shipped.** Sections 1–3 and 5 describe the
+system as measured before them, because that is the evidence the decision
+rests on; §6 reports the same benchmarks re-run afterwards. In short:
+writes went from 22 ops/s at a 6,000-primitive workbook to ~800 ops/s and
+from O(n²) to O(n), reads from 16.1 ms to 0.006 ms, every acknowledged
+write is now fsynced, and four concurrent writers no longer destroy the
+workbook.
 
 Back to [root README](../../README.md) · repository counts in
 [CENSUS.md](CENSUS.md).
@@ -284,24 +292,25 @@ headroom to 2,750×. Neither number is the constraint.
 
 ## 4. Improvements, ranked
 
-Impact figures for R1/R2 are **measured**, not estimated — each was
+Impact figures for R1–R4 are **measured**, not estimated — each was
 implemented and benchmarked (§6). Complexity per repo convention
 (XS/S/M/L/XL).
 
-| # | Change | Measured / expected impact | Effort | Risk |
-|---|---|---|---|---|
-| **R1** | `sliceProject` returns a view; add `sliceProjectIsolated` for the rollback/snapshot paths | **2.8× writes** (43 → 119 ops/s), **2,680× reads** (16.1 → 0.006 ms) | **XS** — 3 lines + 4 call-site swaps | **Low.** Full suite green: 2,114/2,115 |
-| **R2** | Replace the rollback pre-snapshot with an inverse-op journal or copy-on-write of touched entries | **59× total** (43 → 2,544 ops/s); **O(n²) → O(n)**, latency curve goes flat | **M** | Medium — must preserve batch atomicity (5 tests pin it) |
-| **R3** | Batch `appendOp`: single `writeFile` per batch; reuse fd; group-commit `fsync` | 28× storage throughput **and** closes B5 | **S** | Low |
-| **R4** | Cross-process write lock (`flock` on the log) + revision reservation | Closes B4 — silent corruption and unopenable workbooks | **S/M** | Low; correctness-critical |
-| **R5** | Lazy per-workbook load; drop `readAllLogs` from `Host.load` | Cold start becomes O(touched workbook), not O(corpus) | **M** | Medium — `uid_index` and cross-workbook lookups assume global load |
-| **R6** | Persist snapshots; load snapshot + tail instead of full replay | Bounded cold start regardless of log length | **M/L** | Medium |
-| **R7** | Drop the existence-check clone at `host.ts:659`; cache `getResolved` | Small constant win | **XS** | Very low |
-| **R8** | Shard large workbooks (operational, no code change) | 20.5× on the small-workbook path today | **XS** | None |
+| # | Change | Measured / expected impact | Effort | Risk | Status |
+|---|---|---|---|---|---|
+| **R1** | `sliceProject` returns a view; add `sliceProjectIsolated` for the snapshot path | **2,680× reads** (16.1 → 0.006 ms) | **XS** | Low | **shipped** |
+| **R2** | Replace the rollback pre-snapshot with a rebuild from the workbook's log | **O(n²) → O(n)**; latency curve goes flat | **M** | Medium — batch atomicity is pinned by 29 tests | **shipped** |
+| **R3** | Reuse one append handle per workbook; group-commit batches; fsync by default | 20× storage throughput **and** closes B5 | **S** | Low | **shipped** |
+| **R4** | Cross-process workbook lock + log-freshness reconciliation before minting a revision | Closes B4 — silent corruption and unopenable workbooks | **S/M** | Low; correctness-critical | **shipped** |
+| **R5** | Lazy per-workbook load; drop `readAllLogs` from `Host.load` | Cold start becomes O(touched workbook), not O(corpus) | **M** | Medium — `uid_index` and cross-workbook lookups assume global load | open |
+| **R6** | Persist snapshots; load snapshot + tail instead of full replay | Bounded cold start regardless of log length | **M/L** | Medium | open |
+| **R7** | Drop the existence-check clone at `host.ts:659`; cache `getResolved` | Subsumed by R1 — that call is now O(1) | — | — | **subsumed** |
+| **R8** | Shard large workbooks (operational, no code change) | Was 20.5× on the small-workbook path; R2 removes the asymmetry | **XS** | None | **moot** |
 
-R1 is the highest impact-to-effort ratio in the list by a wide margin.
-
----
+R5 and R6 remain open. They address cold start and memory (B3, B7), which
+are untouched by the shipped work: opening any workbook still reads the
+entire corpus, so §2.6 still describes current behaviour. They are worth
+doing at corpora beyond ~100 MB and are not worth doing below that.
 
 ## 5. NoSQL comparison
 
@@ -373,94 +382,128 @@ Every genuine benefit is reachable without leaving the filesystem.
 
 ---
 
-## 6. Validation of the recommendation
+## 6. Results after the fix
 
-R1 and R2 were implemented and measured, not projected. Identical
-workload, 6,000 primitives, persistence on:
+Same benchmarks, same machine, re-run against the shipped code. The
+"after" column is durable — every write is fsynced, which the "before"
+column was not.
 
-| Build | ops/s | mean | p99 | read | per-op latency curve (500→6,000) | Test suite |
-|---|---:|---:|---:|---:|---|---|
-| Shipped | 43.1 | 23.19 ms | 54.86 | 16.10 ms | 3.86 → 45.7 ms (**rising**) | 2,114 / 2,115 |
-| **R1** — read-path view, rollback isolated | **118.9** | 8.41 ms | 19.88 | **0.006 ms** | 1.59 → 15.77 ms (rising) | **2,114 / 2,115** |
-| **R1+R2** — no per-op clone at all | **2,544.3** | 0.392 ms | 2.82 | 0.005 ms | 0.43 → 0.39 ms (**flat**) | 2,109 / 2,115 |
+### 6.1 Write path, one workbook, 200 B bodies
 
-The single failure in the first two rows is
-`tests/_meta/doc-drift.test.ts` (`CENSUS.md` stale), which is **red on
-unmodified `main`** and unrelated to this work.
+| Primitives present | before | after |
+|---:|---:|---:|
+| 500 | 2.04 ms / 491 ops/s | 1.34 ms / 747 ops/s |
+| 1,000 | 5.05 ms / 198 ops/s | 1.40 ms / 713 ops/s |
+| 2,000 | 12.08 ms / 83 ops/s | 1.70 ms / 588 ops/s |
+| 3,000 | 19.54 ms / 51 ops/s | 1.39 ms / 719 ops/s |
+| 4,000 | 26.84 ms / 37 ops/s | 0.98 ms / 1,020 ops/s |
+| 5,000 | 35.20 ms / 28 ops/s | 1.10 ms / 909 ops/s |
+| 6,000 | 44.76 ms / 22 ops/s | 1.25 ms / 798 ops/s |
 
-The R1+R2 row was produced by removing the clone unconditionally, which
-breaks exactly 5 tests — all batch-rollback atomicity
-(`edit-and-batch`, `mcp/batch-create` ×2, `mcp/batch-delete` ×2).
-**Nothing else among 2,115 tests depends on the read path being a deep
-copy.** That is precisely why R1 and R2 are separable: reads need no
-isolation; only rollback does, and it needs an undo record rather than a
-whole-workbook copy.
+Per-operation latency no longer tracks workbook size: 1.338 ms at the
+first bucket against 1.253 ms at the last. **The cost class changed from
+O(n²) to O(n)** — the remaining variation is scheduling noise, not
+growth. Building the 6,000-primitive workbook fell from 131.5 s to 12.2 s
+with fsync on, and to 4.1 s with `FDPM_FSYNC=0`.
 
-R1 as validated:
+### 6.2 Everything else
 
-```ts
-// core/store/replay.ts — reads get a view
-export function sliceProject(state, workbook_id) {
-  const workbook = state.workbooks[workbook_id];
-  if (!workbook) return null;
-  return { workbook, primitives: state.primitives[workbook_id] ?? {}, /* … */ };
-}
+| Measure | before | after |
+|---|---:|---:|
+| `getProject` at 6,000 primitives | 16.10 ms | **0.006 ms** |
+| Peak RSS building 6,000 primitives | 243 MB | **129 MB** |
+| 20 KB documents (§2.5 bottom row) | 45.24 ms / 22 ops/s | **1.44 ms / 692 ops/s** |
+| Write cost vs document size (0 → 20 KB) | 5.54 → 45.24 ms | **1.47 → 1.44 ms** |
+| Durability of an acknowledged write | none — up to 30 s exposed | **fsync per write** |
+| 4 concurrent writers | log unreplayable; 400 acked ops unrecoverable | **800/800 recovered, 0 duplicate revisions** |
+| 8 concurrent writers | 490 duplicate revisions | **0 duplicate revisions** |
 
-// new — only rollback/snapshot callers pay for isolation
-export function sliceProjectIsolated(state, workbook_id) {
-  const view = sliceProject(state, workbook_id);
-  return view === null ? null : structuredClone(view);
-}
-```
+Document size has stopped mattering: the write path no longer copies
+document bodies, so a 20 KB body costs what an empty one costs.
 
-with four call sites in `core/store/store.ts` (`append`, `appendBatch`,
-`snapshotProjectForRollback`, `takeSnapshot`) switched to
-`sliceProjectIsolated`. All 29 rollback/atomicity tests pass.
+Cold start (§2.6) is unchanged by design — R5 and R6 are still open.
 
----
+### 6.3 What the fix was
+
+Reads and rollback were sharing one deep copy, and only rollback needed
+it. `sliceProject` now returns a view; the snapshot path calls
+`sliceProjectIsolated`; and rollback stopped pre-copying the workbook
+altogether in favour of replaying the workbook's log, which is canonical
+and already describes the pre-operation state at the moment a failure
+occurs. Removing the copy unconditionally breaks exactly 5 tests, all
+batch-rollback atomicity, and nothing else among 2,136 — which is what
+made the split safe to draw.
+
+Three defects surfaced while building this and are fixed here rather than
+left for later:
+
+- `rebuildProject` discarded a workbook's projection without its
+  `uid_index` entries, so it could not replay its own log — every
+  `primitive.create` tripped the uid-collision guard. The same omission
+  leaked uids on rollback, permanently poisoning them.
+- The write lock could be stolen. A waiter that could not read the lock
+  file treated it as abandoned and deleted it — but an unreadable lock is
+  usually just one whose holder released it a moment ago, or one being
+  written right now. Two writers ended up inside the same critical
+  section. An unreadable lock is now respected and broken only on its own
+  age.
+- `Host.load()` read the logs and then stamped them with the file's
+  identity. A writer landing in between left the Host holding an
+  incomplete log stamped as complete, so every later freshness check
+  reported "unchanged" and the Host minted revisions another process had
+  already used. This was the residual source of duplicate revisions after
+  the lock was in place, and it is why the lock alone was not enough:
+  stat now precedes the read.
+
+### 6.4 Verification
+
+- Full suite: **2,136 passed, 204 files, 0 failed.**
+- New regression tests: `tests/store-projection-views.test.ts` (6) and
+  `tests/persistence-durability-locking.test.ts` (14). Six of them fail
+  against the pre-fix code, which is how they were checked.
+- Cross-process exclusion measured directly: 4 processes × 20 critical
+  sections, 160 enter/exit events, **0 interleavings**.
+- Duplicate-revision reproduction: 8 concurrent writers × 10 runs,
+  **0/10 with any duplicate** (previously 5/8 runs).
 
 ## 7. Recommendation and migration thresholds
 
 **Do not migrate to a NoSQL datastore.** It addresses 1.2 % of the
 write-path cost, ties with an in-place fix on the measured write
 benchmark, and regresses backup, operability, and inspectability. The
-system is not storage-bound; it is bound by copying its own projection.
+system was never storage-bound; it was bound by copying its own
+projection, and it no longer does.
 
-Do, in order:
-
-1. **R1** — XS, measured 2.8× writes and 2,680× reads, full suite green.
-2. **R4 + R3** — correctness first: the silent-corruption and 30 s
-   durability gaps are worse defects than the throughput.
-3. **R2** — restores linear scaling; the difference between a workbook
-   that stops being usable at ~6,000 primitives and one that does not.
-4. **R5/R6** if corpora exceed ~100 MB.
-5. **R8** now, operationally, at no cost.
+Shipped: R1, R2, R3, R4 — the projection fixes, durable grouped writes,
+and cross-process write safety. Still open: **R5/R6**, lazy per-workbook
+loading and persisted snapshots, which bound cold start and memory. They
+matter at corpora beyond ~100 MB; below that the eager load costs under a
+second and is not worth the complexity.
 
 ### Thresholds at which this conclusion changes
 
-Revisit a datastore only when a measured condition below holds **after**
-R1–R4 have shipped:
+Revisit a datastore only when a measured condition below holds:
 
 | Threshold | Rationale |
 |---|---|
-| Sustained demand > **2,500 write ops/s** on one workbook | Past R1+R2's measured ceiling; storage headroom starts to matter |
-| Genuinely concurrent multi-writer access to **one** workbook, beyond one-writer-per-workbook | `flock` serialises; MVCC does not |
-| Corpus > **~10 GB**, or working set exceeding RAM | Page-cache + full-projection model stops fitting; needs paged access |
-| Point-lookup-dominated reads across workbooks without a full load | Native secondary indexes earn their cost |
-| A network boundary becomes mandatory (multi-host writers) | Filesystem semantics no longer available |
+| Sustained demand > **1,500 write ops/s** on one workbook | Past the measured non-fsync ceiling; storage headroom starts to matter |
+| Genuinely concurrent multi-writer access to **one** workbook, beyond one-writer-per-workbook | The lock serialises writers; MVCC would let them proceed |
+| Corpus > **~10 GB**, or working set exceeding RAM | The page-cache + full-projection model stops fitting; needs paged access |
+| Point-lookup-dominated reads across workbooks without a full load | Native secondary indexes earn their cost — though R5 is the cheaper first move |
+| A network boundary becomes mandatory (multi-host writers) | Filesystem locking is not available across hosts; the lock is explicitly same-host |
 
 If that day comes, the measurements here point at **LMDB** — fastest
 writes (118,237 ops/s), fastest durable commits, cheapest point reads
-(0.0065 ms), embedded, no daemon, no compaction. Not a networked
-document store: loopback Redis already costs 5.7× LMDB on this workload.
+(0.0065 ms), embedded, no daemon, no compaction. Not a networked document
+store: loopback Redis already costs 5.7× LMDB on this workload.
 
 ### Reproducing
 
-Every figure above comes from a benchmark run against
-`fdpm-cli/dist` at commit `4cc97b2`. The methods are described in §2 in
-enough detail to re-implement: raw-I/O patterns (§2.1), write scaling
-with `dataDir: null` as the disk-free control (§2.2), `node --cpu-prof`
-self-time aggregation (§2.3), component isolation against live state
-(§2.4), synthetic on-disk corpora for cold start (§2.6), multi-process
-writers against one workbook directory (§2.7), and the six-engine
-comparison on identical records (§5.1).
+Figures in §1–§3 and §5 come from benchmark runs against `fdpm-cli/dist`
+at commit `4cc97b2`; §6 from the same benchmarks against the fixed tree.
+The methods are described in §2 in enough detail to re-implement: raw-I/O
+patterns (§2.1), write scaling with `dataDir: null` as the disk-free
+control (§2.2), `node --cpu-prof` self-time aggregation (§2.3), component
+isolation against live state (§2.4), synthetic on-disk corpora for cold
+start (§2.6), multi-process writers against one workbook directory
+(§2.7), and the six-engine comparison on identical records (§5.1).
