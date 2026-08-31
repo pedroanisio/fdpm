@@ -372,7 +372,9 @@ describe("SPEC-UID AC-7: --by-uid and slug addressing return the same primitive"
     });
     const relUid = host.getProject("p").relations["rel:r"]!.uid;
     expect(host.lookupUid(relUid)).not.toBeNull();
-    await host.deletePrimitive("p", "para:p1"); // cascades: deletes rel:r too
+    // A referenced primitive is refused without an explicit cascade.
+    await expect(host.deletePrimitive("p", "para:p1")).rejects.toThrow(/referenced by/);
+    await host.deletePrimitive("p", "para:p1", { cascade: true }); // takes rel:r with it
     expect(host.lookupUid(relUid)).toBeNull();
   });
 });

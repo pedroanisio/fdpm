@@ -760,7 +760,10 @@ describe("plan:val:implements-target-exists", () => {
       source_id: "task:src",
       target_id: "task:tgt",
     });
-    await host.deletePrimitive("p9c", "task:tgt");
+    // The target is referenced, so the delete is refused until the caller
+    // asks for the edge to go with it.
+    await expect(host.deletePrimitive("p9c", "task:tgt")).rejects.toThrow(/referenced by/);
+    await host.deletePrimitive("p9c", "task:tgt", { cascade: true });
     // After delete: the relation must be gone too (cascade behaviour),
     // and the surviving graph must validate clean.
     const slice = host.store.getProject("p9c");

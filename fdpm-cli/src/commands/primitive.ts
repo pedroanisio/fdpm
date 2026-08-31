@@ -279,6 +279,10 @@ export function buildPrimitiveCommand(host: Host): Command {
     .argument("<id>", "primitive id (slug, or uid with --by-uid)")
     .option("--by-uid", "interpret <id> as a uid (ULID) instead of a slug")
     .option("--dry-run", "preview what would be removed; append nothing")
+    .option(
+      "--cascade",
+      "also delete every relation that references this primitive (refused without it)",
+    )
     .option("--json", "emit JSON")
     .action(async (workbook, id, opts) => {
       const ctx: OutputContext = { json: !!opts.json };
@@ -289,11 +293,17 @@ export function buildPrimitiveCommand(host: Host): Command {
           ctx,
           { id: slug, dry_run: true, would_affect },
           () =>
-            `dry-run: would delete ${slug} (${would_affect.type_id}); ${would_affect.referencing_relations.length} referencing relation(s)`,
+            `dry-run: would delete ${slug} (${would_affect.type_id}); ` +
+            `${would_affect.referencing_relations.length} referencing relation(s)` +
+            (would_affect.referencing_relations.length > 0 && opts.cascade !== true
+              ? " — refused without --cascade"
+              : ""),
         );
         return;
       }
-      const result = await host.deletePrimitive(workbook, slug);
+      const result = await host.deletePrimitive(workbook, slug, {
+        cascade: opts.cascade === true,
+      });
       emit(ctx, { id: slug, op_id: result.op.op_id, deleted: true }, () => `deleted ${slug}`);
     });
 

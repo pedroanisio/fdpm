@@ -143,6 +143,50 @@ copy should use the new `sliceProjectIsolated`.
 `Store.snapshotProjectForRollback` now returns `{ log }` instead of a
 copied slice.
 
+#### Deleting a primitive silently removed the relations pointing at it
+
+**Breaking.** `Host.deletePrimitive` checked only that the primitive
+existed and appended. Replay then cascaded, dropping every relation whose
+source or target was the deleted primitive. Nothing warned, nothing
+refused, and the caller learned what had gone only by looking afterwards.
+
+The cascade itself is correct — it is what keeps the projection free of
+dangling endpoints, since relation creation rejects a missing source or
+target as an `error`-level finding. Performing it unasked was the
+problem: no other write on the Host removes data the caller did not name.
+
+A delete is now refused when relations reference the primitive, and the
+refusal names them. `cascade: true` takes them with it. The single-entry
+path, the batch path (`primitive.delete` intents), the CLI
+(`--cascade`), the MCP tool and the SDK all carry the option, so a batch
+of one is not a way around the check. Refusal and
+`previewPrimitiveDelete` read the same function, so a preview can never
+report a clean delete that the delete then rejects.
+
+The policy sits at the write boundary only. Replay is unchanged, so a log
+already containing a cascading delete still rebuilds — a policy decides
+what may enter the log, it does not retroactively invalidate what is in
+it.
+
+Migration: a caller deleting a referenced primitive now receives
+`conflict` with `evidence.referencing_relations`. Add `cascade: true`
+(CLI `--cascade`) to keep the previous behaviour, or delete the relations
+first.
+
+#### `structure.reparent` bypassed validation
+
+A reparent changes a primitive's `scope_id`, and a profile rule can
+constrain what belongs in which scope — but the operation appended
+directly rather than going through the validation pipeline. It was the
+one write on the Host that could place an instance into a state a direct
+edit would have been refused for. It now validates the moved primitive
+against its profile before appending.
+
+`reorder` remains unvalidated by design: it permutes scope membership
+without changing any instance, so an instance-scoped pipeline has nothing
+to judge. Its own invariant — that the new ordering is a permutation of
+the current one — is enforced in replay.
+
 #### Opening one workbook read the entire corpus
 
 `Host.load()` called `readAllLogs()`: every workbook in the data
