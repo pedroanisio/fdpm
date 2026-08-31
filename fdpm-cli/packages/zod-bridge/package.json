@@ -52,6 +52,7 @@
   "scripts": {
     "build": "tsc -p .",
     "check": "npm run typecheck && npm test && npm run build",
+    "prepare": "npm run build",
     "prepack": "npm run build",
     "prepublishOnly": "npm run check",
     "test": "vitest run",

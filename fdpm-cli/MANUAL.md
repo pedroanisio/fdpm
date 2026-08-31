@@ -146,6 +146,7 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | --- | --- | --- |
 | `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
 | `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths (colon-separated). |
+| `FDPM_FSYNC` | `1` | 0 -> skip the fsync after each operation-log write (faster bulk import, loses the tail on host crash). |
 | `FDPM_LOG_LEVEL` | `info` | Plugin logger threshold: debug \| info \| warn \| error \| silent. |
 | `FDPM_DEBUG` | unset | Truthy -> also emit plugin debug logs. |
 | `FDPM_VERBOSE` | unset | Truthy -> expand human-mode error output. |

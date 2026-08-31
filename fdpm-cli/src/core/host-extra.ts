@@ -787,7 +787,7 @@ export async function batchEdit(
   }));
   const out = host.store.appendBatch(inputs);
   if (host.persistence) {
-    for (const o of out) await host.persistence.appendOp(o.op);
+    await host.persistOps(out[0]!.op.workbook_id, out.map((o) => o.op));
   }
   const results = out.map((o, i) => {
     const outcome = describeOutcome(ops[i]!.kind);

@@ -141,6 +141,13 @@ export class Host {
   renderDsl: RenderDslEngine;
   pipeline: ValidationPipeline;
   persistence: JsonlLogStore | null;
+
+  /**
+   * Last (mtime_ns, size) this Host observed for each workbook's log
+   * after its own read or write. `ensureFreshLog` compares against it to
+   * decide whether another process has written since.
+   */
+  private readonly logStats = new Map<string, { mtime_ns: bigint; size: bigint }>();
   /**
    * SPEC-WORKSPACE §10. Populated after `Host.load()` / `Host.reload()`
    * for any Host with persistence enabled; remains null when the Host is
@@ -225,8 +232,18 @@ export class Host {
     }
 
     if (this.persistence) {
+      // Stat before reading, never after: a writer landing between the
+      // read and the stat would otherwise leave this Host holding an
+      // incomplete log stamped with the identity of the complete file, so
+      // every later freshness check reports "unchanged" and the Host mints
+      // revisions another process has already used. Capturing first is the
+      // safe direction — at worst the stamp is stale and costs one
+      // reconciliation.
+      const stats = await this.captureLogStats();
       const ops = await this.persistence.readAllLogs();
       if (ops.length > 0) this.store.loadFromOperations(ops);
+      this.logStats.clear();
+      for (const [id, stat] of stats) this.logStats.set(id, stat);
     }
   }
 
@@ -367,8 +384,11 @@ export class Host {
 
       // 3. Replay the log into the new Store.
       if (this.persistence) {
+        const stats = await this.captureLogStats();
         const ops = await this.persistence.readAllLogs();
         if (ops.length > 0) this.store.loadFromOperations(ops);
+        this.logStats.clear();
+        for (const [id, stat] of stats) this.logStats.set(id, stat);
       }
     } catch (err) {
       // Restore the snapshot if anything in the post-swap initialization
@@ -1057,10 +1077,100 @@ export class Host {
     return { append, report };
   }
 
+  /**
+   * Release persistence resources (open log handles). Optional for a
+   * short-lived CLI process, which exits and lets the OS reclaim them,
+   * but a long-lived embedder that opens many workspaces should call it.
+   */
+  async close(): Promise<void> {
+    await this.persistence?.close();
+  }
+
   async appendAndPersist(input: AppendInput): Promise<AppendOutput> {
-    const result = this.store.append(input);
-    if (this.persistence) await this.persistence.appendOp(result.op);
-    return result;
+    if (!this.persistence) return this.store.append(input);
+    const persistence = this.persistence;
+    return persistence.withWorkbookLock(input.workbook_id, async () => {
+      await this.ensureFreshLog(input.workbook_id);
+      const result = this.store.append(input);
+      await persistence.appendOps([result.op]);
+      this.recordLogStat(input.workbook_id);
+      return result;
+    });
+  }
+
+  /**
+   * Persist a run of operations for one workbook as a single grouped,
+   * fsynced write, under the workbook's write lock.
+   *
+   * The in-memory appends have already happened and rolled back as a
+   * unit if any failed; this is the durable half of the same batch.
+   */
+  async persistOps(workbook_id: string, ops: readonly Operation[]): Promise<void> {
+    if (!this.persistence || ops.length === 0) return;
+    const persistence = this.persistence;
+    await persistence.withWorkbookLock(workbook_id, async () => {
+      await persistence.appendOps(ops);
+      this.recordLogStat(workbook_id);
+    });
+  }
+
+  /**
+   * Reconcile the in-memory log with the file before writing to it.
+   *
+   * The next revision is derived from the in-memory log, so writing
+   * against a stale one mints a revision another process has already
+   * used. The workbook lock keeps two writers out of this section at
+   * once; this keeps a writer that *waited* for the lock from carrying
+   * on with the log it read before waiting.
+   *
+   * The (mtime_ns, size) pair is the cheap guard: unchanged since our
+   * own last write means nobody else touched the file and the expensive
+   * whole-log reconciliation can be skipped. Without it this check would
+   * re-read the log on every append and reintroduce the O(n^2) it is
+   * sitting next to.
+   */
+  private async ensureFreshLog(workbook_id: string): Promise<void> {
+    if (!this.persistence) return;
+    const current = this.persistence.statProjectLog(workbook_id);
+    if (current === null) return;
+    const known = this.logStats.get(workbook_id);
+    if (
+      known !== undefined &&
+      known.mtime_ns === current.mtime_ns &&
+      known.size === current.size
+    ) {
+      return;
+    }
+    // Record the identity of the file we are about to read, not the one
+    // that exists after we finish reading it. Those differ if a writer
+    // lands in between, and recording the newer one would mark an
+    // in-memory log that is missing operations as up to date.
+    await this.reloadProjectTail(workbook_id);
+    this.logStats.set(workbook_id, current);
+  }
+
+  /**
+   * Record every known workbook's log identity in one pass, after a full
+   * load has made the in-memory logs equal to the files on disk.
+   */
+  private async captureLogStats(): Promise<
+    Map<string, { mtime_ns: bigint; size: bigint }>
+  > {
+    const captured = new Map<string, { mtime_ns: bigint; size: bigint }>();
+    if (!this.persistence) return captured;
+    for (const id of await this.persistence.listProjectIds()) {
+      const stat = this.persistence.statProjectLog(id);
+      if (stat !== null) captured.set(id, stat);
+    }
+    return captured;
+  }
+
+  /** Remember the log's identity after our own write. */
+  private recordLogStat(workbook_id: string): void {
+    if (!this.persistence) return;
+    const stat = this.persistence.statProjectLog(workbook_id);
+    if (stat !== null) this.logStats.set(workbook_id, stat);
+    else this.logStats.delete(workbook_id);
   }
 
   /** Append with provided request_id (for batch). */
@@ -1072,7 +1182,7 @@ export class Host {
     const full = inputs.map((i) => ({ ...i, workbook_id, request_id }));
     const out = this.store.appendBatch(full);
     if (this.persistence) {
-      for (const o of out) await this.persistence.appendOp(o.op);
+      await this.persistOps(out[0]!.op.workbook_id, out.map((o) => o.op));
     }
     return out;
   }
@@ -1265,7 +1375,7 @@ export class Host {
     }
 
     if (this.persistence) {
-      for (const o of outputs) await this.persistence.appendOp(o.op);
+      await this.persistOps(workbook_id, outputs.map((o) => o.op));
     }
     return { outputs, reports };
   }
