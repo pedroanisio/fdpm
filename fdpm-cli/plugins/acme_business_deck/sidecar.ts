@@ -65,6 +65,15 @@ import {
 } from "./schemas/business-deck.js";
 
 export const PROFILE_ID = "profile:acme-business-deck:0.1" as const;
+
+export const PROFILE_DESCRIPTION =
+  "A business presentation as the case it makes, not the slides it renders " +
+  "to: claims backed by evidence, the risks and objections a room will " +
+  "raise, the options weighed, and the audience segments and pain points " +
+  "the argument is aimed at. Slides reference that material rather than " +
+  "containing it, so the same case can be re-cut for a different room " +
+  "without rewriting the reasoning, and a claim that lost its evidence is " +
+  "visible before the meeting rather than during it.";
 export const PLUGIN_ID = "acme.business-deck" as const;
 export const PLUGIN_VERSION = "0.1.0" as const;
 export const HOST_COMPATIBILITY = ">=1.1,<2" as const;
@@ -136,6 +145,7 @@ export function buildBusinessDeckSidecar() {
       pluginId: PLUGIN_ID,
       vendor: "acme",
       profileId: PROFILE_ID,
+      profileDescription: PROFILE_DESCRIPTION,
       pluginVersion: PLUGIN_VERSION,
       hostCompatibility: HOST_COMPATIBILITY,
     },

@@ -7,6 +7,7 @@ import {
   readFileSync,
   readdirSync,
   unlinkSync,
+  writeFileSync,
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir, hostname } from "node:os";
@@ -131,13 +132,16 @@ export class JsonlLogStore {
     if (!existsSync(manifestPath(this.dataDir))) {
       const manifest = { spec_core: "1.1", host: "fdpm-cli", workbooks: [] as string[] };
       mkdirSync(this.dataDir, { recursive: true });
-      // Write atomically.
-      // Sync write at startup is fine.
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      // node:fs is allowed
-      // (we deliberately use sync APIs for the init path only)
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      fs.writeFile(manifestPath(this.dataDir), JSON.stringify(manifest, null, 2));
+      // Synchronous on purpose, and the signature is the reason: `init()`
+      // returns void, so every caller is entitled to read the manifest the
+      // moment it returns. The promise-based `fs.writeFile` was called here
+      // and floated behind a `no-floating-promises` disable, which broke that
+      // contract two ways — a caller could read the manifest before it
+      // existed, and a write that failed rejected with nobody holding the
+      // promise. In the test suite that surfaced as an unhandled ENOENT when
+      // the write landed after the temp directory had been removed, which
+      // exited the whole run non-zero while every test passed.
+      writeFileSync(manifestPath(this.dataDir), JSON.stringify(manifest, null, 2));
     }
   }
 

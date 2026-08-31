@@ -1396,6 +1396,7 @@
       "name": "acad.work.acyclic-editionOf"
     }
   ],
+  "description": "A scholarly paper as an argument graph rather than a document: claims standing on evidence, quotations bound to the works they come from, concepts defined or borrowed, and equations, figures, tables and citations attached to the sections that use them. Twenty-four types and sixty-one relations cover eight genres — empirical, theoretical, methodological, literary-critical, review, historical, essay and monograph — and the genre decides what the paper is required to carry: an empirical paper owes a hypothesis and data, a theoretical one owes equations. Authorship, affiliation, funding and errata are modelled because a submission is judged on them.",
   "enum_defs": [
     {
       "description": "Enum derived from Author.contributions_item",

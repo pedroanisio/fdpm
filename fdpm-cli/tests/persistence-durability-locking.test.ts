@@ -112,6 +112,59 @@ describe("grouped appends", () => {
   });
 });
 
+/**
+ * `init()` is synchronous by signature, so every caller is entitled to read
+ * the manifest the moment it returns.
+ *
+ * It did not honour that. The body called the PROMISE-based `fs.writeFile`
+ * and floated the result behind an
+ * `eslint-disable-next-line @typescript-eslint/no-floating-promises`, while
+ * its own comments said "Sync write at startup is fine" and "we deliberately
+ * use sync APIs for the init path only". Two consequences:
+ *
+ *   - A caller that reads the manifest straight after `init()` races a write
+ *     that has not happened yet.
+ *   - The floated promise outlives whatever cleaned the directory up. In this
+ *     suite that is `afterEach`, and the rejection surfaced as
+ *     `ENOENT` on the `manifest.json` of a deleted temp dir — an unhandled
+ *     rejection that exited the whole vitest run non-zero while every test
+ *     passed.
+ *
+ * A swallowed write error is the quieter half of the same defect: nothing
+ * observed the promise, so a manifest that failed to write said nothing.
+ */
+describe("init writes the manifest before it returns", () => {
+  it("leaves a readable manifest on disk synchronously", () => {
+    const dir = tmp();
+    new JsonlLogStore(dir).init();
+    // No await anywhere: if the write is async, this file is not there yet.
+    const manifest = JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as {
+      spec_core: string;
+      host: string;
+      workbooks: string[];
+    };
+    expect(manifest).toEqual({ spec_core: "1.1", host: "fdpm-cli", workbooks: [] });
+  });
+
+  it("does not leave a write in flight after the directory is gone", () => {
+    // The flake, reproduced directly: init, then delete the tree the way
+    // afterEach does. A floated write settles here and rejects with nobody
+    // holding the promise.
+    const dir = tmp();
+    new JsonlLogStore(dir).init();
+    rmSync(dir, { recursive: true, force: true });
+    expect(existsSync(dir)).toBe(false);
+  });
+
+  it("reports a failure to write the manifest instead of swallowing it", () => {
+    // A path that cannot be created: the parent is a file, not a directory.
+    const parent = tmp();
+    const asFile = join(parent, "not-a-dir");
+    writeFileSync(asFile, "x");
+    expect(() => new JsonlLogStore(join(asFile, "nested")).init()).toThrow();
+  });
+});
+
 describe("open handle budget", () => {
   it("caps open log handles regardless of how many workbooks are written", async () => {
     const store = new JsonlLogStore(tmp());

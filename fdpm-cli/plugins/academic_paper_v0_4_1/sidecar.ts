@@ -129,6 +129,18 @@ import {
 // time. Workbooks bind to one profile; promotion path is to migrate
 // `profile_id` field-by-field once a workbook is on v0.4.1.
 export const PROFILE_ID = "profile:academic-paper:0.4.1" as const;
+
+export const PROFILE_DESCRIPTION =
+  "A scholarly paper as an argument graph rather than a document: claims " +
+  "standing on evidence, quotations bound to the works they come from, " +
+  "concepts defined or borrowed, and equations, figures, tables and " +
+  "citations attached to the sections that use them. Twenty-four types and " +
+  "sixty-one relations cover eight genres — empirical, theoretical, " +
+  "methodological, literary-critical, review, historical, essay and " +
+  "monograph — and the genre decides what the paper is required to carry: " +
+  "an empirical paper owes a hypothesis and data, a theoretical one owes " +
+  "equations. Authorship, affiliation, funding and errata are modelled " +
+  "because a submission is judged on them.";
 export const PLUGIN_ID = "fdpm.academic-paper-v0-4-1" as const;
 /*
  * `PROFILE_ID` stays at 0.4.1: no primitive type, relation type or field
@@ -136,6 +148,9 @@ export const PLUGIN_ID = "fdpm.academic-paper-v0-4-1" as const;
  * — the argument graph, the BibTeX bibliography and the typeset PDF.
  */
 export const PLUGIN_VERSION = "0.5.0" as const;
+
+/** The type catalogue's version, independent of the plugin release. */
+export const PROFILE_VERSION = "0.5.0" as const;
 export const HOST_COMPATIBILITY = ">=1.1,<2" as const;
 // Vendor controls the bridge's primitive_type_id prefix and the
 // expr-helper function namespace. This was "acad041" while the v0.3
@@ -733,6 +748,14 @@ export function buildAcademicPaperSidecar() {
       pluginId: PLUGIN_ID,
       vendor: VENDOR,
       profileId: PROFILE_ID,
+      profileDescription: PROFILE_DESCRIPTION,
+      // Stated, not inherited. With `profileVersion` unset the bridge falls
+      // back to `pluginVersion` (sidecar-orchestrator.ts), so the profile's
+      // version tracked plugin releases — a renderer added or a bug fixed
+      // moved the version of the type catalogue, which had not changed.
+      // Pinned to the value that fallback currently produces, so today's
+      // output is unchanged and tomorrow's plugin release no longer moves it.
+      profileVersion: PROFILE_VERSION,
       pluginVersion: PLUGIN_VERSION,
       hostCompatibility: HOST_COMPATIBILITY,
     },

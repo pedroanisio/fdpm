@@ -776,6 +776,7 @@
       "name": "acme.strategicclaim.acyclic-supportedByClaims"
     }
   ],
+  "description": "A strategic pitch deck with its slide layouts as first-class types. Strategic claims carry the data points and sources that support them, alongside the competitors, risks and anti-patterns the pitch has to answer. Thirteen slide variants — title, thesis, stat tiles, comparison, competitive quadrant, milestone timeline, ask, appendix and the rest — are separate types rather than one slide with a mode field, so each layout requires exactly the material it displays and a slide cannot be built half-populated.",
   "enum_defs": [
     {
       "description": "Enum derived from Competitor.citationKind",

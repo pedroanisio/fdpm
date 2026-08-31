@@ -9,13 +9,18 @@
  * within twenty-four hours. Separately, `SPEC-DOCUMENT-PLAN.md` cited two
  * peer SPECs marked `verified` that have never existed in the tree.
  *
- * Five gates:
+ * Six gates:
  *   1. `docs/architecture/CENSUS.md` matches `build-arch-census.ts` output.
  *   2. `README.md` + `.env.example` match `FDPM_ENV_VARS`.
  *   3. Every `docs/specs/SPEC-*.md` path referenced from a doc resolves.
  *   4. Every plugin directory ships a README.
  *   5. Every bridge-generated plugin README names the profile id its own
  *      `generated/product-page-bundle.json` declares.
+ *   6. `docs/architecture/PROFILES.md` matches `build-profile-atlas.ts`
+ *      output. Same reasoning as gate 1 applied to the profile inventory:
+ *      twenty-one profiles' worth of type counts, rule ids and renderer
+ *      targets is more hand-checkable facts than a reviewer will re-derive,
+ *      so the artifact is asserted equal to a regeneration.
  *
  * These are cheap, deterministic (no network, no git, no clock) and fail
  * loudly, which is the whole point: a number nobody checks is a number that
@@ -39,6 +44,36 @@ describe("doc drift: repository census", () => {
         stdio: "pipe",
       }),
     ).not.toThrow();
+  });
+
+  it("docs/architecture/PROFILES.md is not stale vs build-profile-atlas.ts", () => {
+    // Same `--check` contract as the census: re-render in memory, exit
+    // non-zero on any difference.
+    expect(() =>
+      execFileSync(NODE_COMMAND, tsxArgs(["scripts/build-profile-atlas.ts", "--check"]), {
+        cwd: CLI_ROOT,
+        stdio: "pipe",
+      }),
+    ).not.toThrow();
+  });
+
+  it("names every profile the host registers from this checkout's plugins", () => {
+    // The generator could silently drop a profile — a filter that is too
+    // narrow leaves `--check` passing against a document missing entries.
+    // Assert the artifact against the plugin directories themselves, which
+    // is a source the generator does not read.
+    const atlas = readFileSync(join(REPO_ROOT, "docs/architecture/PROFILES.md"), "utf8");
+    const pluginDirs = readdirSync(join(CLI_ROOT, "plugins")).filter((d) =>
+      existsSync(join(CLI_ROOT, "plugins", d, "fdpm-plugin.json")),
+    );
+    expect(pluginDirs.length).toBeGreaterThan(0);
+    for (const dir of pluginDirs) {
+      expect(atlas, `PROFILES.md must account for plugins/${dir}/`).toContain(
+        `\`plugins/${dir}/\``,
+      );
+    }
+    // And the core-shipped profile, which belongs to no plugin.
+    expect(atlas).toContain("`core:empty`");
   });
 
   it("counts the repository-root public workflows", () => {

@@ -20,6 +20,16 @@ import { defineDomain } from "@fdpm/zod-bridge";
 import { Schemas } from "./schemas/pitch-deck.schema.v2.js";
 
 export const PROFILE_ID = "profile:acme-pitch-deck:0.1" as const;
+
+export const PROFILE_DESCRIPTION =
+  "A strategic pitch deck with its slide layouts as first-class types. " +
+  "Strategic claims carry the data points and sources that support them, " +
+  "alongside the competitors, risks and anti-patterns the pitch has to " +
+  "answer. Thirteen slide variants — title, thesis, stat tiles, " +
+  "comparison, competitive quadrant, milestone timeline, ask, appendix and " +
+  "the rest — are separate types rather than one slide with a mode field, " +
+  "so each layout requires exactly the material it displays and a slide " +
+  "cannot be built half-populated.";
 export const PLUGIN_ID = "acme.pitch-deck" as const;
 export const PLUGIN_VERSION = "0.1.0" as const;
 export const HOST_COMPATIBILITY = ">=1.1,<2" as const;
@@ -101,6 +111,7 @@ export function buildPitchDeckSidecar() {
       pluginId: PLUGIN_ID,
       vendor: "acme",
       profileId: PROFILE_ID,
+      profileDescription: PROFILE_DESCRIPTION,
       pluginVersion: PLUGIN_VERSION,
       hostCompatibility: HOST_COMPATIBILITY,
     },
