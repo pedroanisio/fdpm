@@ -73,6 +73,10 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // not the batch path itself.
   "appendAndPersist",
   "appendBatch",
+  // The durable half of a batch that `appendBatch`/`appendBatchWithCausation`
+  // have already applied in memory. Same SPEC §8.4 reasoning as its
+  // callers: it takes raw operations, so it is not an agent surface.
+  "persistOps",
 
   // -- Migration (Tier 3 — destructive, deferred) ---------------------
   "migrateNormalizeMetadata",
@@ -84,6 +88,14 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // exposed over MCP. Listing them here is the SPEC-compliant way to
   // assert that decision instead of widening the classification gate.
   "validationContext",
+  // Write-path log freshness bookkeeping: compares the log's
+  // (mtime_ns, size) against what this Host last wrote, and reconciles
+  // via `reloadProjectTail` when another process has appended.
+  "ensureFreshLog",
+  "recordLogStat",
+  "captureLogStats",
+  // Resource teardown for embedders; not a workbook operation.
+  "close",
   "runWithValidation",
   "projectFingerprint",
 ];

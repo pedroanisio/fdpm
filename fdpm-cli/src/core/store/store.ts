@@ -4,7 +4,13 @@ import type { Operation } from "../operations/operation.js";
 import type { OperationKind } from "../operations/kinds.js";
 import { CURRENT_PAYLOAD_SCHEMA_VERSION } from "../operations/payloads.js";
 import { verifyOperationPayload } from "../gate/verification-gate.js";
-import { applyOperation, replay, sliceProject } from "./replay.js";
+import {
+  applyOperation,
+  replay,
+  sliceProject,
+  sliceProjectIsolated,
+  clearProjectProjection,
+} from "./replay.js";
 import { emptyState, type StoreState, type ProjectStateSlice, type ProjectSnapshot } from "./state.js";
 import { FDPMException } from "../errors/fdpm-exception.js";
 
@@ -67,19 +73,38 @@ export class Store {
 
   rebuildProject(workbook_id: string): void {
     const log = this.state.operation_log[workbook_id] ?? [];
-    // Discard projection for this project.
-    delete this.state.workbooks[workbook_id];
-    delete this.state.primitives[workbook_id];
-    delete this.state.relations[workbook_id];
-    delete this.state.templates[workbook_id];
-    delete this.state.test_suites[workbook_id];
-    delete this.state.scope_membership[workbook_id];
+    // Discard projection for this project, uid_index entries included —
+    // without the uid sweep every create in the log replays into a
+    // spurious `uid collision` against the index this rebuild left behind.
+    clearProjectProjection(this.state, workbook_id);
     // Snapshots are perf optimisation; safe to discard.
     delete this.state.snapshots[workbook_id];
     // Replay only this workbook's log.
     for (const op of [...log].sort((a, b) => a.revision - b.revision)) {
       applyOperation(this.state, op);
     }
+  }
+
+  /**
+   * Restore one workbook's projection to whatever its in-memory
+   * operation log currently says, discarding any partial mutation an
+   * aborted `applyOperation` left behind.
+   *
+   * This is the rollback primitive. It replaces a pre-emptive
+   * whole-workbook `structuredClone` taken before *every* append: that
+   * snapshot cost O(workbook) on the happy path to insure against a
+   * failure that, by construction, has already been screened by the
+   * validation pipeline and the §8 verification gate. Rebuilding from
+   * the log instead moves the entire cost onto the failure path, where
+   * it is paid only when it is actually needed.
+   *
+   * Correctness rests on the log being the canonical record and on
+   * `append` committing to it only *after* `applyOperation` returns:
+   * at the moment of failure the log still describes the pre-op state,
+   * so replaying it is exactly the rollback.
+   */
+  rollbackProject(workbook_id: string): void {
+    this.rebuildProject(workbook_id);
   }
 
   /**
@@ -121,17 +146,14 @@ export class Store {
       schema_version: CURRENT_PAYLOAD_SCHEMA_VERSION,
     };
 
-    // Try-apply with rollback: snapshot the projection slice for this
-    // workbook, attempt the apply, on failure restore the slice.
-    const before = sliceProject(this.state, input.workbook_id);
-    const beforeMembership = this.state.scope_membership[input.workbook_id]
-      ? structuredClone(this.state.scope_membership[input.workbook_id]!)
-      : undefined;
+    // Try-apply with rollback. No snapshot is taken up front: on failure
+    // the projection is rebuilt from this workbook's log, which at this
+    // point still describes the pre-op state (the op is committed to the
+    // log below, only after a successful apply).
     try {
       applyOperation(this.state, op);
     } catch (err) {
-      // Restore prior projection.
-      this.restoreSlice(input.workbook_id, before, beforeMembership);
+      this.rollbackProject(input.workbook_id);
       throw err;
     }
     // Now commit the op to the log.
@@ -154,11 +176,9 @@ export class Store {
     if (inputs.some((i) => i.workbook_id !== workbook_id))
       throw new FDPMException("verification", "batch must target a single workbook");
 
-    // Snapshot for rollback.
-    const before = sliceProject(this.state, workbook_id);
-    const beforeMembership = this.state.scope_membership[workbook_id]
-      ? structuredClone(this.state.scope_membership[workbook_id]!)
-      : undefined;
+    // Rollback marker: the pre-batch log. Restoring it and rebuilding
+    // reproduces the pre-batch projection exactly, so no deep copy of
+    // the workbook is needed to make the batch atomic.
     const beforeLog = [...(this.state.operation_log[workbook_id] ?? [])];
 
     const outputs: AppendOutput[] = [];
@@ -168,74 +188,45 @@ export class Store {
       }
       return outputs;
     } catch (err) {
-      // Roll back: restore projection AND log.
-      this.restoreSlice(workbook_id, before, beforeMembership);
+      // Roll back: restore the log, then re-derive the projection from it.
       this.state.operation_log[workbook_id] = beforeLog;
+      this.rollbackProject(workbook_id);
       throw err;
     }
   }
 
-  private restoreSlice(
-    workbook_id: string,
-    before: ProjectStateSlice | null,
-    beforeMembership?: Record<string, string[]>,
-  ): void {
-    if (before) {
-      // before is already a deep clone; assigning is safe and isolates
-      // the live state from the snapshot's references.
-      this.state.workbooks[workbook_id] = before.workbook;
-      this.state.primitives[workbook_id] = before.primitives;
-      this.state.relations[workbook_id] = before.relations;
-      this.state.templates[workbook_id] = before.templates;
-      this.state.test_suites[workbook_id] = before.test_suites;
-      this.state.scope_membership[workbook_id] = beforeMembership ?? before.scope_membership;
-    } else {
-      delete this.state.workbooks[workbook_id];
-      delete this.state.primitives[workbook_id];
-      delete this.state.relations[workbook_id];
-      delete this.state.templates[workbook_id];
-      delete this.state.test_suites[workbook_id];
-      delete this.state.scope_membership[workbook_id];
-    }
-  }
-
   /**
-   * Snapshot a workbook's slice + scope_membership for rollback by an
-   * outer orchestrator (e.g. `Host.appendBatchWithCausation`, which
-   * appends entries one at a time so each can validate against the
-   * projection that includes prior entries). The complementary restore
-   * is `restoreFromBatchSnapshot`.
+   * Rollback marker for an outer orchestrator (e.g.
+   * `Host.appendBatchWithCausation`, which appends entries one at a time
+   * so each validates against the projection that includes prior
+   * entries). The complementary restore is `restoreFromBatchSnapshot`.
    *
-   * The returned snapshot is fully detached from live state.
+   * The marker is the workbook's operation log, not a copy of its
+   * projection: the log is canonical, so restoring it and re-deriving is
+   * equivalent to restoring a deep copy — at the cost of one array of
+   * references rather than a full `structuredClone`.
    */
-  snapshotProjectForRollback(workbook_id: string): {
-    slice: ProjectStateSlice | null;
-    membership: Record<string, string[]> | undefined;
-  } {
-    const slice = sliceProject(this.state, workbook_id);
-    const membership = this.state.scope_membership[workbook_id]
-      ? structuredClone(this.state.scope_membership[workbook_id]!)
-      : undefined;
-    return { slice, membership };
+  snapshotProjectForRollback(workbook_id: string): { log: Operation[] } {
+    return { log: [...(this.state.operation_log[workbook_id] ?? [])] };
   }
 
   /**
-   * Inverse of `snapshotProjectForRollback` plus a log restore. Used by
+   * Inverse of `snapshotProjectForRollback`. Used by
    * `Host.appendBatchWithCausation` to undo a partially-applied batch
    * when a later entry fails validation. Persistence is not touched
    * because the orchestrator only persists after the in-memory batch
    * succeeds end-to-end.
+   *
+   * `beforeLog` wins over the marker when both are supplied; they are
+   * the same log in every current caller.
    */
   restoreFromBatchSnapshot(
     workbook_id: string,
     beforeLog: Operation[],
-    snapshot: {
-      slice: ProjectStateSlice | null;
-      membership: Record<string, string[]> | undefined;
-    },
+    _snapshot?: { log: Operation[] },
   ): void {
-    this.restoreSlice(workbook_id, snapshot.slice, snapshot.membership);
     this.state.operation_log[workbook_id] = [...beforeLog];
+    this.rollbackProject(workbook_id);
   }
 
   // -- Read API --------------------------------------------------------
@@ -281,14 +272,12 @@ export class Store {
   }
 
   takeSnapshot(workbook_id: string, revision: number): void {
-    const slice = sliceProject(this.state, workbook_id);
+    // Isolated on purpose: a snapshot outlives the mutations that follow
+    // it, so it is one of the few places a deep copy is load-bearing.
+    const slice = sliceProjectIsolated(this.state, workbook_id);
     if (!slice) return;
     this.state.snapshots[workbook_id] ??= [];
-    this.state.snapshots[workbook_id]!.push({
-      workbook_id,
-      revision,
-      state: structuredClone(slice),
-    });
+    this.state.snapshots[workbook_id]!.push({ workbook_id, revision, state: slice });
   }
 
   getSnapshots(workbook_id: string): ProjectSnapshot[] {

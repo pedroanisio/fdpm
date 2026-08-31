@@ -20,6 +20,12 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
       "extra plugin search paths separated by the OS path-list delimiter (`:` on POSIX, `;` on Windows)",
   },
   {
+    name: "FDPM_FSYNC",
+    defaultValue: "1",
+    exampleValue: "1",
+    summary: "0 -> skip the fsync after each operation-log write (faster bulk import, loses the tail on host crash)",
+  },
+  {
     name: "FDPM_LOG_LEVEL",
     defaultValue: "info",
     exampleValue: "info",

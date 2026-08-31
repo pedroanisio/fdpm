@@ -33,6 +33,73 @@ upgrade.
 > the 2026-08-30 candidate state made explicit rather than inferred.
 
 
+### Fixed
+
+#### Write path: O(n^2) writes, undurable appends, and log corruption under concurrent writers
+
+Four defects on the persistence and projection path, measured and
+re-measured in `docs/architecture/PERFORMANCE-IO-ANALYSIS.md`.
+
+**Writes were quadratic in workbook size.** Every write deep-copied the
+entire workbook twice — once building the validation context, once as a
+pre-emptive rollback snapshot — so throughput fell from 491 ops/s at 500
+primitives to 22 ops/s at 6,000. Disk was never the constraint: the same
+run with persistence disabled was no faster, and a CPU profile put
+`structuredClone` at 89 % of write-path time against 1.2 % for every
+filesystem call combined. Reads paid the same copy across 61 call sites.
+
+`sliceProject` now returns a view. Rollback no longer pre-copies: it
+replays the workbook's log, which is canonical and still describes the
+pre-operation state at the moment a failure occurs. Writes are now
+~800 ops/s at 6,000 primitives with a flat latency curve — O(n) rather
+than O(n^2) — reads went 16.1 ms to 0.006 ms, and peak RSS fell from
+243 MB to 129 MB. Document size stopped mattering: a 20 KB body costs
+1.44 ms where it cost 45.24 ms.
+
+**Acknowledged writes were not durable.** `fs.appendFile` with no fsync
+left up to 30 s of acknowledged operations in the page cache, recoverable
+from a process crash but not a host crash. Appends now reuse one handle
+per workbook, batches commit as a single write, and every commit is
+fsynced. `FDPM_FSYNC=0` opts out for bulk import.
+
+**Concurrent writers corrupted the log.** Each process computed the next
+revision from its own in-memory log, so two, four and eight writers
+produced 187, 201 and 490 duplicate revisions; at four writers the log
+held two `workbook.create` operations and could not be replayed at all —
+400 operations acknowledged and none recoverable. The bytes were never
+torn; `O_APPEND` held at every record size tested up to 64 KB. It was the
+agreement that was missing. Writes now take a cross-process lock on the
+workbook and reconcile the in-memory log against the file before minting
+a revision. Eight concurrent writers over ten runs now produce zero
+duplicates and every acknowledged operation replays.
+
+**`rebuildProject` could not rebuild.** It discarded a workbook's
+projection without its `uid_index` entries, so replaying its own log
+tripped the uid-collision guard on the first `primitive.create`. The same
+omission leaked uids on rollback, poisoning them permanently.
+
+##### Breaking for embedders
+
+`sliceProject` (exported from `src/index.ts`) now returns a **live view**
+of projection state rather than a detached deep copy. Reading it is
+unchanged; mutating the returned object now mutates store state, and the
+result reflects later writes instead of being a point-in-time snapshot.
+No caller in this repository mutated it. Callers that need a detached
+copy should use the new `sliceProjectIsolated`.
+
+`Host` gains `persistOps` and `close`; `JsonlLogStore` gains `appendOps`,
+`withWorkbookLock`, `close` and `openHandleCount`.
+`Store.snapshotProjectForRollback` now returns `{ log }` instead of a
+copied slice.
+
+#### Clean checkouts could not typecheck or build
+
+`@fdpm/zod-bridge` resolves to `./dist`, which is git-ignored, and the
+package declared no `prepare` script — so `npm ci` linked a workspace
+package with no build output and `npm run typecheck` failed with 42
+errors across seven plugins. CI ran exactly that sequence. Adding
+`prepare` makes a fresh clone build and typecheck cleanly.
+
 ### Added
 
 #### `fdpm.agent-memory` — the agent-memory v2 contract as `profile:agent-memory:2.0`
