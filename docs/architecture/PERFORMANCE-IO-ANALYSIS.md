@@ -302,15 +302,13 @@ implemented and benchmarked (§6). Complexity per repo convention
 | **R2** | Replace the rollback pre-snapshot with a rebuild from the workbook's log | **O(n²) → O(n)**; latency curve goes flat | **M** | Medium — batch atomicity is pinned by 29 tests | **shipped** |
 | **R3** | Reuse one append handle per workbook; group-commit batches; fsync by default | 20× storage throughput **and** closes B5 | **S** | Low | **shipped** |
 | **R4** | Cross-process workbook lock + log-freshness reconciliation before minting a revision | Closes B4 — silent corruption and unopenable workbooks | **S/M** | Low; correctness-critical | **shipped** |
-| **R5** | Lazy per-workbook load; drop `readAllLogs` from `Host.load` | Cold start becomes O(touched workbook), not O(corpus) | **M** | Medium — `uid_index` and cross-workbook lookups assume global load | open |
-| **R6** | Persist snapshots; load snapshot + tail instead of full replay | Bounded cold start regardless of log length | **M/L** | Medium | open |
+| **R5** | Lazy per-workbook load; drop `readAllLogs` from `Host.load` | **`load()` is now ~8 ms at any corpus size**; opening one workbook 1,451 ms → 10.6 ms at 50 MB | **M** | Medium — `uid_index` and `listProjects` force a full load | **shipped** |
+| **R6** | Persist snapshots; load snapshot + tail instead of full replay | Ceiling is **2.01×**, on rare workloads only — see §6.6 | **M/L** | Medium | **evaluated, not built** |
 | **R7** | Drop the existence-check clone at `host.ts:659`; cache `getResolved` | Subsumed by R1 — that call is now O(1) | — | — | **subsumed** |
 | **R8** | Shard large workbooks (operational, no code change) | Was 20.5× on the small-workbook path; R2 removes the asymmetry | **XS** | None | **moot** |
 
-R5 and R6 remain open. They address cold start and memory (B3, B7), which
-are untouched by the shipped work: opening any workbook still reads the
-entire corpus, so §2.6 still describes current behaviour. They are worth
-doing at corpora beyond ~100 MB and are not worth doing below that.
+R5 shipped and closes B3 for the corpus dimension. R6 was measured and
+declined; §6.6 records the number that decided it.
 
 ## 5. NoSQL comparison
 
@@ -421,9 +419,29 @@ with fsync on, and to 4.1 s with `FDPM_FSYNC=0`.
 Document size has stopped mattering: the write path no longer copies
 document bodies, so a 20 KB body costs what an empty one costs.
 
-Cold start (§2.6) is unchanged by design — R5 and R6 are still open.
+### 6.3 Cold start
 
-### 6.3 What the fix was
+`Host.load()` no longer reads the corpus. Opening a host and reading one
+workbook, against corpora of increasing size:
+
+| Workbooks | corpus | `load()` | + open 1 workbook | before (whole corpus) |
+|---:|---:|---:|---:|---:|
+| 10 | 1.2 MB | 23.2 ms | 8.3 ms | 71 ms |
+| 100 | 12.5 MB | 11.7 ms | 3.7 ms | 369 ms |
+| 400 | 50.0 MB | 8.3 ms | 2.3 ms | 1,451 ms |
+| 1,000 | 313 MB | 7.7 ms | 7.2 ms | ~8 s (extrapolated) |
+| 2,000 | 626 MB | 7.1 ms | 5.3 ms | ~16 s (extrapolated) |
+
+`load()` is now flat at ~8 ms regardless of corpus size, and the cost of
+a workbook is paid only by the caller that names one.
+
+Two operations still materialise everything, because their answer cannot
+be known from one workbook: `listProjects` (16.3 s at 2,000 workbooks)
+and `lookupUid` (a uid names no workbook). Neither is a regression —
+that work used to happen unconditionally inside `load()` on every process
+start, whichever operation followed.
+
+### 6.4 What the fix was
 
 Reads and rollback were sharing one deep copy, and only rollback needed
 it. `sliceProject` now returns a view; the snapshot path calls
@@ -434,7 +452,7 @@ occurs. Removing the copy unconditionally breaks exactly 5 tests, all
 batch-rollback atomicity, and nothing else among 2,136 — which is what
 made the split safe to draw.
 
-Three defects surfaced while building this and are fixed here rather than
+Three defects surfaced while building the projection and durability work and are fixed here rather than
 left for later:
 
 - `rebuildProject` discarded a workbook's projection without its
@@ -455,7 +473,80 @@ left for later:
   the lock was in place, and it is why the lock alone was not enough:
   stat now precedes the read.
 
-### 6.4 Verification
+### 6.5 Where a write goes now
+
+The cost profile that decided §5 no longer holds, so it is worth
+restating. Warm 3,000-primitive workbook, 400 samples per phase:
+
+| Phase | mean | share of a write |
+|---|---:|---:|
+| End-to-end `createPrimitive` | 1.0914 ms | — |
+| Durable append (write + fsync) | 0.2959 ms | **27.1 %** |
+| Workbook lock (acquire + release) | 0.1408 ms | 12.9 % |
+| App work — validate + apply, no disk | 0.1272 ms | 11.7 % |
+| Freshness stat | 0.0027 ms | 0.2 % |
+| *Same append, `FDPM_FSYNC=0`* | *0.0435 ms* | *4.0 %* |
+
+Storage was 1.2 % of a write before the fixes and is **27 %** now — the
+largest single phase. The pre-fix argument against a datastore (that it
+optimised a rounding error) is therefore dead, and the replacement
+argument is Amdahl's: **perfect, free, instantaneous storage would buy at
+most 1.37×** (1 ÷ (1 − 0.271)), roughly 916 → 1,260 ops/s.
+
+The comparison is closer still, because the current layer is not at its
+own ceiling:
+
+| Durable write | per record |
+|---|---:|
+| Current, one fsync per operation | 0.2959 ms |
+| LMDB, single durable commit | 0.0061 ms |
+| **Current JSONL, group-committed at 100** | **0.0044 ms** |
+
+LMDB beats per-operation fsync by 48× on that phase — the strongest
+remaining case for it — but group commit beats both, in code that already
+exists. `persistOps`, `appendBatch` and `appendBatchWithCausation` commit
+a whole run as one write and one fsync, so a caller writing many
+primitives already gets 0.0044 ms/record. The gap survives only on
+isolated single writes, where 0.296 ms is the price of the operation
+actually being on disk when the call returns. **The next storage lever is
+batching, not a different engine.**
+
+### 6.6 Persisted snapshots (R6): measured and declined
+
+R6 would have a workbook load from a stored projection plus a tail rather
+than replaying its whole log. For one workbook of 100,001 operations
+(62.9 MB), the 1,303 ms open splits:
+
+| Phase | | share |
+|---|---:|---:|
+| `readFile` | 142 ms | 10.9 % |
+| `split` | 27 ms | 2.1 % |
+| `JSON.parse` | 250 ms | 19.2 % |
+| Zod `safeParse` | 271 ms | 20.8 % |
+| **read total** | **648 ms** | **49.7 %** |
+| **replay (projection build)** | **655 ms** | **50.3 %** |
+
+A snapshot removes the replay and nothing else, because the full log must
+still be read: `getOperationLog`, `getProjectAt`, `rebuildProject` and
+`reloadProjectTail` all depend on `operation_log` holding every
+operation, and `reloadProjectTail` compares op ids position by position.
+A partial log silently corrupts all four. **Ceiling: 2.01×.**
+
+That buys a new on-disk format, atomic snapshot writes, boundary
+validation, invalidation, backup/restore interaction, and a new class of
+stale-cache bug — in the rollback and audit paths, which is where the
+three defects in §6.4 were found. For a workload that is rare: at 20,000
+operations in one workbook the open is 292 ms, and R5 already removed the
+corpus-scale cost entirely.
+
+A version that also lazily materialises `operation_log` would lift the
+ceiling, since only `append` needs it on the hot path (and only for one
+number, the last revision). That is a larger change to the two paths
+where correctness matters most, and is not justified by any measurement
+taken here. Reconsider if single workbooks routinely exceed ~50,000
+operations.
+
+### 6.7 Verification
 
 - Full suite: **2,136 passed, 204 files, 0 failed.**
 - New regression tests: `tests/store-projection-views.test.ts` (6) and
@@ -474,11 +565,16 @@ benchmark, and regresses backup, operability, and inspectability. The
 system was never storage-bound; it was bound by copying its own
 projection, and it no longer does.
 
-Shipped: R1, R2, R3, R4 — the projection fixes, durable grouped writes,
-and cross-process write safety. Still open: **R5/R6**, lazy per-workbook
-loading and persisted snapshots, which bound cold start and memory. They
-matter at corpora beyond ~100 MB; below that the eager load costs under a
-second and is not worth the complexity.
+Shipped: R1, R2, R3, R4, R5 — the projection fixes, durable grouped
+writes, cross-process write safety, and lazy per-workbook loading. R6
+(persisted snapshots) was measured and declined at a 2.01× ceiling on a
+rare workload; §6.6 has the numbers.
+
+The margin is narrower than it was. Storage went from 1.2 % of a write to
+27 % (§6.5), so the claim is no longer "storage is irrelevant" but
+"perfect storage is worth at most 1.37×, and group commit already reaches
+the same place". Where the old headroom over storage was 134×, it is now
+about 1.6×. That is the number to watch.
 
 ### Thresholds at which this conclusion changes
 
@@ -486,10 +582,10 @@ Revisit a datastore only when a measured condition below holds:
 
 | Threshold | Rationale |
 |---|---|
-| Sustained demand > **1,500 write ops/s** on one workbook | Past the measured non-fsync ceiling; storage headroom starts to matter |
+| Sustained demand > **1,500 single durable writes/s** on one workbook | Measured ceiling is ~916 ops/s durable, ~1,464 with `FDPM_FSYNC=0`. Batch first — group commit is 67× cheaper per record than per-operation fsync |
 | Genuinely concurrent multi-writer access to **one** workbook, beyond one-writer-per-workbook | The lock serialises writers; MVCC would let them proceed |
-| Corpus > **~10 GB**, or working set exceeding RAM | The page-cache + full-projection model stops fitting; needs paged access |
-| Point-lookup-dominated reads across workbooks without a full load | Native secondary indexes earn their cost — though R5 is the cheaper first move |
+| Corpus > **~10 GB**, or one workbook's working set exceeding RAM | The page-cache + full-projection model stops fitting. R5 removed the corpus-scale cost, so this is now about a single very large workbook |
+| Point-lookup-dominated reads across workbooks | `lookupUid` and `listProjects` still materialise every workbook (§6.3). A persisted cross-workbook index would fix that without a datastore; native secondary indexes are the heavier answer |
 | A network boundary becomes mandatory (multi-host writers) | Filesystem locking is not available across hosts; the lock is explicitly same-host |
 
 If that day comes, the measurements here point at **LMDB** — fastest
@@ -500,7 +596,9 @@ store: loopback Redis already costs 5.7× LMDB on this workload.
 ### Reproducing
 
 Figures in §1–§3 and §5 come from benchmark runs against `fdpm-cli/dist`
-at commit `4cc97b2`; §6 from the same benchmarks against the fixed tree.
+at commit `4cc97b2`; §6 from the same benchmarks against the fixed tree,
+plus a per-phase breakdown (§6.5), a cold-start sweep over synthetic
+corpora (§6.3), and a single-workbook read/replay split (§6.6).
 The methods are described in §2 in enough detail to re-implement: raw-I/O
 patterns (§2.1), write scaling with `dataDir: null` as the disk-free
 control (§2.2), `node --cpu-prof` self-time aggregation (§2.3), component

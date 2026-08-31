@@ -1,6 +1,13 @@
 import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
-import { existsSync, mkdirSync, statSync, readFileSync, unlinkSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  statSync,
+  readFileSync,
+  readdirSync,
+  unlinkSync,
+} from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir, hostname } from "node:os";
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -165,6 +172,31 @@ export class JsonlLogStore {
     }
   }
 
+  /**
+   * Synchronous sibling of `listProjectIds`, for the lazy loader.
+   *
+   * The projection is read through synchronous entry points
+   * (`Store.getProject` and friends), so the load that backs them has to
+   * be synchronous too. Making those async instead would push `await`
+   * through the entire read surface for a cost paid once per workbook
+   * per process.
+   */
+  listProjectIdsSync(): string[] {
+    if (!existsSync(this.dataDir)) return [];
+    const root = join(this.dataDir, "workbooks");
+    if (!existsSync(root)) return [];
+    return readdirSync(root, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+  }
+
+  /** Synchronous sibling of `readLog`; same parsing and same errors. */
+  readLogSync(workbook_id: string): Operation[] {
+    const path = logPathFor(this.dataDir, workbook_id);
+    if (!existsSync(path)) return [];
+    return parseLogText(readFileSync(path, "utf8"), path);
+  }
+
   async listProjectIds(): Promise<string[]> {
     if (!existsSync(this.dataDir)) return [];
     const root = join(this.dataDir, "workbooks");
@@ -202,33 +234,7 @@ export class JsonlLogStore {
   async readLog(workbook_id: string): Promise<Operation[]> {
     const path = logPathFor(this.dataDir, workbook_id);
     if (!existsSync(path)) return [];
-    const text = await fs.readFile(path, "utf8");
-    const lines = text.split("\n").filter((l) => l.length > 0);
-    const out: Operation[] = [];
-    for (const [i, line] of lines.entries()) {
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(line);
-      } catch (err) {
-        // Bad bytes on disk are invalid input to the replay reader, not a
-        // host logic bug — the operator can repair the log. Mirrors the
-        // adjacent `invalid operation` throw so a corrupt log and a
-        // schema-violating log surface with the same exit code.
-        throw new FDPMException(
-          "verification",
-          `corrupt log at ${path}:${i + 1}: ${(err as Error).message}`,
-          { evidence: { path, line: i + 1, parse_error: (err as Error).message } },
-        );
-      }
-      const result = Operation.safeParse(parsed);
-      if (!result.success) {
-        throw new FDPMException("verification", `invalid operation at ${path}:${i + 1}`, {
-          evidence: { path, line: i + 1, issues: result.error.issues },
-        });
-      }
-      out.push(result.data);
-    }
-    return out;
+    return parseLogText(await fs.readFile(path, "utf8"), path);
   }
 
   /**
@@ -538,3 +544,34 @@ function unlinkQuietly(path: string): boolean {
   }
 }
 
+/**
+ * Parse JSONL log text into operations, rejecting the first bad line.
+ *
+ * Bad bytes on disk are invalid input to the replay reader, not a host
+ * logic bug — the operator can repair the log. A corrupt line and a
+ * schema-violating line surface with the same exit code.
+ */
+function parseLogText(text: string, path: string): Operation[] {
+  const lines = text.split("\n").filter((l) => l.length > 0);
+  const out: Operation[] = [];
+  for (const [i, line] of lines.entries()) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(line);
+    } catch (err) {
+      throw new FDPMException(
+        "verification",
+        `corrupt log at ${path}:${i + 1}: ${(err as Error).message}`,
+        { evidence: { path, line: i + 1, parse_error: (err as Error).message } },
+      );
+    }
+    const result = Operation.safeParse(parsed);
+    if (!result.success) {
+      throw new FDPMException("verification", `invalid operation at ${path}:${i + 1}`, {
+        evidence: { path, line: i + 1, issues: result.error.issues },
+      });
+    }
+    out.push(result.data);
+  }
+  return out;
+}

@@ -232,18 +232,8 @@ export class Host {
     }
 
     if (this.persistence) {
-      // Stat before reading, never after: a writer landing between the
-      // read and the stat would otherwise leave this Host holding an
-      // incomplete log stamped with the identity of the complete file, so
-      // every later freshness check reports "unchanged" and the Host mints
-      // revisions another process has already used. Capturing first is the
-      // safe direction — at worst the stamp is stale and costs one
-      // reconciliation.
-      const stats = await this.captureLogStats();
-      const ops = await this.persistence.readAllLogs();
-      if (ops.length > 0) this.store.loadFromOperations(ops);
       this.logStats.clear();
-      for (const [id, stat] of stats) this.logStats.set(id, stat);
+      this.attachLazyLoader();
     }
   }
 
@@ -384,11 +374,8 @@ export class Host {
 
       // 3. Replay the log into the new Store.
       if (this.persistence) {
-        const stats = await this.captureLogStats();
-        const ops = await this.persistence.readAllLogs();
-        if (ops.length > 0) this.store.loadFromOperations(ops);
         this.logStats.clear();
-        for (const [id, stat] of stats) this.logStats.set(id, stat);
+        this.attachLazyLoader();
       }
     } catch (err) {
       // Restore the snapshot if anything in the post-swap initialization
@@ -1153,16 +1140,35 @@ export class Host {
    * Record every known workbook's log identity in one pass, after a full
    * load has made the in-memory logs equal to the files on disk.
    */
-  private async captureLogStats(): Promise<
-    Map<string, { mtime_ns: bigint; size: bigint }>
-  > {
-    const captured = new Map<string, { mtime_ns: bigint; size: bigint }>();
-    if (!this.persistence) return captured;
-    for (const id of await this.persistence.listProjectIds()) {
-      const stat = this.persistence.statProjectLog(id);
-      if (stat !== null) captured.set(id, stat);
-    }
-    return captured;
+  /**
+   * Point the Store at the data directory instead of pouring the whole
+   * corpus into it.
+   *
+   * `Host.load()` used to call `readAllLogs()`, so opening any workbook
+   * read, Zod-parsed and replayed every workbook in the directory:
+   * 369 ms at 100 workbooks, 1.5 s at 400, 59 s at a 1.8 GB corpus — on
+   * every process start, whether or not the caller ever touched more than
+   * one. The Store now pulls a workbook's log the first time something
+   * asks for that workbook.
+   *
+   * The stat is taken *before* the read, and recorded as that workbook's
+   * freshness stamp. Stamping after the read would mark a log that grew
+   * mid-read as fully loaded, and the write path would then mint
+   * revisions another process already used.
+   */
+  private attachLazyLoader(): void {
+    const persistence = this.persistence;
+    if (!persistence) return;
+    this.store.attachLoader({
+      listProjectIds: () => persistence.listProjectIdsSync(),
+      loadProject: (workbook_id) => {
+        const stat = persistence.statProjectLog(workbook_id);
+        const ops = persistence.readLogSync(workbook_id);
+        if (stat !== null) this.logStats.set(workbook_id, stat);
+        else this.logStats.delete(workbook_id);
+        return ops;
+      },
+    });
   }
 
   /** Remember the log's identity after our own write. */

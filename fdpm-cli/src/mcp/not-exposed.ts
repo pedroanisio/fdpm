@@ -93,7 +93,7 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // via `reloadProjectTail` when another process has appended.
   "ensureFreshLog",
   "recordLogStat",
-  "captureLogStats",
+  "attachLazyLoader",
   // Resource teardown for embedders; not a workbook operation.
   "close",
   "runWithValidation",
