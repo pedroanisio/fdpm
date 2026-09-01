@@ -32,6 +32,16 @@ COPY --from=build /app/packages ./packages
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/plugins ./plugins
 
+# Normalise read permissions on everything the runtime reads.
+#
+# This is not defensive tidying. Ten of the twenty plugin manifests are mode
+# 600 in the working tree, `COPY` preserves that, and the container runs as an
+# unprivileged user — so plugin discovery died with EACCES and the server came
+# up with `core:empty` and nothing else. Git does not track read bits, so a
+# clean-clone CI build would have worked and only a local build broke: exactly
+# the kind of difference an image must not inherit from a developer's umask.
+RUN chmod -R a+rX /app
+
 # uid 10001 matches the securityContext in k8s/statefulset.yaml.
 RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin fdpm \
  && mkdir -p /data && chown 10001:10001 /data

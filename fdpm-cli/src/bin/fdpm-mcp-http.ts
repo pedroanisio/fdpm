@@ -148,7 +148,22 @@ async function main(): Promise<void> {
       const started = Date.now();
       const host = new Host({ dataDir });
       await host.load();
-      log("info", "tenant host loaded", { tenant, ms: Date.now() - started });
+      // Report what the Host actually came up with. A plugin whose manifest
+      // cannot be read is turned into a non-fatal warning several layers
+      // down, so without this the server announces a healthy boot while
+      // holding no domain vocabulary at all — the failure that cost a
+      // debugging session on 2026-09-01.
+      const profiles = host.profiles.listRaw().map((p) => p.id);
+      const level = profiles.length <= 1 ? "warn" : "info";
+      log(level, "tenant host loaded", {
+        tenant,
+        ms: Date.now() - started,
+        profiles: profiles.length,
+        profile_ids: profiles,
+        ...(profiles.length <= 1 && {
+          hint: "only the built-in empty profile is registered; plugin discovery probably failed (check read permissions under dist/plugins)",
+        }),
+      });
       return host;
     },
   });
