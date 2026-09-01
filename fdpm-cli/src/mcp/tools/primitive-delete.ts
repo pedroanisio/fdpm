@@ -25,6 +25,12 @@ const Input = z
       .boolean()
       .optional()
       .describe("Preview: return would_affect, append nothing."),
+    cascade: z
+      .boolean()
+      .optional()
+      .describe(
+        "Also delete relations that reference this primitive; without it a referenced primitive is refused.",
+      ),
     idempotency_key: z
       .string()
       .min(1)
@@ -53,7 +59,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.primitive.delete",
   tier: "destructive",
   description:
-    "Delete a primitive by id within a workbook. Cannot be undone by another tool call; returns the recorded operation. Supports `dry_run` (preview, no key, allowed while disabled); otherwise `idempotency_key` is required — see the server guide.",
+    "Delete a primitive by id within a workbook. Cannot be undone by another tool call; returns the recorded operation. A referenced primitive is refused unless `cascade` is set. Supports `dry_run` (preview, no key, allowed while disabled); otherwise `idempotency_key` is required — see the server guide.",
   input: Input,
   output: Output,
   annotations: { destructiveHint: true },
@@ -66,7 +72,9 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
         post_state_summary: { workbook_id: args.workbook_id, id: args.id },
       };
     }
-    const append = await host.deletePrimitive(args.workbook_id, args.id);
+    const append = await host.deletePrimitive(args.workbook_id, args.id, {
+      cascade: args.cascade === true,
+    });
     return {
       ok: true as const,
       operation: append.op,

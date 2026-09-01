@@ -32,7 +32,7 @@ and plugin `generated/` trees.
 
 | Area | Lines (nearest 1,000) |
 |---|---:|
-| `src/` | ≈30K |
+| `src/` | ≈31K |
 | `plugins/` | ≈77K |
 | `tests/` | ≈49K |
 | `scripts/` | ≈43K |

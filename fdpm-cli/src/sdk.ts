@@ -632,15 +632,20 @@ export async function patchRelation(
 }
 
 /**
- * Delete a primitive by id. The Host enforces referential integrity —
- * dangling relations cascade per §7. Throws `not_found` if the
- * primitive doesn't exist on the workbook.
+ * Delete a primitive by id.
+ *
+ * Refused when relations reference it, so a delete never removes an edge
+ * the caller did not ask about. Pass `cascade` to take those relations
+ * with it; `previewPrimitiveDelete` lists them first. Throws
+ * `not_found` if the primitive doesn't exist on the workbook.
  */
 export async function deletePrimitive(
   host: Host,
-  args: { workbook: string; id: string },
+  args: { workbook: string; id: string; cascade?: boolean },
 ): Promise<DeleteResult> {
-  const out = await host.deletePrimitive(args.workbook, args.id);
+  const out = await host.deletePrimitive(args.workbook, args.id, {
+    cascade: args.cascade === true,
+  });
   return { revision: out.project_revision };
 }
 

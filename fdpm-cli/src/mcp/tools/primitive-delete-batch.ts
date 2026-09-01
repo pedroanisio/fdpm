@@ -36,6 +36,12 @@ const Input = z
       .boolean()
       .optional()
       .describe("Preview: return would_affect, append nothing."),
+    cascade: z
+      .boolean()
+      .optional()
+      .describe(
+        "Also delete relations referencing any primitive in the batch; without it a referenced primitive is refused and the batch rolls back.",
+      ),
     idempotency_key: z
       .string()
       .min(1)
@@ -81,7 +87,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
     }
     const intents = args.primitive_ids.map((id) => ({
       kind: "primitive.delete" as const,
-      payload: { id },
+      payload: { id, cascade: args.cascade === true },
     }));
     const { outputs } = await host.appendBatchWithCausation(args.workbook_id, intents);
     return {
