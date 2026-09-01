@@ -243,6 +243,90 @@ function evaluateFieldValidation(
   return null;
 }
 
+/**
+ * Resolve `id-ref` fields against the workbook.
+ *
+ * `kind: "id-ref"` with a mandatory `ref_type_id` has been in the
+ * meta-model since the beginning, and `meta.ts` rejects a profile that
+ * declares one without the other — but nothing ever resolved the value.
+ * A field could name a primitive that did not exist, or one of the wrong
+ * type, and the write was accepted.
+ *
+ * This matters most where n-ary structure is reified. Relations here are
+ * strictly binary, so an n-ary rule becomes a primitive plus binary pairs
+ * carrying a back-reference, and that back-reference is an `id-ref`.
+ * Without this check the reified form is expressible but not safe.
+ *
+ * Resolution needs the workbook, which is only present on some call
+ * paths. When it is absent the check is SKIPPED rather than failed:
+ * inventing a "dangling reference" finding because the validator could
+ * not see the workbook would reject valid writes.
+ */
+function checkIdRefs(
+  field: FieldDefT,
+  value: unknown,
+  targetId: string,
+  workbook: ProjectStateSlice | undefined,
+): ValidationFinding[] {
+  if (workbook === undefined) return [];
+  if (value == null) return [];
+
+  const refType =
+    field.kind === "id-ref"
+      ? field.ref_type_id
+      : field.kind === "list" && field.item_field?.kind === "id-ref"
+        ? field.item_field.ref_type_id
+        : undefined;
+  if (refType === undefined) return [];
+
+  const findings: ValidationFinding[] = [];
+  const check = (raw: unknown, path: string): void => {
+    if (raw == null) return;
+    if (typeof raw !== "string") {
+      findings.push({
+        level: "error",
+        rule_id: "core:field:id-ref",
+        target_id: targetId,
+        field_path: path,
+        message: `${field.name} must reference a primitive id as a string, got ${typeof raw}`,
+      });
+      return;
+    }
+    const referent = workbook.primitives[raw];
+    if (referent === undefined) {
+      findings.push({
+        level: "error",
+        rule_id: "core:field:id-ref",
+        target_id: targetId,
+        field_path: path,
+        message: `${field.name} references ${raw}, which names no primitive in this workbook`,
+        evidence: { reference: raw, expected_type_id: refType },
+      });
+      return;
+    }
+    if (referent.type_id !== refType) {
+      findings.push({
+        level: "error",
+        rule_id: "core:field:id-ref",
+        target_id: targetId,
+        field_path: path,
+        message: `${field.name} must reference a ${refType}, but ${raw} is a ${referent.type_id}`,
+        evidence: { reference: raw, expected_type_id: refType, actual_type_id: referent.type_id },
+      });
+    }
+  };
+
+  if (field.kind === "list") {
+    if (!Array.isArray(value)) return [];
+    // Index the path so a caller can find the offending element rather
+    // than re-checking a list by hand.
+    value.forEach((el, i) => check(el, `field_values.${field.name}[${i}]`));
+  } else {
+    check(value, `field_values.${field.name}`);
+  }
+  return findings;
+}
+
 function checkFieldShape(
   field: FieldDefT,
   value: unknown,
@@ -407,6 +491,7 @@ export class ValidationPipeline {
     for (const f of type.fields) {
       const v = instance.field_values[f.name];
       findings.push(...checkFieldShape(f, v, instance.id));
+      findings.push(...checkIdRefs(f, v, instance.id, context?.workbook));
       for (const fv of f.validations) {
         const finding = evaluateFieldValidation(f.name, v, fv, instance.id);
         if (finding) findings.push(finding);
@@ -614,6 +699,7 @@ export class ValidationPipeline {
       if (!touchedPaths.has(f.name)) continue;
       const v = instance.field_values[f.name];
       findings.push(...checkFieldShape(f, v, instance.id));
+      findings.push(...checkIdRefs(f, v, instance.id, context?.workbook));
       for (const fv of f.validations) {
         const finding = evaluateFieldValidation(f.name, v, fv, instance.id);
         if (finding) findings.push(finding);
@@ -737,6 +823,7 @@ export class ValidationPipeline {
     for (const f of type.fields) {
       const v = instance.field_values[f.name];
       findings.push(...checkFieldShape(f, v, instance.id));
+      findings.push(...checkIdRefs(f, v, instance.id, context?.workbook));
       for (const fv of f.validations) {
         const finding = evaluateFieldValidation(f.name, v, fv, instance.id);
         if (finding) findings.push(finding);
@@ -883,6 +970,7 @@ export class ValidationPipeline {
       if (!touchedPaths.has(f.name)) continue;
       const v = instance.field_values[f.name];
       findings.push(...checkFieldShape(f, v, instance.id));
+      findings.push(...checkIdRefs(f, v, instance.id, context?.workbook));
       for (const fv of f.validations) {
         const finding = evaluateFieldValidation(f.name, v, fv, instance.id);
         if (finding) findings.push(finding);

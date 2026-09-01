@@ -32,22 +32,22 @@ and plugin `generated/` trees.
 
 | Area | Lines (nearest 1,000) |
 |---|---:|
-| `src/` | ≈30K |
+| `src/` | ≈33K |
 | `plugins/` | ≈77K |
-| `tests/` | ≈49K |
+| `tests/` | ≈51K |
 | `scripts/` | ≈43K |
 | `packages/zod-bridge/` | ≈7K |
-| **Total** | **≈206K** |
+| **Total** | **≈211K** |
 
 ## Counts
 
 | Fact | Value | Derivation |
 |---|---:|---|
 | Plugin directories | 20 | `plugins/*/` |
-| `FDPM_*` environment variables | 27 | `FDPM_ENV_VARS` in `src/core/config/env.ts` |
+| `FDPM_*` environment variables | 50 | `FDPM_ENV_VARS` in `src/core/config/env.ts` |
 | CI workflows | 3 | `.github/workflows/*.yml` |
 | `SPEC-*.md` documents | 13 | `docs/specs/SPEC-*.md` |
-| Distinct MCP tool ids | 29 | `fdpm.<group>.<verb>` literals under `src/mcp/` |
+| Distinct MCP tool ids | 30 | `fdpm.<group>.<verb>` literals under `src/mcp/` |
 
 ## Plugin directories (20)
 

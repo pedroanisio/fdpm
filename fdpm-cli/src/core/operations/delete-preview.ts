@@ -31,6 +31,25 @@ export const RelationRef = z
   .strict();
 export type RelationRef = z.infer<typeof RelationRef>;
 
+/**
+ * A record holding an `id-ref` pointer to the primitive under preview.
+ *
+ * Distinct from RelationRef: a relation CONNECTS the primitive and is
+ * cascaded on delete, whereas these are pointers living in field values,
+ * which nothing cascades. They are the reified-reference case — an n-ary
+ * structure decomposed into a primitive plus binary pairs carrying a
+ * back-reference — and deleting the referent silently strands them.
+ */
+export const FieldRef = z
+  .object({
+    kind: z.enum(["primitive", "relation"]),
+    id: z.string(),
+    type_id: z.string(),
+    field_path: z.string(),
+  })
+  .strict();
+export type FieldRef = z.infer<typeof FieldRef>;
+
 export const PrimitiveDeletePreview = z
   .object({
     workbook_id: z.string(),
@@ -38,6 +57,14 @@ export const PrimitiveDeletePreview = z
     type_id: z.string(),
     /** Every relation whose source or target is this primitive. */
     referencing_relations: z.array(RelationRef),
+    /**
+     * Records whose `id-ref` field names this primitive. Relations that
+     * merely CONNECT it are reported above; these are pointers held in
+     * field values, which nothing cascades. Deleting the primitive leaves
+     * every entry here dangling, so a preview that omitted them called a
+     * destructive delete clean.
+     */
+    referencing_fields: z.array(FieldRef),
   })
   .strict();
 export type PrimitiveDeletePreview = z.infer<typeof PrimitiveDeletePreview>;
@@ -83,6 +110,66 @@ export const RelationDeleteBatchPreview = z
   .strict();
 export type RelationDeleteBatchPreview = z.infer<typeof RelationDeleteBatchPreview>;
 
+/**
+ * Find every `id-ref` field value naming `id`.
+ *
+ * Driven by the profile rather than by scanning all strings: a field is
+ * only a reference because its type says so, and matching raw strings
+ * would report coincidental equality as a dependency.
+ */
+function collectReferencingFields(
+  host: Host,
+  workbook_id: string,
+  id: string,
+): FieldRef[] {
+  const slice = host.getProject(workbook_id);
+  const out: FieldRef[] = [];
+  let profile;
+  try {
+    profile = host.profiles.getResolved(slice.workbook.profile_id);
+  } catch {
+    // No resolvable profile means no field is known to be a reference.
+    // Report nothing rather than guessing from string equality.
+    return out;
+  }
+
+  const scan = (
+    kind: "primitive" | "relation",
+    recordId: string,
+    typeId: string,
+    values: Record<string, unknown>,
+    fields: ReadonlyArray<{ name: string; kind?: string; item_field?: { kind?: string } }>,
+  ): void => {
+    for (const f of fields) {
+      const isRef = f.kind === "id-ref";
+      const isRefList = f.kind === "list" && f.item_field?.kind === "id-ref";
+      if (!isRef && !isRefList) continue;
+      const v = values[f.name];
+      if (v == null) continue;
+      if (isRefList) {
+        if (!Array.isArray(v)) continue;
+        v.forEach((el, i) => {
+          if (el === id) {
+            out.push({ kind, id: recordId, type_id: typeId, field_path: `field_values.${f.name}[${i}]` });
+          }
+        });
+      } else if (v === id) {
+        out.push({ kind, id: recordId, type_id: typeId, field_path: `field_values.${f.name}` });
+      }
+    }
+  };
+
+  for (const p of Object.values(slice.primitives)) {
+    const t = profile.primitive_types.find((x) => x.id === p.type_id);
+    if (t) scan("primitive", p.id, p.type_id, p.field_values, t.fields);
+  }
+  for (const r of Object.values(slice.relations)) {
+    const t = profile.relation_types.find((x) => x.id === r.type_id);
+    if (t) scan("relation", r.id, r.type_id, r.field_values, t.fields ?? []);
+  }
+  return out;
+}
+
 export function previewPrimitiveDelete(
   host: Host,
   workbook_id: string,
@@ -106,7 +193,13 @@ export function previewPrimitiveDelete(
       });
     }
   }
-  return { workbook_id, id, type_id: primitive.type_id, referencing_relations };
+  return {
+    workbook_id,
+    id,
+    type_id: primitive.type_id,
+    referencing_relations,
+    referencing_fields: collectReferencingFields(host, workbook_id, id),
+  };
 }
 
 export function previewRelationDelete(

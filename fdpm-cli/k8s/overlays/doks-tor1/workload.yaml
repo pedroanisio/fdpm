@@ -56,6 +56,34 @@ spec:
         fsGroup: 10001
         seccompProfile: { type: RuntimeDefault }
       terminationGracePeriodSeconds: 60
+      # External plugins ship as their own images, one per plugin repo, each
+      # carrying only its built artifact. Installing them is a copy into a
+      # shared volume that the host scans via FDPM_PLUGIN_PATH.
+      #
+      # A COPY, never a symlink or a direct mount of the plugin image: plugin
+      # discovery uses readdir(withFileTypes) and reports a symlink as a
+      # symlink rather than a directory, so a symlinked plugin is invisible.
+      initContainers:
+        - name: install-plugin-media
+          image: registry.digitalocean.com/arc4d3io-artifacts-registry/fdpm-plugin-media:0.2.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+              mkdir -p /plugins/fdpm-media
+              # -r, not -a: the container runs unprivileged and cannot chown
+              # into the emptyDir, so -a emits a "can't preserve ownership"
+              # warning per file while still succeeding. Permissions are
+              # already normalised in the plugin image.
+              cp -r /plugin/. /plugins/fdpm-media/
+              test -r /plugins/fdpm-media/fdpm-plugin.json
+              echo "installed fdpm-media ($(ls /plugins/fdpm-media | wc -l) files)"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: plugins, mountPath: /plugins }
       containers:
         - name: gateway
           image: registry.digitalocean.com/arc4d3io-artifacts-registry/fdpm-mcp:1.3.3
@@ -126,6 +154,16 @@ spec:
               value: "0"
             - name: FDPM_MCP_MAX_CALLS_PER_MINUTE
               value: "120"
+            # Where the host looks for plugins beyond the ones baked into the
+            # image. OS path-list delimited, so more entries can be added.
+            - name: FDPM_PLUGIN_PATH
+              value: /plugins
+            # Trust gate. A discovered plugin whose manifest `trust.signed_by`
+            # is NOT listed here registers as `community` and stays DISABLED —
+            # it will be found and then quietly not activated. This value must
+            # match fdpm-plugin.json's signed_by exactly.
+            - name: FDPM_TRUSTED_KEYS
+              value: pedroanisio-local
           livenessProbe:
             httpGet: { path: /healthz, port: http }
             initialDelaySeconds: 15
@@ -142,8 +180,13 @@ spec:
           volumeMounts:
             - { name: data, mountPath: /data }
             - { name: tmp, mountPath: /tmp }
+            - { name: plugins, mountPath: /plugins, readOnly: true }
       volumes:
         - name: tmp
+          emptyDir: {}
+        # Rebuilt from the plugin images on every pod start, so a plugin
+        # upgrade is an image tag change plus a restart — no volume surgery.
+        - name: plugins
           emptyDir: {}
   volumeClaimTemplates:
     - metadata:

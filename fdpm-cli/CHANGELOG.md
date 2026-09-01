@@ -33,6 +33,50 @@ upgrade.
 > the 2026-08-30 candidate state made explicit rather than inferred.
 
 
+### Added
+
+#### `id-ref` fields are now resolved, and a delete says what it would orphan
+
+`kind: "id-ref"` with a mandatory `ref_type_id` has been in the meta-model
+since the beginning — `meta.ts` rejects a profile that declares one without
+the other — but nothing ever resolved the value. A field could name a
+primitive that did not exist, or one of the wrong type, and the write was
+accepted. Deleting the referent then stranded the pointer, and `--dry-run`
+called that deletion clean because `previewPrimitiveDelete` only ever
+examined `source_id` / `target_id`.
+
+This matters wherever n-ary structure is reified. Relations here are
+strictly binary, so an n-ary rule is modelled as a primitive plus binary
+pairs carrying a `rule_id` back-reference — and that back-reference was
+exactly the unchecked kind. Reification was expressible but not safe.
+
+- **`core:field:id-ref`.** A new pipeline rule resolves each `id-ref`
+  against the workbook: the value must name a live primitive, and that
+  primitive's `type_id` must match the declared `ref_type_id`. Lists of
+  references are checked per element, and the finding's `field_path`
+  carries the index (`field_values.antecedent_ids[1]`) so a caller can
+  find the offending entry instead of re-checking the list by hand.
+- **Skipped, not failed, without a workbook.** Resolution needs the
+  workbook slice, which only some call paths carry. Where it is absent the
+  check does nothing, because inventing a dangling-reference finding
+  when the validator cannot see the workbook would reject valid writes.
+- **`PrimitiveDeletePreview.referencing_fields`.** Alongside
+  `referencing_relations`, a preview now lists every record whose `id-ref`
+  field names the doomed primitive, as `{kind, id, type_id, field_path}`.
+  Driven by the profile rather than by scanning strings: a field is a
+  reference because its type says so, and matching raw values would report
+  coincidental equality as a dependency.
+
+No version bump. §5.5.1 declares the operation-kind set closed, so adding
+to it is a minor bump by construction; nothing makes the same claim about
+the §7 rule set, and this adds no kind, endpoint or payload.
+
+Existing data is unaffected: validation runs when an operation is appended,
+not when the log is replayed, so no stored workbook is re-judged. New
+writes carrying a dangling reference are now rejected, which is the point.
+In practice nothing in tree changes behaviour — `idRef()` is defined in the
+knowledge-cartridge and loop-forward plugins and called **zero** times.
+
 ### Security
 
 #### Token issuer was never checked, and the scope catalogue was published wholesale

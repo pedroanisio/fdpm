@@ -62,6 +62,11 @@ describe("previewPrimitiveDelete", () => {
       referencing_relations: [
         { id: "rel:s1-p1", type_id: "test:rel:contains", source_id: "section:s1", target_id: "para:p1" },
       ],
+      // Pointers held in `id-ref` FIELD values, which nothing cascades.
+      // This fixture's profile declares none, so the list is empty — but
+      // the key is part of the shape now, because a preview that omitted
+      // it reported a delete as clean while leaving references dangling.
+      referencing_fields: [],
     });
     const asTarget = previewPrimitiveDelete(host, WB, "para:p1");
     expect(asTarget.referencing_relations.map((r) => r.id)).toEqual(["rel:s1-p1"]);
