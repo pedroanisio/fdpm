@@ -3,8 +3,9 @@
  * `fdpm-mcp` — the MCP server binary defined by SPEC-MCP-SERVER v0.1.
  *
  * Long-lived process holding one Host. Speaks the MCP protocol over
- * stdio (the only transport in v0.1; HTTP/SSE deferred to v0.2 per
- * §6.1). The advertised tool surface is a hand-curated, version-pinned
+ * stdio. The network transport lives in `fdpm-mcp-http`; both build
+ * their MCP server from `src/mcp/build-server.ts`, so the two cannot
+ * drift apart. The advertised tool surface is a hand-curated, version-pinned
  * manifest (see `../mcp/manifest.ts`), measured against a byte budget
  * at boot (§8.5, `../mcp/catalog.ts`).
  *
@@ -20,17 +21,8 @@
  *   `tools/call` until SIGTERM / SIGINT / EOF → drain → flush → exit 0.
  */
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { buildMcpServer } from "../mcp/build-server.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  GetPromptRequestSchema,
-  ListPromptsRequestSchema,
-  ListResourcesRequestSchema,
-  ListResourceTemplatesRequestSchema,
-  ListToolsRequestSchema,
-  ReadResourceRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
 
 import { Host } from "../core/host.js";
 import { defaultDataDir } from "../persistence/jsonl-log.js";
@@ -47,9 +39,7 @@ import {
   type CatalogBudget,
 } from "../mcp/catalog.js";
 import { discoverPluginTools } from "../mcp/plugin-tools.js";
-import { promptListEntry, renderPrompt } from "../mcp/prompts.js";
 import {
-  SERVER_INSTRUCTIONS,
   checkInstructionsBudget,
   instructionsBytes,
 } from "../mcp/instructions.js";
@@ -60,12 +50,11 @@ import {
 } from "../mcp/confirmation-token.js";
 import { createDispatcher } from "../mcp/dispatch.js";
 import { createReadGuard, resolveMaxResourceBytes } from "../mcp/read-guard.js";
+import { resolveMaxResultBytes } from "../mcp/result-budget.js";
 import type { DispatchCtx } from "../mcp/types.js";
 import { handleReload, reloadSignalForPlatform } from "../mcp/reload.js";
 import { McpAuditLog } from "../persistence/mcp-audit-log.js";
-import { HOST_VERSION } from "../core/version/spec.js";
-import { FDPMException } from "../core/errors/fdpm-exception.js";
-import { listResources, listTemplates } from "../mcp/resources/registry.js";
+import { listResources } from "../mcp/resources/registry.js";
 
 interface ParsedFlags {
   /** Resolved synchronously from --data-dir; empty string when absent. */
@@ -75,6 +64,7 @@ interface ParsedFlags {
   enabledPlugins: string[];
   maxCallsPerMinute: number;
   maxResourceBytes: number;
+  maxResultBytes: number;
   auditFullArgs: boolean;
   catalogBudget: CatalogBudget;
   confirmationTokenPolicy: ConfirmationTokenPolicy;
@@ -85,7 +75,7 @@ interface ParsedFlags {
  *
  * Refusal contract (§6.1 / Acceptance §5): any HTTP transport flag
  * MUST cause the process to refuse to start with a clear pointer to
- * the v0.2 deferral. We detect this BEFORE parsing the rest, so an
+ * `fdpm-mcp-http`. We detect this BEFORE parsing the rest, so an
  * operator who passes `--http-port 8080 --data-dir /tmp/x` still gets
  * the refusal instead of the data-dir ack.
  */
@@ -97,9 +87,10 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
   if (offending.length > 0) {
     process.stderr.write(
       [
-        `fdpm-mcp: refusing to start — HTTP transport is not supported in v0.1.`,
+        `fdpm-mcp: refusing to start — this binary speaks stdio only.`,
         `  offending flag(s): ${offending.join(", ")}`,
-        `  see SPEC-MCP-SERVER §6.1 (deferred to v0.2).`,
+        `  for a network endpoint use fdpm-mcp-http, which serves the same`,
+        `  tools over MCP Streamable HTTP. See MANUAL.md §23.`,
         ``,
       ].join("\n"),
     );
@@ -154,6 +145,19 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
     process.exit(2);
   }
 
+  // The same treatment for the tool-result ceiling. Both surfaces cap what
+  // they serve, and both refuse a malformed cap at boot rather than running
+  // with a limit the operator believes is in force and is not.
+  let maxResultBytes: number;
+  try {
+    maxResultBytes = resolveMaxResultBytes(process.env);
+  } catch (err) {
+    process.stderr.write(
+      `fdpm-mcp: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    process.exit(2);
+  }
+
   const auditFullArgs =
     flag("--audit-full-args") || process.env["FDPM_MCP_AUDIT_FULL_ARGS"] === "1";
 
@@ -186,6 +190,7 @@ function parseArgs(argv: readonly string[]): ParsedFlags {
     enabledPlugins,
     maxCallsPerMinute,
     maxResourceBytes,
+    maxResultBytes,
     auditFullArgs,
     catalogBudget,
     confirmationTokenPolicy,
@@ -300,6 +305,7 @@ async function main(): Promise<void> {
       noPlugins,
     },
     catalog,
+    maxResultBytes: flags.maxResultBytes,
   };
 
   const dispatcher = createDispatcher(host, ctx, audit);
@@ -315,137 +321,15 @@ async function main(): Promise<void> {
   });
 
   // -- MCP server wiring ----------------------------------------------
-  // Per SPEC-MCP-SERVER §11.3, the server advertises its tool-manifest
-  // version. The MCP `Implementation` schema permits additional fields;
-  // we surface the value via `description` (human-readable) and via a
-  // namespaced extra field that machine consumers can read.
-  const serverInfo: Record<string, unknown> = {
-    name: "fdpm-mcp",
-    version: HOST_VERSION,
-    description: `FDPM MCP server (manifest version ${MCP_TOOL_MANIFEST_VERSION})`,
-    "fdpm.manifestVersion": MCP_TOOL_MANIFEST_VERSION,
-  };
-  const server = new Server(
-    serverInfo as { name: string; version: string },
-    {
-      capabilities: {
-        // The advertised tool array is frozen at boot (it is the array
-        // the catalog budget was measured against), so no `listChanged`
-        // here: a reload cannot change it.
-        tools: {},
-        // Resources surface (slice 1: render only). `subscribe: false`
-        // is implicit via omission — slice 2 will add it once the
-        // freshness-watcher polling loop is in place. `listChanged` is
-        // declared because `resources/list` is computed from the live
-        // Host: an operator reload can add or drop whole workbooks, and
-        // a client that caches the list would never see them.
-        resources: { listChanged: true },
-        // Plugin-shipped prompts (§13.5): metadata on prompts/list, the
-        // validated body on prompts/get. Also live-computed from the
-        // Host's plugin runtime, hence `listChanged`.
-        prompts: { listChanged: true },
-      },
-      // SPEC-MCP-SERVER §8.6: static cold-start orientation, also served
-      // at fdpm://guide for clients that ignore this field.
-      instructions: SERVER_INSTRUCTIONS,
-    },
-  );
-
-  server.setRequestHandler(ListToolsRequestSchema, async () => {
-    // `advertised` is already the wire shape (see catalog.ts); it is
-    // the SAME array the budget was measured against, so what the
-    // client sees is what was checked.
-    return {
-      tools: advertised,
-      _meta: {
-        manifest_version: MCP_TOOL_MANIFEST_VERSION,
-        catalog_bytes: catalog.measurement.total_bytes,
-        catalog_budget_bytes: catalog.budget.total_bytes,
-      },
-    };
-  });
-
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const name = request.params.name;
-    const rawArgs = request.params.arguments ?? {};
-    const result = await dispatcher.call(name, rawArgs);
-    // The MCP SDK's CallToolResult is a wider type than ours (it carries
-    // optional `task`, `_meta`, etc.). Our shape is a strict subset, so
-    // a cast at the boundary is safe.
-    return result as unknown as Record<string, unknown>;
-  });
-
-  // -- Resources surface (slice 1: render only) -----------------------
-  // Read-only addressable views of workbook state. `resources/list`
-  // walks every (workbook, registered renderer target) pair so clients
-  // can pin specific outputs without calling tools. `resources/read`
-  // dispatches through the provider registry; the render provider
-  // runs SPEC-REPL §10.2 lenient tail-replay before invoking the
-  // renderer.
-  //
-  // Provider failures (FDPMException + others) propagate up to the
-  // SDK which surfaces them as JSON-RPC errors per the MCP spec —
-  // matches the dispatcher's existing error contract for tools.
-
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    return {
-      resources: listResources(host).map((entry) => ({
-        uri: entry.uri,
-        name: entry.name,
-        ...(entry.description !== undefined && { description: entry.description }),
-        ...(entry.mimeType !== undefined && { mimeType: entry.mimeType }),
-        ...(entry.size !== undefined && { size: entry.size }),
-      })),
-    };
-  });
-
-  server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
-    return {
-      resourceTemplates: listTemplates(host).map((tpl) => ({
-        uriTemplate: tpl.uriTemplate,
-        name: tpl.name,
-        ...(tpl.description !== undefined && { description: tpl.description }),
-        ...(tpl.mimeType !== undefined && { mimeType: tpl.mimeType }),
-      })),
-    };
-  });
-
-  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-    const uri = request.params.uri;
-    const result = await readGuard.read(uri);
-    // MCP's ReadResourceResult carries a `contents[]` array; each
-    // entry is either a TextResourceContents or BlobResourceContents.
-    // We always emit exactly one — the URI addresses one render.
-    const content: Record<string, unknown> = {
-      uri: result.uri,
-      mimeType: result.mimeType,
-    };
-    if (result.text !== undefined) content["text"] = result.text;
-    if (result.blob !== undefined) content["blob"] = result.blob;
-    return { contents: [content] };
-  });
-
-  // -- Prompts surface (§13.5) -----------------------------------------
-  // Progressive disclosure: `prompts/list` carries metadata only; the
-  // body is rendered on `prompts/get`, argument-checked and validated
-  // against the skill contract before it leaves the server. Errors
-  // (not_found, validation, verification) propagate as JSON-RPC errors
-  // with the reason in the message.
-
-  server.setRequestHandler(ListPromptsRequestSchema, async () => {
-    return { prompts: host.plugins.listPrompts().map(promptListEntry) };
-  });
-
-  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-    const name = request.params.name;
-    const reg = host.plugins.findPrompt(name);
-    if (reg === undefined) {
-      throw new FDPMException("not_found", `prompt not found: ${name} (not_found)`, {
-        evidence: { prompt: name, available: host.plugins.listPrompts().map((p) => p.promptId) },
-      });
-    }
-    const rendered = await renderPrompt(reg, request.params.arguments);
-    return { description: rendered.description, messages: rendered.messages };
+  // The MCP server itself — tools, resources, prompts — is built by the
+  // shared factory, so the stdio transport and the remote HTTP transport
+  // cannot drift apart. See src/mcp/build-server.ts.
+  const server = buildMcpServer({
+    host,
+    dispatcher,
+    readGuard,
+    advertised,
+    catalog,
   });
 
   // -- Signals & lifecycle --------------------------------------------

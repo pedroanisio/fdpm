@@ -14,6 +14,12 @@
  * `catalog.ts` imports `manifest.ts`, which imports this file, and a
  * static import here would close an ESM cycle that hits the TDZ
  * whenever `health.ts` is the first module loaded.
+ *
+ * `max_result_bytes` is the ceiling on what one Tier-1 result may serve
+ * (`../result-budget.ts`). A limit an operator cannot read back is a limit
+ * they will misjudge: this is the number that decides whether
+ * `fdpm.profile.get(view: "full")` on a large profile comes back or is
+ * refused, and the probe that reports the catalog budget is where it belongs.
  */
 
 import { z } from "zod";
@@ -21,6 +27,7 @@ import type { McpToolEntry } from "../types.js";
 import { HOST_VERSION } from "../../core/version/spec.js";
 import { MCP_TOOL_MANIFEST_VERSION } from "../schemas.js";
 import { instructionsBytes } from "../instructions.js";
+import { DEFAULT_MAX_RESULT_BYTES } from "../result-budget.js";
 
 const Input = z.object({}).strict();
 
@@ -50,6 +57,8 @@ const Output = z
     catalog: Catalog,
     /** SPEC-MCP-SERVER §8.6 — per-session size of initialize.instructions. */
     instructions_bytes: z.number().int(),
+    /** Ceiling on the bytes one Tier-1 tool result may serve. */
+    max_result_bytes: z.number().int().positive(),
   })
   .strict();
 
@@ -57,7 +66,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.health",
   tier: "read_only",
   description:
-    "Liveness probe. Returns server version, MCP tool manifest version, a summary of loaded profiles and workbooks, the tool-catalog byte measurement against its budget (tool_count, total_bytes, budget_total_bytes, within_budget), and instructions_bytes (the per-session size of the server instructions).",
+    "Liveness probe. Returns server version, MCP tool manifest version, a summary of loaded profiles and workbooks, the tool-catalog byte measurement against its budget (tool_count, total_bytes, budget_total_bytes, within_budget), instructions_bytes (the per-session size of the server instructions), and max_result_bytes (the Tier-1 result ceiling).",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
@@ -91,6 +100,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
         within_budget: report.ok,
       },
       instructions_bytes: instructionsBytes(),
+      max_result_bytes: ctx.maxResultBytes ?? DEFAULT_MAX_RESULT_BYTES,
     };
   },
 };

@@ -75,6 +75,19 @@ export interface McpAuditCompleteEntry {
    * turns these into `rule:<id>` error classes.
    */
   rule_ids?: string[];
+  /**
+   * UTF-8 bytes of the serialised result, as `resource_read.bytes` records
+   * for the other surface.
+   *
+   * Present on every completed handler run, refused or served. Without it the
+   * log cannot answer the one question an oversize failure raises — how big
+   * was it — and the failure is invisible here while being fatal at the
+   * client: a client that refuses a 61,233-character result leaves this log
+   * reading `ok: true`. Absent on the outcomes decided before a handler ran
+   * (unknown tool, tier gate, rate limit, input validation), which produce no
+   * result to measure.
+   */
+  result_bytes?: number;
 }
 
 /**

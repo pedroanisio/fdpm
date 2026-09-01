@@ -77,6 +77,7 @@ const CompleteEntry = z
     replayed: z.boolean().optional(),
     dry_run: z.boolean().optional(),
     rule_ids: z.array(z.string()).optional(),
+    result_bytes: z.number().nonnegative().optional(),
   })
   .passthrough();
 
@@ -212,6 +213,19 @@ export interface AuditToolRow {
   p95_ms: number | null;
   error_reasons: Record<string, number>;
   rule_ids: Record<string, number>;
+  /**
+   * Serialised result size across the calls that produced one, in bytes.
+   *
+   * `null` when no call in the window recorded `result_bytes` — entries
+   * written before the dispatcher measured results, and outcomes decided
+   * before a handler ran, carry none. Distinguishing "not measured" from
+   * "measured zero" matters: the first is a log-age question, the second
+   * would be a bug.
+   *
+   * The p95 and max are the row that tells an operator a read tool is
+   * approaching its ceiling BEFORE a client refuses one of its results.
+   */
+  result_bytes: { p50: number; p95: number; max: number; measured: number } | null;
 }
 
 export interface AuditErrorClass {
@@ -292,7 +306,7 @@ export function buildAuditReport(
   }
 
   const totals = { calls: 0, ok: 0, failed: 0, rejected: 0, replayed: 0, dry_run: 0 };
-  const tools = new Map<string, { row: AuditToolRow; durations: number[] }>();
+  const tools = new Map<string, { row: AuditToolRow; durations: number[]; sizes: number[] }>();
   const classes = new Map<string, AuditErrorClass>();
 
   for (const c of calls) {
@@ -313,13 +327,16 @@ export function buildAuditReport(
           p95_ms: null,
           error_reasons: {},
           rule_ids: {},
+          result_bytes: null,
         },
         durations: [],
+        sizes: [],
       };
       tools.set(c.tool, t);
     }
     t.row.calls += 1;
     t.durations.push(c.duration_ms);
+    if (typeof c.result_bytes === "number") t.sizes.push(c.result_bytes);
     if (c.replayed === true) {
       totals.replayed += 1;
       t.row.replayed += 1;
@@ -351,13 +368,23 @@ export function buildAuditReport(
   }
 
   const per_tool: AuditToolRow[] = [...tools.values()]
-    .map(({ row, durations }) => {
+    .map(({ row, durations, sizes }) => {
       const sorted = [...durations].sort((a, b) => a - b);
+      const sortedSizes = [...sizes].sort((a, b) => a - b);
       return {
         ...row,
         success_rate: row.calls > 0 ? row.ok / row.calls : null,
         p50_ms: percentile(sorted, 0.5),
         p95_ms: percentile(sorted, 0.95),
+        result_bytes:
+          sortedSizes.length === 0
+            ? null
+            : {
+                p50: percentile(sortedSizes, 0.5)!,
+                p95: percentile(sortedSizes, 0.95)!,
+                max: sortedSizes[sortedSizes.length - 1]!,
+                measured: sortedSizes.length,
+              },
       };
     })
     .sort((a, b) => b.calls - a.calls || a.tool.localeCompare(b.tool));

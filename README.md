@@ -313,6 +313,28 @@ are the canonical package manager and lockfile.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
+| `FDPM_MCP_EXPECTED_AUDIENCE` | `the value of FDPM_MCP_PUBLIC_URL` | Fdpm-mcp-http: the `aud` value a bearer token must carry, when the authorization server does not use the resource URL; Keycloak's audience mapper emits the resource CLIENT ID, and privileges granted as Keycloak client roles are then read from resource_access.<audience>.roles as well as from `scope`. |
+| `FDPM_MCP_ADVERTISED_SCOPES` | `fdpm.read` | Fdpm-mcp-http: scopes published in protected resource metadata and in the 401 challenge; defaults to the read scope alone so clients elevate on challenge rather than being handed the whole catalogue (must include fdpm.read). |
+| `FDPM_MCP_HTTP_PORT` | `8080` | Fdpm-mcp-http: TCP port the remote MCP server listens on. |
+| `FDPM_MCP_HTTP_HOST` | `127.0.0.1` | Fdpm-mcp-http: bind address; defaults to loopback so a local server is not reachable from the network by accident, and a container opts in to 0.0.0.0 explicitly (the Dockerfile does). |
+| `FDPM_MCP_PUBLIC_URL` | `(required)` | Fdpm-mcp-http: the exact connector URL clients type, path included; also the RFC 9728 `resource` value and the expected token audience. |
+| `FDPM_MCP_OAUTH_ISSUER` | `(required)` | Fdpm-mcp-http: authorization server issuer advertised as the first entry of `authorization_servers` in protected resource metadata. |
+| `FDPM_MCP_ALLOWED_HOSTS` | `(required)` | Fdpm-mcp-http: comma-separated Host header allow-list for DNS-rebinding protection; the server refuses to start when empty. |
+| `FDPM_MCP_ALLOWED_ORIGINS` | `(none)` | Fdpm-mcp-http: comma-separated browser Origin allow-list; a request with no Origin (native clients) is always allowed. |
+| `FDPM_MCP_AUTH_MODE` | `introspection` | Fdpm-mcp-http: bearer verification strategy, `introspection` (RFC 7662) or `static` (single shared token). |
+| `FDPM_MCP_INTROSPECTION_URL` | `(required when auth mode is introspection)` | Fdpm-mcp-http: RFC 7662 token introspection endpoint. |
+| `FDPM_MCP_CLIENT_ID` | `(required when auth mode is introspection)` | Fdpm-mcp-http: client id this resource server authenticates to the introspection endpoint with. |
+| `FDPM_MCP_CLIENT_SECRET` | `(required when auth mode is introspection)` | Fdpm-mcp-http: client secret for the introspection endpoint; supply via a secret store, never a literal in a manifest. |
+| `FDPM_MCP_STATIC_TOKEN` | `(required when auth mode is static)` | Fdpm-mcp-http: shared bearer token for `static` auth mode; minimum 32 characters and compared in constant time. |
+| `FDPM_MCP_STATIC_SCOPES` | `fdpm.read,fdpm.write,fdpm.admin` | Fdpm-mcp-http: scopes granted to the static token. |
+| `FDPM_MCP_TENANT_CLAIM` | `tenant` | Fdpm-mcp-http: name of the verified token claim carrying the tenant id. |
+| `FDPM_MCP_SINGLE_TENANT` | `(unset — multi-tenant)` | Fdpm-mcp-http: pin every principal to one tenant, ignoring the claim; the single-tenant deployment mode. |
+| `FDPM_MCP_MAX_TENANT_HOSTS` | `32` | Fdpm-mcp-http: maximum simultaneously loaded tenant Hosts before LRU eviction. |
+| `FDPM_MCP_HOST_IDLE_SECONDS` | `900` | Fdpm-mcp-http: idle seconds after which an unpinned tenant Host is evicted from the pool. |
+| `FDPM_MCP_SESSION_IDLE_SECONDS` | `1800` | Fdpm-mcp-http: idle seconds after which an MCP session is closed. |
+| `FDPM_MCP_MAX_SESSIONS` | `1000` | Fdpm-mcp-http: maximum concurrent MCP sessions before new ones are refused with quota. |
+| `FDPM_MCP_KEEPALIVE_SECONDS` | `15` | Fdpm-mcp-http: SSE keep-alive interval; must be below the ingress idle timeout. |
+| `FDPM_MCP_SWEEP_SECONDS` | `60` | Fdpm-mcp-http: interval between idle sweeps of sessions and pooled Hosts. |
 | `FDPM_ENV_FILE` | `~/.fdpm/.env then ./.env (layered)` | Explicit .env file for the CLI and MCP server, replacing the layered default search; a variable already set in the environment always wins, and only documented FDPM_* names are applied. |
 | `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
 | `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths separated by the OS path-list delimiter (`:` on POSIX, `;` on Windows). |
@@ -334,10 +356,11 @@ are the canonical package manager and lockfile.
 | `FDPM_MCP_ENABLE_PLUGINS` | `""` | Fdpm-mcp: comma-separated plugin ids whose MCP tools are exposed. |
 | `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | Fdpm-mcp: per-session rate limit on tool calls. |
 | `FDPM_MCP_MAX_RESOURCE_BYTES` | `1048576` | Fdpm-mcp: cap on the bytes one resources/read may serve; over-cap reads are refused with a `quota` envelope. |
+| `FDPM_MCP_MAX_RESULT_BYTES` | `32768` | Fdpm-mcp: cap on the bytes one read-only tools/call result may serve; over-cap results are refused with a `quota` envelope naming the tool's narrowing arguments. |
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | Fdpm-mcp: truthy -> log full args (default: sha256 hash only). |
 | `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN` | unset | SPEC-MCP-SERVER §9.3: exactly `1` gates Tier 2/3 calls behind an `_confirmation_token` argument; requires FDPM_MCP_CONFIRMATION_TOKEN. |
 | `FDPM_MCP_CONFIRMATION_TOKEN` | unset | Fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty. |
-| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `26000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
+| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `27000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
 | `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when FDPM_DATA_DIR is set. |
 | `FDPM_REGISTRY_PATH` | `platform state directory` | SPEC-WORKSPACE §12: override the native operator-local registry path (XDG state on Linux, Application Support on macOS, LocalAppData on Windows). |
 

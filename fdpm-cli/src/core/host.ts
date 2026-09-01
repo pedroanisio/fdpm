@@ -662,6 +662,36 @@ export class Host {
     });
   }
 
+  /**
+   * Rename or re-describe a workbook. Pass `description: null` to clear
+   * it; omit a field to leave it alone. At least one of name or
+   * description MUST be present.
+   *
+   * `profile_id` is not updatable here — see ProjectUpdatePayload.
+   */
+  async updateProject(input: {
+    workbook_id: string;
+    name?: string;
+    description?: string | null;
+  }): Promise<AppendOutput> {
+    this.store.getProject(input.workbook_id); // throws not_found if absent
+    if (input.name === undefined && input.description === undefined) {
+      throw new FDPMException(
+        "verification",
+        "workbook.update requires at least one of name or description",
+      );
+    }
+    return this.appendAndPersist({
+      kind: "workbook.update",
+      workbook_id: input.workbook_id,
+      payload: {
+        workbook_id: input.workbook_id,
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.description !== undefined && { description: input.description }),
+      },
+    });
+  }
+
   async deleteProject(workbook_id: string): Promise<AppendOutput> {
     this.store.getProject(workbook_id); // throws not_found if absent
     const result = await this.appendAndPersist({

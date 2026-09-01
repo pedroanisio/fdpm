@@ -8,6 +8,7 @@ import {
   createTestSuite,
   runTestSuite,
 } from "../src/core/host-extra.js";
+import { SPEC_CORE_VERSION } from "../src/core/version/spec.js";
 
 describe("transfer + templates + test-suites", () => {
   it("transfer round-trips a workbook verbatim", async () => {
@@ -19,7 +20,9 @@ describe("transfer + templates + test-suites", () => {
       field_values: { title: "A", number: 1 },
     });
     const transfer = exportTransfer(a, "p1");
-    expect(transfer.spec_core).toBe("1.2");
+    // Track the constant, not a literal: a SPEC minor bump should not
+    // require editing an unrelated round-trip test.
+    expect(transfer.spec_core).toBe(SPEC_CORE_VERSION);
 
     const b = await newHost();
     // Re-target the transfer's workbook id for the destination host.

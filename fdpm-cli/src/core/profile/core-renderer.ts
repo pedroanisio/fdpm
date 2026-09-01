@@ -57,6 +57,13 @@ function renderValue(value: unknown): string {
   return "`" + escapeCell(JSON.stringify(value)) + "`";
 }
 
+/** Every field an instance carries, on one line, for a table cell. */
+function renderFields(fieldValues: Record<string, unknown>): string {
+  const fields = Object.entries(fieldValues);
+  if (fields.length === 0) return "—";
+  return fields.map(([field, value]) => `**${field}** ${renderValue(value)}`).join(" · ");
+}
+
 function escapeCell(text: string): string {
   return text.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 }
@@ -143,15 +150,25 @@ export function renderWorkbookMarkdown(input: RendererInput): RendererOutput {
   }
 
   if (relations.length > 0) {
+    // A relation's fields are the relation's meaning, not decoration on it.
+    // `role`, `assertionKind` and `confidence` are what separate "wrote it"
+    // from "performed in it" and a fact from a 0.75 inference; a table that
+    // prints only type and endpoints renders those edges as duplicate rows
+    // and silently downgrades a marked assertion to an unmarked one.
+    //
+    // The column is added only when some relation carries a field, so a
+    // profile whose edges are bare does not gain a column of em dashes.
+    const carriesFields = relations.some(
+      (item) => Object.keys(item.field_values).length > 0,
+    );
     out.push("## Relations");
     out.push("");
-    out.push("| Relation | From | To |");
-    out.push("| --- | --- | --- |");
+    out.push(carriesFields ? "| Relation | From | To | Fields |" : "| Relation | From | To |");
+    out.push(carriesFields ? "| --- | --- | --- | --- |" : "| --- | --- | --- |");
     for (const [typeId, items] of groupByType(relations, profile)) {
       for (const item of items) {
-        out.push(
-          `| ${escapeCell(labelForType(profile, typeId))} | \`${item.source_id}\` | \`${item.target_id}\` |`,
-        );
+        const row = `| ${escapeCell(labelForType(profile, typeId))} | \`${item.source_id}\` | \`${item.target_id}\` |`;
+        out.push(carriesFields ? `${row} ${renderFields(item.field_values)} |` : row);
       }
     }
     out.push("");

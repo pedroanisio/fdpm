@@ -40,6 +40,32 @@ export const ProjectCreatePayload = z
   })
   .strict();
 
+/**
+ * Rename a workbook or re-describe it. Both fields are optional and at
+ * least one MUST be present — an update that changes nothing is a
+ * verification error rather than a silent no-op append.
+ *
+ * `description: null` clears the description; omitting it leaves the
+ * stored value alone. The distinction matters because `undefined` and
+ * `null` are different intents and JSON only preserves the latter.
+ *
+ * `profile_id` is deliberately NOT updatable: every primitive and
+ * relation in the workbook validates against that profile, so swapping
+ * it would invalidate the projection without revalidating a single
+ * instance. Re-binding a workbook to another profile is a migration,
+ * not an edit.
+ */
+export const ProjectUpdatePayload = z
+  .object({
+    workbook_id: WorkbookId,
+    name: z.string().min(1).optional(),
+    description: z.string().nullable().optional(),
+  })
+  .strict()
+  .refine((p) => p.name !== undefined || p.description !== undefined, {
+    message: "workbook.update requires at least one of name or description",
+  });
+
 export const ProjectDeletePayload = z
   .object({
     workbook_id: WorkbookId,
@@ -212,6 +238,7 @@ export const TransferImportPayload = z
 
 export const PAYLOAD_SCHEMAS: Record<(typeof OPERATION_KINDS)[number], z.ZodTypeAny> = {
   "workbook.create": ProjectCreatePayload,
+  "workbook.update": ProjectUpdatePayload,
   "workbook.delete": ProjectDeletePayload,
   "workbook.split": ProjectSplitPayload,
   "workbook.clone": ProjectClonePayload,

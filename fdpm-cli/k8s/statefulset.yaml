@@ -1,0 +1,145 @@
+# fdpm-mcp-http on Kubernetes.
+#
+# A StatefulSet, not a Deployment, and that is a correctness decision
+# rather than a preference. The JSONL store coordinates writers with an
+# O_EXCL lock file whose stale-takeover rule is "same host and a dead pid,
+# OR older than 30 s" (src/persistence/jsonl-log.ts). Across pods the pid
+# check can never apply, so age is the only signal — meaning a pod that
+# legitimately holds a write lock for more than 30 s can have it broken by
+# a peer. Per-pod ReadWriteOnce volumes remove the contention entirely:
+# one writer per data directory, by construction.
+#
+# Route tenants to pods with a consistent hash (see ingress.yaml) so a
+# tenant's writes always land on the pod holding its volume.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fdpm-mcp
+  labels: { app: fdpm-mcp }
+spec:
+  clusterIP: None # headless: stable per-pod DNS for tenant routing
+  selector: { app: fdpm-mcp }
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fdpm-mcp-auth
+type: Opaque
+stringData:
+  # Replace with a real secret store (External Secrets, Vault, SOPS).
+  # Never commit a live value.
+  client-secret: "change-me"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fdpm-mcp
+spec:
+  serviceName: fdpm-mcp
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: { app: fdpm-mcp }
+  template:
+    metadata:
+      labels: { app: fdpm-mcp }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: { type: RuntimeDefault }
+      # Long enough to finish an in-flight tool call and drain sessions.
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: gateway
+          image: ghcr.io/acme/fdpm-mcp:1.3.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          env:
+            - name: FDPM_DATA_DIR
+              value: /data
+            - name: FDPM_MCP_HTTP_PORT
+              value: "8080"
+            # Required: the server binds loopback by default so a local
+            # run is not exposed by accident. A pod must opt in.
+            - name: FDPM_MCP_HTTP_HOST
+              value: 0.0.0.0
+            # MUST equal the URL users type into the connector dialog,
+            # path included: it is the RFC 9728 `resource` value and the
+            # expected token audience.
+            - name: FDPM_MCP_PUBLIC_URL
+              value: https://mcp.example.com/mcp
+            - name: FDPM_MCP_OAUTH_ISSUER
+              value: https://auth.example.com
+            # Empty would refuse every request under DNS-rebinding
+            # protection, so the server refuses to start instead.
+            - name: FDPM_MCP_ALLOWED_HOSTS
+              value: mcp.example.com
+            - name: FDPM_MCP_ALLOWED_ORIGINS
+              value: https://claude.ai,https://chatgpt.com
+            - name: FDPM_MCP_AUTH_MODE
+              value: introspection
+            - name: FDPM_MCP_INTROSPECTION_URL
+              value: https://auth.example.com/oauth2/introspect
+            - name: FDPM_MCP_CLIENT_ID
+              value: fdpm-resource-server
+            - name: FDPM_MCP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef: { name: fdpm-mcp-auth, key: client-secret }
+            - name: FDPM_MCP_TENANT_CLAIM
+              value: tenant
+            # Published in protected resource metadata and the 401
+            # challenge. Kept minimal on purpose: a client that needs to
+            # write is told which scope to ask for, rather than being
+            # handed the whole catalogue at discovery time.
+            - name: FDPM_MCP_ADVERTISED_SCOPES
+              value: fdpm.read,fdpm.write
+            # Destructive tools stay off unless the operator opts in.
+            # Even when on, a caller still needs the fdpm.admin scope.
+            - name: FDPM_MCP_ENABLE_DESTRUCTIVE
+              value: "0"
+            - name: FDPM_MCP_MAX_CALLS_PER_MINUTE
+              value: "120"
+            - name: FDPM_MCP_MAX_TENANT_HOSTS
+              value: "32"
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: { cpu: "500m", memory: "1Gi" }
+            # A pooled Host holds a whole tenant corpus in memory; size
+            # the limit against FDPM_MCP_MAX_TENANT_HOSTS and measured
+            # corpus size, not against a guess.
+            limits: { memory: "3Gi" }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi

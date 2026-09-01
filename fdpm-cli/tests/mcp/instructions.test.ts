@@ -116,7 +116,7 @@ describe("SERVER_INSTRUCTIONS — content contract", () => {
 describe("SERVER_INSTRUCTIONS — size and hygiene (per-session cost)", () => {
   it("fits INSTRUCTIONS_BUDGET_BYTES", () => {
     // Ratcheted 4,000 → 4,500 with the audit (§9.5) and prompts (§13.5) lines.
-    expect(INSTRUCTIONS_BUDGET_BYTES).toBe(4_500);
+    expect(INSTRUCTIONS_BUDGET_BYTES).toBe(4_700);
     expect(instructionsBytes()).toBe(Buffer.byteLength(SERVER_INSTRUCTIONS, "utf8"));
     expect(instructionsBytes()).toBeLessThanOrEqual(INSTRUCTIONS_BUDGET_BYTES);
     expect(instructionsBytes()).toBeGreaterThan(1_000);

@@ -85,7 +85,7 @@ function humanizeProfileSlug(slug: string): string {
 
 export function buildProjectCommand(host: Host): Command {
   const cmd = new Command("workbook");
-  cmd.description("Workbook lifecycle — create, list, get, delete, split, clone");
+  cmd.description("Workbook lifecycle — create, update, list, get, delete, split, clone");
 
   cmd
     .command("create")
@@ -107,6 +107,48 @@ export function buildProjectCommand(host: Host): Command {
       });
       emit(ctx, { workbook_id: opts.id, revision: result.project_revision, op_id: result.op.op_id }, () =>
         `created ${opts.id} (rev ${result.project_revision})`,
+      );
+    });
+
+  cmd
+    .command("update")
+    .argument("<id>", "workbook id")
+    .description("Rename a workbook or rewrite its description (§9.1 PATCH /workbooks/{id})")
+    .option("--name <name>", "new workbook name")
+    .option("--description <text>", "new workbook description")
+    .option("--clear-description", "remove the description")
+    .option("--json", "emit JSON")
+    .action(async (id, opts) => {
+      const ctx: OutputContext = { json: !!opts.json };
+      if (opts.description != null && opts.clearDescription)
+        throw new FDPMException(
+          "verification",
+          "--description and --clear-description are mutually exclusive",
+        );
+      const description = opts.clearDescription ? null : opts.description;
+      if (opts.name == null && description === undefined)
+        throw new FDPMException(
+          "verification",
+          "workbook update requires --name, --description or --clear-description",
+        );
+      const result = await host.updateProject({
+        workbook_id: id,
+        ...(opts.name != null && { name: opts.name }),
+        ...(description !== undefined && { description }),
+      });
+      const touched = [
+        ...(opts.name != null ? ["name"] : []),
+        ...(description !== undefined ? ["description"] : []),
+      ];
+      emit(
+        ctx,
+        {
+          workbook_id: id,
+          revision: result.project_revision,
+          op_id: result.op.op_id,
+          fields_touched: touched,
+        },
+        () => `updated ${id} (${touched.join(", ")}) (rev ${result.project_revision})`,
       );
     });
 
@@ -239,6 +281,7 @@ export const commandMetadata: CommandMetadataMap = {
     projectIdsFromArgv: NO_PROJECT_ARGV,
     projectIdsFromJson: NO_PROJECT_JSON,
   },
+  "workbook update":           { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
   "workbook get":              { readOnly: true,  projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
   "workbook delete":           { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },
   "workbook split":            { readOnly: false, projectIdsFromArgv: PROJECT_ID_DEPTH_2, projectIdsFromJson: PROJECT_JSON_FIELD },

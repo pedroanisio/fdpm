@@ -9,13 +9,21 @@
  *
  * Two projection levers, applied in this order:
  *
- *   1. `view` (v0.1.2): selects one of three well-known shapes
- *      (`full` | `summary` | `types`). `summary` returns id, version,
- *      and counts; `types` returns id, version, and a stripped
- *      primitive_types[]/relation_types[] (the most common LLM
- *      question — "what fields does X have?" — without 60 KB of
- *      descriptions and examples). Default `full` for backwards
- *      compatibility with v0.1.x callers.
+ *   1. `view`: selects one of four well-known shapes (`full` |
+ *      `summary` | `type_ids` | `types`). `summary` returns id,
+ *      version, and counts; `type_ids` adds the bare type-id lists;
+ *      `types` returns a stripped primitive_types[]/relation_types[]
+ *      (the most common LLM question — "what fields does X have?" —
+ *      without 60 KB of descriptions and examples).
+ *
+ *      `full` remains the default and is the shape most likely to be
+ *      refused. Measured over the profiles this tree loads it runs from
+ *      448 B to 5,409,966 B, and the tool-result ceiling
+ *      (`../result-budget.ts`) will refuse the large end. That refusal
+ *      names the views below, which is why the default can stay put: a
+ *      caller asking for more than it can hold is told what to ask for
+ *      instead, rather than being handed a smaller answer it did not
+ *      request and cannot tell apart from the full one.
  *
  *   2. `fields` (v0.1.1): top-level key projection. Applied AFTER
  *      `view`, so `fields` can further trim a summary or types
@@ -39,8 +47,12 @@ const ViewSchema = z.enum(PROFILE_VIEW_NAMES);
 const Input = z
   .object({
     profile_id: z.string().min(1),
+    // Kept to the bare enumeration. The advertised catalog is re-sent on every
+    // `tools/list`; the guidance on WHICH view to pick belongs in the session
+    // instructions, which are sent once (SPEC-MCP-SERVER §8.5 / §8.6), and in
+    // the refusal a caller gets if it overshoots.
     view: ViewSchema.optional().describe(
-      "Optional named view: `full` (default; entire DomainProfile), `summary` (id/version/label + counts; ~200 B), or `types` (id/version + stripped primitive_types[]/relation_types[]; ~5 KB). Most agent questions about a profile are answered by `types` without needing the full ~65 KB payload.",
+      "`full` (default, whole profile), `summary` (counts), `type_ids` (type-id lists), `types` (stripped vocabulary).",
     ),
     fields: z
       .array(z.string().min(1))
@@ -66,10 +78,17 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.profile.get",
   tier: "read_only",
   description:
-    "Fetch a DomainProfile by id. Returns the raw (un-resolved) profile as registered. Pass `view` to request a well-known projection (`summary` for catalogue use, `types` for primitive/relation vocabulary), or `fields` to project a subset of top-level keys; omit both for the full profile. Throws not_found if the id is unknown.",
+    "Fetch a DomainProfile by id (raw, un-resolved). `view` selects a projection: `summary` (counts), `type_ids` (type-id lists), `types` (primitive/relation vocabulary); `fields` projects top-level keys. The default `full` is the whole profile and is refused over the result ceiling for a large one. Throws not_found if the id is unknown.",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
+  narrowing: [
+    'view: "types"',
+    'view: "type_ids"',
+    'view: "summary"',
+    "fields: [...]",
+    "or fdpm.profile.type_info(profile_id, type_id) for one type",
+  ],
   handler: async (host, args) => {
     // ProfileRegistry.getRaw throws FDPMException("not_found") on miss.
     const profile = host.profiles.getRaw(args.profile_id) as unknown as Record<

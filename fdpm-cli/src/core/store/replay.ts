@@ -30,6 +30,9 @@ export function applyOperation(state: StoreState, op: Operation): void {
     case "workbook.create":
       applyProjectCreate(state, op, payload);
       break;
+    case "workbook.update":
+      applyProjectUpdate(state, op, payload);
+      break;
     case "workbook.delete":
       applyProjectDelete(state, payload as { workbook_id: string });
       break;
@@ -133,6 +136,27 @@ function applyProjectCreate(state: StoreState, op: Operation, payload: any): voi
   };
   state.workbooks[p.workbook_id] = workbook;
   ensureProjectMaps(state, p.workbook_id);
+}
+
+function applyProjectUpdate(state: StoreState, op: Operation, payload: any): void {
+  const p = payload as {
+    workbook_id: string;
+    name?: string;
+    description?: string | null;
+  };
+  const existing = state.workbooks[p.workbook_id];
+  if (!existing)
+    throw new FDPMException("not_found", `workbook not found: ${p.workbook_id}`);
+  const next: Workbook = { ...existing, revision: op.revision };
+  if (p.name !== undefined) next.name = p.name;
+  if (p.description !== undefined) {
+    // null is the explicit "clear it" intent; the field is optional on
+    // Workbook, so clearing means removing the key rather than storing
+    // a null the strict model would reject.
+    if (p.description === null) delete next.description;
+    else next.description = p.description;
+  }
+  state.workbooks[p.workbook_id] = next;
 }
 
 function applyProjectDelete(state: StoreState, payload: { workbook_id: string }): void {

@@ -36,6 +36,7 @@ import { tool as logDiffTool } from "./tools/log-diff.js";
 // Tier 2 — validating-write.
 import { tool as profileRegisterTool } from "./tools/profile-register.js";
 import { tool as projectCreateTool } from "./tools/workbook-create.js";
+import { tool as projectUpdateTool } from "./tools/workbook-update.js";
 import { tool as primitiveCreateTool } from "./tools/primitive-create.js";
 import { tool as primitiveCreateBatchTool } from "./tools/primitive-create-batch.js";
 import { tool as primitiveReplaceTool } from "./tools/primitive-replace.js";
@@ -75,6 +76,7 @@ export const TIER_1_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
 export const TIER_2_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
   profileRegisterTool,
   projectCreateTool,
+  projectUpdateTool,
   primitiveCreateTool,
   primitiveCreateBatchTool,
   primitiveReplaceTool,
@@ -208,6 +210,7 @@ export const EXPOSED_HOST_METHODS: ReadonlySet<string> = new Set<string>([
   // Tier 2 — validating writes.
   "registerProfile",
   "createProject",
+  "updateProject",
   "createPrimitive",
   "replacePrimitive",
   "patchPrimitive",

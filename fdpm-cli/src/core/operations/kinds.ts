@@ -6,6 +6,7 @@ import { z } from "zod";
  */
 export const OPERATION_KINDS = [
   "workbook.create",
+  "workbook.update",
   "workbook.delete",
   "workbook.split",
   "workbook.clone",

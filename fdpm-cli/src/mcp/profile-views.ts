@@ -8,6 +8,8 @@
  *
  *   - `full`     — the entire DomainProfile (default; backwards-compatible).
  *   - `summary`  — id, version, label/name, counts of types/rules. ~200 B.
+ *   - `type_ids` — id, version, plus the bare id lists. The rung between
+ *                  a count and a vocabulary.
  *   - `types`    — id, version, plus a stripped primitive_types[]
  *                  (id, id_pattern, label, fields[name,type,required])
  *                  and relation_types[] (id, source/target ids,
@@ -18,6 +20,17 @@
  * have?" — the most common LLM-side question. `full` keeps the door
  * open for callers that genuinely need everything (validation rules,
  * renderer bindings, descriptions, etc.).
+ *
+ * `type_ids` exists because `types` is not small for every profile. Measured
+ * over the profiles this tree loads, `types` runs 117 B to 31,122 B — and
+ * then `profile:uixo:1.2`, whose 712 primitive types and 210 relation types
+ * put its stripped `types` view at 1,835,052 B and its `full` view at
+ * 5,409,966 B. No tool-result ceiling admits either. `summary` says only how
+ * many types there are, which does not let a caller ask for one; `type_ids`
+ * names them, and `fdpm.profile.type_info` then answers for the single type
+ * the caller wants. That is the whole path from "I know nothing about this
+ * profile" to "I can construct one primitive" without a payload that no
+ * client can hold.
  *
  * The view payload always carries a `_view` discriminator so callers
  * can distinguish full from projected responses without inspecting
@@ -40,7 +53,7 @@ const VIEW_MARKER_KEY = "_view";
  * a name and a code path; freeform shape requests go through the
  * `fields` argument on the tool, not through `view`.
  */
-export const PROFILE_VIEW_NAMES = ["full", "summary", "types"] as const;
+export const PROFILE_VIEW_NAMES = ["full", "summary", "type_ids", "types"] as const;
 export type ProfileViewName = (typeof PROFILE_VIEW_NAMES)[number];
 
 export interface ProfileViewResult {
@@ -67,6 +80,10 @@ export function applyProfileView(
 
   if (view === "summary") {
     return { value: buildSummaryView(profile), applied: true };
+  }
+
+  if (view === "type_ids") {
+    return { value: buildTypeIdsView(profile), applied: true };
   }
 
   if (view === "types") {
@@ -96,6 +113,33 @@ function buildSummaryView(profile: Record<string, unknown>): Record<string, unkn
   out.template_count = arraySize(profile.templates);
   out[VIEW_MARKER_KEY] = "summary";
   return out;
+}
+
+function buildTypeIdsView(profile: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    id: profile.id,
+    version: profile.version,
+  };
+  if (typeof profile.label === "string") out.label = profile.label;
+  if (typeof profile.name === "string") out.name = profile.name;
+  out.primitive_type_ids = typeIds(profile.primitive_types);
+  out.relation_type_ids = typeIds(profile.relation_types);
+  out[VIEW_MARKER_KEY] = "type_ids";
+  return out;
+}
+
+/**
+ * The `id` of every entry that has a string one.
+ *
+ * A type without a string id is dropped rather than emitted as `undefined`:
+ * the list is consumed as an argument to `fdpm.profile.type_info`, and a
+ * caller that passes back what this returned must get `not_found` from a bad
+ * id, never from a hole this view punched.
+ */
+function typeIds(value: unknown): string[] {
+  return (asObjectArray(value) ?? [])
+    .map((t) => t.id)
+    .filter((id): id is string => typeof id === "string");
 }
 
 function buildTypesView(profile: Record<string, unknown>): Record<string, unknown> {

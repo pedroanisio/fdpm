@@ -33,6 +33,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
+  narrowing: ["limit: <n>", "type_id / source_id / target_id to narrow the set"],
   handler: async (host, args) => {
     const filter: {
       typeId?: string;

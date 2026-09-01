@@ -168,6 +168,59 @@ describe("buildAuditReport — totals, per tool, error classes, SLO", () => {
     expect(t.p95_ms).toBe(100);
   });
 
+  it("summarises result_bytes per tool with nearest-rank percentiles and the max", () => {
+    const rows = [100, 200, 300, 400, 50_000].map((b) =>
+      complete({ tool: "A", result_bytes: b }),
+    );
+    const { entries } = parseAuditLines(rows.map((e) => JSON.stringify(e)).join("\n"));
+    const t = buildAuditReport(entries).per_tool[0]!;
+    expect(t.result_bytes).toEqual({ p50: 300, p95: 50_000, measured: 5, max: 50_000 });
+  });
+
+  it("reports result_bytes as null when nothing in the window recorded one", () => {
+    // Entries written before the dispatcher measured results carry no
+    // `result_bytes`. "Not measured" and "measured zero" are different facts
+    // about the log, and a report that conflated them would tell an operator
+    // their read tools serve nothing.
+    const { entries } = parseAuditLines(JSON.stringify(complete({ tool: "A" })));
+    expect(buildAuditReport(entries).per_tool[0]!.result_bytes).toBeNull();
+  });
+
+  it("counts only the calls that recorded a size, not every call", () => {
+    const rows = [
+      complete({ tool: "A", result_bytes: 500 }),
+      complete({ tool: "A" }),
+      complete({ tool: "A", result_bytes: 1500 }),
+    ];
+    const { entries } = parseAuditLines(rows.map((e) => JSON.stringify(e)).join("\n"));
+    const t = buildAuditReport(entries).per_tool[0]!;
+    expect(t.calls).toBe(3);
+    expect(t.result_bytes?.measured).toBe(2);
+    expect(t.result_bytes?.max).toBe(1500);
+  });
+
+  it("classes an over-ceiling refusal as a quota/result_too_large protocol error", () => {
+    // The failure this instrumentation exists for: before it, an oversized
+    // read was logged `ok: true` and the operator learned about it only from
+    // the client's error message.
+    const { entries } = parseAuditLines(
+      JSON.stringify(
+        complete({
+          tool: "fdpm.profile.get",
+          ok: false,
+          validation_status: "n/a",
+          error_category: "quota",
+          error_reason: "result_too_large",
+          result_bytes: 5_409_966,
+        }),
+      ),
+    );
+    const report = buildAuditReport(entries);
+    expect(report.per_tool[0]!.error_reasons).toEqual({ "quota/result_too_large": 1 });
+    expect(report.per_tool[0]!.result_bytes?.max).toBe(5_409_966);
+    expect(report.error_classes[0]!.class).toBe("fdpm.profile.get quota/result_too_large");
+  });
+
   it("rejects an invalid SLO target or top", () => {
     expect(() => buildAuditReport([], { sloTarget: 1.5 })).toThrow(/sloTarget/);
     expect(() => buildAuditReport([], { top: 0 })).toThrow(/top/);

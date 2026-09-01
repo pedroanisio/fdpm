@@ -40,9 +40,11 @@ describe("§13 observability and audit", () => {
 
 describe("§12.2 versioning", () => {
   it("core-versioning-001: spec_core is major.minor; spec_core_revision is the doc revision", () => {
-    // SPEC-CORE 1.2 (this revision) bumps the minor for §5.6 SPEC-DNIS adoption.
-    expect(SPEC_CORE_VERSION).toBe("1.2");
-    expect(SPEC_CORE_REVISION).toMatch(/^1\.2\.\d+$/);
+    // SPEC-CORE 1.3 (this revision) bumps the minor for the
+    // `workbook.update` operation kind — §5.5.1's kind set is closed, so
+    // adding to it is a minor bump by construction.
+    expect(SPEC_CORE_VERSION).toBe("1.3");
+    expect(SPEC_CORE_REVISION).toMatch(/^1\.3\.\d+$/);
     expect(HOST_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });

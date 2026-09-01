@@ -37,8 +37,14 @@
  * 25,699 B (budget 28,000). Manifest 0.3.0 (§8.6) moved the generic
  * envelope/gating prose out of thirteen Tier-2 and five Tier-3
  * descriptions into `initialize.instructions`: 23,567 B, and the budget
- * was ratcheted down to 26,000 B (~10 % headroom). The ratchet only
- * moves in a reviewed commit.
+ * was ratcheted down to 26,000 B (~10 % headroom). Manifest 0.5.0 added
+ * `fdpm.workbook.update` (31 tools): measured 26,178 B with Tier-3
+ * disabled (the disabled banners are longer than the tool descriptions
+ * they replace, so destructive=false is the worst case at 26,178 B vs
+ * 25,188 B enabled). Budget raised 26,000 -> 27,000 B (~3 % headroom):
+ * a Tier-2 tool cannot be added without catalog growth, and the tighter
+ * headroom keeps the next addition a reviewed decision rather than a
+ * silent one. The ratchet only moves in a reviewed commit.
  */
 
 import type { McpToolEntry } from "./types.js";
@@ -95,7 +101,7 @@ export interface CatalogReport {
 }
 
 export const DEFAULT_CATALOG_BUDGET: CatalogBudget = Object.freeze({
-  total_bytes: 26_000,
+  total_bytes: 27_000,
   per_tool_bytes: 2_000,
 });
 

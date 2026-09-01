@@ -44,6 +44,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
+  narrowing: ["fields: [...]"],
   handler: async (host, args) => {
     // Host.getProject throws FDPMException("not_found") on miss.
     const slice = host.getProject(args.workbook_id);

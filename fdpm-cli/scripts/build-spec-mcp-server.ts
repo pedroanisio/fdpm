@@ -457,7 +457,7 @@ const adr: PrimitiveSpec = {
     revisit_signals: [
       "If plugin authors routinely complain about the opt-in model and the security review burden is well-understood, consider opt-out by tier (read-only auto-expose, others opt-in).",
       "If a streaming use case (long-running validate / render) becomes load-bearing, revisit the request/response-only constraint.",
-      "If a network-deployed MCP server is requested, revisit the stdio-only transport posture and design the authn layer.",
+      "FIRED 2026-08-31: a network-deployed MCP server was required for Claude Connectors and ChatGPT. `fdpm-mcp-http` ships the Streamable HTTP transport, an OAuth 2.1 resource-server posture (RFC 9728 metadata, RFC 7662 introspection, RFC 8707 audience binding), scope-based authorization, and per-tenant Host isolation. The stdio-only posture is retired.",
     ],
   },
 };
@@ -1026,9 +1026,33 @@ const configEntries: PrimitiveSpec[] = [
     type: "spec:ConfigEntry",
     fields: {
       key: "FDPM_MCP_CATALOG_BUDGET_BYTES",
-      default: "26000",
+      default: "27000",
       purpose:
         "Cap on the UTF-8 byte size of the advertised tools/list catalog (Core + plugin tools). Boot refuses with exit 2 when exceeded. Raises the total only; the 2,000-byte per-tool limit is not tunable (§8.5).",
+      scope: "mcp",
+      kind: "integer",
+    },
+  },
+  {
+    id: "spec:cfg:max-resource-bytes",
+    type: "spec:ConfigEntry",
+    fields: {
+      key: "FDPM_MCP_MAX_RESOURCE_BYTES",
+      default: "1048576",
+      purpose:
+        "Cap on the bytes one `resources/read` may serve, measured on the payload that crosses the wire (base64 length for a blob, UTF-8 bytes for text). Over-cap reads are refused with `quota` / `evidence.reason: \"resource_too_large\"`. A malformed value is a boot refusal, not a fallback to the default.",
+      scope: "mcp",
+      kind: "integer",
+    },
+  },
+  {
+    id: "spec:cfg:max-result-bytes",
+    type: "spec:ConfigEntry",
+    fields: {
+      key: "FDPM_MCP_MAX_RESULT_BYTES",
+      default: "32768",
+      purpose:
+        "Cap on the bytes one Tier-1 `tools/call` result may serve. Over-cap read results are refused with `quota` / `evidence.reason: \"result_too_large\"`, carrying the measured size, the cap, and the tool's declared narrowing arguments. Tier 2/3 results are measured into the audit log but never refused: the append has already happened, and a refusal there is indistinguishable from a rejected write. A malformed value is a boot refusal.",
       scope: "mcp",
       kind: "integer",
     },
@@ -1070,6 +1094,16 @@ const errorCategories: PrimitiveSpec[] = [
       when_used:
         "§7 pipeline rejected the operation. NB: in MCP shape, this is reported as `isError: false, ok: false` in the structuredContent payload — the protocol call succeeded, the operation was rejected.",
       evidence_keys: ["findings"],
+    },
+  },
+  {
+    id: "spec:err:quota",
+    type: "spec:ErrorCategory",
+    fields: {
+      category: "quota",
+      when_used:
+        "A payload exceeded a served-byte ceiling and was refused rather than returned: `evidence.reason: \"resource_too_large\"` from `resources/read` (§9.6), `evidence.reason: \"result_too_large\"` from a Tier-1 `tools/call` (§8.8). Evidence carries `bytes`, `cap`, and the env var that raises the cap; the tool refusal also carries `narrowing`, the arguments that produce a smaller result.",
+      evidence_keys: ["reason", "bytes", "cap", "env", "narrowing"],
     },
   },
   {
@@ -1117,6 +1151,17 @@ const invariants: PrimitiveSpec[] = [
         "Every Tier 2 / Tier 3 successful tool call MUST place `validation_report` in `structuredContent`. A success without a validation report is a contract violation.",
       enforcement: "ci_check",
       scope_ref: "fdpm-cli/tests/mcp/contract/",
+    },
+  },
+  {
+    id: "spec:inv:every-payload-measured",
+    type: "spec:Invariant",
+    fields: {
+      label: "Every payload the server serves is measured against a ceiling.",
+      statement:
+        "Both content-bearing surfaces measure what they are about to serve and record it. `resources/read` refuses over `FDPM_MCP_MAX_RESOURCE_BYTES`; a Tier-1 `tools/call` refuses over `FDPM_MCP_MAX_RESULT_BYTES`; Tier 2/3 results are measured but served. Every completed handler run records `result_bytes` in the audit log, refused or served, so an oversize failure is visible in the server's own telemetry rather than only in the client's error message.",
+      enforcement: "ci_check",
+      scope_ref: "fdpm-cli/tests/mcp/result-budget.test.ts",
     },
   },
   {
@@ -1194,15 +1239,51 @@ const requirements: PrimitiveSpec[] = [
     },
   },
   {
+    id: "spec:req:r-013",
+    type: "spec:Requirement",
+    fields: {
+      label: "protocol revision targeting is explicit and reviewed",
+      statement:
+        "The server MUST advertise the protocol revision the installed SDK supports (2025-11-25 as of 2026-08-31) and MUST NOT claim conformance to a revision it does not implement. Revision 2026-07-28 makes the protocol stateless — removing the initialize handshake (SEP-2575) and the Mcp-Session-Id header (SEP-2567), carrying capabilities in _meta per request, mandating server/discover, requiring caching hints on six operations and the Mcp-Method / Mcp-Name headers, and withdrawing SSE resumption in favour of the Tasks extension. Migration is deferred until the v2 TypeScript SDK is stable and the target clients accept the revision; it MUST NOT be attempted against a pre-release SDK. When it happens, the per-session model and the ingress session affinity are both retired.",
+      strength: "MUST",
+      verifiability: "review",
+      verifier_ref: "node_modules/@modelcontextprotocol/sdk LATEST_PROTOCOL_VERSION; MANUAL.md §23",
+    },
+  },
+  {
+    id: "spec:req:r-014",
+    type: "spec:Requirement",
+    fields: {
+      label: "advertise the minimum scope set, elevate on challenge",
+      statement:
+        "Protected resource metadata and the 401 challenge MUST advertise the minimum scope set that permits basic functionality, defaulting to the read scope alone, with the challenge carrying a `scope` parameter naming what to request. Advertisement is separate from enforcement: every tier is gated on its scope regardless of what is advertised.",
+      strength: "MUST",
+      verifiability: "test",
+      verifier_ref: "fdpm-cli/tests/http/config.test.ts, fdpm-cli/tests/http/endpoints.test.ts",
+    },
+  },
+  {
+    id: "spec:req:r-015",
+    type: "spec:Requirement",
+    fields: {
+      label: "bind loopback by default; validate both audience and issuer",
+      statement:
+        "The HTTP server MUST bind 127.0.0.1 unless an operator explicitly opts out, so a local run is not exposed by accident. A bearer token MUST be rejected unless both its audience matches this server's resource identifier (RFC 8707) and its issuer, when present, matches the configured authorization server. Audience alone is insufficient: anyone controlling any authorization server can mint a token naming this server as its audience.",
+      strength: "MUST",
+      verifiability: "test",
+      verifier_ref: "fdpm-cli/tests/http/token-verifier.test.ts, fdpm-cli/tests/http/config.test.ts",
+    },
+  },
+  {
     id: "spec:req:r-004",
     type: "spec:Requirement",
     fields: {
-      label: "stdio-only transport in v0.1",
+      label: "two transports: stdio locally, Streamable HTTP remotely",
       statement:
-        "The server MUST use stdio transport. HTTP/SSE flags MUST cause startup failure with a clear pointer to v0.2.",
+        "The server MUST support stdio (`fdpm-mcp`) and Streamable HTTP (`fdpm-mcp-http`). Both MUST build their MCP server from the same factory so the tool surface cannot diverge. `fdpm-mcp` MUST still refuse HTTP flags, pointing at `fdpm-mcp-http` rather than at a deferral. On the HTTP transport an unauthenticated call MUST be answered 401 with a `WWW-Authenticate: Bearer resource_metadata=\"...\"` pointer.",
       strength: "MUST",
       verifiability: "test",
-      verifier_ref: "fdpm-cli/tests/mcp/transport.test.ts",
+      verifier_ref: "fdpm-cli/tests/http/e2e.test.ts, fdpm-cli/tests/http/endpoints.test.ts",
     },
   },
   {
@@ -1275,6 +1356,18 @@ const requirements: PrimitiveSpec[] = [
       strength: "MUST",
       verifiability: "review",
       verifier_ref: "fdpm-cli/src/core/errors/fdpm-exception.ts",
+    },
+  },
+  {
+    id: "spec:req:r-011",
+    type: "spec:Requirement",
+    fields: {
+      label: "Bounded tool results",
+      statement:
+        "A Tier-1 tool result larger than `FDPM_MCP_MAX_RESULT_BYTES` MUST be refused with `quota` / `evidence.reason: \"result_too_large\"` and MUST NOT be truncated: a truncated result is a partial answer the caller cannot distinguish from a complete one. The refusal MUST carry the measured `bytes`, the `cap`, and — for every tool whose result size the caller can influence — the arguments that narrow it. Tier 2/3 results MUST NOT be refused on size, because the operation has already been appended.",
+      strength: "MUST",
+      verifiability: "ci_check",
+      verifier_ref: "fdpm-cli/tests/mcp/result-budget.test.ts",
     },
   },
 ];
@@ -1414,6 +1507,18 @@ const conformance: PrimitiveSpec[] = [
       procedure: "Start `fdpm-mcp --http-port 8080` (or any HTTP transport flag).",
       expected:
         "Process refuses to start with a clear message pointing to SPEC-MCP-SERVER §6.1 and v0.2 deferral.",
+    },
+  },
+  {
+    id: "spec:conf:6",
+    type: "spec:ConformanceItem",
+    fields: {
+      ordinal: 6,
+      name: "Tool-result ceiling refuses a read and names the smaller call",
+      procedure:
+        "Start `fdpm-mcp` with default config against a data dir holding a profile whose full form exceeds 32,768 B. Call `fdpm.profile.get` with only `profile_id`. Then repeat with `view: \"types\"`, and — for a profile with hundreds of types — with `view: \"type_ids\"`. Read `fdpm.health` and the audit report.",
+      expected:
+        "The first call returns isError=true, category `quota`, `evidence.reason: \"result_too_large\"`, and `evidence.narrowing` listing the views and `fdpm.profile.type_info`; nothing is returned in place of the profile. The narrowed calls succeed and carry the `_view` marker. `fdpm.health` reports `max_result_bytes`. The audit log's complete entry for the refused call carries `result_bytes` above the cap, and `fdpm://audit/report/all` shows that tool's `result_bytes` p50/p95/max.",
     },
   },
 ];
@@ -2924,6 +3029,18 @@ const relations: RelationSpec[] = [
     type: "spec:Verifies",
     from: "spec:conf:5",
     to: "spec:req:r-004",
+  },
+  {
+    id: "rel:conf6-verifies-r11",
+    type: "spec:Verifies",
+    from: "spec:conf:6",
+    to: "spec:req:r-011",
+  },
+  {
+    id: "rel:conf6-verifies-measured",
+    type: "spec:Verifies",
+    from: "spec:conf:6",
+    to: "spec:inv:every-payload-measured",
   },
 
   // ADR resolves the blocking open question

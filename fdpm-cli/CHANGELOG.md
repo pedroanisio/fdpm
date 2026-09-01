@@ -33,6 +33,183 @@ upgrade.
 > the 2026-08-30 candidate state made explicit rather than inferred.
 
 
+### Security
+
+#### Token issuer was never checked, and the scope catalogue was published wholesale
+
+Three findings from assessing the remote transport against the MCP
+knowledge cartridge (`wb-mcp-cartridge`), whose invariants carry
+falsifiers and citations back to primary specification text.
+
+- **`iss` is now validated.** `kc:invariant:audience-check` requires
+  checking the audience against this server's URL **and** the issuer
+  against the expected authorization server. Only the audience was
+  checked. Audience alone is insufficient: anyone who controls any
+  authorization server can mint a token naming this server as its
+  audience, and it would have been accepted. Introspection responses now
+  reject a mismatched `iss` with `unauthenticated` /
+  `evidence.reason: "issuer_mismatch"`.
+- **The advertised scope set is now minimal.** `kc:invariant:scope-minimization`:
+  publish the minimum and elevate on challenge, never the whole catalogue
+  up front. Protected resource metadata advertised all three scopes;
+  it now advertises `fdpm.read` alone by default, configurable through
+  `FDPM_MCP_ADVERTISED_SCOPES`, and the `401` challenge carries a
+  `scope` parameter so a client learns what to request. Advertisement is
+  separate from enforcement — every tier remains gated on its scope
+  regardless of what is advertised.
+- **The server binds loopback by default.** `kc:invariant:origin-validation`
+  ends "when running locally, servers SHOULD bind only to 127.0.0.1
+  rather than 0.0.0.0". The default was `0.0.0.0`, which is right for a
+  container and wrong for the local run the MANUAL documents. The default
+  is now `127.0.0.1`; the Dockerfile and the StatefulSet opt in
+  explicitly.
+
+Recorded as SPEC-MCP-SERVER requirements r-013, r-014 and r-015.
+
+#### Protocol revision targeting is now explicit
+
+The same assessment established that MCP revision **2026-07-28** exists and
+makes the protocol stateless — removing the `initialize` handshake
+(SEP-2575) and the `Mcp-Session-Id` header (SEP-2567), carrying
+capabilities in `_meta` per request, mandating `server/discover`, and
+withdrawing SSE resumption in favour of the Tasks extension. This server
+implements **2025-11-25**, which is what the installed SDK advertises
+(`LATEST_PROTOCOL_VERSION`) and what Claude's connector infrastructure
+accepts, so nothing is broken today.
+
+Migration is deliberately deferred: v2 of the TypeScript SDK is
+pre-release, and its `createMcpHandler` serves both eras from one server,
+so the move will not fork the codebase. When it happens the per-session
+model and the ingress session affinity both retire, because a stateless
+protocol routes round-robin. r-013 records the position so the next
+reader does not have to rediscover it.
+
+### Added
+
+#### `fdpm-mcp-http` — the MCP server can be reached over a network
+
+`fdpm-mcp` speaks stdio and is spawned by the client that uses it, which
+rules out every hosted client: Claude Connectors and ChatGPT both need a
+public HTTPS endpoint. The binary went further than not supporting one —
+it refused to start if you passed `--http-port`, pointing at a v0.2
+deferral. This is that v0.2.
+
+`fdpm-mcp-http` serves the same tools, resources and prompts over MCP
+Streamable HTTP. Both binaries build their server with the same factory
+(`src/mcp/build-server.ts`), which the stdio binary was refactored to use
+in this change, so there is one implementation of the tool surface rather
+than one per transport.
+
+**No new runtime dependency.** `@modelcontextprotocol/sdk@^1.30.0` was
+already installed and already ships `StreamableHTTPServerTransport`; the
+HTTP layer is built on `node:http`.
+
+- **Endpoints.** `POST/GET/DELETE /mcp`; `GET /healthz` and `GET /readyz`
+  for probes, which are unauthenticated by design because Kubernetes
+  cannot speak MCP; `GET /.well-known/oauth-protected-resource` serving
+  RFC 9728 metadata, and its path-suffixed fallback form.
+- **The 401 handshake.** An unauthenticated call is answered `401` with
+  `WWW-Authenticate: Bearer resource_metadata="…"`. This is not a
+  stylistic choice: Claude does not honour that header on a `200`, and a
+  server that answers otherwise is undiscoverable — it fails with a
+  message about not reaching the server, which sends operators hunting in
+  the wrong place.
+- **Identity.** A verified bearer becomes a `Principal` (`sub`, `tenant`,
+  `scopes`, `clientId`), carried on the new optional `DispatchCtx.principal`.
+  The bearer token itself is never projected onto the principal, so it
+  cannot reach the audit log.
+- **Authorization.** Each tier requires one scope: `fdpm.read`,
+  `fdpm.write`, `fdpm.admin`. They are deliberately not hierarchical —
+  a token granted deletion but never modification is a misconfiguration
+  worth surfacing. Refusals reuse the existing `permission` category with
+  `evidence.reason: "insufficient_scope"`. A destructive *dry run* still
+  requires `fdpm.admin`: previewing a delete reveals what exists, which is
+  itself an authorization decision.
+- **Tenancy.** One `Host` per tenant, in an LRU pool with idle eviction,
+  each bound to `$FDPM_DATA_DIR/tenants/<id>`. The tenant comes from a
+  verified token claim and never from a tool argument; ids are constrained
+  to `^[a-z0-9][a-z0-9-]{0,63}$` and validated again where the path is
+  built. `FDPM_MCP_SINGLE_TENANT` pins every caller to one tenant, which
+  is the single-tenant deployment as a degenerate case of the pool rather
+  than a second code path.
+- **Sessions.** One `Server` + transport + `McpSession` per
+  `Mcp-Session-Id`, so the token bucket, freshness map and Tier-3
+  idempotency cache are per client instead of per process. A session's
+  tenant is fixed at creation; presenting another tenant's token against
+  an existing session is refused with `session_tenant_mismatch`.
+- **Token verification.** Two verifiers: `introspection` (RFC 7662, with
+  a short positive cache, `active !== true` rejected, expiry checked, and
+  RFC 8707 audience matching) and `static` (a shared secret of at least 32
+  characters, compared in constant time).
+- **Transport security.** DNS-rebinding protection with a required
+  `FDPM_MCP_ALLOWED_HOSTS` — an empty allow-list would refuse every
+  request, so the server refuses to start instead of failing invisibly.
+  Origin allow-listing that admits requests with no `Origin` at all,
+  because native clients send none and its absence is not evidence of
+  anything. Body size cap, no server banner, and internal errors that
+  never leak a message or stack to a network caller.
+- **Deployment.** `Dockerfile` (non-root, read-only root filesystem) and
+  `k8s/` (StatefulSet, headless Service, Ingress, NetworkPolicy).
+
+**The topology is a correctness constraint, not a preference.** The JSONL
+store's write lock takes over a peer's lock when it is "same host and a
+dead pid, **or** older than 30 s" — and across pods the pid check can
+never apply, so age is the only signal. A pod legitimately holding a lock
+past `LOCK_STALE_MS` can have it broken. The shipped manifests therefore
+use per-pod ReadWriteOnce volumes and tenant affinity, giving one writer
+per data directory by construction. A stateless Deployment over shared
+RWX storage will work under light load and corrupt under contention.
+
+57 tests were added across five suites, including an end-to-end suite that
+drives a real MCP client over a real socket against a real Host, and a
+tenancy suite asserting that two tenants can hold the same workbook id
+without seeing each other's data.
+
+#### `workbook.update` — a workbook's name and description stopped being write-once
+
+Every mutable thing in the model was event-sourced except two: a
+workbook's `name` and its `description`. Both were set at
+`workbook.create` and then unreachable. The only way to correct a name
+that had gone wrong, or a description that had gone stale, was to delete
+the workbook and recreate it — which discards the operation log, the
+thing the system exists to keep. In practice descriptions rotted in
+place: a workbook whose contents had been corrected still advertised the
+framing it was created with.
+
+SPEC-CORE §5.5.1's Operation kind set is closed and Core-owned, so
+adding to it is a minor bump by construction; SPEC-CORE goes **1.2.0 →
+1.3.0** and `CONFORMANCE_RANGE.max` follows.
+
+- **Core.** New `workbook.update` kind and `ProjectUpdatePayload`
+  (`workbook_id` plus at least one of `name`, `description`). An update
+  naming neither field is rejected at the §8 verification gate rather
+  than appended as a no-op. `description: null` clears the field; omitting
+  it leaves the stored value alone — `undefined` and `null` are different
+  intents and only one of them survives JSON.
+- **Inverse.** `:undo` of a `workbook.update` restores the prior values of
+  exactly the fields the target touched, so undoing a rename leaves a
+  later description edit intact. Undoing a cleared description restores it.
+- **`profile_id` is not updatable.** Every primitive and relation in the
+  workbook validates against that profile; re-binding it would invalidate
+  the projection without revalidating a single instance. That is a
+  migration, not an edit.
+- **CLI.** `fdpm workbook update <id> [--name] [--description]
+  [--clear-description] [--json]`. The two description flags are mutually
+  exclusive.
+- **MCP.** `fdpm.workbook.update`, Tier 2 (validating-write, not
+  destructive — it is advertised without `--enable-destructive`). Manifest
+  **0.4.0 → 0.5.0**.
+
+`DEFAULT_CATALOG_BUDGET.total_bytes` ratcheted **26,000 → 27,000**. A
+Tier-2 tool cannot be added without catalog growth, and the teaching
+contract independently requires Tier-2 descriptions of ≥ 200 chars. The
+catalog measures 26,178 B with Tier-3 disabled (the worst case: the
+disabled banners are longer than the descriptions they replace) against
+25,188 B enabled. The new headroom is ~3 % rather than the previous ~10 %,
+deliberately: the next addition should be a reviewed decision too.
+`FDPM_MCP_CATALOG_BUDGET_BYTES` and its `.env.example`/`MANUAL.md` rows
+move with it.
+
 ### Fixed
 
 #### Batch validation reports described intermediate states, not the workbook the batch produced

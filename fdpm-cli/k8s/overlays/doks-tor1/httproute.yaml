@@ -1,0 +1,51 @@
+# Gateway API routing for the DOKS tor1 cluster.
+#
+# This cluster has no IngressClass at all — routing is Cilium Gateway API
+# through `platform-ingress/public` (159.203.54.37). The nginx Ingress in
+# ../../ingress.yaml therefore does not apply here and is kept only as the
+# generic example.
+#
+# Two nginx annotations from that example have no direct Gateway API
+# equivalent, and both are handled by running a single replica instead:
+#
+#   proxy-buffering: off       Cilium's Envoy does not buffer SSE responses,
+#                              so streaming works without an equivalent knob.
+#   upstream-hash-by: session  MCP sessions live in pod memory. With one
+#                              replica there is nothing to balance across, so
+#                              affinity is not needed. This also removes the
+#                              cross-pod write-lock hazard described in
+#                              ../../statefulset.yaml. Scaling past one replica
+#                              requires either session affinity at the gateway
+#                              or the stateless 2026-07-28 protocol revision.
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: fdpm-mcp
+  namespace: fdpm-mcp
+spec:
+  parentRefs:
+    - name: public
+      namespace: platform-ingress
+      sectionName: https-veraformx-com-mcp
+  hostnames:
+    - mcp.veraformx.com
+  rules:
+    # The MCP endpoint itself.
+    - matches:
+        - path: { type: PathPrefix, value: /mcp }
+      backendRefs:
+        - name: fdpm-mcp
+          port: 8080
+      timeouts:
+        # Long enough for a streaming tool call; the client's own idle
+        # keep-alive (FDPM_MCP_KEEPALIVE_SECONDS) sits well under this.
+        request: 600s
+        backendRequest: 600s
+    # RFC 9728 discovery. Unauthenticated by design — this is how a
+    # connector finds the authorization server.
+    - matches:
+        - path: { type: PathPrefix, value: /.well-known/oauth-protected-resource }
+      backendRefs:
+        - name: fdpm-mcp
+          port: 8080

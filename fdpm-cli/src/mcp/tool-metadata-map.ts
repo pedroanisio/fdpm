@@ -63,6 +63,7 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
   // Tier 2 — validating-write tools.
   "fdpm.profile.register": "profile register",
   "fdpm.workbook.create": "workbook create",
+  "fdpm.workbook.update": "workbook update",
   "fdpm.primitive.create": "primitive create",
   "fdpm.primitive.create_batch": "primitive create",
   "fdpm.primitive.replace": "primitive replace",

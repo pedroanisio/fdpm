@@ -54,6 +54,7 @@ see the repository [`README.md`](../README.md). For the SPEC, see
 20. [Recipes — common workflows](#20-recipes--common-workflows)
 21. [Troubleshooting](#21-troubleshooting)
 22. [MCP audit report](#22-mcp-audit-report)
+23. [Remote MCP server](#23-remote-mcp-server) — Claude Connectors and ChatGPT
 
 ---
 
@@ -144,6 +145,28 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
+| `FDPM_MCP_EXPECTED_AUDIENCE` | `the value of FDPM_MCP_PUBLIC_URL` | Fdpm-mcp-http: the `aud` value a bearer token must carry, when the authorization server does not use the resource URL; Keycloak's audience mapper emits the resource CLIENT ID, and privileges granted as Keycloak client roles are then read from resource_access.<audience>.roles as well as from `scope`. |
+| `FDPM_MCP_ADVERTISED_SCOPES` | `fdpm.read` | Fdpm-mcp-http: scopes published in protected resource metadata and in the 401 challenge; defaults to the read scope alone so clients elevate on challenge rather than being handed the whole catalogue (must include fdpm.read). |
+| `FDPM_MCP_HTTP_PORT` | `8080` | Fdpm-mcp-http: TCP port the remote MCP server listens on. |
+| `FDPM_MCP_HTTP_HOST` | `127.0.0.1` | Fdpm-mcp-http: bind address; defaults to loopback so a local server is not reachable from the network by accident, and a container opts in to 0.0.0.0 explicitly (the Dockerfile does). |
+| `FDPM_MCP_PUBLIC_URL` | `(required)` | Fdpm-mcp-http: the exact connector URL clients type, path included; also the RFC 9728 `resource` value and the expected token audience. |
+| `FDPM_MCP_OAUTH_ISSUER` | `(required)` | Fdpm-mcp-http: authorization server issuer advertised as the first entry of `authorization_servers` in protected resource metadata. |
+| `FDPM_MCP_ALLOWED_HOSTS` | `(required)` | Fdpm-mcp-http: comma-separated Host header allow-list for DNS-rebinding protection; the server refuses to start when empty. |
+| `FDPM_MCP_ALLOWED_ORIGINS` | `(none)` | Fdpm-mcp-http: comma-separated browser Origin allow-list; a request with no Origin (native clients) is always allowed. |
+| `FDPM_MCP_AUTH_MODE` | `introspection` | Fdpm-mcp-http: bearer verification strategy, `introspection` (RFC 7662) or `static` (single shared token). |
+| `FDPM_MCP_INTROSPECTION_URL` | `(required when auth mode is introspection)` | Fdpm-mcp-http: RFC 7662 token introspection endpoint. |
+| `FDPM_MCP_CLIENT_ID` | `(required when auth mode is introspection)` | Fdpm-mcp-http: client id this resource server authenticates to the introspection endpoint with. |
+| `FDPM_MCP_CLIENT_SECRET` | `(required when auth mode is introspection)` | Fdpm-mcp-http: client secret for the introspection endpoint; supply via a secret store, never a literal in a manifest. |
+| `FDPM_MCP_STATIC_TOKEN` | `(required when auth mode is static)` | Fdpm-mcp-http: shared bearer token for `static` auth mode; minimum 32 characters and compared in constant time. |
+| `FDPM_MCP_STATIC_SCOPES` | `fdpm.read,fdpm.write,fdpm.admin` | Fdpm-mcp-http: scopes granted to the static token. |
+| `FDPM_MCP_TENANT_CLAIM` | `tenant` | Fdpm-mcp-http: name of the verified token claim carrying the tenant id. |
+| `FDPM_MCP_SINGLE_TENANT` | `(unset — multi-tenant)` | Fdpm-mcp-http: pin every principal to one tenant, ignoring the claim; the single-tenant deployment mode. |
+| `FDPM_MCP_MAX_TENANT_HOSTS` | `32` | Fdpm-mcp-http: maximum simultaneously loaded tenant Hosts before LRU eviction. |
+| `FDPM_MCP_HOST_IDLE_SECONDS` | `900` | Fdpm-mcp-http: idle seconds after which an unpinned tenant Host is evicted from the pool. |
+| `FDPM_MCP_SESSION_IDLE_SECONDS` | `1800` | Fdpm-mcp-http: idle seconds after which an MCP session is closed. |
+| `FDPM_MCP_MAX_SESSIONS` | `1000` | Fdpm-mcp-http: maximum concurrent MCP sessions before new ones are refused with quota. |
+| `FDPM_MCP_KEEPALIVE_SECONDS` | `15` | Fdpm-mcp-http: SSE keep-alive interval; must be below the ingress idle timeout. |
+| `FDPM_MCP_SWEEP_SECONDS` | `60` | Fdpm-mcp-http: interval between idle sweeps of sessions and pooled Hosts. |
 | `FDPM_ENV_FILE` | `~/.fdpm/.env then ./.env (layered)` | Explicit .env file for the CLI and MCP server, replacing the layered default search; a variable already set in the environment always wins, and only documented FDPM_* names are applied. |
 | `FDPM_DATA_DIR` | `~/.fdpm-cli` | Persistence directory for profiles and workbook logs. |
 | `FDPM_PLUGIN_PATH` | unset | Extra plugin search paths separated by the OS path-list delimiter (`:` on POSIX, `;` on Windows). |
@@ -165,10 +188,11 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | `FDPM_MCP_ENABLE_PLUGINS` | `""` | Fdpm-mcp: comma-separated plugin ids whose MCP tools are exposed. |
 | `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | Fdpm-mcp: per-session rate limit on tool calls. |
 | `FDPM_MCP_MAX_RESOURCE_BYTES` | `1048576` | Fdpm-mcp: cap on the bytes one resources/read may serve; over-cap reads are refused with a `quota` envelope. |
+| `FDPM_MCP_MAX_RESULT_BYTES` | `32768` | Fdpm-mcp: cap on the bytes one read-only tools/call result may serve; over-cap results are refused with a `quota` envelope naming the tool's narrowing arguments. |
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | Fdpm-mcp: truthy -> log full args (default: sha256 hash only). |
 | `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN` | unset | SPEC-MCP-SERVER §9.3: exactly `1` gates Tier 2/3 calls behind an `_confirmation_token` argument; requires FDPM_MCP_CONFIRMATION_TOKEN. |
 | `FDPM_MCP_CONFIRMATION_TOKEN` | unset | Fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty. |
-| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `26000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
+| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `27000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
 | `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when FDPM_DATA_DIR is set. |
 | `FDPM_REGISTRY_PATH` | `platform state directory` | SPEC-WORKSPACE §12: override the native operator-local registry path (XDG state on Linux, Application Support on macOS, LocalAppData on Windows). |
 
@@ -225,12 +249,28 @@ fdpm workbook list --json | jq
 # Get a workbook's metadata + embedded primitives + relations.
 fdpm workbook get roadmap-v04 --json | jq '{id, name, revision, primitives: (.primitives | length), relations: (.relations | length)}'
 
+# Rename a workbook, or rewrite the description that has gone stale.
+fdpm workbook update roadmap-v04 --name "Roadmap Unified v0.5"
+fdpm workbook update roadmap-v04 --description "Now covers the Q3 milestones."
+fdpm workbook update roadmap-v04 --clear-description
+
+# Both in one operation.
+fdpm workbook update roadmap-v04 --json \
+  --name "Roadmap Unified v0.5" --description "Now covers the Q3 milestones."
+
 # Delete a project (the log file stays — only the projection is dropped).
 fdpm workbook delete roadmap-v04
 
 # Preview first: what would be removed (counts, revision), nothing appended.
 fdpm workbook delete roadmap-v04 --dry-run --json
 ```
+
+`workbook update` requires at least one of `--name`, `--description` or
+`--clear-description`; an update that would change nothing is rejected
+rather than appended as a no-op, and `--description` and
+`--clear-description` are mutually exclusive. `--profile` is deliberately
+absent: every primitive and relation in the workbook validates against
+its profile, so re-binding one is a migration, not an edit.
 
 The `revision` field on a workbook is monotonic: every accepted operation
 bumps it by 1. Use it for optimistic concurrency (`If-Match` semantics
@@ -1027,6 +1067,185 @@ embedders as the SDK `auditReport(host, opts)`.
 
 Unparseable lines are counted in `source.skipped` and never coerced. An
 in-memory data dir has no log and reports zero calls.
+
+---
+
+## 23. Remote MCP server
+
+`fdpm-mcp` speaks stdio and is spawned by the client that uses it. To
+reach Claude Connectors or ChatGPT you need a network endpoint instead:
+`fdpm-mcp-http`, which serves the **same** tools, resources and prompts
+over MCP Streamable HTTP.
+
+Both binaries build their MCP server with the same factory
+(`src/mcp/build-server.ts`), so the two transports cannot drift apart.
+The differences are all outside the tool surface: callers are
+authenticated, scoped, and isolated per tenant.
+
+### What changes when you go remote
+
+| | `fdpm-mcp` (stdio) | `fdpm-mcp-http` (remote) |
+|---|---|---|
+| Transport | stdio | Streamable HTTP |
+| Caller identity | none — the operator spawned it | bearer token → principal |
+| Tool authorization | `--enable-destructive` only | `--enable-destructive` **and** the tier's scope |
+| Data | one `FDPM_DATA_DIR` | one directory per tenant under the root |
+| Sessions | one per process | one per `Mcp-Session-Id` |
+| Audit | `mcp-audit.jsonl` | same, plus `principal.sub` and `tenant` |
+
+### Scopes
+
+Each tier requires exactly one scope. They are **not** hierarchical:
+`fdpm.admin` does not imply `fdpm.write`.
+
+| Tier | Scope | Examples |
+|---|---|---|
+| read-only | `fdpm.read` | `fdpm.workbook.list`, `fdpm.primitive.get` |
+| validating write | `fdpm.write` | `fdpm.primitive.create_batch`, `fdpm.workbook.update` |
+| destructive | `fdpm.admin` | `fdpm.primitive.delete`, `fdpm.workbook.delete` |
+
+Enforcement and advertisement are separate. Every tier is always gated,
+whatever is advertised. `FDPM_MCP_ADVERTISED_SCOPES` controls only what
+protected resource metadata and the `401` challenge tell a client to ask
+for, and it defaults to `fdpm.read` alone — a connector that needs to
+write learns the scope from the challenge:
+
+```
+WWW-Authenticate: Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource", scope="fdpm.read"
+```
+
+Widen it deliberately (`fdpm.read,fdpm.write`) when you want writing
+clients to be granted the scope at first connection instead.
+
+A call without the scope is refused with the same vocabulary the
+destructive gate already uses:
+
+```json
+{ "error": { "category": "permission", "message": "this token is not authorized for validating_write tools; required scope fdpm.write",
+             "evidence": { "reason": "insufficient_scope", "required_scope": "fdpm.write", "tier": "validating_write" } } }
+```
+
+### Running it locally
+
+The `static` auth mode takes one shared bearer token and needs no
+authorization server, which makes it the fastest way to see the thing
+work end to end.
+
+```sh
+export FDPM_DATA_DIR=/tmp/fdpm-remote
+export FDPM_MCP_PUBLIC_URL=http://127.0.0.1:8080/mcp
+export FDPM_MCP_OAUTH_ISSUER=http://127.0.0.1:9000
+export FDPM_MCP_ALLOWED_HOSTS=127.0.0.1
+export FDPM_MCP_AUTH_MODE=static
+export FDPM_MCP_STATIC_TOKEN=$(head -c 32 /dev/urandom | base64)
+export FDPM_MCP_SINGLE_TENANT=default
+# The server binds 127.0.0.1 by default; a container opts in to 0.0.0.0.
+
+node dist/src/bin/fdpm-mcp-http.js
+# => {"level":"info","msg":"fdpm-mcp-http ready","port":8080,...}
+```
+
+Check the three things a connector checks, in order:
+
+```sh
+# 1. Probes answer without a token.
+curl -s localhost:8080/healthz
+
+# 2. An unauthenticated call is 401 AND points at the metadata.
+curl -is localhost:8080/mcp -X POST -d '{}' | head -3
+# HTTP/1.1 401 Unauthorized
+# WWW-Authenticate: Bearer resource_metadata="http://127.0.0.1:8080/.well-known/oauth-protected-resource"
+
+# 3. `resource` matches the connector URL exactly, path included.
+curl -s localhost:8080/.well-known/oauth-protected-resource | jq .
+
+# 4. A real MCP handshake.
+curl -s localhost:8080/mcp \
+  -H "authorization: Bearer $FDPM_MCP_STATIC_TOKEN" \
+  -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{
+       "protocolVersion":"2025-11-25","capabilities":{},
+       "clientInfo":{"name":"curl","version":"0"}}}' -D- | grep -i mcp-session-id
+```
+
+### Single-tenant and multi-tenant
+
+Set `FDPM_MCP_SINGLE_TENANT` and every caller is pinned to that one
+tenant, whatever their token claims. Leave it unset and the tenant is
+read from the verified claim named by `FDPM_MCP_TENANT_CLAIM`, and each
+tenant gets its own directory under `$FDPM_DATA_DIR/tenants/<id>`.
+
+Tenant ids must match `^[a-z0-9][a-z0-9-]{0,63}$`. The tenant is **never**
+taken from a tool argument — only from a verified token claim.
+
+### Production auth
+
+`static` mode shares one credential across everyone who has it. For real
+deployments use `introspection`, which validates each bearer against your
+authorization server (RFC 7662) and checks that the token's audience
+matches `FDPM_MCP_PUBLIC_URL`:
+
+```sh
+export FDPM_MCP_AUTH_MODE=introspection
+export FDPM_MCP_INTROSPECTION_URL=https://auth.example.com/oauth2/introspect
+export FDPM_MCP_CLIENT_ID=fdpm-resource-server
+export FDPM_MCP_CLIENT_SECRET=...   # from a secret store
+export FDPM_MCP_TENANT_CLAIM=tenant
+```
+
+Your authorization server, not this server, runs the OAuth 2.1 flow.
+`fdpm-mcp-http` is a resource server: it publishes protected resource
+metadata pointing at your issuer and validates the tokens your issuer
+mints.
+
+### Adding it to Claude
+
+1. Deploy behind TLS at a stable URL ending in your MCP path, e.g.
+   `https://mcp.example.com/mcp`.
+2. Set `FDPM_MCP_PUBLIC_URL` to **exactly** that URL. Claude compares it
+   against the `resource` field character for character, path included.
+3. Add it under **Customize → Connectors → Add custom connector**.
+4. Claude reads the 401's `resource_metadata` pointer, fetches your
+   authorization server's metadata, and runs the OAuth flow.
+
+If Claude reports it cannot reach the server while your logs show the
+request arriving, the 401 handshake is the thing to check first — a
+`WWW-Authenticate` header on a 200 is ignored.
+
+### Adding it to ChatGPT
+
+Developer mode connects to the same URL and needs no extra tools. Deep
+research is different: it consumes only `search` and `fetch` and ignores
+every other tool, so it is not supported by this server today. See the
+CHANGELOG for the current state.
+
+### Which protocol revision this speaks
+
+`fdpm-mcp-http` targets MCP revision **2025-11-25**, which is what the
+installed SDK advertises (`LATEST_PROTOCOL_VERSION`) and what Claude's
+connector infrastructure accepts.
+
+A newer revision, **2026-07-28**, makes the protocol stateless: it removes
+the `initialize` handshake and the `Mcp-Session-Id` header, carries
+capabilities in `_meta` on every request, adds a mandatory
+`server/discover`, and drops SSE resumption in favour of the Tasks
+extension. This server does not implement it. Support arrives with v2 of
+the TypeScript SDK, which is pre-release at the time of writing; its
+`createMcpHandler` serves both eras from one server, so the migration does
+not fork the codebase.
+
+The practical consequence today: none for Claude or ChatGPT. The
+consequence later: the session manager and the ingress session affinity
+both become unnecessary, because a stateless protocol routes round-robin.
+
+### Deploying
+
+`Dockerfile` and `k8s/` in this package are working examples. Read the
+comment at the top of `k8s/statefulset.yaml` before changing the
+topology: per-pod ReadWriteOnce volumes and tenant affinity are a
+correctness requirement of the write-lock design, not a performance
+preference.
 
 ---
 

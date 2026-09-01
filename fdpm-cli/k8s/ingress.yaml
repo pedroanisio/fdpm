@@ -1,0 +1,78 @@
+# Ingress for fdpm-mcp-http.
+#
+# Two annotations here are load-bearing rather than tuning:
+#
+#   proxy-buffering: off  — Streamable HTTP answers a call on an SSE
+#     stream. A buffering proxy holds the whole response until the call
+#     completes, which the client experiences as a timeout, not an error.
+#
+#   upstream-hash-by  — MCP sessions live in pod memory. Without
+#     affinity a client's second request lands on a pod that has never
+#     heard of its session and gets a 404. Hashing on the session id
+#     keeps a session on its pod; falling back to the client address
+#     covers the initialize request, which has no session id yet.
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fdpm-mcp
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$http_mcp_session_id$remote_addr"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # TLS terminates here; the pod speaks plain HTTP inside the cluster.
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "Referrer-Policy: no-referrer";
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [mcp.example.com]
+      secretName: mcp-tls
+  rules:
+    - host: mcp.example.com
+      http:
+        paths:
+          - path: /mcp
+            pathType: Prefix
+            backend:
+              service:
+                name: fdpm-mcp
+                port: { name: http }
+          # Served unauthenticated by design: Claude reads this to
+          # discover the authorization server.
+          - path: /.well-known/oauth-protected-resource
+            pathType: Prefix
+            backend:
+              service:
+                name: fdpm-mcp
+                port: { name: http }
+---
+# Probes are cluster-internal only; they are not exposed through the
+# ingress, so /healthz and /readyz never face the public internet.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: fdpm-mcp
+spec:
+  podSelector:
+    matchLabels: { app: fdpm-mcp }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: ingress-nginx }
+      ports:
+        - { protocol: TCP, port: 8080 }
+  egress:
+    # DNS, plus the authorization server for token introspection.
+    - ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - ports:
+        - { protocol: TCP, port: 443 }

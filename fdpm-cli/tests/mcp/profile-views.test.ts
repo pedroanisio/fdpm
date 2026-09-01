@@ -210,7 +210,41 @@ describe("applyProfileView (unit)", () => {
   });
 
   it("PROFILE_VIEW_NAMES enumerates only the supported views", () => {
-    expect(PROFILE_VIEW_NAMES).toEqual(["full", "summary", "types"]);
+    expect(PROFILE_VIEW_NAMES).toEqual(["full", "summary", "type_ids", "types"]);
+  });
+
+  it("'type_ids' view returns the type vocabulary as bare id lists", () => {
+    const r = applyProfileView(SAMPLE_PROFILE, "type_ids");
+    expect(r.applied).toBe(true);
+    expect(r.value).toEqual({
+      id: "test:demo",
+      version: "1.0.0",
+      label: "Test Demo",
+      primitive_type_ids: ["test:section", "test:legacy"],
+      relation_type_ids: ["test:rel:contains", "test:rel:related"],
+      _view: "type_ids",
+    });
+  });
+
+  it("'type_ids' view tolerates a profile missing optional sections", () => {
+    const r = applyProfileView({ id: "x:y", version: "0.1.0" }, "type_ids");
+    expect(r.value).toEqual({
+      id: "x:y",
+      version: "0.1.0",
+      primitive_type_ids: [],
+      relation_type_ids: [],
+      _view: "type_ids",
+    });
+  });
+
+  it("'type_ids' view is materially smaller than 'types'", () => {
+    // The rung exists for `profile:uixo:1.2`, whose 712 primitive types put
+    // even the stripped `types` view at 1,835,052 B — past any tool-result
+    // ceiling. `type_ids` names the vocabulary so the caller can then ask
+    // `fdpm.profile.type_info` for the single type it needs.
+    const bytes = (view: ProfileViewName): number =>
+      Buffer.byteLength(JSON.stringify(applyProfileView(SAMPLE_PROFILE, view).value), "utf8");
+    expect(bytes("type_ids")).toBeLessThan(bytes("types"));
   });
 
   it("an unknown view name (defensively) falls back to pass-through", () => {

@@ -32,6 +32,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
+  narrowing: ["limit: <n>"],
   handler: async (host, args) => {
     const limit = args.limit ?? 50;
     // Host.getLog filters then slice(0, limit) from the head, but we

@@ -23,7 +23,7 @@ const BIN = join(HERE, "..", "..", "dist", "src", "bin", "fdpm-mcp.js");
 
 describe("SPEC §23.5 — HTTP transport refusal", () => {
   it.skipIf(!existsSync(BIN))(
-    "refuses to start with --http-port 8080; exit code != 0; stderr cites §6.1 / v0.2",
+    "refuses to start with --http-port 8080; exit code != 0; stderr names fdpm-mcp-http",
     () => {
       const result = spawnSync(process.execPath, [BIN, "--http-port", "8080"], {
         encoding: "utf8",
@@ -32,14 +32,15 @@ describe("SPEC §23.5 — HTTP transport refusal", () => {
       expect(result.status).not.toBe(0);
       expect(result.status).not.toBeNull();
       const stderr = String(result.stderr ?? "");
-      // The bin entry writes a clear refusal banner. Either §6.1 or
-      // v0.2 must appear (current message includes both).
-      const matchesSection = stderr.includes("§6.1") || stderr.includes("6.1");
-      const matchesVersion = stderr.includes("v0.2");
-      expect(
-        matchesSection || matchesVersion,
-        `stderr did not cite §6.1 or v0.2 deferral; got:\n${stderr}`,
-      ).toBe(true);
+      // The refusal must be actionable. Until 2026-08-31 it pointed at a
+      // v0.2 deferral; the remote transport now exists, so it must name
+      // the binary that provides it. Both conditions are asserted, which
+      // is strictly stronger than the "either §6.1 or v0.2" it replaced.
+      expect(stderr, `refusal did not name the alternative binary; got:\n${stderr}`).toContain(
+        "fdpm-mcp-http",
+      );
+      expect(stderr).toContain("stdio only");
+      expect(stderr, "refusal still cites the retired v0.2 deferral").not.toContain("v0.2");
     },
   );
 
@@ -52,7 +53,7 @@ describe("SPEC §23.5 — HTTP transport refusal", () => {
         { encoding: "utf8", timeout: 5_000 },
       );
       expect(result.status).not.toBe(0);
-      expect(String(result.stderr ?? "")).toContain("HTTP transport");
+      expect(String(result.stderr ?? "")).toContain("fdpm-mcp-http");
     },
   );
 
@@ -64,7 +65,7 @@ describe("SPEC §23.5 — HTTP transport refusal", () => {
         timeout: 5_000,
       });
       expect(result.status).not.toBe(0);
-      expect(String(result.stderr ?? "")).toContain("HTTP transport");
+      expect(String(result.stderr ?? "")).toContain("fdpm-mcp-http");
     },
   );
 });

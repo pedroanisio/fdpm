@@ -1,0 +1,34 @@
+# TLS and gateway exposure for mcp.veraformx.com.
+#
+# These two objects live in `platform-ingress`, not in the `fdpm-mcp`
+# namespace, because that is where the shared Cilium Gateway and its
+# certificates live. They are additive: a new Certificate and a new
+# listener, touching no existing hostname.
+#
+# Issuance is DNS-01 through Cloudflare (the `letsencrypt-prod`
+# ClusterIssuer), so it does not require the hostname to be reachable
+# first — but the A record must exist for clients to get here afterwards:
+#
+#   mcp.veraformx.com  A  159.203.54.37  (DNS-only, matching the
+#                                         platform's other zones)
+#
+# Scoped to the single hostname rather than an apex+wildcard pair, unlike
+# the platform's other certificates: this deployment needs one name, and
+# a wildcard would claim the whole zone on its behalf.
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: veraformx-com-mcp
+  namespace: platform-ingress
+spec:
+  secretName: veraformx-com-mcp-tls
+  dnsNames:
+    - mcp.veraformx.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+  privateKey:
+    algorithm: ECDSA
+    rotationPolicy: Always
+    size: 256

@@ -29,13 +29,13 @@
 import { MCP_TOOL_MANIFEST_VERSION } from "./schemas.js";
 import { MCP_RELOAD_ADVICE } from "./reload.js";
 
-export const INSTRUCTIONS_BUDGET_BYTES = 4_500;
+export const INSTRUCTIONS_BUDGET_BYTES = 4_700;
 
 export const SERVER_INSTRUCTIONS: string = [
   `FDPM MCP server (manifest ${MCP_TOOL_MANIFEST_VERSION}). A workbook is a typed, event-sourced graph: primitives and relations validated against a DomainProfile, every write appended to an operation log. Reads are cheap; writes are validated and rejected with structured findings rather than failing.`,
   ``,
   `WORKFLOW`,
-  `1. Orient: fdpm.workbook.list gives workbook_id + profile_id; fdpm.profile.get(view: "types") lists the profile's primitive and relation types.`,
+  `1. Orient: fdpm.workbook.list gives workbook_id + profile_id; fdpm.profile.get(view: "types") lists the profile's primitive and relation types; for hundreds of types use view: "type_ids", then type_info.`,
   `2. Before ANY create/replace: fdpm.profile.type_info(profile_id, type_id). It returns id_pattern (your \`id\` MUST match it), required_field_names (all MUST be present in field_values) and, for relation types, source_type_id/target_type_id. Skipping this step is the most common cause of rejections.`,
   `3. Read documents through resources (resources/read), not by chaining get tools:`,
   `   - fdpm://workbook/{workbook_id}/render/{target} — rendered view (target is a MIME type such as text/markdown); the human-review artifact`,
@@ -53,6 +53,7 @@ export const SERVER_INSTRUCTIONS: string = [
   `  - permission/destructive_disabled — Tier-3 delete tools are gated; the operator restarts fdpm-mcp with --enable-destructive.`,
   `  - permission/stale_state — another process changed the workbook log; ${MCP_RELOAD_ADVICE}, then retry.`,
   `  - permission/rate_limited — per-session limit; wait and retry.`,
+  `  - quota/result_too_large — the result exceeded the size ceiling and NOTHING was returned (never a partial answer); evidence.narrowing lists the arguments that shrink it — a view on fdpm.profile.get, a smaller limit on list/search/tail.`,
   `  - permission/confirmation_required — confirmation mode is on; write calls must carry the operator-provided \`_confirmation_token\`.`,
   `- replace tools accept expected_revision (If-Match): conflict on drift. patch tools validate only the touched paths.`,
   ``,

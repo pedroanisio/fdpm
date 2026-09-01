@@ -34,6 +34,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },
+  narrowing: ["a narrower from_revision / to_revision span"],
   handler: async (host, args) => {
     const filter: { from_revision: number; to_revision?: number; limit: number } = {
       from_revision: args.from_revision,

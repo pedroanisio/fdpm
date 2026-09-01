@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 export const CLI_BINARIES = [
   "dist/src/bin/fdpm.js",
   "dist/src/bin/fdpm-mcp.js",
+  "dist/src/bin/fdpm-mcp-http.js",
 ];
 
 /**

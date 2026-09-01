@@ -193,6 +193,32 @@ export function computeInverse(
         causation_op_id: target.op_id,
       };
     }
+    case "workbook.update": {
+      if (!pre?.workbook)
+        throw new FDPMException(
+          "conflict",
+          `cannot undo workbook.update: ${workbook_id} not present before the operation`,
+        );
+      if (!cur)
+        throw new FDPMException(
+          "conflict",
+          `cannot undo workbook.update: ${workbook_id} no longer present`,
+        );
+      const touched = target.payload as { name?: string; description?: string | null };
+      const restore: Record<string, unknown> = { workbook_id };
+      // Restore only what the target actually changed, so undoing a
+      // rename does not also rewrite a description some later
+      // operation set.
+      if (touched.name !== undefined) restore["name"] = pre.workbook.name;
+      if (touched.description !== undefined)
+        restore["description"] = pre.workbook.description ?? null;
+      return {
+        kind: "workbook.update",
+        workbook_id,
+        payload: restore,
+        causation_op_id: target.op_id,
+      };
+    }
     case "workbook.clone": {
       const p = target.payload as { target_workbook_id: string };
       return {

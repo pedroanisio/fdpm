@@ -22,8 +22,13 @@
  *   6. Audit-start log entry (Tier-3: tier, idempotency_key, dry_run —
  *      the intent record, written BEFORE the handler runs).
  *   7. Handler call (try/catch).
- *   8. Audit-complete log entry (ok/error, duration, validation_status).
- *   9. Return MCP CallToolResult shape.
+ *   8. Result ceiling (Tier 1 only): a read whose serialised result exceeds
+ *      `ctx.maxResultBytes` is refused with `quota` +
+ *      `evidence.reason: "result_too_large"` naming the tool's narrowing
+ *      levers. Writes are measured but never refused — see `result-budget.ts`.
+ *   9. Audit-complete log entry (ok/error, duration, validation_status,
+ *      result_bytes).
+ *  10. Return MCP CallToolResult shape.
  *
  * Response shape:
  *   - Tier 1 success: `{ content: [text], structuredContent: <handler return>, isError: false }`.
@@ -35,6 +40,11 @@
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import { staleStateException } from "../core/errors/stale-state.js";
 import { MCP_RELOAD_ADVICE } from "./reload.js";
+import {
+  DEFAULT_MAX_RESULT_BYTES,
+  resultTooLargeException,
+  serialiseResult,
+} from "./result-budget.js";
 import type { Host } from "../core/host.js";
 import type { McpToolEntry, DispatchCtx, Tier } from "./types.js";
 import { findTool } from "./manifest.js";
@@ -46,6 +56,18 @@ import {
   hashArgs,
 } from "../persistence/mcp-audit-log.js";
 import { mintUid } from "../core/identity/uid.js";
+
+/**
+ * Tier → required scope. Declared here rather than imported from the
+ * HTTP layer so the MCP core keeps no dependency on the transport;
+ * `tests/http/scope-gate.test.ts` asserts it never diverges from
+ * `src/http/principal.ts`.
+ */
+const SCOPE_FOR_TIER: Record<Tier, string> = {
+  read_only: "fdpm.read",
+  validating_write: "fdpm.write",
+  destructive: "fdpm.admin",
+};
 
 /** Shape returned to the MCP transport layer. */
 export interface CallToolResult {
@@ -152,6 +174,40 @@ async function dispatchOne(
       error_reason: reasonOf(env),
     });
     return errorResult(env);
+  }
+
+  // 2a. Scope gate. Only engaged on a network transport, where
+  // `ctx.principal` is present. stdio has no principal and keeps its
+  // pre-existing behaviour: `enableDestructive` remains the only tier
+  // control there. A dry-run still requires the tier's scope — previewing
+  // a delete reveals what exists, which is itself an authorization
+  // decision.
+  if (ctx.principal !== undefined) {
+    const requiredScope = SCOPE_FOR_TIER[tool.tier];
+    if (!ctx.principal.scopes.includes(requiredScope)) {
+      const env = errorEnvelope(
+        new FDPMException(
+          "permission",
+          `this token is not authorized for ${tool.tier} tools; required scope ${requiredScope}`,
+          {
+            evidence: {
+              reason: "insufficient_scope",
+              required_scope: requiredScope,
+              tier: tool.tier,
+              tool: tool.name,
+            },
+          },
+        ),
+      );
+      writeStartAndComplete(audit, ctx, tool.name, callId, argsHashEarly, rawArgs, {
+        ok: false,
+        duration_ms: Date.now() - start,
+        validation_status: "n/a",
+        error_category: env.category,
+        error_reason: reasonOf(env),
+      });
+      return errorResult(env);
+    }
   }
 
   // 2b. Confirmation-token gate (SPEC-MCP-SERVER §9.3, opt-in).
@@ -484,32 +540,63 @@ function finalizeSuccess(
   // `validation_report.accepted`.
   if (tool.tier === "validating_write" && isTier2Envelope(result)) {
     const accepted = result.validation_report.accepted === true;
-    writeComplete(audit, ctx, tool.name, callId, argsHash, args, {
-      ok: accepted,
-      duration_ms: Date.now() - start,
-      validation_status: accepted ? "pass" : "fail",
-      ...(accepted ? {} : { rule_ids: distinctRuleIds(result.validation_report.findings) }),
-    });
     // Per SPEC §12 / §8.2: protocol call succeeded; isError stays false
     // even when validation_report.accepted=false. The caller distinguishes
     // by inspecting structuredContent.ok.
     const envelope = { ...(result as unknown as Record<string, unknown>), ok: accepted };
+    const serialised = serialiseResult(envelope);
+    // Measured, not gated. A write's response is recorded so the operator can
+    // see the echo growth a batch produces; refusing it would be worse than
+    // serving it (see `result-budget.ts`).
+    writeComplete(audit, ctx, tool.name, callId, argsHash, args, {
+      ok: accepted,
+      duration_ms: Date.now() - start,
+      validation_status: accepted ? "pass" : "fail",
+      result_bytes: serialised.bytes,
+      ...(accepted ? {} : { rule_ids: distinctRuleIds(result.validation_report.findings) }),
+    });
     return {
-      content: [{ type: "text", text: JSON.stringify(envelope) }],
+      content: [{ type: "text", text: serialised.text }],
       structuredContent: envelope,
       isError: false,
     };
   }
 
-  // Tier 1 (or any non-Tier-2 success): plain pass-through.
+  // Tier 1 (or any non-Tier-2 success): plain pass-through, once the
+  // result is known to fit. `read_only` is the whole scope of the ceiling:
+  // a read can be re-asked smaller, a completed write cannot be un-appended,
+  // so refusing a write's response would invite a duplicating retry. See
+  // `result-budget.ts`.
+  const serialised = serialiseResult(result);
+  const cap = ctx.maxResultBytes ?? DEFAULT_MAX_RESULT_BYTES;
+  if (tool.tier === "read_only" && serialised.bytes > cap) {
+    const err = resultTooLargeException({
+      tool: tool.name,
+      bytes: serialised.bytes,
+      cap,
+      ...(tool.narrowing === undefined ? {} : { narrowing: tool.narrowing }),
+    });
+    const env = errorEnvelope(err);
+    writeComplete(audit, ctx, tool.name, callId, argsHash, args, {
+      ok: false,
+      duration_ms: Date.now() - start,
+      validation_status: validationStatusFor(tool.tier, false),
+      error_category: env.category,
+      error_reason: reasonOf(env),
+      result_bytes: serialised.bytes,
+    });
+    return errorResult(env);
+  }
+
   writeComplete(audit, ctx, tool.name, callId, argsHash, args, {
     ok: true,
     duration_ms: Date.now() - start,
     validation_status: validationStatusFor(tool.tier, true),
+    result_bytes: serialised.bytes,
     ...(dryRun ? { dry_run: true } : {}),
   });
   return {
-    content: [{ type: "text", text: JSON.stringify(result) }],
+    content: [{ type: "text", text: serialised.text }],
     structuredContent: result as object,
     isError: false,
   };
@@ -681,6 +768,7 @@ function writeComplete(
     replayed?: boolean;
     dry_run?: boolean;
     rule_ids?: string[];
+    result_bytes?: number;
   },
 ): void {
   if (audit === null) return;
@@ -701,6 +789,7 @@ function writeComplete(
   if (fields.replayed === true) entry.replayed = true;
   if (fields.dry_run === true) entry.dry_run = true;
   if (fields.rule_ids !== undefined && fields.rule_ids.length > 0) entry.rule_ids = fields.rule_ids;
+  if (fields.result_bytes !== undefined) entry.result_bytes = fields.result_bytes;
   audit.write(entry);
 }
 
@@ -720,6 +809,7 @@ function writeStartAndComplete(
     replayed?: boolean;
     dry_run?: boolean;
     rule_ids?: string[];
+    result_bytes?: number;
   },
   extra?: AuditStartExtra,
 ): void {
