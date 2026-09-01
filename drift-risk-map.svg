@@ -1,0 +1,496 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 2610" width="1600" height="2610">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+
+    <linearGradient id="ring-p0" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D85A30" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#D85A30" stop-opacity="0.03"/>
+    </linearGradient>
+    <linearGradient id="ring-p1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#BA7517" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#BA7517" stop-opacity="0.02"/>
+    </linearGradient>
+    <linearGradient id="ring-p2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#378ADD" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#378ADD" stop-opacity="0.01"/>
+    </linearGradient>
+    <linearGradient id="ring-p3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1D9E75" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#1D9E75" stop-opacity="0.01"/>
+    </linearGradient>
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap');
+      text { font-family: 'IBM Plex Sans', -apple-system, sans-serif; }
+      .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+      .title { font-size: 28px; font-weight: 600; fill: #1a1a1a; }
+      .subtitle { font-size: 15px; font-weight: 400; fill: #666; }
+      .section-title { font-size: 18px; font-weight: 600; fill: #1a1a1a; }
+      .section-sub { font-size: 13px; font-weight: 400; fill: #888; }
+      .hub-label { font-size: 22px; font-weight: 600; fill: #fff; }
+      .hub-sub { font-size: 13px; font-weight: 400; fill: rgba(255,255,255,0.8); }
+      .node-title { font-size: 13px; font-weight: 500; }
+      .node-sub { font-size: 11px; font-weight: 400; }
+      .ring-label { font-size: 11px; font-weight: 500; }
+      .stat-num { font-size: 32px; font-weight: 600; }
+      .stat-label { font-size: 11px; font-weight: 500; }
+      .badge-text { font-size: 10px; font-weight: 600; fill: #fff; }
+      .cell-head { font-size: 11px; font-weight: 500; fill: #555; }
+      .cell-text { font-size: 11px; font-weight: 400; fill: #333; }
+      .cell-mono { font-size: 10px; font-weight: 400; fill: #555; }
+      .fix-label { font-size: 11px; font-weight: 600; fill: #333; }
+      .fix-text { font-size: 11px; font-weight: 400; fill: #444; }
+      .disclaimer { font-size: 10px; font-weight: 400; fill: #999; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="2610" fill="#FAFAF8"/>
+
+  <!-- ================= Section 1: header + stat cards ================= -->
+  <text class="title" x="70" y="48">Drift-Risk Map — FDPM CLI</text>
+  <text class="subtitle" x="70" y="74">18 couplings across 9 domains · 20 plugins · 27 CLI commands · 11 SPEC documents · commit a45436f · companion report: drift-risk-map.md</text>
+  <line x1="70" y1="92" x2="1530" y2="92" stroke="#e0ddd5" stroke-width="0.5"/>
+
+  <g transform="translate(70,110)">
+    <rect x="0" y="0" width="150" height="72" rx="10" fill="#FEF3EF" stroke="#F0997B" stroke-width="0.5"/>
+    <text class="stat-num" x="20" y="42" fill="#712B13">4</text>
+    <text class="stat-label" x="52" y="34" fill="#712B13">CRITICAL</text>
+    <text x="52" y="48" font-size="10" fill="#993C1D">no guard · silent</text>
+
+    <rect x="168" y="0" width="150" height="72" rx="10" fill="#FDF6E9" stroke="#FAC775" stroke-width="0.5"/>
+    <text class="stat-num" x="188" y="42" fill="#633806">4</text>
+    <text class="stat-label" x="220" y="34" fill="#633806">HIGH</text>
+    <text x="220" y="48" font-size="10" fill="#854F0B">weak / partial guard</text>
+
+    <rect x="336" y="0" width="150" height="72" rx="10" fill="#EDF4FC" stroke="#85B7EB" stroke-width="0.5"/>
+    <text class="stat-num" x="356" y="42" fill="#042C53">3</text>
+    <text class="stat-label" x="388" y="34" fill="#042C53">MODERATE</text>
+    <text x="388" y="48" font-size="10" fill="#185FA5">guard has gaps</text>
+
+    <rect x="504" y="0" width="150" height="72" rx="10" fill="#E9F7F0" stroke="#5DCAA5" stroke-width="0.5"/>
+    <text class="stat-num" x="524" y="42" fill="#04342C">7</text>
+    <text class="stat-label" x="556" y="34" fill="#04342C">LOW</text>
+    <text x="556" y="48" font-size="10" fill="#0F6E56">generated + checked</text>
+
+    <rect x="700" y="0" width="760" height="72" rx="10" fill="#FEF3EF" stroke="#F0997B" stroke-width="0.5"/>
+    <text x="722" y="26" font-size="12" font-weight="600" fill="#712B13">The pattern: this repository verifies what it generates, and does not verify what it copies.</text>
+    <text x="722" y="45" font-size="11" fill="#993C1D">Every CRITICAL finding is a hand-transcription whose "source of truth" a comment declares and no test enforces.</text>
+    <text x="722" y="61" font-size="11" fill="#993C1D">Three of the four are consistent today — which is exactly why they are dangerous.</text>
+  </g>
+
+  <line x1="70" y1="200" x2="1530" y2="200" stroke="#e0ddd5" stroke-width="0.5"/>
+
+  <!-- ================= Section 2: hub and spoke ================= -->
+  <text class="section-title" x="70" y="228">Coupling topology</text>
+  <text class="section-sub" x="70" y="246">Each spoke is one coupling, placed on the ring of its risk tier. Arrows point toward the source of truth. Inner ring = unguarded and silent.</text>
+
+  <g>
+    <!-- rings -->
+    <circle cx="800" cy="635" r="385" fill="url(#ring-p3)" stroke="#1D9E75" stroke-width="0.4" stroke-dasharray="6 4" opacity="0.35"/>
+    <circle cx="800" cy="635" r="300" fill="url(#ring-p2)" stroke="#378ADD" stroke-width="0.4" stroke-dasharray="6 4" opacity="0.4"/>
+    <circle cx="800" cy="635" r="215" fill="url(#ring-p1)" stroke="#BA7517" stroke-width="0.4" stroke-dasharray="6 4" opacity="0.5"/>
+    <circle cx="800" cy="635" r="130" fill="url(#ring-p0)" stroke="#D85A30" stroke-width="0.4" stroke-dasharray="6 4" opacity="0.6"/>
+
+    <text class="ring-label" x="1191" y="638" fill="#1D9E75" opacity="0.8">P3 LOW</text>
+    <text class="ring-label" x="1106" y="638" fill="#378ADD" opacity="0.8">P2 MODERATE</text>
+    <text class="ring-label" x="648" y="483" text-anchor="middle" fill="#BA7517" opacity="0.9">P1 HIGH</text>
+    <text class="ring-label" x="922" y="681" text-anchor="middle" fill="#D85A30" opacity="0.95">P0 CRITICAL</text>
+
+    <!-- connectors: P3 -->
+    <line x1="892" y1="292" x2="811" y2="594" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="1124" y1="491" x2="838" y2="618" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="1113" y1="802" x2="837" y2="655" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="868" y1="983" x2="808" y2="676" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="567" y1="903" x2="772" y2="667" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="445" y1="623" x2="758" y2="634" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="591" y1="348" x2="775" y2="601" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" marker-end="url(#arr)"/>
+    <!-- connectors: P2 -->
+    <line x1="935" y1="401" x2="821" y2="599" stroke="#378ADD" stroke-width="1.2" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="935" y1="869" x2="821" y2="671" stroke="#378ADD" stroke-width="1.2" opacity="0.35" marker-end="url(#arr)"/>
+    <line x1="566" y1="770" x2="764" y2="656" stroke="#378ADD" stroke-width="1.2" opacity="0.35" marker-end="url(#arr)"/>
+    <!-- connectors: P1 -->
+    <line x1="800" y1="450" x2="800" y2="593" stroke="#BA7517" stroke-width="1.8" opacity="0.4" marker-end="url(#arr)"/>
+    <line x1="985" y1="635" x2="842" y2="635" stroke="#BA7517" stroke-width="1.8" opacity="0.4" marker-end="url(#arr)"/>
+    <line x1="800" y1="820" x2="800" y2="677" stroke="#BA7517" stroke-width="1.8" opacity="0.4" marker-end="url(#arr)"/>
+    <line x1="615" y1="635" x2="758" y2="635" stroke="#BA7517" stroke-width="1.8" opacity="0.4" marker-end="url(#arr)"/>
+    <!-- connectors: P0 -->
+    <line x1="871" y1="564" x2="830" y2="605" stroke="#D85A30" stroke-width="2.5" opacity="0.5" marker-end="url(#arr)"/>
+    <line x1="871" y1="706" x2="830" y2="665" stroke="#D85A30" stroke-width="2.5" opacity="0.5" marker-end="url(#arr)"/>
+    <line x1="729" y1="706" x2="770" y2="665" stroke="#D85A30" stroke-width="2.5" opacity="0.5" marker-end="url(#arr)"/>
+    <line x1="729" y1="564" x2="770" y2="605" stroke="#D85A30" stroke-width="2.5" opacity="0.5" marker-end="url(#arr)"/>
+
+    <!-- hub -->
+    <circle cx="800" cy="635" r="42" fill="#534AB7" stroke="#3C3489" stroke-width="1.5"/>
+    <text class="hub-label" x="800" y="630" text-anchor="middle" dominant-baseline="central">fdpm</text>
+    <text class="hub-sub" x="800" y="650" text-anchor="middle" dominant-baseline="central">source</text>
+
+    <!-- P0 nodes -->
+    <g><rect x="832" y="519" width="120" height="48" rx="8" fill="#FEF3EF" stroke="#D85A30" stroke-width="1"/>
+      <text class="node-title" x="892" y="537" text-anchor="middle" fill="#712B13">Vendored schemas</text>
+      <text class="node-sub" x="892" y="553" text-anchor="middle" fill="#993C1D">upstream is ignored</text>
+      <rect x="868" y="571" width="48" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="892" y="580" text-anchor="middle" dominant-baseline="central">P0 · #1</text></g>
+    <g><rect x="832" y="703" width="120" height="48" rx="8" fill="#FEF3EF" stroke="#D85A30" stroke-width="1"/>
+      <text class="node-title" x="892" y="721" text-anchor="middle" fill="#712B13">Schema duplicates</text>
+      <text class="node-sub" x="892" y="737" text-anchor="middle" fill="#993C1D">static/ ↔ plugins/</text>
+      <rect x="868" y="755" width="48" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="892" y="764" text-anchor="middle" dominant-baseline="central">P0 · #2</text></g>
+    <g><rect x="648" y="703" width="120" height="48" rx="8" fill="#FEF3EF" stroke="#D85A30" stroke-width="1"/>
+      <text class="node-title" x="708" y="721" text-anchor="middle" fill="#712B13">SPEC documents</text>
+      <text class="node-sub" x="708" y="737" text-anchor="middle" fill="#993C1D">no regen gate</text>
+      <rect x="684" y="755" width="48" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="708" y="764" text-anchor="middle" dominant-baseline="central">P0 · #3</text></g>
+    <g><rect x="648" y="519" width="120" height="48" rx="8" fill="#FEF3EF" stroke="#D85A30" stroke-width="1"/>
+      <text class="node-title" x="708" y="537" text-anchor="middle" fill="#712B13">GENERATOR.md</text>
+      <text class="node-sub" x="708" y="553" text-anchor="middle" fill="#993C1D">never read by a test</text>
+      <rect x="684" y="571" width="48" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="708" y="580" text-anchor="middle" dominant-baseline="central">P0 · #4</text></g>
+
+    <!-- P1 nodes -->
+    <g><rect x="740" y="396" width="120" height="48" rx="8" fill="#FDF6E9" stroke="#BA7517" stroke-width="0.8"/>
+      <text class="node-title" x="800" y="414" text-anchor="middle" fill="#633806">schema-hash.json</text>
+      <text class="node-sub" x="800" y="430" text-anchor="middle" fill="#854F0B">7 of 9 unchecked</text>
+      <rect x="776" y="448" width="48" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="800" y="457" text-anchor="middle" dominant-baseline="central">P1 · #5</text></g>
+    <g><rect x="955" y="611" width="120" height="48" rx="8" fill="#FDF6E9" stroke="#BA7517" stroke-width="0.8"/>
+      <text class="node-title" x="1015" y="629" text-anchor="middle" fill="#633806">MANUAL.md</text>
+      <text class="node-sub" x="1015" y="645" text-anchor="middle" fill="#854F0B">7-phrase allow-list</text>
+      <rect x="991" y="663" width="48" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="1015" y="672" text-anchor="middle" dominant-baseline="central">P1 · #6</text></g>
+    <g><rect x="740" y="826" width="120" height="48" rx="8" fill="#FDF6E9" stroke="#BA7517" stroke-width="0.8"/>
+      <text class="node-title" x="800" y="844" text-anchor="middle" fill="#633806">README.md</text>
+      <text class="node-sub" x="800" y="860" text-anchor="middle" fill="#854F0B">env block only</text>
+      <rect x="776" y="878" width="48" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="800" y="887" text-anchor="middle" dominant-baseline="central">P1 · #7</text></g>
+    <g><rect x="525" y="611" width="120" height="48" rx="8" fill="#FDF6E9" stroke="#BA7517" stroke-width="0.8"/>
+      <text class="node-title" x="585" y="629" text-anchor="middle" fill="#633806">AGENTS.md</text>
+      <text class="node-sub" x="585" y="645" text-anchor="middle" fill="#854F0B">no guard at all</text>
+      <rect x="561" y="663" width="48" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="585" y="672" text-anchor="middle" dominant-baseline="central">P1 · #8</text></g>
+
+    <!-- P2 nodes -->
+    <g><rect x="890" y="351" width="120" height="48" rx="8" fill="#EDF4FC" stroke="#378ADD" stroke-width="0.7"/>
+      <text class="node-title" x="950" y="369" text-anchor="middle" fill="#042C53">SPEC cross-refs</text>
+      <text class="node-sub" x="950" y="385" text-anchor="middle" fill="#185FA5">existence only</text>
+      <rect x="926" y="403" width="48" height="16" rx="4" fill="#378ADD"/><text class="badge-text" x="950" y="412" text-anchor="middle" dominant-baseline="central">P2 · #9</text></g>
+    <g><rect x="890" y="871" width="120" height="48" rx="8" fill="#EDF4FC" stroke="#378ADD" stroke-width="0.7"/>
+      <text class="node-title" x="950" y="889" text-anchor="middle" fill="#042C53">Plugin READMEs</text>
+      <text class="node-sub" x="950" y="905" text-anchor="middle" fill="#185FA5">profile_id only</text>
+      <rect x="924" y="923" width="52" height="16" rx="4" fill="#378ADD"/><text class="badge-text" x="950" y="932" text-anchor="middle" dominant-baseline="central">P2 · #10</text></g>
+    <g><rect x="480" y="761" width="120" height="48" rx="8" fill="#EDF4FC" stroke="#378ADD" stroke-width="0.7"/>
+      <text class="node-title" x="540" y="779" text-anchor="middle" fill="#042C53">static/fixtures</text>
+      <text class="node-sub" x="540" y="795" text-anchor="middle" fill="#185FA5">orphaned, unread</text>
+      <rect x="514" y="813" width="52" height="16" rx="4" fill="#378ADD"/><text class="badge-text" x="540" y="822" text-anchor="middle" dominant-baseline="central">P2 · #11</text></g>
+
+    <!-- P3 nodes -->
+    <g><rect x="840" y="239" width="120" height="48" rx="8" fill="#E9F7F0" stroke="#1D9E75" stroke-width="0.5"/>
+      <text class="node-title" x="900" y="257" text-anchor="middle" fill="#04342C">Bridge codegen</text>
+      <text class="node-sub" x="900" y="273" text-anchor="middle" fill="#0F6E56">run-bridge --check</text>
+      <rect x="874" y="291" width="52" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="900" y="300" text-anchor="middle" dominant-baseline="central">P3 · #12</text></g>
+    <g><rect x="1092" y="454" width="120" height="48" rx="8" fill="#E9F7F0" stroke="#1D9E75" stroke-width="0.5"/>
+      <text class="node-title" x="1152" y="472" text-anchor="middle" fill="#04342C">Env-var docs</text>
+      <text class="node-sub" x="1152" y="488" text-anchor="middle" fill="#0F6E56">build-env-docs</text>
+      <rect x="1126" y="506" width="52" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1152" y="515" text-anchor="middle" dominant-baseline="central">P3 · #13</text></g>
+    <g><rect x="1080" y="792" width="120" height="48" rx="8" fill="#E9F7F0" stroke="#1D9E75" stroke-width="0.5"/>
+      <text class="node-title" x="1140" y="810" text-anchor="middle" fill="#04342C">CENSUS.md</text>
+      <text class="node-sub" x="1140" y="826" text-anchor="middle" fill="#0F6E56">--check + git index</text>
+      <rect x="1114" y="844" width="52" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1140" y="853" text-anchor="middle" dominant-baseline="central">P3 · #14</text></g>
+    <g><rect x="813" y="989" width="120" height="48" rx="8" fill="#E9F7F0" stroke="#1D9E75" stroke-width="0.5"/>
+      <text class="node-title" x="873" y="1007" text-anchor="middle" fill="#04342C">PROFILES.md</text>
+      <text class="node-sub" x="873" y="1023" text-anchor="middle" fill="#0F6E56">atlas + plugin dirs</text>
+      <rect x="847" y="1041" width="52" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="873" y="1050" text-anchor="middle" dominant-baseline="central">P3 · #15</text></g>
+    <g><rect x="487" y="902" width="120" height="48" rx="8" fill="#E9F7F0" stroke="#1D9E75" stroke-width="0.5"/>
+      <text class="node-title" x="547" y="920" text-anchor="middle" fill="#04342C">MCP prompts</text>
+      <text class="node-sub" x="547" y="936" text-anchor="middle" fill="#0F6E56">id drift gate</text>
+      <rect x="521" y="954" width="52" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="547" y="963" text-anchor="middle" dominant-baseline="central">P3 · #16</text></g>
+    <g><rect x="355" y="598" width="120" height="48" rx="8" fill="#E9F7F0" stroke="#1D9E75" stroke-width="0.5"/>
+      <text class="node-title" x="415" y="616" text-anchor="middle" fill="#04342C">MCP tool imports</text>
+      <text class="node-sub" x="415" y="632" text-anchor="middle" fill="#0F6E56">forbidden-import scan</text>
+      <rect x="389" y="650" width="52" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="415" y="659" text-anchor="middle" dominant-baseline="central">P3 · #17</text></g>
+    <g><rect x="514" y="300" width="120" height="48" rx="8" fill="#E9F7F0" stroke="#1D9E75" stroke-width="0.5"/>
+      <text class="node-title" x="574" y="318" text-anchor="middle" fill="#04342C">Renderer snapshots</text>
+      <text class="node-sub" x="574" y="334" text-anchor="middle" fill="#0F6E56">playwright in CI</text>
+      <rect x="548" y="352" width="52" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="574" y="361" text-anchor="middle" dominant-baseline="central">P3 · #18</text></g>
+  </g>
+
+  <line x1="70" y1="1095" x2="1530" y2="1095" stroke="#e0ddd5" stroke-width="0.5"/>
+
+  <!-- ================= Section 3a: CRITICAL + HIGH table ================= -->
+  <text class="section-title" x="70" y="1122">Coupling inventory — CRITICAL and HIGH</text>
+  <text class="section-sub" x="70" y="1140">Eight couplings whose propagation mode is silent. All eight are hand-transcriptions.</text>
+
+  <g transform="translate(70,1155)">
+    <rect x="0" y="0" width="1460" height="26" rx="4" fill="#EEEDEE"/>
+    <text class="cell-head" x="10" y="17">#</text>
+    <text class="cell-head" x="34" y="17">Relationship</text>
+    <text class="cell-head" x="364" y="17">Mechanism</text>
+    <text class="cell-head" x="574" y="17">Consistency guard</text>
+    <text class="cell-head" x="974" y="17">Propagation</text>
+    <text class="cell-head" x="1124" y="17">Tier</text>
+    <text class="cell-head" x="1214" y="17">Risk</text>
+
+    <g transform="translate(0,26)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FEF8F5"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">1</text>
+      <text class="cell-text" x="34" y="20">Canonical schema → vendored plugin copy</text>
+      <text class="cell-mono" x="34" y="36">_ingest_bin/*.ts (git-ignored), /home/…/agent-memory.schema.ts</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20" fill="#993C1D">⚠ NONE — source absent from a clean checkout</text>
+      <text class="cell-mono" x="574" y="36">loop_forward · document_plan · agent_memory</text>
+      <text class="cell-text" x="974" y="28" fill="#993C1D">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P0</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#712B13">CRITICAL</text>
+    </g>
+    <g transform="translate(0,78)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FEF8F5"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">2</text>
+      <text class="cell-text" x="34" y="20">static/schemas/*.ts → plugins/*/schemas/*.ts</text>
+      <text class="cell-mono" x="34" y="36">business-deck · pitch-deck.v2 · academic-paper-v0_4_1</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20" fill="#993C1D">⚠ NONE — run-bridge never reads static/</text>
+      <text class="cell-mono" x="574" y="36">2 of 3 pairs already differ (16 and 6 lines)</text>
+      <text class="cell-text" x="974" y="28" fill="#993C1D">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P0</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#712B13">CRITICAL</text>
+    </g>
+    <g transform="translate(0,130)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FEF8F5"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">3</text>
+      <text class="cell-text" x="34" y="20">scripts/build-spec-*.ts → docs/specs/SPEC-*.md</text>
+      <text class="cell-mono" x="34" y="36">11 scripts · 11 documents</text>
+      <text class="cell-mono" x="364" y="28">codegen, run by hand</text>
+      <text class="cell-text" x="574" y="20" fill="#993C1D">⚠ NONE for content</text>
+      <text class="cell-mono" x="574" y="36">spec-builds-determinism: determinism + validity, 3 of 11</text>
+      <text class="cell-text" x="974" y="28" fill="#993C1D">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P0</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#712B13">CRITICAL</text>
+    </g>
+    <g transform="translate(0,182)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FEF8F5"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">4</text>
+      <text class="cell-text" x="34" y="20">GENERATOR.md → ids.ts / primitives.ts / validators.ts</text>
+      <text class="cell-mono" x="34" y="36">plugins/knowledge_cartridge/</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20" fill="#993C1D">⚠ NONE — cited in six test comments, read by none</text>
+      <text class="cell-mono" x="574" y="36">document declares itself the source of truth</text>
+      <text class="cell-text" x="974" y="28" fill="#993C1D">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P0</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#712B13">CRITICAL</text>
+    </g>
+    <g transform="translate(0,234)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FDF6E9" opacity="0.6"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">5</text>
+      <text class="cell-text" x="34" y="20">vendored schema → generated/schema-hash.json</text>
+      <text class="cell-mono" x="34" y="36">9 plugins record a sha256 digest</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20" fill="#854F0B">Partial — only acme_business_deck, acme_pitch_deck recompute</text>
+      <text class="cell-mono" x="574" y="36">createHash appears in exactly two test files</text>
+      <text class="cell-text" x="974" y="28" fill="#854F0B">silent ×7</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P1</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#633806">HIGH</text>
+    </g>
+    <g transform="translate(0,286)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FDF6E9" opacity="0.6"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">6</text>
+      <text class="cell-text" x="34" y="20">Commander registry → fdpm-cli/MANUAL.md</text>
+      <text class="cell-mono" x="34" y="36">27 command groups · 1,035 lines</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20" fill="#854F0B">Weak — manual-command-contract asserts 7 literal phrases</text>
+      <text class="cell-mono" x="574" y="36">already drifted: no fdpm dnis / planning / workspace</text>
+      <text class="cell-text" x="974" y="28" fill="#854F0B">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P1</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#633806">HIGH</text>
+    </g>
+    <g transform="translate(0,338)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FDF6E9" opacity="0.6"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">7</text>
+      <text class="cell-text" x="34" y="20">Commander registry → README.md</text>
+      <text class="cell-mono" x="34" y="36">1,015 lines · shipped in the npm package</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20" fill="#854F0B">Env-var block only (build-env-docs --check)</text>
+      <text class="cell-mono" x="574" y="36">already drifted: no fdpm validate / diff / migrate</text>
+      <text class="cell-text" x="974" y="28" fill="#854F0B">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P1</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#633806">HIGH</text>
+    </g>
+    <g transform="translate(0,390)">
+      <rect x="0" y="0" width="1460" height="52" fill="#FDF6E9" opacity="0.6"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">8</text>
+      <text class="cell-text" x="34" y="20">Commander registry + MCP tools → AGENTS.md</text>
+      <text class="cell-mono" x="34" y="36">471 lines · the agent-facing CLI reference</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20" fill="#854F0B">⚠ NONE — no test reads it</text>
+      <text class="cell-mono" x="574" y="36">already drifted: no fdpm dnis / workspace / planning</text>
+      <text class="cell-text" x="974" y="28" fill="#854F0B">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P1</text>
+      <text class="cell-text" x="1214" y="28" font-weight="600" fill="#633806">HIGH</text>
+    </g>
+  </g>
+
+  <!-- ================= Section 3b: MODERATE + LOW table ================= -->
+  <text class="section-title" x="70" y="1632">Coupling inventory — MODERATE and LOW</text>
+  <text class="section-sub" x="70" y="1650">Ten couplings with a real automated guard. The seven LOW rows are what this repository does well.</text>
+
+  <g transform="translate(70,1665)">
+    <rect x="0" y="0" width="1460" height="26" rx="4" fill="#EEEDEE"/>
+    <text class="cell-head" x="10" y="17">#</text>
+    <text class="cell-head" x="34" y="17">Relationship</text>
+    <text class="cell-head" x="364" y="17">Mechanism</text>
+    <text class="cell-head" x="574" y="17">Consistency guard</text>
+    <text class="cell-head" x="974" y="17">Propagation</text>
+    <text class="cell-head" x="1124" y="17">Tier</text>
+    <text class="cell-head" x="1214" y="17">Risk</text>
+
+    <g transform="translate(0,26)">
+      <rect x="0" y="0" width="1460" height="52" fill="#EDF4FC" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">9</text>
+      <text class="cell-text" x="34" y="20">docs/specs/ filenames → SPEC citations across docs</text>
+      <text class="cell-mono" x="34" y="36">docs/{specs,architecture,planning}/*.md</text>
+      <text class="cell-mono" x="364" y="28">contract-test</text>
+      <text class="cell-text" x="574" y="20">doc-drift.test.ts — the file exists</text>
+      <text class="cell-mono" x="574" y="36">a wrong section or a wrong claim still passes</text>
+      <text class="cell-text" x="974" y="28" fill="#185FA5">test-fail / silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#378ADD"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P2</text>
+      <text class="cell-text" x="1214" y="28" fill="#042C53">MODERATE</text>
+    </g>
+    <g transform="translate(0,78)">
+      <rect x="0" y="0" width="1460" height="52" fill="#EDF4FC" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">10</text>
+      <text class="cell-text" x="34" y="20">generated/product-page-bundle.json → plugin README</text>
+      <text class="cell-mono" x="34" y="36">7 bridge-generated plugins</text>
+      <text class="cell-mono" x="364" y="28">contract-test</text>
+      <text class="cell-text" x="574" y="20">doc-drift.test.ts — profile_id substring only</text>
+      <text class="cell-mono" x="574" y="36">every other generated fact is unchecked prose</text>
+      <text class="cell-text" x="974" y="28" fill="#185FA5">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#378ADD"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P2</text>
+      <text class="cell-text" x="1214" y="28" fill="#042C53">MODERATE</text>
+    </g>
+    <g transform="translate(0,130)">
+      <rect x="0" y="0" width="1460" height="52" fill="#EDF4FC" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">11</text>
+      <text class="cell-text" x="34" y="20">Plugin schema shapes → static/fixtures/*.ts</text>
+      <text class="cell-mono" x="34" y="36">business-deck-dos-5_2.ts · sales-deck-fdpm.ts</text>
+      <text class="cell-mono" x="364" y="28">manual-mirror</text>
+      <text class="cell-text" x="574" y="20">⚠ NONE</text>
+      <text class="cell-mono" x="574" y="36">no test, src or script reads static/fixtures/</text>
+      <text class="cell-text" x="974" y="28" fill="#185FA5">silent</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#378ADD"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P2</text>
+      <text class="cell-text" x="1214" y="28" fill="#042C53">MODERATE</text>
+    </g>
+    <g transform="translate(0,182)">
+      <rect x="0" y="0" width="1460" height="52" fill="#E9F7F0" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">12</text>
+      <text class="cell-text" x="34" y="20">sidecar.ts + schema → generated/*.json</text>
+      <text class="cell-mono" x="34" y="36">7 bridge plugins</text>
+      <text class="cell-mono" x="364" y="28">codegen</text>
+      <text class="cell-text" x="574" y="20">run-bridge.ts --check, asserted per plugin</text>
+      <text class="cell-mono" x="574" y="36">plus byte-equal re-emit in a fresh process</text>
+      <text class="cell-text" x="974" y="28" fill="#0F6E56">test-failure</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P3</text>
+      <text class="cell-text" x="1214" y="28" fill="#04342C">LOW</text>
+    </g>
+    <g transform="translate(0,234)">
+      <rect x="0" y="0" width="1460" height="52" fill="#E9F7F0" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">13</text>
+      <text class="cell-text" x="34" y="20">FDPM_ENV_VARS → README block, .env.example, --help</text>
+      <text class="cell-mono" x="34" y="36">28 variables · src/core/config/env.ts</text>
+      <text class="cell-mono" x="364" y="28">codegen</text>
+      <text class="cell-text" x="574" y="20">build-env-docs.ts --check + env-contract.test.ts</text>
+      <text class="cell-mono" x="574" y="36">verified: 0 consumed-but-undeclared, 0 unused</text>
+      <text class="cell-text" x="974" y="28" fill="#0F6E56">test-failure</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P3</text>
+      <text class="cell-text" x="1214" y="28" fill="#04342C">LOW</text>
+    </g>
+    <g transform="translate(0,286)">
+      <rect x="0" y="0" width="1460" height="52" fill="#E9F7F0" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">14</text>
+      <text class="cell-text" x="34" y="20">git index → docs/architecture/CENSUS.md</text>
+      <text class="cell-mono" x="34" y="36">LOC, plugin dirs, workflows, test counts</text>
+      <text class="cell-mono" x="364" y="28">codegen</text>
+      <text class="cell-text" x="574" y="20">build-arch-census.ts --check</text>
+      <text class="cell-mono" x="574" y="36">plus tests proving it reads the index, not the worktree</text>
+      <text class="cell-text" x="974" y="28" fill="#0F6E56">test-failure</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P3</text>
+      <text class="cell-text" x="1214" y="28" fill="#04342C">LOW</text>
+    </g>
+    <g transform="translate(0,338)">
+      <rect x="0" y="0" width="1460" height="52" fill="#E9F7F0" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">15</text>
+      <text class="cell-text" x="34" y="20">Registered profiles → docs/architecture/PROFILES.md</text>
+      <text class="cell-mono" x="34" y="36">21 profiles · type counts, rule ids, renderer targets</text>
+      <text class="cell-mono" x="364" y="28">codegen</text>
+      <text class="cell-text" x="574" y="20">build-profile-atlas.ts --check</text>
+      <text class="cell-mono" x="574" y="36">plus an independent assertion against plugin dirs</text>
+      <text class="cell-text" x="974" y="28" fill="#0F6E56">test-failure</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P3</text>
+      <text class="cell-text" x="1214" y="28" fill="#04342C">LOW</text>
+    </g>
+    <g transform="translate(0,390)">
+      <rect x="0" y="0" width="1460" height="52" fill="#E9F7F0" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">16</text>
+      <text class="cell-text" x="34" y="20">ids.ts + MCP manifest → plugin prompt bodies</text>
+      <text class="cell-mono" x="34" y="36">loop_forward · knowledge_cartridge</text>
+      <text class="cell-mono" x="364" y="28">contract-test</text>
+      <text class="cell-text" x="574" y="20">"cites only lf:/kc: ids the plugin declares" + tool check</text>
+      <text class="cell-mono" x="574" y="36">plus a pinned byte ceiling on every rendered body</text>
+      <text class="cell-text" x="974" y="28" fill="#0F6E56">test-failure</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P3</text>
+      <text class="cell-text" x="1214" y="28" fill="#04342C">LOW</text>
+    </g>
+    <g transform="translate(0,442)">
+      <rect x="0" y="0" width="1460" height="52" fill="#E9F7F0" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">17</text>
+      <text class="cell-text" x="34" y="20">SPEC-MCP-SERVER forbidden imports → src/mcp/tools/</text>
+      <text class="cell-mono" x="34" y="36">host.persistence · host.store · child_process · vm · eval</text>
+      <text class="cell-mono" x="364" y="28">contract-test</text>
+      <text class="cell-text" x="574" y="20">tests/mcp-source-imports.test.ts</text>
+      <text class="cell-mono" x="574" y="36">the SPEC mandated a CI check and it exists</text>
+      <text class="cell-text" x="974" y="28" fill="#0F6E56">test-failure</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P3</text>
+      <text class="cell-text" x="1214" y="28" fill="#04342C">LOW</text>
+    </g>
+    <g transform="translate(0,494)">
+      <rect x="0" y="0" width="1460" height="52" fill="#E9F7F0" opacity="0.55"/>
+      <text class="cell-text" x="10" y="22" font-weight="600">18</text>
+      <text class="cell-text" x="34" y="20">Renderer implementations → tests/renderers/__snapshots__</text>
+      <text class="cell-mono" x="34" y="36">PNG visual baselines, light/dark/print/mobile</text>
+      <text class="cell-mono" x="364" y="28">contract-test</text>
+      <text class="cell-text" x="574" y="20">Playwright, CI job renderer-visual</text>
+      <text class="cell-mono" x="574" y="36">separate job with Chromium + poppler-utils</text>
+      <text class="cell-text" x="974" y="28" fill="#0F6E56">test-failure</text>
+      <rect x="1124" y="18" width="34" height="16" rx="4" fill="#1D9E75"/><text class="badge-text" x="1141" y="27" text-anchor="middle" dominant-baseline="central">P3</text>
+      <text class="cell-text" x="1214" y="28" fill="#04342C">LOW</text>
+    </g>
+  </g>
+
+  <line x1="70" y1="2241" x2="1530" y2="2241" stroke="#e0ddd5" stroke-width="0.5"/>
+
+  <!-- ================= Section 4: mitigations ================= -->
+  <text class="section-title" x="70" y="2268">Top mitigations</text>
+  <text class="section-sub" x="70" y="2286">Ordered by priority. Every one of these runs inside the existing CI test job — no workflow change needed.</text>
+
+  <g transform="translate(70,2300)">
+    <rect x="0" y="0" width="1460" height="40" rx="6" fill="#FEF3EF" stroke="#F0997B" stroke-width="0.4"/>
+    <rect x="12" y="12" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="29" y="21" text-anchor="middle" dominant-baseline="central">P0</text>
+    <text class="fix-label" x="58" y="24">Enrol every schema-hash</text>
+    <text class="fix-text" x="200" y="24">Directory-driven test recomputing sha256 for all 9 plugins — the check acme_* already runs, generalised. Track _ingest_bin/ so the declared source exists in CI. Closes #1 and #5.</text>
+
+    <rect x="0" y="48" width="1460" height="40" rx="6" fill="#FEF3EF" stroke="#F0997B" stroke-width="0.4"/>
+    <rect x="12" y="60" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="29" y="69" text-anchor="middle" dominant-baseline="central">P0</text>
+    <text class="fix-label" x="58" y="72">Add --check to all 11 spec builders</text>
+    <text class="fix-text" x="270" y="72">Render in memory, compare to the committed docs/specs/*.md, exit non-zero on difference — the contract build-arch-census and build-profile-atlas already implement. Glob-enrol in doc-drift.test.ts. Closes #3.</text>
+
+    <rect x="0" y="96" width="1460" height="40" rx="6" fill="#FEF3EF" stroke="#F0997B" stroke-width="0.4"/>
+    <rect x="12" y="108" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="29" y="117" text-anchor="middle" dominant-baseline="central">P0</text>
+    <text class="fix-label" x="58" y="120">Re-export instead of copying</text>
+    <text class="fix-text" x="230" y="120">Have plugins re-export from the tracked static/schemas/ original, making tsc the guard. Where non-null assertions block it, compare normalised token streams. Closes #2.</text>
+
+    <rect x="0" y="144" width="1460" height="40" rx="6" fill="#FEF3EF" stroke="#F0997B" stroke-width="0.4"/>
+    <rect x="12" y="156" width="34" height="16" rx="4" fill="#D85A30"/><text class="badge-text" x="29" y="165" text-anchor="middle" dominant-baseline="central">P0</text>
+    <text class="fix-label" x="58" y="168">Parse GENERATOR.md in a test</text>
+    <text class="fix-text" x="240" y="168">~40 lines extracting the probe, tier, defect and Pass-6 tables and asserting set-equality against PROBE, SOURCE_TIER, DEFECT_KIND and RULE ∪ KC_UNENFORCEABLE_CHECKS. Closes #4.</text>
+
+    <rect x="0" y="192" width="1460" height="40" rx="6" fill="#FDF6E9" stroke="#FAC775" stroke-width="0.4"/>
+    <rect x="12" y="204" width="34" height="16" rx="4" fill="#BA7517"/><text class="badge-text" x="29" y="213" text-anchor="middle" dominant-baseline="central">P1</text>
+    <text class="fix-label" x="58" y="216">Project the command registry</text>
+    <text class="fix-text" x="230" y="216">Replace the 7-phrase allow-list with a projection over every registered command, applied to MANUAL.md, README.md and AGENTS.md, with a commented opt-out array. Closes #6, #7 and #8.</text>
+  </g>
+
+  <!-- ================= Section 5: footer ================= -->
+  <line x1="70" y1="2570" x2="1530" y2="2570" stroke="#e0ddd5" stroke-width="0.5"/>
+  <text class="disclaimer" x="70" y="2587">This diagram was produced by static heuristic analysis. No finding should be taken as ground truth. Validate all CRITICAL and HIGH findings manually before acting on them. Four findings were verified by execution — see the Methodology section of drift-risk-map.md.</text>
+</svg>
