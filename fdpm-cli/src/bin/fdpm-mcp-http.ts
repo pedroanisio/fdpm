@@ -27,7 +27,12 @@ import { createHostPool } from "../http/host-pool.js";
 import { createHttpHandler, expandAllowedHosts } from "../http/handler.js";
 import { createSessionManager } from "../http/session-manager.js";
 import { ALL_SCOPES } from "../http/principal.js";
-import { resolveAdvertisedScopes, resolveBindHost } from "../http/config.js";
+import {
+  assertRequiredPluginsActive,
+  resolveAdvertisedScopes,
+  resolveBindHost,
+  resolveRequiredPlugins,
+} from "../http/config.js";
 import {
   createIntrospectionVerifier,
   createStaticTokenVerifier,
@@ -135,6 +140,20 @@ async function main(): Promise<void> {
     throw new FDPMException("verification", "tool catalog exceeds its byte budget", {
       evidence: { reason: "catalog_over_budget", violations: catalog.violations },
     });
+  }
+
+  // Preflight: the plugins this deployment declares it cannot run without
+  // must actually be active before we accept traffic.
+  //
+  // Plugin discovery is driven by FDPM_PLUGIN_PATH and the in-image builtin
+  // directory, not by the data volume, so a `dataDir: null` Host resolves the
+  // exact same plugin set every tenant Host will get — without creating a
+  // workspace, a log or any other artefact on the volume.
+  const requiredPlugins = resolveRequiredPlugins(process.env);
+  if (requiredPlugins.length > 0) {
+    const probe = new Host({ dataDir: null });
+    await probe.load();
+    assertRequiredPluginsActive(requiredPlugins, probe.plugins.list());
   }
 
   const maxResourceBytes = resolveMaxResourceBytes(process.env);

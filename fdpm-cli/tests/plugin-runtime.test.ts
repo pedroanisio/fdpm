@@ -292,6 +292,66 @@ export default { manifest, activate: () => {} };
     expect(r?.state).toBe("disabled");
     rmSync(pluginDir, { recursive: true, force: true });
   });
+
+  /**
+   * A plugin that is discovered and then not activated must say so.
+   *
+   * Observed 2026-09-01 against the k8s overlay: `FDPM_TRUSTED_KEYS` and the
+   * external plugin's `trust.signed_by` are two strings in two repositories
+   * that must match exactly, and a mismatch took the auto-activation `else`
+   * branch — `state = "disabled"` with no warning, no error and exit code 0.
+   * The gateway then answered /healthz and /readyz normally and its startup
+   * log was byte-identical to a healthy boot, so nothing anywhere could
+   * distinguish "plugin loaded" from "plugin silently dropped".
+   *
+   * The trust decision itself is correct and stays. What was missing is the
+   * signal, so this asserts the signal.
+   */
+  it("warns when a discovered plugin is left disabled for want of trust", async () => {
+    const manifest = {
+      id: "test.untrusted",
+      version: "0.1.0",
+      spec_version: "1.1.0",
+      kind: "server",
+      host_compatibility: { fdpm: ">=1.0,<2" },
+      trust: { signed_by: "some-key-not-in-FDPM_TRUSTED_KEYS" },
+      capabilities: [{ capability_id: "cap:profile", local_name: "demo", entry: "PROFILE" }],
+    };
+    writePlugin(
+      pluginDir,
+      "untrusted",
+      manifest,
+      `
+const manifest = ${JSON.stringify({ ...manifest, capabilities: [{ capability_id: "cap:profile", local_name: "demo" }] })};
+export default { manifest, activate: () => {} };
+`,
+    );
+
+    const captured: string[] = [];
+    const originalWrite = process.stderr.write.bind(process.stderr);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (process.stderr as any).write = (chunk: unknown): boolean => {
+      captured.push(String(chunk));
+      return true;
+    };
+    try {
+      const host = new Host({ dataDir: null, builtinDirs: [], pluginPaths: [pluginDir] });
+      await host.load();
+      const r = host.plugins.get("test.untrusted");
+      expect(r?.trust).toBe("community");
+      expect(r?.state).toBe("disabled");
+    } finally {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (process.stderr as any).write = originalWrite;
+    }
+
+    const text = captured.join("");
+    expect(text, "a plugin dropped for trust must not be dropped silently").toContain(
+      "test.untrusted",
+    );
+    expect(text).toContain("FDPM_TRUSTED_KEYS");
+    rmSync(pluginDir, { recursive: true, force: true });
+  });
 });
 
 describe("plugin runtime — admin lifecycle transitions", () => {

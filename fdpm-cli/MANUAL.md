@@ -187,6 +187,7 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | `FDPM_MCP_ENABLE_DESTRUCTIVE` | unset | Fdpm-mcp: truthy -> expose Tier-3 destructive tools (off by default). |
 | `FDPM_MCP_ENABLE_PLUGINS` | `""` | Fdpm-mcp: comma-separated plugin ids whose MCP tools are exposed. |
 | `FDPM_MCP_MAX_CALLS_PER_MINUTE` | `120` | Fdpm-mcp: per-session rate limit on tool calls. |
+| `FDPM_MCP_REQUIRED_PLUGINS` | `` | Fdpm-mcp-http: comma-separated plugin ids that MUST be active; boot refuses if one is missing or left disabled, so a plugin installed from outside the image cannot fail silently. |
 | `FDPM_MCP_MAX_RESOURCE_BYTES` | `1048576` | Fdpm-mcp: cap on the bytes one resources/read may serve; over-cap reads are refused with a `quota` envelope. |
 | `FDPM_MCP_MAX_RESULT_BYTES` | `32768` | Fdpm-mcp: cap on the bytes one read-only tools/call result may serve; over-cap results are refused with a `quota` envelope naming the tool's narrowing arguments. |
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | Fdpm-mcp: truthy -> log full args (default: sha256 hash only). |

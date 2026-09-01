@@ -164,6 +164,16 @@ spec:
             # match fdpm-plugin.json's signed_by exactly.
             - name: FDPM_TRUSTED_KEYS
               value: pedroanisio-local
+            # Fail closed on the trust gate above. Without this the two
+            # strings — this pod's FDPM_TRUSTED_KEYS and fdpm-media's
+            # manifest `trust.signed_by` — can disagree and the plugin is
+            # discovered, disabled, and never mentioned again: /healthz and
+            # /readyz both stay green and the startup log is byte-identical
+            # to a healthy boot, so the first symptom is a missing
+            # profile:media:1.0 at request time. Naming the plugin here turns
+            # that into a pod that refuses to start.
+            - name: FDPM_MCP_REQUIRED_PLUGINS
+              value: fdpm.media
           livenessProbe:
             httpGet: { path: /healthz, port: http }
             initialDelaySeconds: 15

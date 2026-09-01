@@ -284,6 +284,13 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     summary: "fdpm-mcp: per-session rate limit on tool calls",
   },
   {
+    name: "FDPM_MCP_REQUIRED_PLUGINS",
+    defaultValue: "",
+    exampleValue: "fdpm.media",
+    summary:
+      "fdpm-mcp-http: comma-separated plugin ids that MUST be active; boot refuses if one is missing or left disabled, so a plugin installed from outside the image cannot fail silently",
+  },
+  {
     name: "FDPM_MCP_MAX_RESOURCE_BYTES",
     defaultValue: "1048576",
     exampleValue: "1048576",

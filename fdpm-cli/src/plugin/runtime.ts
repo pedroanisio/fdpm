@@ -203,6 +203,30 @@ export class PluginRuntime implements PluginRuntimeFacade {
         }
       } else {
         r.state = "disabled";
+        // A plugin that is discovered and then not activated must say so.
+        // To an operator, a silently disabled plugin is indistinguishable
+        // from one that was never installed: the process starts clean, the
+        // exit code is 0 and the capability is simply absent, so the first
+        // symptom is a missing profile at call time in some later request.
+        //
+        // The trust decision itself is correct and unchanged — §10.1 says
+        // community/unknown do not auto-activate. Only the silence is fixed.
+        const signedBy = r.manifest.trust?.signed_by;
+        emitHostWarning({
+          code: "plugin.disabled_untrusted",
+          message:
+            `plugin ${r.id} was discovered but left disabled: trust tier "${r.trust}" ` +
+            `does not auto-activate. ` +
+            (signedBy
+              ? `Its manifest declares trust.signed_by "${signedBy}" — add that exact value to FDPM_TRUSTED_KEYS`
+              : `Its manifest declares no trust.signed_by, so FDPM_TRUSTED_KEYS cannot verify it`) +
+            `, or run 'fdpm plugin enable ${r.id}'.`,
+          evidence: {
+            plugin_id: r.id,
+            trust: r.trust,
+            ...(signedBy === undefined ? {} : { signed_by: signedBy }),
+          },
+        });
       }
     }
   }
