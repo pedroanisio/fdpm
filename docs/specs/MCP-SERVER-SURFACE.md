@@ -110,8 +110,13 @@ Source: [src/mcp/resources/render.ts](../../fdpm-cli/src/mcp/resources/render.ts
 | Prompt | Plugin | Arguments | Body |
 |---|---|---|---|
 | `planning/triage_iteration` | `fdpm.planning` | `workbook_id` (required), `iteration_id`, `focus` | When to use; nine-step call order over tools + resources; failure modes by `plan:val:*` id |
+| `fact-fiction/ground_fiction` | `fdpm.fact-fiction` | `workbook_id` (required), `element_id` | When to use; eight-step grounding audit (shared sources, cite, assess, couple); failure modes by `ff:val:*` id |
+| `knowledge-cartridge/build_cartridge` | `fdpm.knowledge-cartridge` | `workbook_id` (required), `subject`, `archetype` | When to use; call order for the generator protocol; failure modes by `kc:val:*` id |
+| `loop-forward/author_pipeline` | `fdpm.loop-forward` | `workbook_id` (required), `pipeline_id` | When to use; call order for pipeline authoring; failure modes by `lf:val:*` id |
+| `loop-forward/audit_pipeline` | `fdpm.loop-forward` | `workbook_id` (required), `pipeline_id` | When to use; call order for the pipeline audit; failure modes by `lf:val:*` id |
+| `uml/model_a_domain` | `fdpm.uml` | `workbook_id` (required), `subject` | When to use; call order for domain modelling; failure modes by validator id |
 
-Contract: listing entry ≤ 600 B; body ≤ 16 KB with the three sections; arguments resolved/type-checked; render output validated. Source: [src/mcp/prompts.ts](../../fdpm-cli/src/mcp/prompts.ts), [plugins/planning/prompts.ts](../../fdpm-cli/plugins/planning/prompts.ts).
+Contract: listing entry ≤ 600 B; body ≤ 16 KB with the three sections; arguments resolved/type-checked; render output validated. Source: [src/mcp/prompts.ts](../../fdpm-cli/src/mcp/prompts.ts) and each plugin's `prompts.ts` (e.g. [plugins/planning/prompts.ts](../../fdpm-cli/plugins/planning/prompts.ts), [plugins/fact_fiction/prompts.ts](../../fdpm-cli/plugins/fact_fiction/prompts.ts)).
 
 ## What's NOT exposed
 

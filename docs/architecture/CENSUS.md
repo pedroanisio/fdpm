@@ -33,23 +33,23 @@ and plugin `generated/` trees.
 | Area | Lines (nearest 1,000) |
 |---|---:|
 | `src/` | ≈33K |
-| `plugins/` | ≈77K |
-| `tests/` | ≈51K |
+| `plugins/` | ≈78K |
+| `tests/` | ≈52K |
 | `scripts/` | ≈43K |
 | `packages/zod-bridge/` | ≈7K |
-| **Total** | **≈211K** |
+| **Total** | **≈214K** |
 
 ## Counts
 
 | Fact | Value | Derivation |
 |---|---:|---|
-| Plugin directories | 20 | `plugins/*/` |
-| `FDPM_*` environment variables | 50 | `FDPM_ENV_VARS` in `src/core/config/env.ts` |
+| Plugin directories | 21 | `plugins/*/` |
+| `FDPM_*` environment variables | 51 | `FDPM_ENV_VARS` in `src/core/config/env.ts` |
 | CI workflows | 3 | `.github/workflows/*.yml` |
 | `SPEC-*.md` documents | 13 | `docs/specs/SPEC-*.md` |
 | Distinct MCP tool ids | 30 | `fdpm.<group>.<verb>` literals under `src/mcp/` |
 
-## Plugin directories (20)
+## Plugin directories (21)
 
 - `_starter`
 - `academic_paper_v0_4_1`
@@ -59,6 +59,7 @@ and plugin `generated/` trees.
 - `dnis`
 - `document_plan`
 - `document_plan_dnis`
+- `fact_fiction`
 - `formal_specification`
 - `formal_specification_dnis`
 - `knowledge_cartridge`

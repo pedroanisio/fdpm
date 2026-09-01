@@ -6,6 +6,7 @@ import { SPEC_CORE_VERSION } from "../src/core/version/spec.js";
 import { EXPR_HELPER_SET_VERSION } from "../src/core/expr/std.js";
 
 const PLUGIN_MANIFESTS = [
+  "plugins/fact_fiction/fdpm-plugin.json",
   "plugins/formal_specification/fdpm-plugin.json",
   "plugins/planning/fdpm-plugin.json",
   "plugins/software_architecture/fdpm-plugin.json",

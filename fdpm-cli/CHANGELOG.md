@@ -35,6 +35,58 @@ upgrade.
 
 ### Added
 
+#### `fact_fiction` plugin — the fact-fiction coupling spike, normalized into a profile
+
+The fact-fiction Zod spike (`~/spikes/schemas/narrative/fact-fiction`,
+spec 0.2.0) modelled a historical-fiction work as one self-contained JSON
+document. Its inspection found a flaw the document form could not avoid:
+sources were embedded per fact under globally-unique ids, so one real-world
+source could not be cited by two facts without duplicating the citation.
+
+`plugins/fact_fiction/` (`fdpm.fact-fiction`, profile
+`profile:fact-fiction:0.1`) is the graph form. Sources are first-class
+`ff:Source` primitives cited through `ff:Cites` edges — shared by
+construction. The spike's root `superRefine` (ID uniqueness plus five
+hand-written referential sweeps) dissolves into the core: id uniqueness via
+`id_format`, dangling references rejected at write time by the relation
+gate and `core:field:id-ref` resolution on `ff:Assessment.fact_id` /
+`source_id`.
+
+- **9 primitive types** across `cat:ff:evidence` (`ff:Fact`, `ff:Source`,
+  `ff:Assessment`), `cat:ff:fiction` (`ff:FictionElement`, `ff:Constraint`),
+  and `cat:ff:structure` (`ff:Work`, `ff:Arc`, `ff:Chapter`, `ff:Scene`).
+  All 14 spike enums carried over verbatim as `Enum[...]` field checks.
+- **10 relation types**, including the typed coupling layer
+  (`ff:CouplesTo` with a 7-value `relation` enum and required
+  `explanation` as edge metadata) and the ordered structure chain
+  (`ff:HasArc`/`ff:HasChapter`/`ff:HasScene` with an integer `order` slot —
+  the explicit replacement for Zod's implicit array ordering).
+- **6 CEL rules**: 2 errors (`ff:val:disputed-fact-has-note`,
+  `ff:val:assessment-has-confidence` — the spike's cross-field refines) and
+  4 epistemic warnings (`ff:val:fact-cited`, `ff:val:fiction-grounded`,
+  `ff:val:scene-anchored`, `ff:val:constraint-supported`) kept at warning
+  level deliberately: the create-time graph trap makes min-edge errors
+  reject every honest write.
+- **`ff:ManuscriptOutlineRenderer`** (`text/markdown`, `outline.md`)
+  resolves the narrative-style cascade (work → arc → chapter → scene
+  `style_override`, most specific wins — the spike's
+  `NarrativeStyleOverrideSchema` merge, now read-side) and surfaces
+  **UNCITED** / **UNASSESSED** / **DISPUTED** facts and **UNSUPPORTED**
+  constraints so the review document and `validateProject` tell the same
+  story.
+- **`fact-fiction/ground_fiction` MCP prompt** — the grounding audit as a
+  skill, drift-gated against the plugin's own ids and the tool manifest.
+- Deliberate tightenings vs the spike, documented in the plugin README:
+  `Source.reliability` has no default (state `unknown` explicitly), the
+  tone array became `tone_primary` (validated enum) + `tones_additional`,
+  and free-text BCE dates get no ordering rule (lexicographic comparison
+  would reject correct ranges).
+
+Tests: `tests/plugins/fact_fiction/` (profile shape, rule behavior
+end-to-end through the Host — including the shared-source regression the
+spike could not express — renderer cascade/flags, prompt budgets and
+drift).
+
 #### `id-ref` fields are now resolved, and a delete says what it would orphan
 
 `kind: "id-ref"` with a mandatory `ref_type_id` has been in the meta-model

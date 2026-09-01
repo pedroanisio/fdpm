@@ -48,9 +48,9 @@ practice they are what makes a profile usable.
 
 ## Inventory
 
-21 profiles from 20 repository plugins: 18 base and
+22 profiles from 21 repository plugins: 19 base and
 3 derived. Together they register 883 validators,
-45 renderers and 5 MCP prompts.
+46 renderers and 6 MCP prompts.
 
 | Profile | Version | Prim. | Rel. | Rules | Extends | Shipped by |
 | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -62,6 +62,7 @@ practice they are what makes a profile usable.
 | `profile:dnis:0.1` | 0.1.0 | 2 | 2 | 0 | — | `plugins/dnis/` |
 | `profile:document-plan-dnis:3.1` | 3.1.0 | 8 | 11 | 0 | `profile:document-plan:3.1` + `profile:dnis:0.1` | `plugins/document_plan_dnis/` |
 | `profile:document-plan:3.1` | 3.1.0 | 6 | 0 | 0 | — | `plugins/document_plan/` |
+| `profile:fact-fiction:0.1` | 0.1.0 | 9 | 10 | 6 | — | `plugins/fact_fiction/` |
 | `profile:formal-specification-dnis:0.1` | 0.1.0 | 34 | 32 | 23 | `profile:formal-specification:3.0` + `profile:dnis:0.1` | `plugins/formal_specification_dnis/` |
 | `profile:formal-specification:3.0` | 3.1.0 | 32 | 30 | 23 | — | `plugins/formal_specification/` |
 | `profile:knowledge-cartridge:1.0` | 1.0.0 | 13 | 6 | 0 | — | `plugins/knowledge_cartridge/` |
@@ -76,8 +77,8 @@ practice they are what makes a profile usable.
 | `profile:uixo:1.2` | 1.2.0 | 712 | 210 | 0 | — | `plugins/uixo/` |
 | `profile:uml:2.5` | 2.5.1 | 22 | 24 | 0 | — | `plugins/uml/` |
 
-Across the 18 base profiles that is 950 primitive types,
-475 relation types and 127 declared validation rules. Derived
+Across the 19 base profiles that is 959 primitive types,
+485 relation types and 133 declared validation rules. Derived
 profiles are excluded from those totals: their types are their parents',
 and counting them again would count every inherited type twice.
 
@@ -167,6 +168,17 @@ Bridge-generated from schemas/document-plan.ts (DocumentPlan v3.1.0): the plan h
 - **Shipped by:** `plugins/document_plan/` — `fdpm.document-plan` v0.1.0
 - **Renderers (1):** `docplan:PlanBriefRenderer` → text/markdown
 - **Validators (6, 6 distinct rule ids):** `docplan:val:asset-zod`, `docplan:val:concept-zod`, `docplan:val:contentsource-zod`, `docplan:val:documentplan-zod`, `docplan:val:person-zod`, `docplan:val:thread-zod`
+
+### `profile:fact-fiction:0.1`
+
+**FactFiction** · v0.1.0
+
+Historical-fiction workbench: facts with shared sources and scholarly assessments, historicity-graded fiction elements, historical constraints, a typed fact-fiction coupling layer, and an arc/chapter/scene structure with narrative-style overrides.
+
+- **Resolved:** 9 primitive types, 10 relation types, 3 categories, 1 scope, 6 declared validation rules
+- **Shipped by:** `plugins/fact_fiction/` — `fdpm.fact-fiction` v0.1.0
+- **Renderers (1):** `ff:ManuscriptOutlineRenderer` → text/markdown
+- **MCP prompts:** `fact-fiction/ground_fiction`
 
 ### `profile:formal-specification-dnis:0.1`
 
