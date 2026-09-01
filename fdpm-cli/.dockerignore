@@ -1,0 +1,5 @@
+# Scratch directories (git-ignored working space) must not reach the image:
+# the image must be a function of the commit, not of the checkout — the same
+# principle that pins the architecture census to the git index.
+_tmp
+packages/_tmp
