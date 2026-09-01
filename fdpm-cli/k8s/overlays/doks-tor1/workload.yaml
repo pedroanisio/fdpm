@@ -16,6 +16,10 @@
 #                            onto each namespace's default ServiceAccount,
 #                            and it authenticates registry.digitalocean.com
 #                            as a whole, so it covers this registry too.
+#
+# Two external plugins are installed: fdpm-media (profile:media:1.0) and
+# fdpm-claims (profile:cfs:0.5). Both are named in FDPM_MCP_REQUIRED_PLUGINS,
+# so the pod refuses to start if either is discovered but left disabled.
 ---
 apiVersion: v1
 kind: Namespace
@@ -78,6 +82,25 @@ spec:
               cp -r /plugin/. /plugins/fdpm-media/
               test -r /plugins/fdpm-media/fdpm-plugin.json
               echo "installed fdpm-media ($(ls /plugins/fdpm-media | wc -l) files)"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: plugins, mountPath: /plugins }
+        # profile:cfs:0.5 — the Claim Formalization Schema. Init containers run
+        # in order and each must exit 0, so a plugin image that fails to copy
+        # stops the pod here rather than letting the gateway boot without it.
+        - name: install-plugin-claims
+          image: registry.digitalocean.com/arc4d3io-artifacts-registry/fdpm-plugin-claims:0.1.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+              mkdir -p /plugins/fdpm-claims
+              cp -r /plugin/. /plugins/fdpm-claims/
+              test -r /plugins/fdpm-claims/fdpm-plugin.json
+              echo "installed fdpm-claims ($(ls /plugins/fdpm-claims | wc -l) files)"
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -173,7 +196,7 @@ spec:
             # profile:media:1.0 at request time. Naming the plugin here turns
             # that into a pod that refuses to start.
             - name: FDPM_MCP_REQUIRED_PLUGINS
-              value: fdpm.media
+              value: fdpm.media,fdpm.claims
           livenessProbe:
             httpGet: { path: /healthz, port: http }
             initialDelaySeconds: 15
