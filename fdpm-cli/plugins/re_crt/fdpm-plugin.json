@@ -1,0 +1,37 @@
+{
+  "id": "fdpm.re-crt",
+  "version": "6.2.0",
+  "spec_version": "1.1.0",
+  "kind": "server",
+  "name": "RE-CRT",
+  "description": "RE-CRT 6.2 as an FDPM profile: the typed reason DAG, the obstruction DAG, the duality maps, the claims and theorem registries, the v6.2 evidence layer, and the computed open-leaf triage that the source ontology defines in OWL but cannot derive under the open-world assumption.",
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2"
+  },
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "re-crt",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "triage-md",
+      "entry": "renderTriageReport",
+      "metadata": {
+        "renderer_id": "recrt:TriageRenderer",
+        "target": "text/markdown"
+      }
+    }
+  ],
+  "permissions": [
+    "read:workbooks",
+    "read:primitives",
+    "read:relations",
+    "render:server"
+  ]
+}

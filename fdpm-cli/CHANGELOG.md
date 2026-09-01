@@ -35,6 +35,49 @@ upgrade.
 
 ### Added
 
+#### `fdpm.re-crt` — the RE-CRT 6.2 ontology as a profile
+
+`profile:re-crt:6.2`: the typed reason DAG, its dual obstruction DAG, the
+duality maps, the claims and theorem registries, the v6.2 evidence layer, and
+the §4.9 open-leaf triage. Ten primitive types, fifteen relation types,
+fourteen validator registrations, one renderer.
+
+The source is an OWL 2 DL + SHACL ontology (`w3id.org/re-crt`, version
+`6.2-owl-shacl`). Three things are stronger in the mapping, and they are why
+it was made:
+
+- **The duality maps gain endpoint typing.** `explainedByBarrier` (δ) has none
+  in the `.ttl` — `rdfs:range` is an entailment obligation and the ontology's
+  validation protocol runs without inference, so a δ edge pointing at a bypass,
+  or at a proof node, validates there. The failure is silent and directional:
+  a δ edge that misses an active barrier makes the leaf read as *unblocked*,
+  the most promising target, when the data meant it blocked. The host now
+  rejects the edge with `core:relation:target-type`.
+- **Support homogeneity becomes structure.** Declared as two relation types, a
+  cross-kind support edge is unrepresentable rather than merely invalid, and
+  `SupportHomogeneityShape` has nothing left to check.
+- **The triage runs.** In OWL it is defined through
+  `recrt:UndefeatedActiveBarrier`, an `owl:complementOf`; "no bypass defeats
+  this barrier" is not provable under the open-world assumption, so on open
+  data the classification derives nothing and a leaf stops at the helper class
+  `BlockedOpen`. A workbook is a closed graph, so `triage.ts` computes Dung's
+  grounded labelling directly. Reinstatement is universal, per the ontology's
+  own 6.0 correction: a leaf is bypassed only when EVERY barrier explaining it
+  is defeated.
+
+Three rules warn rather than block — `dag-membership`, `derived-premise` (V5)
+and the `evidence-gate`. SHACL validates a finished graph; FDPM validates every
+write, and none of the three can hold at the instant a node is created, because
+the relation that would satisfy them cannot exist before the node it points at.
+Raised as errors they would make the profile unwritable. The constraint is not
+weaker; the moment it can be decided is later.
+
+Not mapped, exactly as they are not mapped into OWL: the tensor encoding Θ,
+weighted-resolution arithmetic, REPLAY / E(v), the categorical semantics and
+the nine theorems. `recrt:Claim` and `recrt:Theorem` record them as data.
+
+### Added
+
 #### `fact_fiction` plugin — the fact-fiction coupling spike, normalized into a profile
 
 The fact-fiction Zod spike (`~/spikes/schemas/narrative/fact-fiction`,

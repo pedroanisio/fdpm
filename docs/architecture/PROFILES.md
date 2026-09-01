@@ -48,9 +48,9 @@ practice they are what makes a profile usable.
 
 ## Inventory
 
-22 profiles from 21 repository plugins: 19 base and
-3 derived. Together they register 883 validators,
-46 renderers and 6 MCP prompts.
+23 profiles from 22 repository plugins: 20 base and
+3 derived. Together they register 897 validators,
+47 renderers and 6 MCP prompts.
 
 | Profile | Version | Prim. | Rel. | Rules | Extends | Shipped by |
 | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -68,6 +68,7 @@ practice they are what makes a profile usable.
 | `profile:knowledge-cartridge:1.0` | 1.0.0 | 13 | 6 | 0 | — | `plugins/knowledge_cartridge/` |
 | `profile:loop-forward:2.0` | 2.0.0 | 15 | 22 | 0 | — | `plugins/loop_forward/` |
 | `profile:planning:0.1` | 0.1.0 | 6 | 9 | 12 | — | `plugins/planning/` |
+| `profile:re-crt:6.2` | 6.2.0 | 10 | 15 | 0 | — | `plugins/re_crt/` |
 | `profile:software-architecture:1.0` | 1.1.0 | 23 | 25 | 14 | — | `plugins/software_architecture/` |
 | `profile:software-requirements:0.2` | 0.2.0 | 8 | 17 | 19 | — | `plugins/software_requirements/` |
 | `profile:spec-authoring-dnis:0.1` | 0.1.0 | 31 | 20 | 24 | `profile:spec-authoring:0.1` + `profile:dnis:0.1` | `plugins/spec_authoring_dnis/` |
@@ -77,8 +78,8 @@ practice they are what makes a profile usable.
 | `profile:uixo:1.2` | 1.2.0 | 712 | 210 | 0 | — | `plugins/uixo/` |
 | `profile:uml:2.5` | 2.5.1 | 22 | 24 | 0 | — | `plugins/uml/` |
 
-Across the 19 base profiles that is 959 primitive types,
-485 relation types and 133 declared validation rules. Derived
+Across the 20 base profiles that is 969 primitive types,
+500 relation types and 133 declared validation rules. Derived
 profiles are excluded from those totals: their types are their parents',
 and counting them again would count every inherited type twice.
 
@@ -246,6 +247,17 @@ Planning-and-tracking profile for software implementation and testing workflows.
 - **Transformers:** `plan:task-to-ac`
 - **Expression helpers:** `fn.fdpm.planning.minutes-to-hours`
 - **MCP prompts:** `planning/triage_iteration`
+
+### `profile:re-crt:6.2`
+
+**RE-CRT 6.2** · v6.2.0
+
+Typed reason DAG, obstruction DAG, duality maps, claims and theorem registries, and the v6.2 evidence layer, mapped from the OWL 2 DL + SHACL ontology at w3id.org/re-crt.
+
+- **Resolved:** 10 primitive types, 15 relation types, 0 categories, 0 scopes, 0 declared validation rules
+- **Shipped by:** `plugins/re_crt/` — `fdpm.re-crt` v6.2.0
+- **Renderers (1):** `recrt:TriageRenderer` → text/markdown
+- **Validators (14, 7 distinct rule ids):** `recrt:val.dag-membership`, `recrt:val.defeat-bipartite`, `recrt:val.derived-premise`, `recrt:val.evidence-gate`, `recrt:val.leaf`, `recrt:val.support-acyclic`, `recrt:val.type-beta`
 
 ### `profile:software-architecture:1.0`
 
