@@ -19,6 +19,7 @@
 
 import { z } from "zod";
 import type { Host } from "../host.js";
+import type { ProjectStateSlice } from "../store/state.js";
 import { FDPMException } from "../errors/fdpm-exception.js";
 
 export const RelationRef = z
@@ -182,10 +183,32 @@ export function previewPrimitiveDelete(
       evidence: { workbook_id, missing_id: id },
     });
   }
-  const referencing_relations: RelationRef[] = [];
+  return {
+    workbook_id,
+    id,
+    type_id: primitive.type_id,
+    referencing_relations: findReferencingRelations(slice, id),
+    referencing_fields: collectReferencingFields(host, workbook_id, id),
+  };
+}
+
+/**
+ * Every relation whose source or target is `id`.
+ *
+ * One definition, two consumers that must not disagree: the preview a
+ * caller reads before deciding, and the check `Host.deletePrimitive`
+ * runs before refusing. If they diverged, a preview could report a
+ * clean delete that the delete then rejects, or worse, report nothing
+ * while the delete quietly removed edges.
+ */
+export function findReferencingRelations(
+  slice: Pick<ProjectStateSlice, "relations">,
+  id: string,
+): RelationRef[] {
+  const out: RelationRef[] = [];
   for (const rel of Object.values(slice.relations)) {
     if (rel.source_id === id || rel.target_id === id) {
-      referencing_relations.push({
+      out.push({
         id: rel.id,
         type_id: rel.type_id,
         source_id: rel.source_id,
@@ -193,13 +216,7 @@ export function previewPrimitiveDelete(
       });
     }
   }
-  return {
-    workbook_id,
-    id,
-    type_id: primitive.type_id,
-    referencing_relations,
-    referencing_fields: collectReferencingFields(host, workbook_id, id),
-  };
+  return out;
 }
 
 export function previewRelationDelete(

@@ -3,6 +3,7 @@ import { ProfileRegistry } from "./profile/registry.js";
 import { ValidationPipeline } from "./validation/pipeline.js";
 import { FDPMException } from "./errors/fdpm-exception.js";
 import { JsonlLogStore, defaultDataDir } from "../persistence/jsonl-log.js";
+import { findReferencingRelations } from "./operations/delete-preview.js";
 import { LocalWorkspace } from "./workspace/local.js";
 import type { Workspace } from "./workspace/types.js";
 import { createHash } from "node:crypto";
@@ -103,7 +104,7 @@ export type DnisBatchIntent =
   // restores the pre-batch projection.
   | {
       kind: "primitive.delete";
-      payload: { id: string };
+      payload: { id: string; cascade?: boolean };
     }
   | {
       kind: "relation.delete";
@@ -814,10 +815,53 @@ export class Host {
     });
   }
 
-  async deletePrimitive(workbook_id: string, id: string): Promise<AppendOutput> {
+  /**
+   * Delete a primitive.
+   *
+   * Refuses by default when other records point at it. Replay cascades —
+   * `applyPrimitiveDelete` drops every relation touching the primitive,
+   * which is what keeps the projection free of dangling endpoints, since
+   * relation creation rejects a missing source or target as an error.
+   * But cascading *silently* on the write path contradicts the rest of
+   * the system: nothing else removes data the caller did not name. So
+   * the policy lives here, at the write boundary, and the mechanism
+   * stays in replay.
+   *
+   * Pass `cascade: true` to take the edges with it, having seen which
+   * ones — `previewPrimitiveDelete` lists exactly what the refusal
+   * reports, and both read `findReferencingRelations`.
+   *
+   * Deliberately not enforced during replay: an existing log may contain
+   * deletes that cascaded under the old behaviour, and those logs must
+   * still rebuild. Policy gates what enters the log; it does not
+   * retroactively invalidate what is already in it.
+   */
+  async deletePrimitive(
+    workbook_id: string,
+    id: string,
+    opts?: { cascade?: boolean },
+  ): Promise<AppendOutput> {
     const slice = this.store.getProject(workbook_id);
     if (!(id in slice.primitives))
       throw new FDPMException("not_found", `primitive not found: ${id}`);
+    if (opts?.cascade !== true) {
+      const referencing = findReferencingRelations(slice, id);
+      if (referencing.length > 0) {
+        throw new FDPMException(
+          "conflict",
+          `primitive ${id} is referenced by ${referencing.length} relation(s); ` +
+            `delete them first or pass cascade to remove them with it`,
+          {
+            evidence: {
+              workbook_id,
+              id,
+              referencing_relations: referencing,
+              remedy: "cascade",
+            },
+          },
+        );
+      }
+    }
     return this.appendAndPersist({
       kind: "primitive.delete",
       workbook_id,
@@ -1022,12 +1066,47 @@ export class Host {
     });
   }
 
+  /**
+   * Move a primitive into another scope.
+   *
+   * Validated, because a reparent changes the primitive's `scope_id`,
+   * and a profile rule can constrain what belongs in which scope. This
+   * path used to append directly, so a move could put an instance into a
+   * scope its own rules forbid — the one write on the Host that could
+   * leave the projection in a state a direct edit would have been
+   * refused for.
+   *
+   * `reorder` is left unvalidated on purpose: it permutes membership
+   * without changing any instance, so there is nothing for an
+   * instance-scoped pipeline to judge. Its own invariant — that the new
+   * ordering is a permutation of the current one — is enforced in replay.
+   */
   async reparent(workbook_id: string, payload: {
     primitive_id: string;
     from_scope_id: string;
     to_scope_id: string;
     position?: number;
   }): Promise<AppendOutput> {
+    const slice = this.store.getProject(workbook_id);
+    const existing = slice.primitives[payload.primitive_id];
+    if (!existing)
+      throw new FDPMException("not_found", `primitive not found: ${payload.primitive_id}`, {
+        evidence: { workbook_id, primitive_id: payload.primitive_id },
+      });
+    const proposed: PrimitiveInstance = { ...existing, scope_id: payload.to_scope_id };
+    const profile = this.requireResolvedProfile(workbook_id);
+    const report = this.pipeline.runPrimitive(
+      proposed,
+      profile,
+      this.validationContext(workbook_id),
+    );
+    if (!report.accepted) {
+      throw new FDPMException(
+        "validation",
+        `validation failed moving ${payload.primitive_id} to ${payload.to_scope_id}`,
+        { findings: report.findings },
+      );
+    }
     return this.appendAndPersist({
       kind: "structure.reparent",
       workbook_id,
@@ -1372,6 +1451,26 @@ export class Host {
                 "not_found",
                 `primitive not found: ${intent.payload.id}`,
               );
+            // Same refusal as the single-entry path — otherwise a batch
+            // of one is a way around it.
+            if (intent.payload.cascade !== true) {
+              const referencing = findReferencingRelations(slice, intent.payload.id);
+              if (referencing.length > 0) {
+                throw new FDPMException(
+                  "conflict",
+                  `primitive ${intent.payload.id} is referenced by ${referencing.length} relation(s); ` +
+                    `delete them first or pass cascade to remove them with it`,
+                  {
+                    evidence: {
+                      workbook_id,
+                      id: intent.payload.id,
+                      referencing_relations: referencing,
+                      remedy: "cascade",
+                    },
+                  },
+                );
+              }
+            }
             // No validation report for deletes — leaves `report` at
             // `null` and the post-switch dispatch skips the
             // accepted-check below.
