@@ -28,18 +28,18 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 
 | Field | Value | Source |
 |---|---|---|
-| Server name | `fdpm-mcp` | [src/bin/fdpm-mcp.ts:198](../../fdpm-cli/src/bin/fdpm-mcp.ts#L198) |
-| Server version | 1.2.0 | live `mcp__fdpm__fdpm_health` |
-| MCP tool manifest version | 0.4.0 | [src/mcp/schemas.ts](../../fdpm-cli/src/mcp/schemas.ts) `MCP_TOOL_MANIFEST_VERSION` |
-| Catalog byte budget | 26,000 B total / 2,000 B per tool (`FDPM_MCP_CATALOG_BUDGET_BYTES` raises the total); measured 23,567 B with destructive off, 22,577 B on | [src/mcp/catalog.ts](../../fdpm-cli/src/mcp/catalog.ts) `DEFAULT_CATALOG_BUDGET`; `fdpm.health.catalog` |
-| Instructions byte budget | `SERVER_INSTRUCTIONS` measured at boot against `INSTRUCTIONS_BUDGET_BYTES` (4,000 B); over → refuse to start, exit 2. Same check in CI (`tests/mcp/instructions.test.ts`) | [src/mcp/instructions.ts](../../fdpm-cli/src/mcp/instructions.ts), [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
-| Transport | stdio | [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
-| Capabilities advertised | `tools`, `resources` | [src/bin/fdpm-mcp.ts:206-212](../../fdpm-cli/src/bin/fdpm-mcp.ts#L206-L212) |
-| `initialize.instructions` | declared — static `SERVER_INSTRUCTIONS` (cold-start workflow, response contract, gating); 4,000 B budget; mirrored at `fdpm://guide` | [src/mcp/instructions.ts](../../fdpm-cli/src/mcp/instructions.ts) |
-| `prompts` capability | declared — plugin-shipped skills via `ctx.registerPrompt`; `prompts/list` metadata only, `prompts/get` validated body (§13.5) | [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts), [src/mcp/prompts.ts](../../fdpm-cli/src/mcp/prompts.ts) |
-| `resources/subscribe` | not declared (slice 1) | [src/bin/fdpm-mcp.ts:208-211](../../fdpm-cli/src/bin/fdpm-mcp.ts#L208-L211) |
+| Server name | `fdpm-mcp` | [src/mcp/build-server.ts:53-56](../../fdpm-cli/src/mcp/build-server.ts#L53-L56) |
+| Server version | 1.3.0 (`HOST_VERSION`) | [src/core/version/spec.ts](../../fdpm-cli/src/core/version/spec.ts), surfaced by [src/mcp/build-server.ts:55](../../fdpm-cli/src/mcp/build-server.ts#L55) |
+| MCP tool manifest version | 0.6.0 | [src/mcp/schemas.ts](../../fdpm-cli/src/mcp/schemas.ts) `MCP_TOOL_MANIFEST_VERSION` |
+| Catalog byte budget | 28,500 B total / 2,000 B per tool (`FDPM_MCP_CATALOG_BUDGET_BYTES` raises the total); measured 27,560 B with destructive off, 26,372 B on at the manifest 0.6.0 ratchet (SPEC-MCP-SERVER changelog 0.1.10) | [src/mcp/catalog.ts](../../fdpm-cli/src/mcp/catalog.ts) `DEFAULT_CATALOG_BUDGET`; `fdpm.health.catalog` |
+| Instructions byte budget | `SERVER_INSTRUCTIONS` measured at boot against `INSTRUCTIONS_BUDGET_BYTES` (4,700 B); over → refuse to start, exit 2. Same check in CI (`tests/mcp/instructions.test.ts`) | [src/mcp/instructions.ts](../../fdpm-cli/src/mcp/instructions.ts), [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
+| Transport | stdio (`fdpm-mcp`); streamable HTTP via the separate `fdpm-mcp-http` binary, same server factory | [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts), [src/bin/fdpm-mcp-http.ts](../../fdpm-cli/src/bin/fdpm-mcp-http.ts) |
+| Capabilities advertised | `tools`, `resources` (`listChanged: true`), `prompts` (`listChanged: true`) | [src/mcp/build-server.ts:61-65](../../fdpm-cli/src/mcp/build-server.ts#L61-L65) |
+| `initialize.instructions` | declared — static `SERVER_INSTRUCTIONS` (cold-start workflow, response contract, gating); 4,700 B budget; mirrored at `fdpm://guide` | [src/mcp/instructions.ts](../../fdpm-cli/src/mcp/instructions.ts) |
+| `prompts` capability | declared — plugin-shipped skills via `ctx.registerPrompt`; `prompts/list` metadata only, `prompts/get` validated body (§13.5) | [src/mcp/build-server.ts](../../fdpm-cli/src/mcp/build-server.ts), [src/mcp/prompts.ts](../../fdpm-cli/src/mcp/prompts.ts) |
+| `resources/subscribe` | not declared | [src/mcp/build-server.ts:61-65](../../fdpm-cli/src/mcp/build-server.ts#L61-L65) |
 
-**Total surface:** 32 tools (12 Tier-1 + 14 Tier-2 + 6 Tier-3) + 4 resource providers (render, profile, schema, guide) + server instructions. The advertised catalog is measured against a byte budget at boot and in CI (SPEC-MCP-SERVER §8.5).
+**Total surface:** 32 tools (12 Tier-1 + 14 Tier-2 + 6 Tier-3) + 5 resource providers (render, profile, schema, guide, audit) + server instructions + 6 plugin-shipped prompts. The advertised catalog is measured against a byte budget at boot and in CI (SPEC-MCP-SERVER §8.5).
 
 ## Tools — Tier 1: read-only (always advertised)
 
@@ -64,6 +64,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 |---|---|---|
 | `fdpm.profile.register` | register profile | Register a `DomainProfile` revision (persisted). The registry keys on `(id, version)`, so a new `version` of a known id is a new revision; an exact repeat is `conflict` naming the registered versions. Input is an **opaque** `profile` object; read `fdpm://schema/profile` for the shape. Validated server-side with the same Zod schema: malformed → Tier-2 rejection (`ok: false`, findings `core:profile-schema` with `field_path`); unregistered `extends` parent → `not_found` |
 | `fdpm.workbook.create` | create workbook | Create a new workbook bound to a registered profile. `profile_id` takes a bare id (binds the newest revision) or an `id@version` ref; the resolved revision is pinned onto the workbook. Returns Tier-2 envelope with `validation_report` |
+| `fdpm.workbook.update` | rename / re-describe | Rename a workbook or rewrite its description without discarding its log (SPEC-CORE 1.3 `workbook.update`). At least one of `name` / `description` is required; `description: null` clears it; `profile_id` is not updatable. Returns Tier-2 envelope |
 | `fdpm.primitive.create` | create primitive | Create one primitive; runs §7 validation pipeline; rejection via envelope (`ok: false`, `isError: false`) |
 | `fdpm.primitive.create_batch` | atomic batch create | Atomically create 1..500 primitives; ALL succeed or WHOLE batch rolls back; later entries see earlier ones |
 | `fdpm.primitive.replace` | full overwrite | Replace `field_values` entirely; `type_id` immutable; supports `expected_revision` (If-Match) |
@@ -136,7 +137,7 @@ Contract: listing entry ≤ 600 B; body ≤ 16 KB with the three sections; argum
 | Gate | Mechanism | Source |
 |---|---|---|
 | Tier-3 dispatch | `--enable-destructive` flag (or `FDPM_MCP_ENABLE_DESTRUCTIVE=1`) — when off, Tier-3 tools are advertised with a `⚠ DISABLED` banner (v0.1.2) and refused at dispatch with `permission`/`destructive_disabled` | [src/mcp/manifest.ts](../../fdpm-cli/src/mcp/manifest.ts), `advertisedTools()` |
-| Catalog byte budget | Advertised catalog (Core + plugin tools) measured in UTF-8 bytes at boot; over `DEFAULT_CATALOG_BUDGET` (26,000 B total / 2,000 B per tool) → refuse to start, exit 2, violations on stderr. `FDPM_MCP_CATALOG_BUDGET_BYTES` raises the total only. Same budget enforced in CI by `tests/mcp/catalog-budget.test.ts`; `tools/list._meta.catalog_bytes` and `fdpm.health.catalog` expose the measurement | [src/mcp/catalog.ts](../../fdpm-cli/src/mcp/catalog.ts), [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
+| Catalog byte budget | Advertised catalog (Core + plugin tools) measured in UTF-8 bytes at boot; over `DEFAULT_CATALOG_BUDGET` (28,500 B total / 2,000 B per tool) → refuse to start, exit 2, violations on stderr. `FDPM_MCP_CATALOG_BUDGET_BYTES` raises the total only. Same budget enforced in CI by `tests/mcp/catalog-budget.test.ts`; `tools/list._meta.catalog_bytes` and `fdpm.health.catalog` expose the measurement | [src/mcp/catalog.ts](../../fdpm-cli/src/mcp/catalog.ts), [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts) |
 | Tier-3 idempotency | Real destructive calls MUST carry `idempotency_key`; session cache `(tool, key) → result`, TTL 5 min, cap 1,000 — same args replay (`replayed: true` in audit), different args → `conflict`/`idempotency_key_reused`, concurrent same-key calls coalesce; gate refusals never cached | [src/mcp/dispatch.ts](../../fdpm-cli/src/mcp/dispatch.ts) step 5b, [src/mcp/session.ts](../../fdpm-cli/src/mcp/session.ts) `IdempotencyCache` |
 | Tier-3 dry-run | `dry_run: true` (strict boolean) bypasses the destructive and confirmation gates, runs the core delete preview, appends nothing; audit `start` carries `tier`/`dry_run`/`idempotency_key` before the handler runs | [src/core/operations/delete-preview.ts](../../fdpm-cli/src/core/operations/delete-preview.ts) |
 | Tool-result ceiling | A Tier-1 result over `FDPM_MCP_MAX_RESULT_BYTES` (default 32,768 B) is refused with `quota`/`result_too_large`, carrying the measured `bytes`, the `cap`, and the tool's declared `narrowing` arguments. Never truncated. Tier-2/3 results are measured into the audit log but served, because the append has already happened. Every completed handler run records `result_bytes` | [src/mcp/result-budget.ts](../../fdpm-cli/src/mcp/result-budget.ts), [src/mcp/dispatch.ts](../../fdpm-cli/src/mcp/dispatch.ts) |
@@ -149,8 +150,8 @@ Contract: listing entry ≤ 600 B; body ≤ 16 KB with the three sections; argum
 
 - Tool inventory: [src/mcp/manifest.ts](../../fdpm-cli/src/mcp/manifest.ts) (`TIER_1_TOOLS`, `TIER_2_TOOLS`, `TIER_3_TOOLS`, `MANIFEST`)
 - Tool descriptions: [src/mcp/tools/](../../fdpm-cli/src/mcp/tools/) (one file per tool; `name` + `description` constants)
-- Server capability declaration: [src/bin/fdpm-mcp.ts:203-215](../../fdpm-cli/src/bin/fdpm-mcp.ts#L203-L215)
-- Resource providers: [src/mcp/resources/](../../fdpm-cli/src/mcp/resources/) — `render.ts`, `profile.ts`, `schema.ts`, `guide.ts`, `registry.ts`, `types.ts`
+- Server capability declaration: [src/mcp/build-server.ts:53-66](../../fdpm-cli/src/mcp/build-server.ts#L53-L66) (shared by the stdio and HTTP binaries)
+- Resource providers: [src/mcp/resources/](../../fdpm-cli/src/mcp/resources/) — `render.ts`, `profile.ts`, `schema.ts`, `guide.ts`, `audit.ts`, `registry.ts`, `types.ts`
 - Server instructions: [src/mcp/instructions.ts](../../fdpm-cli/src/mcp/instructions.ts); contract test [tests/mcp/instructions.test.ts](../../fdpm-cli/tests/mcp/instructions.test.ts)
 - Catalog measurement and budget: [src/mcp/catalog.ts](../../fdpm-cli/src/mcp/catalog.ts); CI gate [tests/mcp/catalog-budget.test.ts](../../fdpm-cli/tests/mcp/catalog-budget.test.ts); stdio E2E [tests/mcp/fdpm-mcp-stdio.test.ts](../../fdpm-cli/tests/mcp/fdpm-mcp-stdio.test.ts)
 - Live introspection: `fdpm.health` returned `version: 1.2.0`, `manifest_version: 0.1.0`, `profiles_loaded: 8`, `projects_loaded: 6` at original generation time; manifest 0.2.0 / catalog rows added 2026-08-28 from source (`Claude Fable 5 via Claude Code`)

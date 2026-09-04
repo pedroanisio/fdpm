@@ -99,8 +99,12 @@ Capabilities exposed:
 | `cap:renderer`       | `spec-html`             | `renderHtml`    | `renderer_id: fs:SpecHtmlRenderer`   |
 | `cap:renderer`       | `spec-pdf`              | `renderPdf`     | `renderer_id: fs:SpecPdfRenderer`    |
 
-Validators are registered programmatically inside `activate(ctx)` rather than
-declared in the manifest — see [`_register_validators.ts`](./_register_validators.ts).
+Validation rules are not manifest capabilities: they travel inside the
+`DomainProfile` as its `validation_rules` array (see
+[`validation_rules.ts`](./validation_rules.ts) and the `validation_rules:`
+field in [`index.ts`](./index.ts)), and the Core compiles their CEL
+`expression` when the profile is registered. `activate(ctx)` registers only
+the three renderers above.
 
 ---
 
@@ -329,7 +333,8 @@ relation in the source file.
 ## Validation rules
 
 Defined in [`validation_rules.ts`](./validation_rules.ts) and **executed** by
-the validators registered in [`_register_validators.ts`](./_register_validators.ts).
+the Core's CEL validator from each rule's `expression` field once the profile
+is registered (SPEC-CEL-VALIDATOR §4.3); no plugin-side validator code exists.
 Each rule is recorded with its DSL `predicate` (kept verbatim for tooling
 introspection) and an executable `cap:validator` that emits exactly **one**
 finding when the predicate fails. The pipeline suppresses the step-5
@@ -361,9 +366,10 @@ informational duplicate so each logical check produces a single finding.
 | `fs:val:phase-has-failure-mode`               | warning  | `fs:Phase`            | `has_incoming(fs:OccursIn)`                        |
 | `fs:val:citation-not-stale`                   | warning  | `fs:Citation`         | `non_trivial(currency_date)`                       |
 
-Predicate evaluator helpers (`checkNonTrivial`, `checkMinItems`, `fieldEquals`,
-`hasIncoming`, `hasOutgoing`, `acyclicFrom`, `isTrivial`) are exported by
-[`_validators.ts`](./_validators.ts) and reused across rule registrations.
+The legacy DSL predicates (`non_trivial`, `min_items`, `has_incoming`,
+`has_outgoing`, `acyclic`, `field`) are documentation only: each was migrated
+to a CEL `expression` on 2026-05-04 and the plugin ships no evaluator helpers
+of its own.
 
 > **PALS's Law applies** to any LLM-assisted authoring on top of these
 > primitives: validators are mandatory, not optional. Treat all generated

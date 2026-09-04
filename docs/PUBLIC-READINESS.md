@@ -6,6 +6,13 @@ Baseline commit inspected: `7729319`
 Candidate CLI version: `1.2.0`
 Candidate bridge version: `0.4.0`
 
+> **Status update — 2026-09-04.** The live GitHub API now returns
+> `visibility=PUBLIC` with a description set (no homepage, no topics, no
+> license detected). Operator action 2 below is therefore done and action 3
+> is partly done. The license decision is still open, so the "Open-source
+> rights" row and every license-dependent verdict below still stand. The rest
+> of this document is the 2026-08-30 assessment, preserved as written.
+
 ## Verdict
 
 The codebase is prepared for public review but is not yet an open-source

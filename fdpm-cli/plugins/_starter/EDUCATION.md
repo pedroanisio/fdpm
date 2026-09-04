@@ -15,7 +15,7 @@ This file is the **operator's manual** for forking and extending it.
 
 ## Reading order if you've never written an FDPM plugin
 
-1. **[`spec-plugin-authoring-howto`](../../docs/specs/) workbook** —
+1. **`spec-plugin-authoring-howto` workbook** (a workbook, not a file) —
    `fdpm workbook get spec-plugin-authoring-howto --json`. Read it
    first. The starter is the worked example for that workbook's §6.
 2. **[`fdpm-plugin.json`](./fdpm-plugin.json)** — the manifest. Every
@@ -131,7 +131,7 @@ guidance below tells you what to delete cleanly if you don't need it.
 
 ## The §7 obligations and your fork
 
-[`spec-plugin-authoring-howto` §7](../../docs/specs/) — the
+`spec-plugin-authoring-howto` §7 — the
 "Documentation Obligations for Approval" section — applies to your
 fork. Specifically:
 

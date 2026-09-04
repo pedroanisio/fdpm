@@ -11,7 +11,7 @@
  *
  * Follows the same shape as `build-spec-*.ts`: this script is the source of
  * truth, `CENSUS.md` is its rendered artifact, and
- * `tests/_meta/arch-census-drift.test.ts` fails the build when the two
+ * `tests/_meta/doc-drift.test.ts` fails the build when the two
  * disagree. Run with `npx tsx scripts/build-arch-census.ts`; pass `--check`
  * to verify without writing.
  *
@@ -238,7 +238,7 @@ disclaimer:
 <!-- GENERATED FILE — DO NOT EDIT BY HAND.
      Source: fdpm-cli/scripts/build-arch-census.ts
      Regenerate: npx tsx scripts/build-arch-census.ts
-     Verified by: fdpm-cli/tests/_meta/arch-census-drift.test.ts -->
+     Verified by: fdpm-cli/tests/_meta/doc-drift.test.ts -->
 
 # Repository census
 

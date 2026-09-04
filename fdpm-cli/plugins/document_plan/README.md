@@ -116,6 +116,8 @@ manifest ↔ sidecar parity, activation of both plugins, validator
 accept/reject, and the fixture plan ingested and rendered end-to-end
 (with the negative case: a leaf without a claim never reaches the log),
 and `coherence.test.ts` for the comparative-claim judge.
-CI: [`.github/workflows/plugin-document-plan.yml`](../../.github/workflows/plugin-document-plan.yml).
+CI: the repository-root [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml)
+runs the whole `fdpm-cli` suite, including this plugin's tests; the nested
+per-plugin workflow was removed on 2026-08-30 because GitHub never discovered it.
 
 [← fdpm-cli](../../README.md)

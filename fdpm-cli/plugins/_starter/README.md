@@ -38,7 +38,7 @@ This work is subject to the methodological caveats and commitments described in 
 ## Who this is for
 
 You are about to write your first FDPM plugin. You have read
-[`spec-plugin-authoring-howto`](../../docs/specs/) (the workbook, not a
+`spec-plugin-authoring-howto` (the workbook, not a
 file — load it via `fdpm workbook get spec-plugin-authoring-howto`)
 and now want to see the abstractions in working code with the *why*
 visible.

@@ -25,10 +25,11 @@ This work is subject to the methodological caveats and commitments described in 
 ## Public release status
 
 The repository has been hardened for public collaboration, but it is **not yet
-an open-source release**. An open-source license still has to be selected, the
-GitHub repository is currently private, and neither npm package has completed
-its first publication. The release gate blocks publication until the root and
-both package license files agree with their SPDX metadata.
+an open-source release**. The GitHub repository is public, but an open-source
+license still has to be selected, so source visibility grants no redistribution
+or open-source use rights, and neither npm package has completed its first
+publication. The release gate blocks publication until the root and both
+package license files agree with their SPDX metadata.
 
 See [`docs/PUBLIC-READINESS.md`](docs/PUBLIC-READINESS.md) for the verified
 state and operator actions, [`CONTRIBUTING.md`](CONTRIBUTING.md) for the change
@@ -67,8 +68,8 @@ ordered by how a cold agent encounters them:
    variants degrade agent attention on tool selection, which is
    the failure mode the architecture exists to avoid.
 3. **Prompts (orient)** — MCP prompts shipped by each plugin
-   (`planning/triage_iteration`, `fs/audit_assumptions`,
-   `sw/review_decisions`). The user invokes a prompt; the prompt
+   (`planning/triage_iteration`, `loop-forward/author_pipeline`,
+   `uml/model_a_domain`). The user invokes a prompt; the prompt
    delivers the *how to think* layer that tool descriptions alone
    cannot. This is what closes the cold-start gap.
 4. **Expressions (compose)** — a filter language exposed through
@@ -137,7 +138,8 @@ hypothesis, not a finished product — see "Eval design" below.
 | Plugin prompts as domain operating instructions — `loop-forward/author_pipeline` and `loop-forward/audit_pipeline`, with a drift gate over the ids they cite and a measured body-byte ratchet | Shipped |
 | `profile:knowledge-cartridge:1.0` — talent cartridges as a typed graph, with the generator protocol's verification pass running as validators and the checks it cannot make declared rather than dropped | Shipped |
 | Progressive-disclosure / Skills-shaped catalog summarization | v2 |
-| MCP change notifications (`tools`/`resources`/`prompts` list_changed) | v2 |
+| MCP change notifications — `resources`/`prompts` `list_changed` on plugin reload | Shipped |
+| MCP change notifications — `tools` `list_changed` | v2 |
 | **Three-arm cold-agent eval gate** | **End of v2** |
 | `workbook.operation(expr)` filter language (sources + FILTER + LET) | v3, scoped down |
 | Expression language extras (MAP, FOR_EACH, LAMBDA, transitive closures) | Open-ended; revise after v2 eval result |
@@ -231,8 +233,9 @@ implemented.
 
 ## Status
 
-- **SPEC-CORE 1.2.0** — `spec_core` 1.2, document revision 1.2.0;
-  §5.6 SPEC-DNIS adoption is normative.
+- **SPEC-CORE 1.3.0** — `spec_core` 1.3, document revision 1.3.0;
+  §5.6 SPEC-DNIS adoption is normative; 1.3 adds the `workbook.update`
+  operation kind (rename / re-describe a workbook without discarding its log).
 - **SPEC-DNIS 0.1.7** — Document Node Identity Specification adopted
   by SPEC-CORE 1.2 §5.6 (was a peer "MAY layer" proposal pre-1.2).
   TV-1..TV-7 pass against both the in-memory store and the host

@@ -37,8 +37,11 @@ boundary that bypasses Core** (SPEC-REPL Principle 1).
 ### Invocation
 
 ```bash
-fdpm repl [--data-dir <path>] [--no-persist] [--no-banner] \
-          [--script <file>] [--exit-on-error] [--json]
+fdpm [--data-dir <path>] [--no-persist] repl [--no-banner] \
+     [--script <file>] [--exit-on-error] [--json]
+# --data-dir and --no-persist are root options and must precede `repl`;
+# the root program enables positional options, so `fdpm repl --data-dir …`
+# fails with "unknown option '--data-dir'".
 ```
 
 For agent integrations, the canonical form is:
@@ -210,21 +213,26 @@ These are all SPEC-REPL §14.2 deferrals; revisit when the slice ships.
 
 ---
 
-## SPEC-MCP-SERVER — `fdpm-mcp` (in-progress)
+## SPEC-MCP-SERVER — `fdpm-mcp` (shipped; still evolving)
 
-The MCP server (`fdpm-mcp` binary, `src/mcp/`) is under active
-development. It shares the freshness primitives (`Host.statProjectLog`,
-`Host.reloadProjectTail`, `staleStateException`) and per-subcommand
-metadata registry (`src/commands/index.ts` exports
-`ALL_COMMAND_METADATA`) with the REPL. See `src/mcp/` for the
-in-progress manifest, classification gate, and dispatch shape.
+The MCP server (`fdpm-mcp` stdio binary and `fdpm-mcp-http`, both built
+by `src/mcp/build-server.ts`) is shipped: 32 Core tools in three tiers,
+five resource providers, plugin-shipped prompts, server instructions, the
+catalog byte budget, Tier-3 hardening and the audit report are all live
+(see the README's implementation-status table and
+`docs/specs/MCP-SERVER-SURFACE.md` for the current catalogue). It shares
+the freshness primitives (`Host.statProjectLog`, `Host.reloadProjectTail`,
+`staleStateException`) and per-subcommand metadata registry
+(`src/commands/index.ts` exports `ALL_COMMAND_METADATA`) with the REPL.
+`src/mcp/` holds the manifest, classification gate, and dispatch shape.
 
 ### Resources surface
 
 Beyond the tool list, `fdpm-mcp` advertises **resources** —
 read-only addressable views of workbook state that an agent can pin
-to context without burning a tool call. Slice 1 ships the **render**
-provider:
+to context without burning a tool call. Five providers ship — `render`,
+`profile`, `schema`, `guide` and `audit` (`src/mcp/resources/registry.ts`);
+the sections below describe each in turn, starting with **render**:
 
 ```
 fdpm://workbook/{workbook_id}/render/{target}[#{renderer_id}]

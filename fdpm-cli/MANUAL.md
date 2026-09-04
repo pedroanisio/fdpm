@@ -77,16 +77,16 @@ alias fdpm='node /path/to/repo/fdpm-cli/dist/src/bin/fdpm.js'
 
 # 4. Smoke test.
 fdpm version --json
-# => { "spec_core": "1.1", "spec_core_revision": "1.1.1",
-#      "host": "fdpm-cli", "host_version": "1.2.0" }
+# => { "spec_core": "1.3", "spec_core_revision": "1.3.0",
+#      "host": "fdpm-cli", "host_version": "1.3.0" }
 
 fdpm health readyz
 # => ready profiles=N
 
 fdpm profile list --json | jq '.profiles | map(.id)'
-# => ["core:empty", "profile:formal-specification:3.0",
-#      "profile:planning:0.1", "profile:software-architecture:1.0",
-#      "profile:spec-authoring:0.1"]
+# => ["core:empty", "profile:academic-paper:0.4.1", …, "profile:uml:2.5"]
+#    core:empty plus one profile per bundled plugin; the generated
+#    inventory is docs/architecture/PROFILES.md.
 
 # 5. Create your first workbook against the formal-specification profile.
 fdpm workbook create --json \
@@ -813,6 +813,8 @@ The bundled plugins ship these:
 | `loop-forward/author_pipeline` | `fdpm.loop-forward` | Building a bounded multi-stage prompt pipeline, or extending one. |
 | `loop-forward/audit_pipeline` | `fdpm.loop-forward` | Reviewing a pipeline before running, approving or inheriting it. |
 | `knowledge-cartridge/build_cartridge` | `fdpm.knowledge-cartridge` | Compressing a corpus into a six-layer competence cartridge. |
+| `fact-fiction/ground_fiction` | `fdpm.fact-fiction` | Writing historical fiction whose invented layer stays accountable to the record. |
+| `uml/model_a_domain` | `fdpm.uml` | Modelling a domain as UML classes, attributes and associations in a workbook. |
 
 ```sh
 # Author a loop-forward pipeline: the call order that satisfies the

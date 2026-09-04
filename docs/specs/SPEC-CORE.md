@@ -12,11 +12,11 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-core.ts"
-revision: "1.2.0 — adopts SPEC-DNIS as a normative extension of §5. New §5.6 maps DNIS Documents/Nodes onto SPEC-CORE primitives and DNIS Operations onto §5.5 op-log entries; OperationResult idempotency is projected from the op log. FDPM-CLI hosts MUST register profile:dnis:0.1. See §24."
+revision: "1.3.0 — adds the `workbook.update` operation kind (§5.5.1, §9.1, §9.8.3): workbook name and description become event-sourced edits. 1.2.0 adopted SPEC-DNIS as a normative extension of §5 (§5.6); hosts MUST register profile:dnis:0.1. See §24."
 status: "Draft"
 ---
 
-# SPEC — FDPM Core v1.1
+# SPEC — FDPM Core v1.3
 
 _The invariant Core: contracts, models, services, and policies that exist regardless of which plugins are installed, including zero plugins._
 
@@ -59,8 +59,8 @@ This work is subject to the methodological caveats and commitments described in 
 
 | Field | Value |
 | --- | --- |
-| Spec ID | spec:fdpm:core:1.2 |
-| Version | 1.2.0 |
+| Spec ID | spec:fdpm:core:1.3 |
+| Version | 1.3.0 |
 | Status | Draft |
 | Audience | FDPM core maintainers, plugin authors (as a contract). |
 | Required reads | CLAUDE.md, PURPOSE.md, DISCLAIMER.md |
@@ -280,7 +280,7 @@ This subsection is normative. It defines the operation set, the log's invariants
 
 An **operation** is a typed, immutable record describing one logical mutation. The set of operation kinds is **closed and Core-owned**. Plugins MUST NOT introduce new kinds; they may only emit operations of existing kinds (e.g. via `cap:transformer` per the companion SPEC). Adding a new kind is a Core SPEC minor bump.
 
-The v1.1 kind set: `workbook.create`, `workbook.delete`, `workbook.split`, `workbook.clone`, `primitive.create`, `primitive.replace`, `primitive.patch`, `primitive.field-patch`, `primitive.delete`, `relation.create`, `relation.replace`, `relation.patch`, `relation.field-patch`, `relation.delete`, `structure.reorder`, `structure.reparent`, `template.create` / `template.delete` / `template.apply`, `test_suite.create` / `test_suite.replace` / `test_suite.delete`, `transfer.import`.
+The v1.3 kind set: `workbook.create`, `workbook.update`, `workbook.delete`, `workbook.split`, `workbook.clone`, `primitive.create`, `primitive.replace`, `primitive.patch`, `primitive.field-patch`, `primitive.delete`, `relation.create`, `relation.replace`, `relation.patch`, `relation.field-patch`, `relation.delete`, `structure.reorder`, `structure.reparent`, `template.create` / `template.delete` / `template.apply`, `test_suite.create` / `test_suite.replace` / `test_suite.delete`, `transfer.import`. (`workbook.update` was added in 1.3.0; every other kind dates from the v1.1 set.)
 
 `SuiteRunReport` records are **not** operations. They are observations of workbook state at a point in time, written by the test runner; they are projected separately and are not replayed.
 
@@ -687,6 +687,7 @@ If the target operation cannot be cleanly inverted given the current state, Core
 | `structure.reorder`      | `structure.reorder` with the prior ordering.                                                       |
 | `structure.reparent`     | `structure.reparent` with `from`/`to` swapped.                                                     |
 | `workbook.create`         | `workbook.delete`. (Undoing creation deletes the workbook.)                                           |
+| `workbook.update`         | `workbook.update` restoring the prior values of exactly the fields the target changed, so undoing a rename leaves a later description edit intact. A description absent before the target is restored by clearing it. |
 | `workbook.delete`         | `workbook.create` + bulk replay; rejected with 409 if another workbook's `workbook.split` consumed this workbook's ID. |
 | `workbook.split`          | A single inverse that recreates the source and deletes the partition workbooks. Rejected if any partition workbook has been mutated since the split. |
 | `workbook.clone`          | `workbook.delete` of the clone.                                                                     |
@@ -1149,6 +1150,12 @@ Other open questions (defaulted):
 ---
 
 ## 24. Revision history
+
+### 1.3.0 — 2026-08-31 — The `workbook.update` operation kind
+
+A SPEC minor bump. §5.5.1's Operation kind set is closed and Core-owned, so adding to it is a minor bump by construction. Adds `workbook.update`, which renames a workbook or rewrites its description. Before 1.3 a workbook's `name` and `description` were write-once at `workbook.create`: every other mutable thing in the model was event-sourced, but these two were reachable only by deleting and recreating the workbook, which discards its log. The payload carries `workbook_id` plus at least one of `name` and `description`; an update naming neither is rejected at the §8 verification gate rather than appended as a no-op. `description: null` clears the field, distinguishing 'clear it' from 'leave it alone', which JSON cannot express with `undefined` alone. The inverse is a `workbook.update` restoring only the fields the target changed (§9.8.3). `profile_id` is deliberately NOT updatable: every primitive and relation in the workbook validates against that profile, so re-binding it would invalidate the projection without revalidating a single instance — that is a migration, not an edit. No change to the §7 validation pipeline (there is no instance to validate) or to the §9 endpoint contract beyond the new `PATCH /workbooks/{id}`.
+
+Affected sections: 0, 5.5.1, 9.1, 9.8.3, 24
 
 ### 1.2.0 — 2026-05-04 — SPEC-DNIS adoption as a normative extension of §5
 

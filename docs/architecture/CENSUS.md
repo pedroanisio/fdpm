@@ -11,7 +11,7 @@ disclaimer:
 <!-- GENERATED FILE — DO NOT EDIT BY HAND.
      Source: fdpm-cli/scripts/build-arch-census.ts
      Regenerate: npx tsx scripts/build-arch-census.ts
-     Verified by: fdpm-cli/tests/_meta/arch-census-drift.test.ts -->
+     Verified by: fdpm-cli/tests/_meta/doc-drift.test.ts -->
 
 # Repository census
 
@@ -32,12 +32,12 @@ and plugin `generated/` trees.
 
 | Area | Lines (nearest 1,000) |
 |---|---:|
-| `src/` | ≈33K |
+| `src/` | ≈34K |
 | `plugins/` | ≈79K |
-| `tests/` | ≈53K |
+| `tests/` | ≈54K |
 | `scripts/` | ≈43K |
 | `packages/zod-bridge/` | ≈7K |
-| **Total** | **≈216K** |
+| **Total** | **≈218K** |
 
 ## Counts
 
@@ -47,7 +47,7 @@ and plugin `generated/` trees.
 | `FDPM_*` environment variables | 51 | `FDPM_ENV_VARS` in `src/core/config/env.ts` |
 | CI workflows | 3 | `.github/workflows/*.yml` |
 | `SPEC-*.md` documents | 13 | `docs/specs/SPEC-*.md` |
-| Distinct MCP tool ids | 30 | `fdpm.<group>.<verb>` literals under `src/mcp/` |
+| Distinct MCP tool ids | 31 | `fdpm.<group>.<verb>` literals under `src/mcp/` |
 
 ## Plugin directories (22)
 

@@ -235,6 +235,8 @@ derivation and names all 26 offenders; the ingest scan's boundaries),
 including the two-layer contract where the host tolerates an undeclared
 field as `core:field:undeclared` drift while the ingest gate refuses
 it), and `prompt.test.ts`.
-CI: [`.github/workflows/plugin-uml.yml`](../../.github/workflows/plugin-uml.yml).
+CI: the repository-root [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml)
+runs the whole `fdpm-cli` suite, including this plugin's tests; the nested
+per-plugin workflow was removed on 2026-08-30 because GitHub never discovered it.
 
 [← fdpm-cli](../../README.md)

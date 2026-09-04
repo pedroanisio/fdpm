@@ -60,11 +60,11 @@ const documentSpec: PrimitiveSpec = {
   id: "spec:doc:core",
   type: "spec:Document",
   fields: {
-    title: "SPEC — FDPM Core v1.1",
+    title: "SPEC — FDPM Core v1.3",
     subtitle:
       "The invariant Core: contracts, models, services, and policies that exist regardless of which plugins are installed, including zero plugins.",
-    spec_id: "spec:fdpm:core:1.2",
-    version: "1.2.0",
+    spec_id: "spec:fdpm:core:1.3",
+    version: "1.3.0",
     status: "Draft",
     audience: "FDPM core maintainers, plugin authors (as a contract).",
     required_reads: ["CLAUDE.md", "PURPOSE.md", "DISCLAIMER.md"],
@@ -76,7 +76,7 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "1.2.0 — adopts SPEC-DNIS as a normative extension of §5. New §5.6 maps DNIS Documents/Nodes onto SPEC-CORE primitives and DNIS Operations onto §5.5 op-log entries; OperationResult idempotency is projected from the op log. FDPM-CLI hosts MUST register profile:dnis:0.1. See §24.",
+      "1.3.0 — adds the `workbook.update` operation kind (§5.5.1, §9.1, §9.8.3): workbook name and description become event-sourced edits. 1.2.0 adopted SPEC-DNIS as a normative extension of §5 (§5.6); hosts MUST register profile:dnis:0.1. See §24.",
     source_script: "fdpm-cli/scripts/build-spec-core.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-core",
@@ -2082,7 +2082,7 @@ async function main(): Promise<void> {
   const phase1Relations = relations.filter((r) => r.type !== "spec:HasSection");
   const result = await defineProject(host, {
     id: PROJECT_ID,
-    name: "SPEC — FDPM Core v1.2",
+    name: "SPEC — FDPM Core v1.3",
     profile: PROFILE_ID,
     description:
       "1:1 migration of docs/specs/SPEC-CORE.md to a typed graph using the fdpm.spec-authoring-dnis composition profile. Section tree is committed as dnis:Document + dnis:Node primitives in phase 2.",
