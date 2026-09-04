@@ -2,6 +2,7 @@
   "name": "@fdpm/cli",
   "version": "1.2.0",
   "description": "Typed, event-sourced workbooks with a CLI, SDK, plugin runtime, renderers, and an MCP server.",
+  "license": "Apache-2.0",
   "author": "Pedro Anisio Silva <pedroanisio@arc4d3.com>",
   "keywords": [
     "fdpm",

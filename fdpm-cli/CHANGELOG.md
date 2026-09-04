@@ -35,6 +35,17 @@ upgrade.
 
 ### Added
 
+#### License — Apache-2.0
+
+The project is licensed under the Apache License, Version 2.0. The canonical
+text is `LICENSE` at the repository root, copied byte-for-byte to
+`fdpm-cli/LICENSE` and `fdpm-cli/packages/zod-bridge/LICENSE` so both npm
+tarballs ship it, and both package manifests declare `"license": "Apache-2.0"`.
+`tests/_meta/public-readiness.test.mjs` pins the SHA-256 of the canonical
+apache.org text and the SPDX field, so a retyped or partial copy fails the
+readiness suite; `npm run public:check` no longer reports the five
+license findings that blocked publication.
+
 #### Profile revisions — a profile id names a family, not a single document
 
 `ProfileRegistry` keys on `(id, version)`. `fdpm profile register` /

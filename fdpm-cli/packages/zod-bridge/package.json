@@ -2,6 +2,7 @@
   "name": "@fdpm/zod-bridge",
   "version": "0.4.0",
   "description": "Deterministic, one-way translation from Zod v4 schemas + a defineDomain() sidecar into a runnable FDPM plugin: DomainProfile, validators, view/product pages, USL-NG Core companion, plus the cap:renderer / cap:importer / cap:exporter / cap:expr-helper derivations and an fdpm-plugin.json + index.ts file emitter. Realization of SPEC-FDPM-BRIDGE for Zod v4.",
+  "license": "Apache-2.0",
   "author": "Pedro Anisio Silva <pedroanisio@arc4d3.com>",
   "keywords": [
     "fdpm",

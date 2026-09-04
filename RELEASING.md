@@ -12,9 +12,11 @@ is published.
 
 Do not publish while any item below is unresolved:
 
-1. Select an OSI-approved license, add identical `LICENSE` files at the
-   repository root and both package roots, and add the matching SPDX `license`
-   field to both package manifests.
+1. The license is the Apache License, Version 2.0 (SPDX `Apache-2.0`). The
+   `LICENSE` files at the repository root and both package roots must stay
+   byte-identical copies of the canonical text, and both package manifests
+   must carry `"license": "Apache-2.0"`; `npm run test:public-readiness`
+   pins the canonical digest and `npm run public:check` compares the copies.
 2. Run `npm run public:check` from `fdpm-cli/` with zero findings.
 3. Make the GitHub repository public and set its description, topics, and
    homepage.

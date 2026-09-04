@@ -263,6 +263,6 @@ upgrading.
 
 ## License
 
-An open-source license has not yet been selected. npm publication is blocked
-until the repository and both package tarballs carry the same license text and
-their manifests carry its SPDX expression.
+Apache License, Version 2.0 (SPDX `Apache-2.0`). The full text ships in this
+package as `LICENSE` and is the same file as the repository-root
+[`LICENSE`](https://github.com/pedroanisio/fdpm-cli/blob/main/LICENSE).

@@ -66,7 +66,7 @@ When activated against an FDPM host, this plugin registers:
 - **8** scopes organised in **2** scope sets (`process`, `paper`)
 - **32** primitive types under the `fs:` namespace
 - **30** relation types (graph edges between primitives)
-- **23** validation rules (executable predicates, registered as `cap:validator`)
+- **23** validation rules (CEL expressions carried in the profile's `validation_rules`), plus **3** `cap:validator` implementations registered from `_capabilities.ts`
 - **3** renderers — Markdown, HTML, PDF — under `cap:renderer`
 - **3** renderer bindings (legacy / metadata declarations)
 - **3** document templates
@@ -75,7 +75,8 @@ Activation logs:
 
 ```
 formal-specification activated: 32 primitive types, 30 relation types,
-23 validators, 3 renderers (md/html/pdf)
+23 CEL rules + 3 cap:validator implementations, 3 renderers (md/html/pdf),
+1 expr-helper, 1 transformer, 1 importer (fs-jsonl), 1 exporter (fs-jsonl)
 ```
 
 ---
@@ -435,7 +436,7 @@ the FDPM CLI host through the standard plugin discovery path. The host:
    and lifecycle hooks (`onEnable`).
 3. Calls `activate(ctx)`, which:
    - registers `PROFILE` via `ctx.registerProfile(...)`;
-   - calls `registerFormalSpecValidators(ctx)` to wire all 23 validators;
+   - calls `registerFormalSpecificationCapabilities(ctx)` (in `_capabilities.ts`) to register the 3 `cap:validator` implementations, the importer, exporter, transformer and expr-helper; the 23 CEL rules need no registration because they travel inside the profile;
    - registers the three renderers via `ctx.registerRenderer(...)`;
    - logs the activation summary.
 
@@ -522,8 +523,7 @@ formal_specification/
 ├── templates.ts                 # 3 TemplateDef
 ├── _common.ts                   # FieldDef helpers (str/bool/int/enumOf/...)
 ├── _id-lists.ts                 # ALL_PRIMITIVE_IDS / CONTAINABLE_IDS
-├── _validators.ts               # Predicate evaluator helpers
-├── _register_validators.ts      # Wires 23 cap:validator entries
+├── _capabilities.ts             # 3 cap:validator implementations + importer / exporter / transformer / expr-helper
 ├── primitives/
 │   ├── structure.ts             # Section, ChangeRecord, Requirement, Audience, Figure
 │   ├── type_system.ts           # TypeDefinition, Notation, EnumDef

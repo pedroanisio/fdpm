@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import {
   evaluateCheckScript,
@@ -113,5 +117,49 @@ describe("secret candidate scanning", () => {
       1,
     );
     assert.deepEqual(findSecretCandidates(".env.example", "OPENAI_API_KEY=your-key-here"), []);
+  });
+});
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+
+// SHA-256 of https://www.apache.org/licenses/LICENSE-2.0.txt as fetched on
+// 2026-09-04. Pinning the digest makes "the canonical text" a checkable claim:
+// a LICENSE that was retyped, reflowed, or had its appendix filled in fails
+// here rather than shipping as a near-copy.
+const APACHE_2_0_SHA256 =
+  "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30";
+const LICENSE_PATHS = [
+  "LICENSE",
+  "fdpm-cli/LICENSE",
+  "fdpm-cli/packages/zod-bridge/LICENSE",
+];
+const MANIFEST_PATHS = [
+  "fdpm-cli/package.json",
+  "fdpm-cli/packages/zod-bridge/package.json",
+];
+
+describe("the selected license (Apache-2.0)", () => {
+  it("ships the canonical Apache-2.0 text at the root and both package roots", () => {
+    for (const path of LICENSE_PATHS) {
+      assert(existsSync(join(REPO_ROOT, path)), `${path} is missing`);
+    }
+    const [root, ...copies] = LICENSE_PATHS.map((path) =>
+      readFileSync(join(REPO_ROOT, path)),
+    );
+    assert.equal(
+      createHash("sha256").update(root).digest("hex"),
+      APACHE_2_0_SHA256,
+      "LICENSE is not the canonical Apache-2.0 text",
+    );
+    copies.forEach((copy, index) => {
+      assert(copy.equals(root), `${LICENSE_PATHS[index + 1]} differs from the root LICENSE`);
+    });
+  });
+
+  it("declares the matching SPDX expression in both package manifests", () => {
+    for (const path of MANIFEST_PATHS) {
+      const manifest = JSON.parse(readFileSync(join(REPO_ROOT, path), "utf8"));
+      assert.equal(manifest.license, "Apache-2.0", `${path} must declare license Apache-2.0`);
+    }
   });
 });

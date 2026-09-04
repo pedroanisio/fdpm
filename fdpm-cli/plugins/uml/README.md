@@ -15,8 +15,8 @@ disclaimer:
 This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](../../../DISCLAIMER.md).
 > No statement or premise not backed by a real logical definition or verifiable reference should be taken for granted.
 
-A UML model as a typed, event-sourced FDPM workbook: fourteen metaclasses
-as primitives, twelve typed edges, one Zod validator per metaclass, and a
+A UML model as a typed, event-sourced FDPM workbook: twenty-two metaclasses
+as primitives, twenty-four typed edges, one Zod validator per metaclass, and a
 renderer that prints the model back in UML notation.
 
 | | |
@@ -189,7 +189,7 @@ derived unions (`member`, `inheritedMember`, `feature`, `attribute` —
 derivable by traversal, so storing them would duplicate truth), and the
 subset scope itself: StateMachines, Activities, Interactions, UseCases,
 Components, Deployments and Profiles/Stereotypes are not modelled. The
-source library carries 110 metaclasses; this profile realises 14.
+source library carries 110 metaclasses; this profile realises 22.
 
 ## Using it from an agent (MCP)
 

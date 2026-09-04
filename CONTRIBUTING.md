@@ -6,10 +6,13 @@ change is complete only when those surfaces agree.
 
 ## Contribution intake status
 
-An open-source license has not yet been selected. Review and discussion can
-begin, but maintainers must not merge third-party contributions until the
-license is present and the contributor terms are explicit. The current release
-blocker is tracked in [`docs/PUBLIC-READINESS.md`](docs/PUBLIC-READINESS.md).
+FDPM is licensed under the Apache License, Version 2.0 (SPDX `Apache-2.0`);
+the text is in [`LICENSE`](LICENSE) and is copied byte-for-byte into both
+package roots. Section 5 of that license sets the contributor terms: any
+contribution intentionally submitted for inclusion is licensed under the same
+terms, with no additional terms or conditions, so there is no separate
+contributor agreement. The remaining public-release steps are tracked in
+[`docs/PUBLIC-READINESS.md`](docs/PUBLIC-READINESS.md).
 
 ## Before you start
 
@@ -66,8 +69,9 @@ npm run test:public-readiness
 npm audit --omit=dev --audit-level=high
 ```
 
-Run `npm run public:check` for release-facing changes. It intentionally fails
-until the repository license and matching package license files exist.
+Run `npm run public:check` for release-facing changes. It must report zero
+findings; among other things it verifies that the three `LICENSE` files are
+identical and that both package manifests carry the SPDX expression.
 
 Renderer changes also require the relevant visual or artifact acceptance
 tests. A passing TypeScript build is not evidence that a PDF, HTML page, SVG,

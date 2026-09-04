@@ -222,8 +222,8 @@ heap, `createPrimitive()` 1 ms.
 MCP surface: `fdpm.profile.get` would return it whole, and
 `FDPM_MCP_MAX_RESOURCE_BYTES` (`task:p1-sizecap`) is still Backlog on the
 Q2 roadmap. This plugin promotes that task from nicety to prerequisite.
-The plugin registers **two** renderers rather than one per class for the
-same reason.
+The plugin registers **five** renderers (one per view) rather than one per
+class for the same reason.
 
 ## Five views of one document
 

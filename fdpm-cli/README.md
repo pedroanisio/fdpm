@@ -142,7 +142,6 @@ that stricter gate and a production dependency audit.
 
 ## License
 
-An open-source license has not yet been selected. The source is visible when
-the repository is public, but redistribution and open-source use are not
-granted until a license file and matching SPDX metadata are added. The
-public-release gate intentionally blocks publication in this state.
+Apache License, Version 2.0 (SPDX `Apache-2.0`). The full text ships in this
+package as `LICENSE` and is the same file as the repository-root
+[`LICENSE`](https://github.com/pedroanisio/fdpm-cli/blob/main/LICENSE).

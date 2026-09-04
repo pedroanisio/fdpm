@@ -68,7 +68,7 @@ claim asserted without a baseline to compare against.
 - [`renderers/`](./renderers/) — `docplan:PlanOutlineRenderer`
 - [`validators/`](./validators/) — the coherence judge
 - Specification: [`docs/specs/SPEC-DOCUMENT-PLAN.md`](../../../docs/specs/SPEC-DOCUMENT-PLAN.md)
-- CI: `.github/workflows/plugin-document-plan.yml` covers this plugin
+- CI: the repository-root `.github/workflows/ci.yml` runs the whole suite, including this plugin's tests (no per-plugin workflow exists)
 
 ---
 

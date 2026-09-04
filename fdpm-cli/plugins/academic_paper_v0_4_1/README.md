@@ -22,7 +22,7 @@ equations — and the referential obligations between them.
 | Property | Value |
 |---|---|
 | Plugin id | `fdpm.academic-paper-v0-4-1` |
-| Version | `0.4.1` |
+| Version | `0.5.0` (plugin); the profile id keeps the source ontology's `0.4.1` |
 | Profile | `profile:academic-paper:0.4.1` |
 | Host compatibility | `>=1.1,<2` |
 | Primitive types | 24 |
@@ -50,10 +50,11 @@ npx tsx plugins/academic_paper_v0_4_1/scripts/run-bridge.ts --check  # CI gate
 `--check` rebuilds in memory and diffs against the committed tree. Drift means
 the schema changed without regeneration.
 
-> **This plugin has a `run-bridge.ts` but no CI workflow.** The four workflows
-> under `.github/workflows/` cover `acme_business_deck`, `acme_pitch_deck`,
-> `document_plan` and `uml`. The drift gate here is available but unenforced —
-> run `--check` yourself before committing a schema change.
+> **This plugin has a `run-bridge.ts` but no dedicated CI step.** The
+> repository has no per-plugin workflows (the nested ones were removed on
+> 2026-08-30); the root `.github/workflows/ci.yml` runs the whole test suite.
+> The bridge drift gate here (`--check`) is available but not a separate CI
+> step — run it yourself before committing a schema change.
 
 ## Paper coherence
 
