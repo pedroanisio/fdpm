@@ -1,0 +1,61 @@
+{
+  "id": "fdpm.silent-acceptance",
+  "version": "0.1.0",
+  "spec_version": "1.2.0",
+  "kind": "server",
+  "name": "Silent Acceptance Verification Boundaries",
+  "description": "Silent Acceptance v2.1 as a typed FDPM assurance graph: nine intrinsic error classes, pinned solver configuration, calibrated verifier performance, oracle evidence, residual risk, failure behaviour, runtime verdicts, and acceptance authority outside the producer control domain. Ships four review and agent renderers.",
+  "authors": ["FDPM Maintainers"],
+  "license": "MIT",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2"
+  },
+  "permissions": ["read:workbooks", "read:primitives", "read:relations", "render:server"],
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "silent-acceptance",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "boundary-declaration-md",
+      "entry": "renderBoundaryDeclaration",
+      "metadata": {
+        "renderer_id": "sa:BoundaryDeclarationRenderer",
+        "target": "text/markdown",
+        "output_path": "silent-acceptance-boundary.md"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "assurance-dashboard-html",
+      "entry": "renderAssuranceDashboard",
+      "metadata": {
+        "renderer_id": "sa:AssuranceDashboardRenderer",
+        "target": "text/html",
+        "output_path": "silent-acceptance-assurance.html"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "control-domain-map-svg",
+      "entry": "renderControlDomainMap",
+      "metadata": {
+        "renderer_id": "sa:ControlDomainMapRenderer",
+        "target": "image/svg+xml",
+        "output_path": "silent-acceptance-control-domains.svg"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "agent-state-json",
+      "entry": "renderStateJson",
+      "metadata": {
+        "renderer_id": "sa:StateRenderer",
+        "target": "application/vnd.fdpm.silent-acceptance+json",
+        "output_path": "silent-acceptance-state.json"
+      }
+    }
+  ]
+}

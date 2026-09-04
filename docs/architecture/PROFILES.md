@@ -48,9 +48,9 @@ practice they are what makes a profile usable.
 
 ## Inventory
 
-24 profiles from 23 repository plugins: 21 base and
-3 derived. Together they register 1400 validators,
-49 renderers and 7 MCP prompts.
+25 profiles from 24 repository plugins: 22 base and
+3 derived. Together they register 1409 validators,
+53 renderers and 7 MCP prompts.
 
 | Profile | Version | Prim. | Rel. | Rules | Extends | Shipped by |
 | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -70,6 +70,7 @@ practice they are what makes a profile usable.
 | `profile:loop-forward:2.0` | 2.0.0 | 15 | 22 | 0 | — | `plugins/loop_forward/` |
 | `profile:planning:0.1` | 0.1.0 | 6 | 9 | 12 | — | `plugins/planning/` |
 | `profile:re-crt:6.2` | 6.2.0 | 10 | 15 | 0 | — | `plugins/re_crt/` |
+| `profile:silent-acceptance:2.1` | 2.1.0 | 13 | 23 | 0 | — | `plugins/silent_acceptance/` |
 | `profile:software-architecture:1.0` | 1.1.0 | 23 | 25 | 14 | — | `plugins/software_architecture/` |
 | `profile:software-requirements:0.2` | 0.2.0 | 8 | 17 | 19 | — | `plugins/software_requirements/` |
 | `profile:spec-authoring-dnis:0.1` | 0.1.0 | 31 | 20 | 24 | `profile:spec-authoring:0.1` + `profile:dnis:0.1` | `plugins/spec_authoring_dnis/` |
@@ -79,8 +80,8 @@ practice they are what makes a profile usable.
 | `profile:uixo:1.2` | 1.2.0 | 712 | 210 | 0 | — | `plugins/uixo/` |
 | `profile:uml:2.5` | 2.5.1 | 22 | 24 | 0 | — | `plugins/uml/` |
 
-Across the 21 base profiles that is 1086 primitive types,
-577 relation types and 133 declared validation rules. Derived
+Across the 22 base profiles that is 1099 primitive types,
+600 relation types and 133 declared validation rules. Derived
 profiles are excluded from those totals: their types are their parents',
 and counting them again would count every inherited type twice.
 
@@ -273,6 +274,17 @@ Typed reason DAG, obstruction DAG, duality maps, claims and theorem registries, 
 - **Shipped by:** `plugins/re_crt/` — `fdpm.re-crt` v6.2.0
 - **Renderers (1):** `recrt:TriageRenderer` → text/markdown
 - **Validators (14, 7 distinct rule ids):** `recrt:val.dag-membership`, `recrt:val.defeat-bipartite`, `recrt:val.derived-premise`, `recrt:val.evidence-gate`, `recrt:val.leaf`, `recrt:val.support-acyclic`, `recrt:val.type-beta`
+
+### `profile:silent-acceptance:2.1`
+
+**Silent Acceptance 2.1** · v2.1.0
+
+A reviewable verification-boundary assurance case for LLM output: the complete nine-class intrinsic error taxonomy, one pinned solver configuration, per-class mechanism/recall/specificity/failure behaviour/oracle/severity/residual risk, a declared consumer tolerance, dated calibration, runtime verdict evidence, and acceptance authority outside the producer control domain.
+
+- **Resolved:** 13 primitive types, 23 relation types, 4 categories, 1 scope, 0 declared validation rules
+- **Shipped by:** `plugins/silent_acceptance/` — `fdpm.silent-acceptance` v0.1.0
+- **Renderers (4):** `sa:BoundaryDeclarationRenderer` → text/markdown, `sa:AssuranceDashboardRenderer` → text/html, `sa:ControlDomainMapRenderer` → image/svg+xml, `sa:StateRenderer` → application/vnd.fdpm.silent-acceptance+json
+- **Validators (9, 8 distinct rule ids):** `sa:val:boundary-complete`, `sa:val:class-consistency`, `sa:val:configuration-pin`, `sa:val:coverage-arm`, `sa:val:coverage-unique`, `sa:val:decision-gate`, `sa:val:temporal-order`, `sa:val:terminal-evidence`
 
 ### `profile:software-architecture:1.0`
 
