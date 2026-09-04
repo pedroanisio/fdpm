@@ -1,21 +1,39 @@
 ---
 disclaimer:
-  version: "1.0"
-  last_updated: "2026-03-26"
+  version: "2.0"
+  last_updated: "2026-09-04"
   languages:
     - "pt-BR"
     - "en-US"
 
+  # Version 2.0 replaces the v1 notice ("may be invalid, erroneous, or a
+  # hallucination") with a verification statement, the same edit the
+  # Silent Acceptance specification made in its v2.0.0 revision
+  # (§11.6: "replaced the front-of-document disclaimer with the
+  # verification statement"). The caveats and commitments are unchanged.
+  principle:
+    name: "Verification Boundary Principle"
+    source: "Silent Acceptance: LLM Output Error as an Architectural Invariant, v2.0.0"
+    doi: "10.5281/zenodo.19401266"
+
   notice:
     en-US: >-
-      No information within this work should be taken for granted.
-      Any statement or premise not backed by a real logical definition
-      or verifiable reference may be invalid, erroneous, or a hallucination.
+      No statement or premise not backed by a real logical definition
+      or verifiable reference should be taken for granted. A claim is
+      reliable to the extent that it names what verifies it: a logical
+      definition, a test that ran, a measurement, or a reference that
+      resolves. A claim that names none of these is unverified and is to
+      be read as a claim, not as a fact. Where a document states what was
+      verified and how, that statement is its verification boundary.
     pt-BR: >-
-      Nenhuma informação neste trabalho deve ser tomada como garantida.
-      Qualquer afirmação ou premissa não respaldada por uma definição lógica
-      real ou referência verificável pode ser inválida, errônea ou uma
-      alucinação.
+      Nenhuma afirmação ou premissa não respaldada por uma definição
+      lógica real ou referência verificável deve ser tomada como
+      garantida. Uma afirmação é confiável na medida em que nomeia o que
+      a verifica: uma definição lógica, um teste executado, uma medição
+      ou uma referência que resolve. Uma afirmação que não nomeia nada
+      disso não está verificada e deve ser lida como afirmação, não como
+      fato. Onde um documento declara o que foi verificado e como, essa
+      declaração é sua fronteira de verificação.
 
   caveats:
     - id: 1
@@ -97,6 +115,22 @@ disclaimer:
         de código aberto devidamente documentados. Arquivos de mídia, quando
         pertinentes, farão referência explícita às suas fontes; detalhes
         adicionais de proveniência estarão presentes em seus metadados.
+
+    - id: 8
+      key: "verification-boundary-for-model-output"
+      en-US: >-
+        Every consumer of language-model output in this work declares a
+        verification boundary: a typed parse, semantic checks, a defined
+        failure path, a test that exercises that path, and bounds owned by
+        ordinary code. Output that has not crossed such a boundary is
+        untrusted by construction, however correct it appears.
+      pt-BR: >-
+        Todo consumidor de saída de modelo de linguagem neste trabalho
+        declara uma fronteira de verificação: um parse tipado, checagens
+        semânticas, um caminho de falha definido, um teste que exercita esse
+        caminho e limites controlados por código comum. Saída que não
+        atravessou essa fronteira é não confiável por construção, por mais
+        correta que pareça.
 ---
 
 <!--
@@ -104,8 +138,8 @@ disclaimer:
 ║                        RESSALVAS METODOLÓGICAS                             ║
 ║                        METHODOLOGICAL CAVEATS                              ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║  Versão / Version: 1.0                                                     ║
-║  Última atualização / Last updated: 2026-03-26                             ║
+║  Versão / Version: 2.0                                                     ║
+║  Última atualização / Last updated: 2026-09-04                             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
   PORTUGUÊS (PT-BR)
@@ -150,6 +184,14 @@ disclaimer:
      de código aberto devidamente documentados. Arquivos de mídia, quando
      pertinentes, farão referência explícita às suas fontes; detalhes
      adicionais de proveniência estarão presentes em seus metadados.
+
+  8. FRONTEIRA DE VERIFICAÇÃO PARA SAÍDA DE MODELOS.
+     Todo consumidor de saída de modelo de linguagem neste trabalho
+     declara uma fronteira de verificação: um parse tipado, checagens
+     semânticas, um caminho de falha definido, um teste que exercita esse
+     caminho e limites controlados por código comum. Saída que não
+     atravessou essa fronteira é não confiável por construção, por mais
+     correta que pareça.
 
   ──────────────────────────────────────────────────────────────────────────
 
@@ -196,16 +238,42 @@ disclaimer:
      explicitly reference their sources; additional provenance details
      will be present in their metadata.
 
+  8. VERIFICATION BOUNDARY FOR MODEL OUTPUT.
+     Every consumer of language-model output in this work declares a
+     verification boundary: a typed parse, semantic checks, a defined
+     failure path, a test that exercises that path, and bounds owned by
+     ordinary code. Output that has not crossed such a boundary is
+     untrusted by construction, however correct it appears.
+
   ──────────────────────────────────────────────────────────────────────────
 
-  NOTICE / AVISO:
-  No information within this work should be taken for granted. Any
-  statement or premise not backed by a real logical definition or
-  verifiable reference may be invalid, erroneous, or a hallucination.
+  NOTICE / AVISO (v2.0 — verification statement):
 
-  Nenhuma informação neste trabalho deve ser tomada como garantida.
-  Qualquer afirmação ou premissa não respaldada por uma definição lógica
-  real ou referência verificável pode ser inválida, errônea ou uma
-  alucinação.
+  No statement or premise not backed by a real logical definition or
+  verifiable reference should be taken for granted. A claim is reliable
+  to the extent that it names what verifies it: a logical definition, a
+  test that ran, a measurement, or a reference that resolves. A claim
+  that names none of these is unverified and is to be read as a claim,
+  not as a fact. Where a document states what was verified and how, that
+  statement is its verification boundary.
+
+  Nenhuma afirmação ou premissa não respaldada por uma definição lógica
+  real ou referência verificável deve ser tomada como garantida. Uma
+  afirmação é confiável na medida em que nomeia o que a verifica: uma
+  definição lógica, um teste executado, uma medição ou uma referência que
+  resolve. Uma afirmação que não nomeia nada disso não está verificada e
+  deve ser lida como afirmação, não como fato. Onde um documento declara o
+  que foi verificado e como, essa declaração é sua fronteira de
+  verificação.
+
+  Principle / Princípio: Verification Boundary Principle — Silent
+  Acceptance: LLM Output Error as an Architectural Invariant, v2.0.0,
+  doi:10.5281/zenodo.19401266 (formerly PALS's Law, v1.x).
+
+  Version history / Histórico de versões:
+  - 1.0 (2026-03-26): initial bilingual caveats, commitments and notice.
+  - 2.0 (2026-09-04): notice replaced by the verification statement above;
+    commitment 8 added; the principle named and cited. Caveats 1–4 and
+    commitments 5–7 unchanged.
 
 -->

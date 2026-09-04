@@ -24,12 +24,12 @@ This work is subject to the methodological caveats and commitments described in 
 
 ## Public release status
 
-The repository has been hardened for public collaboration, but it is **not yet
-an open-source release**. The GitHub repository is public, but an open-source
-license still has to be selected, so source visibility grants no redistribution
-or open-source use rights, and neither npm package has completed its first
-publication. The release gate blocks publication until the root and both
-package license files agree with their SPDX metadata.
+The repository is public and licensed under the Apache License, Version 2.0:
+the canonical text is [`LICENSE`](LICENSE), byte-identical copies sit in both
+package roots so the npm tarballs ship it, and both package manifests declare
+SPDX `Apache-2.0`. It is **not yet a published release**: neither npm package
+has completed its first publication, and the release gate
+(`npm run public:check`) must report zero findings before either is published.
 
 See [`docs/PUBLIC-READINESS.md`](docs/PUBLIC-READINESS.md) for the verified
 state and operator actions, [`CONTRIBUTING.md`](CONTRIBUTING.md) for the change
@@ -1026,11 +1026,13 @@ Everything listed in SPEC §20 (Out of Scope) plus:
 
 ## License
 
-An open-source license has not yet been selected. Source visibility does not
-grant redistribution or open-source use rights. Publication remains blocked
-until `LICENSE`, `fdpm-cli/LICENSE`, and
-`fdpm-cli/packages/zod-bridge/LICENSE` contain the selected license text and
-both package manifests contain its SPDX expression.
+Apache License, Version 2.0 (SPDX `Apache-2.0`). The canonical text is
+[`LICENSE`](LICENSE); `fdpm-cli/LICENSE` and
+`fdpm-cli/packages/zod-bridge/LICENSE` are byte-identical copies that ship in
+the npm tarballs, and both package manifests carry the SPDX expression.
+`npm run test:public-readiness` pins the SHA-256 of the canonical apache.org
+text and `npm run public:check` compares the three copies, so a retyped or
+partial copy fails the gate.
 
 ## See also
 
