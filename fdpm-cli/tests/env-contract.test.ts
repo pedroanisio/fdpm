@@ -29,10 +29,13 @@ describe("FDPM env contract", () => {
     expect([...discovered].sort()).toEqual([...FDPM_ENV_VAR_NAMES].sort());
   });
 
-  it("keeps .env.example, README.md, and MANUAL.md in sync with the env contract", () => {
+  it("keeps .env.example, docs/architecture/DESIGN.md, and MANUAL.md in sync with the env contract", () => {
+    // The generated env table lives in the design document (the former
+    // root README, moved 2026-09-04); the root README is the product
+    // overview and carries no generated spans.
     const surfaces = [
       readFileSync(join(process.cwd(), ".env.example"), "utf8"),
-      readFileSync(join(process.cwd(), "..", "README.md"), "utf8"),
+      readFileSync(join(process.cwd(), "..", "docs", "architecture", "DESIGN.md"), "utf8"),
       readFileSync(join(process.cwd(), "MANUAL.md"), "utf8"),
     ];
     for (const spec of FDPM_ENV_VARS) {

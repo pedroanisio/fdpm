@@ -6,6 +6,8 @@ replayable. The package ships two binaries, a JavaScript API, the built-in
 plugin set, and a Model Context Protocol server.
 
 The repository's [main README](https://github.com/pedroanisio/fdpm-cli#readme)
+is the product overview; the
+[design document](https://github.com/pedroanisio/fdpm-cli/blob/main/docs/architecture/DESIGN.md)
 describes the architecture, implementation status, trust model, and
 specification mapping. The
 [user manual](https://github.com/pedroanisio/fdpm-cli/blob/main/fdpm-cli/MANUAL.md)
@@ -13,7 +15,7 @@ is the task-oriented command reference.
 
 ## Status
 
-The source package is at version `1.2.0`. Neither `@fdpm/cli` nor its
+The source package is at version `1.3.0`. Neither `@fdpm/cli` nor its
 `@fdpm/zod-bridge` workspace has completed its first npm publication. Until
 that release exists, install and run from a checkout as shown below. The
 release process is documented in

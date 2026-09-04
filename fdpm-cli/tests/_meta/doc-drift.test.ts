@@ -11,7 +11,7 @@
  *
  * Six gates:
  *   1. `docs/architecture/CENSUS.md` matches `build-arch-census.ts` output.
- *   2. `README.md` + `.env.example` match `FDPM_ENV_VARS`.
+ *   2. `docs/architecture/DESIGN.md` + `MANUAL.md` + `.env.example` match `FDPM_ENV_VARS`.
  *   3. Every `docs/specs/SPEC-*.md` path referenced from a doc resolves.
  *   4. Every plugin directory ships a README.
  *   5. Every bridge-generated plugin README names the profile id its own
@@ -138,7 +138,7 @@ describe("doc drift: the census describes the committed tree", () => {
 });
 
 describe("doc drift: environment-variable documentation", () => {
-  it("README.md and .env.example are not stale vs FDPM_ENV_VARS", () => {
+  it("docs/architecture/DESIGN.md, MANUAL.md and .env.example are not stale vs FDPM_ENV_VARS", () => {
     expect(() =>
       execFileSync(NODE_COMMAND, tsxArgs(["scripts/build-env-docs.ts", "--check"]), {
         cwd: CLI_ROOT,

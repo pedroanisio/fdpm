@@ -7,6 +7,7 @@ function read(path: string): string {
 }
 
 const ROOT_README = read("../README.md");
+const ROOT_DESIGN = read("../docs/architecture/DESIGN.md");
 const ROOT_PURPOSE = read("../PURPOSE.md");
 const MANUAL = read("MANUAL.md");
 const ZOD_BRIDGE_README = read("packages/zod-bridge/README.md");
@@ -16,10 +17,18 @@ const SOFTWARE_ARCH_README = read("plugins/software_architecture/README.md");
 
 describe("documentation drift regressions", () => {
   it("top-level repo docs describe the real package boundary", () => {
+    // Root README: the product overview, links resolve from the repo root.
     expect(ROOT_README).toContain("[@DISCLAIMER.md](./DISCLAIMER.md)");
-    expect(ROOT_README).toContain("npm --prefix fdpm-cli install");
+    expect(ROOT_README).toContain("npm --prefix fdpm-cli ci");
     expect(ROOT_README).toContain("docs/specs/SPEC-CORE.md");
+    expect(ROOT_README).toContain("docs/architecture/DESIGN.md");
     expect(ROOT_README).not.toContain("../docs/specs/");
+    // Design document: the former README, two levels down, links rewritten.
+    expect(ROOT_DESIGN).toContain("[@DISCLAIMER.md](../../DISCLAIMER.md)");
+    expect(ROOT_DESIGN).toContain("npm --prefix fdpm-cli install");
+    expect(ROOT_DESIGN).toContain("../specs/SPEC-CORE.md");
+    expect(ROOT_DESIGN).not.toContain("](docs/specs/");
+    expect(ROOT_DESIGN).not.toContain("](./DISCLAIMER.md)");
     expect(ROOT_PURPOSE).toContain("[`fdpm-cli/`](./fdpm-cli/)");
     expect(ROOT_PURPOSE).not.toContain("REST API");
     expect(ROOT_PURPOSE).not.toContain("NLP-powered compilation");

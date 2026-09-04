@@ -3,30 +3,31 @@
 Assessed: 2026-08-30
 Repository: `pedroanisio/fdpm-cli`
 Baseline commit inspected: `7729319`
-Candidate CLI version: `1.2.0`
+Candidate CLI version: `1.3.0`
 Candidate bridge version: `0.4.0`
 
-> **Status update — 2026-09-04.** The live GitHub API now returns
-> `visibility=PUBLIC` with a description set (no homepage, no topics, no
-> license detected). Operator action 2 below is therefore done and action 3
-> is partly done. At the time of this update the license decision was still
-> open; the second update below records it. The rest of this document is the
-> 2026-08-30 assessment, preserved as written.
-
-> **Status update — 2026-09-04, license selected.** The maintainer chose the
-> Apache License, Version 2.0 (SPDX `Apache-2.0`). `LICENSE` at the root,
-> `fdpm-cli/LICENSE`, and `fdpm-cli/packages/zod-bridge/LICENSE` are
-> byte-identical copies of the canonical apache.org text (SHA-256
+> **Status update — 2026-09-04.** The repository is now `pedroanisio/fdpm`
+> (renamed from `fdpm-cli`; the old URL redirects) and the live GitHub API
+> returns `visibility=public` with `license.spdx_id=Apache-2.0`, so operator
+> action 2 below is done and action 3 is partly done. The maintainer chose
+> the Apache License, Version 2.0 (SPDX `Apache-2.0`), committed in
+> `89f4193`: `LICENSE` at the root, `fdpm-cli/LICENSE`, and
+> `fdpm-cli/packages/zod-bridge/LICENSE` are byte-identical copies of the
+> canonical apache.org text (SHA-256
 > `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`), both
 > package manifests declare `"license": "Apache-2.0"`, and
 > `fdpm-cli/tests/_meta/public-readiness.test.mjs` pins that digest and the
 > SPDX field. The five license findings listed under "The license decision"
 > are resolved, so the "Open-source rights" and "Package contents" rows no
-> longer block. `npm run public:check` now reports exactly one finding:
-> `fdpm-cli/package.json` version `1.2.0` does not match `HOST_VERSION`
-> `1.3.0` (`src/core/version/spec.ts`, bumped on 2026-08-31 in `67b3401`).
-> Which side moves is the maintainer's release decision; until it is made the
-> gate stays red and "npm availability" stays blocked.
+> longer block. `fdpm-cli/package.json` is now `1.3.0`, aligned with
+> `HOST_VERSION` in `src/core/version/spec.ts`, which removes the cause of
+> the version-identity finding `npm run public:check` reported; re-run on
+> 2026-09-04 after the bump, `npm run public:check` printed
+> "Public-readiness check passed." and `npm audit --omit=dev
+> --audit-level=high` found 0 vulnerabilities. `@fdpm/cli` and `@fdpm/zod-bridge`
+> remain unpublished (the registry returned 404 for both on 2026-09-04), so
+> "npm availability" is the one remaining external gate. The rest of this
+> document is the 2026-08-30 assessment, preserved as written.
 
 ## Verdict
 

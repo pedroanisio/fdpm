@@ -4,7 +4,8 @@
  * `src/core/config/env.ts` is the source of truth: a typed registry of
  * `{ name, defaultValue, exampleValue, summary }` with a renderer for `--help`
  * output. Three further copies were maintained by hand — the "Environment
- * variables" tables in `README.md` and `fdpm-cli/MANUAL.md`, and
+ * variables" tables in the design document (`docs/architecture/DESIGN.md`,
+ * the former repository README) and `fdpm-cli/MANUAL.md`, and
  * `fdpm-cli/.env.example`.
  *
  * Three hand-synchronised copies of one list is a drift generator. A
@@ -27,7 +28,9 @@ import { FDPM_ENV_VARS } from "../src/core/config/env.js";
 const CLI_ROOT = resolve(import.meta.dirname, "..");
 const REPO_ROOT = resolve(CLI_ROOT, "..");
 
-const README = join(REPO_ROOT, "README.md");
+// The generated table moved with the design narrative on 2026-09-04: the
+// root README is the product overview and carries no generated spans.
+const README = join(REPO_ROOT, "docs", "architecture", "DESIGN.md");
 const MANUAL = join(CLI_ROOT, "MANUAL.md");
 const DOTENV = join(CLI_ROOT, ".env.example");
 

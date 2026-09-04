@@ -588,7 +588,7 @@ What happens:
    `target`→`target_id`, folding relation `metadata`/`strength` into
    `field_values`).
 3. The host re-validates the importer's output against the canonical
-   `ProjectTransfer` zod schema (PALS's-LAW: plugin output is verified).
+   `ProjectTransfer` zod schema (Silent Acceptance: plugin output is verified).
 4. `importTransfer` issues `primitive.create` and `relation.create` ops
    for every record.
 
@@ -1086,7 +1086,7 @@ preview validation without committing, build a test-suite or call
 
 ### `transfer import-as` complains the importer produced an invalid `ProjectTransfer`
 The importer plugin returned a malformed transfer. The host re-validates
-on every import (PALS's-LAW). The error envelope's `evidence.issues`
+on every import (Silent Acceptance: plugin output is verified). The error envelope's `evidence.issues`
 points to the offending field; file a bug against the importer plugin.
 
 ## 22. MCP audit report

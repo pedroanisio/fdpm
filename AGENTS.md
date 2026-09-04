@@ -498,7 +498,7 @@ Same surface from the CLI (`fdpm plugin prompts`, `fdpm plugin prompt <id>
 This file is the entry point for agent-specific reference. The
 binding behavioral rules live in:
 
-- `CLAUDE.md` — process and standards (PALS's LAW, formalization
+- `CLAUDE.md` — process and standards (Silent Acceptance verification boundary, formalization
   means research, English over Portuguese, Markdown over DOCX,
   TypeScript over JavaScript, mandatory disclaimer headers, etc.)
 - `PURPOSE.md` — why the workbook exists
