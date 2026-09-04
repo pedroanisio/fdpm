@@ -2469,7 +2469,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "**Serve it three ways, one implementation.** Resource `fdpm://audit/report[/{window}]` (`application/json`; reads go through resources, so no catalog bytes; an in-memory Host yields an empty report, not an error; an unknown window is `not_found`), CLI `fdpm mcp audit-report [--window|--since|--until|--top|--slo|--json]`, and SDK `auditReport(host, opts)`. `Host.dataDir` (read-only getter, not exposed as a tool) locates the log.",
         "",
-        "**Use.** The top classes are the backlog for the teaching surfaces: a `rule:core:id-format` class means the id contract is not landing (fix `fdpm.profile.type_info` guidance or the instructions); a `validation/idempotency_key_required` class means the Tier-3 contract is not landing. The same classes are the seed set for the three-arm cold-agent eval PURPOSE.md gates v2 on.",
+        "**Use.** The top classes are the backlog for the teaching surfaces: a `rule:core:id-format` class means the id contract is not landing (fix `fdpm.profile.type_info` guidance or the instructions); a `validation/idempotency_key_required` class means the Tier-3 contract is not landing. The same classes are the seed set for the three-arm cold-agent eval PURPOSE.md gates v2 on; the runner that consumes them is `fdpm-cli/src/eval/` (test set `fdpm-cli/eval/cold-agent-v1.json`, design in `docs/eval/COLD-AGENT-EVAL.md`), and its per-arm report aggregates exactly these classes.",
       ].join("\n"),
     },
   },

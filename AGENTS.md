@@ -493,6 +493,45 @@ Same surface from the CLI (`fdpm plugin prompts`, `fdpm plugin prompt <id>
 
 ---
 
+## Cold-agent eval runner — `npm run eval:cold-agent`
+
+The three-arm differential PURPOSE.md gates v2 on, as code under
+`fdpm-cli/src/eval/` (design and scoring rules:
+[docs/eval/COLD-AGENT-EVAL.md](docs/eval/COLD-AGENT-EVAL.md)). Run from
+`fdpm-cli/`:
+
+```sh
+npm run eval:reference                 # every fixture + reference solution passes all 4 criteria; no model
+npm run eval:test-set -- --check       # eval/cold-agent-v1.json matches its generator
+npm run eval:cold-agent -- --model claude-opus-5 [--arms tools,tools_discovery,tools_discovery_prompts]
+                                       # the measurement; needs Anthropic credentials; spends tokens
+npx tsx scripts/run-cold-agent-eval.ts --driver reference --arms tools --limit 3   # pipeline smoke, no model
+```
+
+Outputs land in `fdpm-cli/eval/runs/<run-id>/`: `receipt.json` (every
+result, bounds, model id, test-set SHA-256), `report.md`, and
+`transcripts/<arm>/<instruction>.json`. Exit code is 0 when the run
+completed; the verdict is in the report, not the exit code.
+
+Contract, in one paragraph: an instruction is `setup` (tool calls executed
+through the real `fdpm-mcp` before the agent connects), `instruction` text,
+`expected` (state assertions, authorised delete scope, `max_new_operations`
+= 0 for refusal cases) and `reference_solution` (the human baseline, which
+must itself pass). Four criteria, all required — terminal state, replay of
+the log from empty, no delete outside scope, write calls ≤ 2 × the
+reference — scored from the Host projection, the operation log and
+`mcp-audit.jsonl`, never from model text. The report gives per-arm
+first-try success, the arm 3 − arm 2 differential against 15 pp, and the
+acceptable-rate kill criterion.
+
+Arms are client-side views of one server (`src/eval/arms.ts`): `tools`
+hides `fdpm.profile.*`; `tools_discovery` adds `initialize.instructions`
+and `mcp_list_resources` / `mcp_read_resource`; `tools_discovery_prompts`
+adds `mcp_list_prompts` / `mcp_get_prompt`. Per-verb plugin tools and the
+PURPOSE.md discovery tools do not exist yet, so the arms measure what ships.
+
+---
+
 ## Workbook guidelines
 
 This file is the entry point for agent-specific reference. The

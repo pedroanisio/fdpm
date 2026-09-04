@@ -55,6 +55,7 @@ see the repository [`README.md`](../README.md). For the SPEC, see
 21. [Troubleshooting](#21-troubleshooting)
 22. [MCP audit report](#22-mcp-audit-report)
 23. [Remote MCP server](#23-remote-mcp-server) — Claude Connectors and ChatGPT
+24. [Cold-agent eval](#24-cold-agent-eval) — the three-arm differential runner
 
 ---
 
@@ -1302,6 +1303,47 @@ preference.
 
 ---
 
-For the full normative reference, command-by-command, see the repository
-[`README.md`](../README.md). For the spec, see
+## 24. Cold-agent eval
+
+PURPOSE.md gates v2 on a three-arm cold-agent eval; the runner lives in
+`src/eval/` and is driven from this package. Design, arm definitions and
+scoring rules: [../docs/eval/COLD-AGENT-EVAL.md](../docs/eval/COLD-AGENT-EVAL.md).
+
+```bash
+# 1. Prove the test set: every fixture and reference solution passes all
+#    four criteria against the real fdpm-mcp. No model, no cost.
+npm run eval:reference
+
+# 2. Regenerate / drift-check the 50-instruction set.
+npm run eval:test-set            # writes eval/cold-agent-v1.json
+npm run eval:test-set -- --check # exit 1 when the JSON is stale
+
+# 3. Smoke the per-instruction pipeline without a model.
+npx tsx scripts/run-cold-agent-eval.ts --driver reference --arms tools --limit 3
+
+# 4. The measurement. Needs Anthropic credentials (ANTHROPIC_API_KEY or an
+#    `ant auth login` profile); 50 instructions × 3 arms; spends tokens.
+npm run eval:cold-agent -- --model claude-opus-5
+npm run eval:cold-agent -- --model claude-opus-5 --arms tools_discovery,tools_discovery_prompts --categories refusal
+```
+
+Each run writes `eval/runs/<run-id>/receipt.json`, `report.md` and
+`transcripts/<arm>/<instruction>.json`. The report carries first-try success
+per arm and category, failures per criterion, terminal reasons, token usage,
+the audit error classes, the arm 3 − arm 2 differential against 15 pp, and
+the acceptable-rate kill criterion (`--acceptable-rate`, default 0.7).
+
+Every instruction runs in its own data directory with its own `fdpm-mcp`
+process (destructive tools on, full audit args on, the operator's `FDPM_*`
+environment stripped). Bounds are the runner's, not the model's: `--max-turns`
+(40), `--max-tool-calls` (60), `--max-wall-ms` (15 min). Scoring reads the
+Host projection, the operation log and `mcp-audit.jsonl`; the model's text is
+recorded in the transcript and never scored.
+
+---
+
+For the full design narrative and the command-by-command status ledger, see
+[../docs/architecture/DESIGN.md](../docs/architecture/DESIGN.md) (formerly
+the repository README); the repository [`README.md`](../README.md) is the
+product overview. For the spec, see
 [../docs/specs/SPEC-CORE.md](../docs/specs/SPEC-CORE.md).
