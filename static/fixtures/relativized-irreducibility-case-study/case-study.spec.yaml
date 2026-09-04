@@ -1,0 +1,244 @@
+# Six-axis backend case-study specification (framework 1.1.0).
+# Reproducible appendix for 'Relativized Irreducibility and Emergence Pressure', §13.3 and §14.4.
+# The paper cites this file by name and SHA-256; any edit here changes the hash the paper reports.
+spec_meta:
+  framework_version: "1.1.0"
+  spec_version: "0.1.0"
+  title: "Minimal Order Backend"
+  rule_grammar:
+    name: "cel"
+    version: "1.0"
+
+data_model:
+  primitive_types:
+    Money:
+      base: decimal
+      description: "Currency amount"
+      min: 0
+  identifier_types:
+    OrderId:
+      format:
+        pattern_ref: order_id_pattern
+      generation:
+        strategy: uuid_v7
+        locus: server
+      uniqueness_scope: global
+  named_patterns:
+    order_id_pattern:
+      regex: "^ord_[A-Za-z0-9]+$"
+      description: "Order identifier"
+  enumerations:
+    OrderStatus:
+      values:
+        - code: Draft
+        - code: Submitted
+  composite_types: {}
+  entities:
+    Order:
+      id_field: id
+      id_type: OrderId
+      lifecycle_field:
+        field: status
+        state_machine_ref: order_lifecycle
+      fields:
+        - name: id
+          type: OrderId
+          cardinality: "1"
+        - name: status
+          type: OrderStatus
+          cardinality: "1"
+        - name: total
+          type: Money
+          cardinality: "1"
+          classification: internal
+  aggregates:
+    OrderAggregate:
+      root: Order
+      members: [Order]
+  references: []
+  tenancy:
+    mode: single_tenant
+
+operations:
+  commands:
+    SubmitOrder:
+      target_aggregate: OrderAggregate
+      effect:
+        op: transition
+        from_states: [Draft]
+        to_state: Submitted
+      command_schema:
+        - name: order_id
+          type: OrderId
+          cardinality: "1"
+      preconditions:
+        - grammar: cel
+          expression: "Order.total > 0"
+      emits: [OrderSubmitted]
+      success_result:
+        kind: id_only
+      errors: [not_found, stale_version, invalid_state]
+      synthetic_errors:
+        row_not_found: not_found
+        stale_version: stale_version
+  queries:
+    GetOrder:
+      target:
+        kind: single_entity
+        entity: Order
+      parameters:
+        - name: order_id
+          type: OrderId
+          cardinality: "1"
+      result:
+        kind: entity
+        entity: Order
+      consistency: strong
+      errors: [not_found]
+      synthetic_errors:
+        row_not_found: not_found
+  events:
+    OrderSubmitted:
+      source_aggregate: OrderAggregate
+      payload:
+        - name: order_id
+          type: OrderId
+          cardinality: "1"
+
+behavior:
+  state_machines:
+    order_lifecycle:
+      entity: Order
+      field: status
+      states: [Draft, Submitted]
+      initial: Draft
+      terminal_states: [Submitted]
+      transitions:
+        - from: Draft
+          to: Submitted
+          trigger: SubmitOrder
+          trigger_kind: command
+  invariants:
+    PositiveOrderTotal:
+      scope: entity
+      scope_targets: [Order]
+      rule:
+        grammar: cel
+        expression: "Order.total > 0"
+      enforcement_point: write
+      enforcement_timing: eager
+
+interface:
+  transports:
+    http:
+      kind: http
+      version: "1.1"
+  wire_formats:
+    json:
+      kind: json
+  operation_bindings:
+    - operation_kind: command
+      operation: SubmitOrder
+      transport: http
+      wire_format: json
+      http:
+        method: POST
+        path: /orders/{order_id}/submit
+        success_status: 200
+        error_status_map:
+          not_found: 404
+          stale_version: 409
+          invalid_state: 422
+    - operation_kind: query
+      operation: GetOrder
+      transport: http
+      wire_format: json
+      http:
+        method: GET
+        path: /orders/{order_id}
+        success_status: 200
+        error_status_map:
+          not_found: 404
+  error_envelope:
+    kind: rfc9457
+  error_taxonomy:
+    not_found:
+      default_status: 404
+      retryable: false
+    stale_version:
+      default_status: 409
+      retryable: true
+    invalid_state:
+      default_status: 422
+      retryable: false
+  auth_schemes:
+    Bearer:
+      kind: http_bearer
+      bearer_format: JWT
+      accepted_algorithms: [RS256]
+
+cross_cutting:
+  authorization:
+    model: rbac
+    subjects:
+      roles: [user]
+    policies:
+      - operation_kind: command
+        operation: SubmitOrder
+        predicate:
+          grammar: cel
+          expression: "subject.role == 'user'"
+      - operation_kind: query
+        operation: GetOrder
+        predicate:
+          grammar: cel
+          expression: "subject.role == 'user'"
+  tenancy_enforcement:
+    isolation_rule: strict_match
+  idempotency:
+    default: explicit_per_command
+    key_source:
+      kind: http_header
+      header_name: Idempotency-Key
+    dedup_window: PT24H
+  concurrency:
+    default: optimistic_versioning
+    conflict_response: stale_version
+  audit:
+    default: all_commands
+  observability:
+    logging:
+      format: json
+      required_fields: [trace_id, operation, aggregate_id, outcome]
+    metrics:
+      required_per_operation: [latency_ms, error_count]
+      naming_convention: prometheus
+    tracing:
+      context_propagation: w3c_trace_context
+      sampling_strategy: parent_based
+
+non_functional:
+  persistence:
+    dialect: postgres
+    version: "16"
+    nested_storage_default: child_tables
+  id_generation:
+    default_strategy: uuid_v7
+    default_locus: server
+  timezone:
+    storage_zone: utc
+    wire_zone: iso8601_with_offset
+  encoding:
+    string_encoding: utf_8
+  topology:
+    shape: modular_monolith
+  configuration:
+    env_vars:
+      - name: DATABASE_URL
+        type: url
+        secret: true
+  health_checks:
+    liveness:
+      path: /health/live
+    readiness:
+      path: /health/ready

@@ -35,6 +35,11 @@ export const ProjectCreatePayload = z
     workbook_id: WorkbookId,
     name: z.string().min(1),
     profile_id: NamespacedId,
+    /**
+     * Profile revision resolved at create time. Optional so logs written
+     * before revisions existed still replay; every new create records it.
+     */
+    profile_version: z.string().regex(/^\d+\.\d+\.\d+$/).optional(),
     description: z.string().optional(),
     cloned_from: WorkbookId.optional(),
   })

@@ -83,7 +83,7 @@ const documentSpec: PrimitiveSpec = {
     date: "2026-05-04",
     generated_by: "Claude Opus 4.7 (1M context) via Claude Code (fdpm.spec-authoring)",
     revision_note:
-      "0.1.9 — cross-platform reload amendment (§10.1, §15.4, §17, §23.4): fdpm-mcp uses SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows; restart remains the fallback when no console is attached.",
+      "0.1.10 — profile-revision amendment (§8, §11): the registry keys on (id, version), so a profile id can be revised; workbooks pin the revision they were created against; Tier-3 fdpm.profile.retire removes one revision when nothing references it. Manifest 0.6.0; catalog budget 27,000 -> 28,500 B.",
     source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts",
     regeneration_command: [
       "rm -rf /tmp/fdpm-spec-mcp",
@@ -872,6 +872,15 @@ const toolEntries: Array<{
   },
 
   // ── Tier 3: destructive (off by default; opt-in only) ──────────
+  {
+    id: "spec:tool:profile-retire",
+    tool_name: "fdpm.profile.retire",
+    tier: "destructive",
+    exposure: "opt_in",
+    description:
+      "Retire one profile revision (registry entry + persisted file). Refused while a workbook binds it, a profile extends it, or a plugin owns it. Accepts dry_run (returns those blockers as `would_affect`) and requires idempotency_key otherwise (§8.7). No operation-log entry.",
+    backed_by: "host.retireProfile(ref) / host.profileRetireBlockers(id, version)",
+  },
   {
     id: "spec:tool:workbook-delete",
     tool_name: "fdpm.workbook.delete",
@@ -2233,6 +2242,19 @@ const revisions: PrimitiveSpec[] = [
       kind: "patch",
     },
   },
+  {
+    id: "spec:rev:0-1-10",
+    type: "spec:Revision",
+    fields: {
+      version: "0.1.10",
+      date: "2026-09-02",
+      title: "Profile-revision amendment.",
+      notes:
+        "A DomainProfile id now names a family of revisions: the registry keys on (id, version), so fdpm.profile.register accepts a second version of a known id and only an exact repeat of a registered revision is a conflict (the error names the registered versions). fdpm.workbook.create resolves the binding once and records profile_version on the workbook, so a later revision never re-validates an existing workbook against a schema its operations were not appended under; an unpinned (pre-amendment) workbook resolves to the OLDEST revision, never the newest. extends holds refs (id or id@version) and registration pins an unpinned parent whose current revision is operator-persisted — never a plugin's, whose revisions come and go with releases. Adds Tier-3 fdpm.profile.retire (registry entry + persisted file; refused while a workbook binds it, a profile extends it, or a plugin owns it; dry_run returns those blockers as would_affect) and the profile_version field on fdpm.workbook.list. A plugin registering a revision of an id that also has an operator-persisted revision emits a profile.shadowed host warning naming which revision a bare id resolves to. Manifest 0.5.0 → 0.6.0; DEFAULT_CATALOG_BUDGET.total_bytes ratcheted 27,000 → 28,500 (measured 27,560 B destructive off, 26,372 B on).",
+      affected_sections: ["8", "11"],
+      kind: "minor",
+    },
+  },
 ];
 
 // ── §0..§N Sections (the document tree) ────────────────────────────────────
@@ -2381,7 +2403,7 @@ const sections: PrimitiveSpec[] = [
         "",
         "**Schema-by-resource.** A tool whose payload schema is large SHOULD advertise an opaque object and serve the schema as a resource under `fdpm://schema/{schema_id}` (`application/schema+json`), validating server-side with the same Zod schema the resource is derived from (§11.1) so the agent-visible contract and the enforced contract cannot drift. `fdpm.profile.register` is the first instance: its input is an opaque `profile` object; the DomainProfile schema is `fdpm://schema/profile`; a malformed profile is a Tier-2 rejection (`isError: false`, `ok: false`, one `core:profile-schema` finding per violated path with `field_path`), never a protocol error, and nothing is registered on rejection; parents named in `extends` MUST already be registered (else `not_found`).",
         "",
-        "**Evidence.** Measured 2026-08-28 on manifest 0.1.0: 30 tools, 33,929 bytes, of which 8,809 bytes (26 %) were the DomainProfile schema inlined into `fdpm.profile.register`. After this amendment: 25,699 bytes with destructive off, 24,709 with it on.",
+        "**Evidence.** Measured 2026-08-28 on manifest 0.1.0: 30 tools, 33,929 bytes, of which 8,809 bytes (26 %) were the DomainProfile schema inlined into `fdpm.profile.register`. After this amendment: 25,699 bytes with destructive off, 24,709 with it on. Manifest 0.6.0 (32 tools, adding Tier-3 `fdpm.profile.retire` and the `profile_version` field on `fdpm.workbook.list`) measured 27,560 B with destructive off — the worst case, since a sixth destructive tool carries a disabled banner longer than its own description — and 26,372 B with it on; the budget was ratcheted 27,000 → 28,500 B.",
         "",
         "### 8.6 Server instructions and schema of orientation (v0.1.4)",
         "",
@@ -2631,7 +2653,7 @@ const sections: PrimitiveSpec[] = [
       title: "Configuration",
       kind: "prose",
       body_md:
-        "Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 26,000 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.",
+        "Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 28,500 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.",
     },
   },
   {

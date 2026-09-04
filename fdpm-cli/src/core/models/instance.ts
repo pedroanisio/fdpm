@@ -38,6 +38,13 @@ export const Workbook = z
     id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
     name: z.string().min(1),
     profile_id: NamespacedId,
+    /**
+     * The profile REVISION this workbook validates against, pinned at
+     * create time. Optional because workbooks created before revisions
+     * existed carry no pin; those resolve to the oldest registered
+     * revision (`Host.workbookProfileRef`), never to whatever is newest.
+     */
+    profile_version: z.string().regex(/^\d+\.\d+\.\d+$/).optional(),
     created_at: z.string().datetime(),
     revision: z.number().int().nonnegative().default(0),
     description: z.string().optional(),

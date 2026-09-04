@@ -127,7 +127,7 @@ function collectReferencingFields(
   const out: FieldRef[] = [];
   let profile;
   try {
-    profile = host.profiles.getResolved(slice.workbook.profile_id);
+    profile = host.resolveProfileForWorkbook(slice.workbook);
   } catch {
     // No resolvable profile means no field is known to be a reference.
     // Report nothing rather than guessing from string equality.

@@ -8,7 +8,7 @@
  * idempotency key. PURPOSE.md names this as the human approval point
  * ("sees the planned op set and approves").
  *
- * Covers all five Tier-3 tools, the gate bypass (and non-bypass for
+ * Covers all six Tier-3 tools, the gate bypass (and non-bypass for
  * real calls), not_found on missing targets, the audit record, and the
  * response shape: `{ ok: true, dry_run: true, would_affect, post_state_summary }`
  * with no `operation`.
@@ -141,8 +141,8 @@ describe("dry_run — passes the destructive gate, appends nothing", () => {
 });
 
 describe("dry_run — every Tier-3 tool", () => {
-  it("all five Tier-3 tools accept dry_run in their input schema", () => {
-    expect(TIER_3_TOOLS).toHaveLength(5);
+  it("all six Tier-3 tools accept dry_run in their input schema", () => {
+    expect(TIER_3_TOOLS).toHaveLength(6);
     for (const t of TIER_3_TOOLS) {
       const shape = (t.input as unknown as { shape: Record<string, unknown> }).shape;
       expect(shape, `${t.name} missing dry_run`).toHaveProperty("dry_run");

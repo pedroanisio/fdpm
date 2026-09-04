@@ -361,7 +361,7 @@ are the canonical package manager and lockfile.
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | Fdpm-mcp: truthy -> log full args (default: sha256 hash only). |
 | `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN` | unset | SPEC-MCP-SERVER §9.3: exactly `1` gates Tier 2/3 calls behind an `_confirmation_token` argument; requires FDPM_MCP_CONFIRMATION_TOKEN. |
 | `FDPM_MCP_CONFIRMATION_TOKEN` | unset | Fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty. |
-| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `27000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
+| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `28500` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
 | `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when FDPM_DATA_DIR is set. |
 | `FDPM_REGISTRY_PATH` | `platform state directory` | SPEC-WORKSPACE §12: override the native operator-local registry path (XDG state on Linux, Application Support on macOS, LocalAppData on Windows). |
 
@@ -386,6 +386,10 @@ fdpm profile list --json
 # Register your own profile (persisted under ~/.fdpm-cli/profiles/)
 fdpm profile register -f my-profile.json
 
+# Revise it (same id, higher version) — both revisions stay addressable
+fdpm profile register -f my-profile-v2.json
+fdpm profile retire my:profile@1.0.0 --dry-run
+
 # Create a workbook
 fdpm workbook create --id demo --name "Demo" --profile test:demo
 
@@ -408,6 +412,8 @@ fdpm log audit demo         # AuditRecord projection (§13.3)
 | `fdpm profile get <id>`          | `GET /profiles/{id}`                           |
 | `fdpm profile get <id> --raw`    | `GET /profiles/{id}/raw`                       |
 | `fdpm profile register`          | (CLI-only; equivalent to plugin `activate()`)  |
+| `fdpm profile retire <ref>`      | (CLI-only; removes one `id@version` revision)  |
+| `fdpm profile promote <ref>`     | (CLI-only; emits a plugin skeleton)            |
 | `fdpm workbook create`            | `POST /workbooks`                               |
 | `fdpm workbook list`              | `GET /workbooks`                                |
 | `fdpm workbook get <id>`          | `GET /workbooks/{id}`                           |

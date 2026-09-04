@@ -1,0 +1,2169 @@
+{
+  "run_at": "2026-09-04T02:43:07+00:00",
+  "python": "3.12.3",
+  "spec_file": "case-study.spec.yaml",
+  "spec_sha256": "c29846c963c77f85c9d00e0d9169e9311eee515f0ba0927b6e0df5b716a6499f",
+  "spec_non_empty_lines": 235,
+  "toolchain": {
+    "root": "/home/admin/codebases/helioum-cat",
+    "schema": "backend_spec.schema.v1.1.0.json",
+    "schema_sha256": "51816cfed8af51e1754a38e8777247cad99f4c909fce83e0fd05090ac334047a",
+    "catalog": "rule_catalog_v1_1_0.json",
+    "catalog_sha256": "f037ca7feca7c978b6088be64d69e8537d8e187284aeb592669445cff255800d"
+  },
+  "artifacts": [
+    {
+      "tag": "V0",
+      "desc": "valid case-study specification",
+      "intended_layer": "none",
+      "schema": {
+        "errors": [],
+        "ms": 3.97
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.03
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 60.9,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": []
+    },
+    {
+      "tag": "M1",
+      "desc": "success_status: \"OK\"",
+      "intended_layer": "schema",
+      "schema": {
+        "errors": [
+          "interface/operation_bindings/0/http/success_status: 'OK' is not of type 'integer'"
+        ],
+        "ms": 3.22
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [
+          [
+            "L10",
+            "/",
+            "rule evaluator crashed: '<=' not supported between instances of 'int' and 'str'"
+          ]
+        ],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 60.0,
+        "new_errors": [
+          [
+            "L10",
+            "/",
+            "rule evaluator crashed: '<=' not supported between instances of 'int' and 'str'"
+          ]
+        ],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "schema",
+        "engine"
+      ]
+    },
+    {
+      "tag": "M2",
+      "desc": "Money.min_length on a decimal",
+      "intended_layer": "local-semantic",
+      "schema": {
+        "errors": [
+          "data_model/primitive_types/Money: {'base': 'decimal', 'description': 'Currency amount', 'min': 0, 'min_length': 3} should not be valid under {'a"
+        ],
+        "ms": 3.21
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.03
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 59.3,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "schema"
+      ]
+    },
+    {
+      "tag": "M3",
+      "desc": "target_aggregate: MissingAggregate",
+      "intended_layer": "cross-reference",
+      "schema": {
+        "errors": [],
+        "ms": 3.95
+      },
+      "closure": {
+        "errors": [
+          "[L3] Command 'SubmitOrder' targets unknown aggregate 'MissingAggregate'."
+        ],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [
+          [
+            "L3",
+            "/operations/commands/SubmitOrder/target_aggregate",
+            "command 'SubmitOrder' targets missing aggregate 'MissingAggregate'"
+          ]
+        ],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "OP-010",
+            "/operations/commands/SubmitOrder/emits",
+            "command 'SubmitOrder' emits event 'OrderSubmitted' from different aggregate"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 63.4,
+        "new_errors": [
+          [
+            "L3",
+            "/operations/commands/SubmitOrder/target_aggregate",
+            "command 'SubmitOrder' targets missing aggregate 'MissingAggregate'"
+          ]
+        ],
+        "new_warnings": [
+          [
+            "OP-010",
+            "/operations/commands/SubmitOrder/emits",
+            "command 'SubmitOrder' emits event 'OrderSubmitted' from different aggregate"
+          ]
+        ]
+      },
+      "runtime": null,
+      "rejected_by": [
+        "closure",
+        "engine"
+      ]
+    },
+    {
+      "tag": "M4",
+      "desc": "OrderSubmitted emitted but undeclared",
+      "intended_layer": "closure-law",
+      "schema": {
+        "errors": [],
+        "ms": 3.08
+      },
+      "closure": {
+        "errors": [
+          "[L14] Command 'SubmitOrder' emits unknown event 'OrderSubmitted'."
+        ],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [
+          [
+            "L14",
+            "/operations/commands/SubmitOrder/emits",
+            "command emits missing event 'OrderSubmitted'"
+          ]
+        ],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 60.9,
+        "new_errors": [
+          [
+            "L14",
+            "/operations/commands/SubmitOrder/emits",
+            "command emits missing event 'OrderSubmitted'"
+          ]
+        ],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "closure",
+        "engine"
+      ]
+    },
+    {
+      "tag": "M5",
+      "desc": "transition command without stale_version",
+      "intended_layer": "closed-world",
+      "schema": {
+        "errors": [
+          "operations/commands/SubmitOrder/synthetic_errors: 'stale_version' is a required property"
+        ],
+        "ms": 3.64
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 62.5,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "schema"
+      ]
+    },
+    {
+      "tag": "M6",
+      "desc": "invalid_state -> 200",
+      "intended_layer": "canonical-pattern",
+      "schema": {
+        "errors": [],
+        "ms": 3.27
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 59.8,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": []
+    },
+    {
+      "tag": "M7",
+      "desc": "trace_id dropped from required_fields",
+      "intended_layer": "observability",
+      "schema": {
+        "errors": [],
+        "ms": 3.39
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [
+          [
+            "OBS-001",
+            "/cross_cutting/observability/logging/required_fields",
+            "logging required_fields lacks correlation/request/trace id"
+          ]
+        ],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 60.7,
+        "new_errors": [
+          [
+            "OBS-001",
+            "/cross_cutting/observability/logging/required_fields",
+            "logging required_fields lacks correlation/request/trace id"
+          ]
+        ],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "engine"
+      ]
+    },
+    {
+      "tag": "M8",
+      "desc": "runtime emits `timeout` (spec unchanged)",
+      "intended_layer": "runtime-observation",
+      "schema": {
+        "errors": [],
+        "ms": 3.73
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 63.4,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": {
+        "errors": [
+          "runtime error class 'timeout' not in error_taxonomy"
+        ],
+        "ms": 0.0
+      },
+      "rejected_by": [
+        "runtime"
+      ]
+    },
+    {
+      "tag": "E1",
+      "desc": "vendor metadata (x-vendor) at root",
+      "intended_layer": "open: accept",
+      "schema": {
+        "errors": [
+          ": Additional properties are not allowed ('x-vendor' was unexpected)"
+        ],
+        "ms": 3.65
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 59.0,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "schema"
+      ]
+    },
+    {
+      "tag": "E2",
+      "desc": "plugin extensions block at root",
+      "intended_layer": "open: accept",
+      "schema": {
+        "errors": [
+          ": Additional properties are not allowed ('extensions' was unexpected)"
+        ],
+        "ms": 3.92
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 58.2,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "schema"
+      ]
+    },
+    {
+      "tag": "E3",
+      "desc": "custom observability exporter",
+      "intended_layer": "open: accept",
+      "schema": {
+        "errors": [
+          "cross_cutting/observability: Additional properties are not allowed ('exporters' was unexpected)"
+        ],
+        "ms": 3.35
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 58.6,
+        "new_errors": [],
+        "new_warnings": []
+      },
+      "runtime": null,
+      "rejected_by": [
+        "schema"
+      ]
+    },
+    {
+      "tag": "E4",
+      "desc": "grpc transport declared, unbound",
+      "intended_layer": "open: accept",
+      "schema": {
+        "errors": [],
+        "ms": 3.39
+      },
+      "closure": {
+        "errors": [],
+        "ms": 0.04
+      },
+      "engine": {
+        "errors": [],
+        "warnings": [
+          [
+            "REG-008",
+            "/data_model/entities/Order",
+            "public registry item 'Order' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/commands/SubmitOrder",
+            "public registry item 'SubmitOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/operations/queries/GetOrder",
+            "public registry item 'GetOrder' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/not_found",
+            "public registry item 'not_found' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/stale_version",
+            "public registry item 'stale_version' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/error_taxonomy/invalid_state",
+            "public registry item 'invalid_state' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/http",
+            "public registry item 'http' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/transports/grpc",
+            "public registry item 'grpc' has no description"
+          ],
+          [
+            "REG-008",
+            "/interface/auth_schemes/Bearer",
+            "public registry item 'Bearer' has no description"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/0/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-011",
+            "/interface/operation_bindings/1/http/path_param_bindings",
+            "path parameters do not match bindings"
+          ],
+          [
+            "API-013",
+            "/interface/operation_bindings/0/http",
+            "body HTTP method lacks request_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/0/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "API-014",
+            "/interface/operation_bindings/1/http",
+            "operation likely returns data but lacks response_content_type"
+          ],
+          [
+            "SEC-022",
+            "/cross_cutting/rate_limiting",
+            "no rate limiting policy declared"
+          ],
+          [
+            "REL-019",
+            "/non_functional/health_checks/readiness",
+            "readiness checks may not cover runtime dependencies"
+          ],
+          [
+            "OBS-007",
+            "/cross_cutting/observability/tracing",
+            "span_naming missing"
+          ],
+          [
+            "OBS-009",
+            "/cross_cutting/audit",
+            "audit enabled without retention_duration"
+          ],
+          [
+            "EVO-009",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "EVO-009",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/not_found",
+            "error 'not_found' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/stale_version",
+            "error 'stale_version' lacks description"
+          ],
+          [
+            "EVO-010",
+            "/interface/error_taxonomy/invalid_state",
+            "error 'invalid_state' lacks description"
+          ],
+          [
+            "PAT-004",
+            "/operations/events",
+            "emitted events exist but few/no consumers"
+          ],
+          [
+            "PAT-020",
+            "/",
+            "missing production surfaces: ['rate_limiting', 'backup_recovery']"
+          ],
+          [
+            "PAT-021",
+            "/operations/commands/SubmitOrder",
+            "public command 'SubmitOrder' lacks description"
+          ],
+          [
+            "PAT-021",
+            "/operations/queries/GetOrder",
+            "query 'GetOrder' lacks description"
+          ]
+        ],
+        "ms": 58.5,
+        "new_errors": [],
+        "new_warnings": [
+          [
+            "REG-008",
+            "/interface/transports/grpc",
+            "public registry item 'grpc' has no description"
+          ]
+        ]
+      },
+      "runtime": null,
+      "rejected_by": []
+    }
+  ],
+  "growth": {
+    "engine_overhead_ms": 55.7,
+    "rows": [
+      {
+        "k": 1,
+        "json_lines": 386,
+        "schema_errors": 0,
+        "closure_errors": 0,
+        "engine_errors": 0,
+        "engine_ms_median": 60.6,
+        "engine_eval_ms": 4.9
+      },
+      {
+        "k": 2,
+        "json_lines": 592,
+        "schema_errors": 0,
+        "closure_errors": 0,
+        "engine_errors": 0,
+        "engine_ms_median": 61.8,
+        "engine_eval_ms": 6.1
+      },
+      {
+        "k": 4,
+        "json_lines": 1004,
+        "schema_errors": 0,
+        "closure_errors": 0,
+        "engine_errors": 0,
+        "engine_ms_median": 61.0,
+        "engine_eval_ms": 5.3
+      },
+      {
+        "k": 8,
+        "json_lines": 1828,
+        "schema_errors": 0,
+        "closure_errors": 0,
+        "engine_errors": 0,
+        "engine_ms_median": 63.0,
+        "engine_eval_ms": 7.3
+      },
+      {
+        "k": 16,
+        "json_lines": 3476,
+        "schema_errors": 0,
+        "closure_errors": 0,
+        "engine_errors": 0,
+        "engine_ms_median": 67.1,
+        "engine_eval_ms": 11.4
+      }
+    ]
+  }
+}

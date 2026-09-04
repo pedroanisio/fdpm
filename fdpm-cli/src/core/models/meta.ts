@@ -59,6 +59,22 @@ const NamespacedId = z.string().regex(CORE_ID_PATTERN, {
 });
 
 /**
+ * A reference to a profile: an id, optionally pinned to one revision with
+ * `@major.minor.patch`.
+ *
+ * `extends` holds refs rather than plain ids because a profile id names a
+ * FAMILY of revisions (the registry keys on `(id, version)`). An unpinned
+ * parent resolves to the newest revision registered under that id; a
+ * pinned one always resolves to exactly that revision. Registration pins
+ * unpinned parents whose current revision is operator-persisted, so a
+ * later revision of a parent cannot silently change what an already
+ * registered child resolves to — see `ProfileRegistry.register`.
+ */
+const ProfileRef = z.string().regex(/^[a-z0-9-]+(:[A-Za-z0-9._-]+)+(@\d+\.\d+\.\d+)?$/, {
+  message: "profile ref must be `id` or `id@major.minor.patch`",
+});
+
+/**
  * A loose name pattern used by InlineStructDef.id and a few other places
  * where the Python source writes simple PascalCase / kebab identifiers
  * rather than namespaced ones (e.g. "TensorSpec", "TypeField").
@@ -475,7 +491,7 @@ export const DomainProfile = z
     label: z.string().optional(),
     name: z.string().optional(),
     description: z.string().optional(),
-    extends: z.array(NamespacedId).default([]),
+    extends: z.array(ProfileRef).default([]),
     categories: z.array(CategoryDef).default([]),
     scopes: z.array(ScopeDef).default([]),
     primitive_types: z.array(PrimitiveTypeDef).default([]),

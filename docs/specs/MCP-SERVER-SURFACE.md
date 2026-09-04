@@ -39,7 +39,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 | `prompts` capability | declared — plugin-shipped skills via `ctx.registerPrompt`; `prompts/list` metadata only, `prompts/get` validated body (§13.5) | [src/bin/fdpm-mcp.ts](../../fdpm-cli/src/bin/fdpm-mcp.ts), [src/mcp/prompts.ts](../../fdpm-cli/src/mcp/prompts.ts) |
 | `resources/subscribe` | not declared (slice 1) | [src/bin/fdpm-mcp.ts:208-211](../../fdpm-cli/src/bin/fdpm-mcp.ts#L208-L211) |
 
-**Total surface:** 30 tools (12 Tier-1 + 13 Tier-2 + 5 Tier-3) + 4 resource providers (render, profile, schema, guide) + server instructions. The advertised catalog is measured against a byte budget at boot and in CI (SPEC-MCP-SERVER §8.5).
+**Total surface:** 32 tools (12 Tier-1 + 14 Tier-2 + 6 Tier-3) + 4 resource providers (render, profile, schema, guide) + server instructions. The advertised catalog is measured against a byte budget at boot and in CI (SPEC-MCP-SERVER §8.5).
 
 ## Tools — Tier 1: read-only (always advertised)
 
@@ -49,7 +49,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 | `fdpm.profile.list` | list profiles | List loaded `DomainProfile`s with id, version, optional label/name |
 | `fdpm.profile.get` | fetch profile | Fetch a `DomainProfile` by id (raw, un-resolved); throws `not_found` if unknown. `view` selects `full` (default) \| `summary` \| `type_ids` \| `types`; `fields` projects top-level keys. `full` runs from 448 B to 5.4 MB across the loaded profiles and is refused over the result ceiling — the refusal names the views |
 | `fdpm.profile.type_info` | type contract | Minimum-sufficient construction contract for one type in a profile (id_pattern, fields, required, constraints). **Call before any create.** |
-| `fdpm.workbook.list` | list workbooks | List loaded workbooks with id, name, profile_id, current revision |
+| `fdpm.workbook.list` | list workbooks | List loaded workbooks with id, name, profile_id, `profile_version` (the pinned profile revision; absent on workbooks created before revision pinning), current revision |
 | `fdpm.workbook.get` | fetch workbook | Full workbook slice (workbook meta + primitives + relations + templates) |
 | `fdpm.primitive.search` | search primitives | Case-insensitive substring search on `field_values`; optional `type_id` narrow; returns `fields_excerpt` |
 | `fdpm.primitive.get` | fetch primitive | Fetch one primitive by id within a workbook; throws `not_found` if absent |
@@ -62,8 +62,8 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 
 | Tool | Operation | Description |
 |---|---|---|
-| `fdpm.profile.register` | register profile | Register a `DomainProfile` (persisted). Input is an **opaque** `profile` object; read `fdpm://schema/profile` for the shape. Validated server-side with the same Zod schema: malformed → Tier-2 rejection (`ok: false`, findings `core:profile-schema` with `field_path`); unregistered `extends` parent → `not_found` |
-| `fdpm.workbook.create` | create workbook | Create a new workbook bound to a registered profile; returns Tier-2 envelope with `validation_report` |
+| `fdpm.profile.register` | register profile | Register a `DomainProfile` revision (persisted). The registry keys on `(id, version)`, so a new `version` of a known id is a new revision; an exact repeat is `conflict` naming the registered versions. Input is an **opaque** `profile` object; read `fdpm://schema/profile` for the shape. Validated server-side with the same Zod schema: malformed → Tier-2 rejection (`ok: false`, findings `core:profile-schema` with `field_path`); unregistered `extends` parent → `not_found` |
+| `fdpm.workbook.create` | create workbook | Create a new workbook bound to a registered profile. `profile_id` takes a bare id (binds the newest revision) or an `id@version` ref; the resolved revision is pinned onto the workbook. Returns Tier-2 envelope with `validation_report` |
 | `fdpm.primitive.create` | create primitive | Create one primitive; runs §7 validation pipeline; rejection via envelope (`ok: false`, `isError: false`) |
 | `fdpm.primitive.create_batch` | atomic batch create | Atomically create 1..500 primitives; ALL succeed or WHOLE batch rolls back; later entries see earlier ones |
 | `fdpm.primitive.replace` | full overwrite | Replace `field_values` entirely; `type_id` immutable; supports `expected_revision` (If-Match) |
@@ -80,6 +80,7 @@ in [@DISCLAIMER.md](../../DISCLAIMER.md).
 
 | Tool | Operation | Description |
 |---|---|---|
+| `fdpm.profile.retire` | retire profile revision | Remove one profile revision (registry entry + persisted file). Refused with `conflict` while a workbook binds it, a profile `extends` it, or a plugin contributed it; `permission` for Core-owned ids. `dry_run` → `would_affect: { workbooks, dependents }`; `idempotency_key` required otherwise. No operation-log entry |
 | `fdpm.workbook.delete` | delete workbook | Delete a workbook. `dry_run: true` → counts preview, no append, passes the gate; otherwise `idempotency_key` required (§8.7) |
 | `fdpm.primitive.delete` | delete primitive | Delete a primitive by id. `dry_run` → type + referencing relations; `idempotency_key` required otherwise |
 | `fdpm.primitive.delete_batch` | atomic batch delete | Atomically delete 1..500 primitives; first missing id rejects the whole batch; `dry_run` previews every id (first missing → `not_found`); `idempotency_key` required otherwise |

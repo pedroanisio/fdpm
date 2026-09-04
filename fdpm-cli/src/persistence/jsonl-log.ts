@@ -41,15 +41,23 @@ function manifestPath(dataDir: string): string {
  * Produce a bounded, case-fold-safe filename while retaining a readable
  * prefix. The digest uses the original ID, so punctuation and case variants
  * remain distinct even on case-insensitive filesystems.
+ *
+ * `version` participates in both the slug and the digest because the
+ * registry keys on `(id, version)`: two revisions of one profile are two
+ * files, and writing the newer one must not overwrite the older. Omitting
+ * it reproduces the pre-revision filename, which is what already-persisted
+ * profiles are stored under and what `writeProfile` deletes once it has
+ * written the versioned replacement.
  */
-export function profileFilenameFor(id: string): string {
+export function profileFilenameFor(id: string, version?: string): string {
+  const key = version ? `${id}@${version}` : id;
   const slug =
-    id
+    key
       .toLowerCase()
       .replace(/[^a-z0-9_-]+/g, "_")
       .replace(/^_+|_+$/g, "")
       .slice(0, 96) || "profile";
-  const digest = createHash("sha256").update(id, "utf8").digest("hex");
+  const digest = createHash("sha256").update(key, "utf8").digest("hex");
   return `${slug}--${digest}.json`;
 }
 
@@ -220,14 +228,33 @@ export class JsonlLogStore {
     return entries.filter((f) => f.endsWith(".json")).map((f) => join(dir, f));
   }
 
-  async writeProfile(id: string, profile: unknown): Promise<void> {
+  /**
+   * Persist one profile revision.
+   *
+   * `version` is what separates revisions on disk. When it is supplied and
+   * a file written under the pre-revision (id-only) name exists, that file
+   * is removed after the versioned one lands: leaving it would reload the
+   * same revision twice on the next boot, and the second load is a
+   * `conflict` the host has to swallow to keep starting.
+   */
+  async writeProfile(id: string, profile: unknown, version?: string): Promise<void> {
     const dir = this.profileDir();
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     await fs.writeFile(
-      join(dir, profileFilenameFor(id)),
+      join(dir, profileFilenameFor(id, version)),
       JSON.stringify(profile, null, 2),
       "utf8",
     );
+    if (version) {
+      const legacy = join(dir, profileFilenameFor(id));
+      if (existsSync(legacy)) await fs.rm(legacy, { force: true });
+    }
+  }
+
+  /** Remove one persisted revision. Silent when the file is not there. */
+  async deleteProfile(id: string, version?: string): Promise<void> {
+    const dir = this.profileDir();
+    await fs.rm(join(dir, profileFilenameFor(id, version)), { force: true });
   }
 
   async readProfileFile(path: string): Promise<unknown> {

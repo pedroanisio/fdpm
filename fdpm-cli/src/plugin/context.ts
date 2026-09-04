@@ -166,7 +166,11 @@ export function makeContext(args: {
       // (Persistence is for operator-registered profiles only.)
       const declared = withManifestRenderers(profile, manifest);
       pluginRuntime.runMutation(manifest.id, () => {
-        host.registerPluginProfile(declared);
+        // The plugin id travels with the profile so the registry records
+        // provenance: `fdpm.profile.retire` refuses a plugin-owned revision
+        // (the plugin re-registers it on the next boot anyway) and names
+        // the plugin the operator has to disable instead.
+        host.registerPluginProfile(declared, manifest.id);
       });
       contributions.profileIds.push(profile.id);
     },

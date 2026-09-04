@@ -2,6 +2,8 @@ import { Command } from "commander";
 import type { Host } from "../core/host.js";
 import { DomainProfile } from "../core/models/meta.js";
 import { emit, readInput, renderTable, type OutputContext } from "./util.js";
+import { parseProfileRef } from "../core/profile/version.js";
+import { promoteProfile } from "../core/profile/promote.js";
 import { FDPMException } from "../core/errors/fdpm-exception.js";
 import {
   type CommandMetadataMap,
@@ -63,7 +65,7 @@ function renderProfileHierarchy(profiles: readonly DomainProfile[]): string {
  */
 export function buildProfileCommand(host: Host): Command {
   const cmd = new Command("profile");
-  cmd.description("Profile registry — list, get, register profiles");
+  cmd.description("Profile registry — list, get, register, retire, promote profiles");
 
   cmd
     .command("list")
@@ -136,6 +138,76 @@ export function buildProfileCommand(host: Host): Command {
       );
     });
 
+  cmd
+    .command("retire")
+    .description("Retire one profile revision (registry entry + persisted file)")
+    .argument("<ref>", "profile ref: id@version, or a bare id for the newest revision")
+    .option("--dry-run", "report what would block the retire; remove nothing")
+    .option("--json", "emit JSON")
+    .action(async (ref: string, opts: { dryRun?: boolean; json?: boolean }) => {
+      const ctx: OutputContext = { json: !!opts.json };
+      const parsed = parseProfileRef(ref);
+      const version = parsed.version ?? host.profiles.latestVersion(parsed.id);
+      if (!version) {
+        throw new FDPMException("not_found", `profile not found: ${ref}`, {
+          evidence: {
+            profile_id: parsed.id,
+            registered_versions: host.profiles.versionsOf(parsed.id),
+          },
+        });
+      }
+      if (opts.dryRun) {
+        const blockers = host.profileRetireBlockers(parsed.id, version);
+        emit(ctx, { profile_id: parsed.id, version, would_affect: blockers }, () =>
+          [
+            `${parsed.id}@${version}`,
+            `  workbooks:  ${blockers.workbooks.join(", ") || "(none)"}`,
+            `  dependents: ${blockers.dependents.join(", ") || "(none)"}`,
+          ].join("\n"),
+        );
+        return;
+      }
+      const retired = await host.retireProfile(ref);
+      const remaining = host.profiles.versionsOf(retired.profile_id);
+      emit(ctx, { ...retired, remaining_versions: remaining }, () =>
+        `retired ${retired.profile_id}@${retired.version}; remaining: ${
+          remaining.join(", ") || "(none)"
+        }`,
+      );
+    });
+
+  cmd
+    .command("promote")
+    .description("Emit a reviewable plugin skeleton from a registered profile")
+    .argument("<ref>", "profile ref: id@version, or a bare id for the newest revision")
+    .option("-o, --out <dir>", "directory to create the plugin directory inside", ".")
+    .option("--plugin-id <id>", "plugin id override (default: promoted.<profile-slug>)")
+    .option("--force", "overwrite an existing plugin directory")
+    .option("--json", "emit JSON")
+    .action(
+      async (
+        ref: string,
+        opts: { out: string; pluginId?: string; force?: boolean; json?: boolean },
+      ) => {
+        const ctx: OutputContext = { json: !!opts.json };
+        const result = await promoteProfile(host, ref, {
+          outDir: opts.out,
+          ...(opts.pluginId != null && { pluginId: opts.pluginId }),
+          ...(opts.force === true && { force: true }),
+        });
+        emit(ctx, result, () =>
+          [
+            `promoted ${result.profile_ref} -> ${result.plugin_id}`,
+            `  ${result.dir}`,
+            ...result.files.map((f) => `    ${f.slice(result.dir.length + 1)}`),
+            "",
+            "Not installed and not active: copy it into a plugin path after review,",
+            `then 'fdpm plugin enable ${result.plugin_id}'.`,
+          ].join("\n"),
+        );
+      },
+    );
+
   return cmd;
 }
 
@@ -152,6 +224,16 @@ export const commandMetadata: CommandMetadataMap = {
   },
   "profile register": {
     readOnly: false,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "profile retire": {
+    readOnly: false,
+    projectIdsFromArgv: NO_PROJECT_ARGV,
+    projectIdsFromJson: NO_PROJECT_JSON,
+  },
+  "profile promote": {
+    readOnly: true,
     projectIdsFromArgv: NO_PROJECT_ARGV,
     projectIdsFromJson: NO_PROJECT_JSON,
   },

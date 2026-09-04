@@ -25,6 +25,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: fdpm-mcp
+  labels:
+    platform.faz.ai/public-ingress: "true"
 ---
 apiVersion: v1
 kind: Service

@@ -43,6 +43,14 @@ export const NOT_EXPOSED: ReadonlyArray<string> = [
   // order. Never LLM-facing: an agent registering profiles goes through
   // `fdpm.profile.register` and `fdpm://schema/profile`.
   "registerPluginProfile",
+  // `workbookProfileRef` / `resolveProfileForWorkbook` resolve a workbook's
+  // profile REVISION from its `(profile_id, profile_version)` binding. They
+  // are internal resolution helpers every read path calls, not a surface an
+  // agent addresses: the profile itself is read through `fdpm.profile.get`
+  // and `fdpm://profile/{id}`, and the binding is reported by
+  // `fdpm.workbook.list` / `fdpm.workbook.get` on the workbook row.
+  "workbookProfileRef",
+  "resolveProfileForWorkbook",
   // `dataDir` is a read-only getter naming the persistence directory.
   // Not a tool: `fdpm.health.host_options.data_dir` already reports it,
   // and the audit-report resource consumes it internally.

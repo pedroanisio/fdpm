@@ -77,6 +77,7 @@ export const TOOL_TO_COMMAND_METADATA: Record<string, ToolMetadataEntry> = {
   "fdpm.structure.reparent": "structure reparent",
 
   // Tier 3 — destructive deletes (gated by --enable-destructive).
+  "fdpm.profile.retire": "profile retire",
   "fdpm.workbook.delete": "workbook delete",
   "fdpm.primitive.delete": "primitive delete",
   "fdpm.primitive.delete_batch": "primitive delete",

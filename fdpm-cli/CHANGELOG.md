@@ -35,6 +35,72 @@ upgrade.
 
 ### Added
 
+#### Profile revisions — a profile id names a family, not a single document
+
+`ProfileRegistry` keys on `(id, version)`. `fdpm profile register` /
+`fdpm.profile.register` now accept a second `version` of a known id instead of
+refusing it; only an exact repeat of a registered revision is a `conflict`, and
+that error names the versions that ARE registered so the caller can bump. A
+profile id an agent got wrong on the first attempt is no longer burned.
+
+Reusing the id is only safe because a workbook cannot be re-pointed at a schema
+it was not created against:
+
+- **Workbooks pin their revision.** `workbook.create` resolves `profile_id`
+  (bare id → newest revision, or an explicit `id@version` ref) once and records
+  `profile_version` on the workbook and in the `workbook.create` payload. Every
+  read path — render, validate, workbook get, quality scoring, delete preview —
+  resolves through that pin. A workbook written before pinning existed carries
+  no `profile_version` and resolves to the **oldest** registered revision, never
+  the newest: any later revision is by definition a schema its operations were
+  not appended under.
+- **`extends` holds refs, not ids.** `DomainProfile.extends` accepts `id` or
+  `id@major.minor.patch`. Registration pins an unpinned parent to the revision
+  current at that moment **when that revision is operator-persisted**. A
+  plugin's revisions are deliberately not pinned: a plugin re-registers its
+  profiles on every boot and ships only its current release, so pinning to one
+  would turn the next version bump into a dangling parent.
+- **Shadowing is reported.** A plugin registering a revision of an id that also
+  has an operator-persisted revision emits a `profile.shadowed` host warning
+  naming which revision a bare id now resolves to. Both revisions stay
+  registered and addressable as `id@version`; nothing is dropped silently.
+- `fdpm.workbook.list` and `Host.listProjects()` report `profile_version`.
+
+#### `fdpm.profile.retire` / `fdpm profile retire` — take a revision back out
+
+Tier-3 (destructive; `--enable-destructive`, `dry_run`, `idempotency_key`).
+Removes one revision from the registry and deletes its persisted file. Refused
+— never forced — while a workbook binds it, another profile extends it, or a
+plugin contributed it (disable the plugin instead), and for Core-owned ids;
+every read path resolves a workbook's profile through the registry and throws
+`not_found` when it is gone, so deleting a referenced revision breaks those
+surfaces rather than degrading them. `--dry-run` / `dry_run: true` returns the
+blockers as `would_affect: { workbooks, dependents }`.
+
+Manifest `0.5.0` → `0.6.0`. `DEFAULT_CATALOG_BUDGET.total_bytes` ratcheted
+27,000 → 28,500 B: 32 tools measure 27,560 B with destructive off (the worst
+case — a sixth destructive tool carries a disabled banner longer than its own
+description) and 26,372 B with it on. `FDPM_MCP_CATALOG_BUDGET_BYTES` default
+follows.
+
+#### `fdpm profile promote` — a registered profile becomes a plugin skeleton
+
+Emits a loadable plugin directory (`fdpm-plugin.json`, `profile.json`,
+`index.js`, `README.md`) whose `activate()` registers the profile, with the
+verb / renderer / prompt / validator slots named where an author fills them in.
+PURPOSE.md: "A plugin that ships only a profile is a schema" — promotion is the
+route from the schema an agent can register to the vocabulary the runtime is
+built for.
+
+Two constraints are deliberate. It **refuses to write into a plugin discovery
+path** (no override flag), because a plugin generated from agent-authored input
+that lands in `~/.fdpm/plugins` is active at the next host start with no human
+in the loop; the operator reads it and copies it in. And the emitted entry
+module is JavaScript: an emitted plugin has neither tsx nor a build step, so
+`.ts` would fail to load under a packaged `fdpm`. The second gate is the trust
+model's own — a filesystem plugin is `community` trust and stays disabled until
+`fdpm plugin enable <id>`.
+
 #### `fdpm.re-crt` — the RE-CRT 6.2 ontology as a profile
 
 `profile:re-crt:6.2`: the typed reason DAG, its dual obstruction DAG, the

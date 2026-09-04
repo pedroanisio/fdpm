@@ -87,7 +87,7 @@ export async function scoreWorkbook(
   opts?: { hostVersion?: string },
 ): Promise<WorkbookScoreReport> {
   const slice = host.getProject(workbookId);
-  const profile = host.profiles.getResolved(slice.workbook.profile_id);
+  const profile = host.resolveProfileForWorkbook(slice.workbook);
   const primitives = Object.values(slice.primitives);
   const relations = Object.values(slice.relations);
 

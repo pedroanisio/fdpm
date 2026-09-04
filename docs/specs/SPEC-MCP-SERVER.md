@@ -12,7 +12,7 @@ generated:
     be lost on the next render. Update the source script and re-run.
   by: "fdpm.spec-authoring renderer (spec:SpecMarkdownRenderer)"
   source_script: "fdpm-cli/scripts/build-spec-mcp-server.ts"
-revision: "0.1.9 — cross-platform reload amendment (§10.1, §15.4, §17, §23.4): fdpm-mcp uses SIGHUP on macOS/Linux and Ctrl+Break (SIGBREAK) on Windows; restart remains the fallback when no console is attached."
+revision: "0.1.10 — profile-revision amendment (§8, §11): the registry keys on (id, version), so a profile id can be revised; workbooks pin the revision they were created against; Tier-3 fdpm.profile.retire removes one revision when nothing references it. Manifest 0.6.0; catalog budget 27,000 -> 28,500 B."
 status: "Proposal"
 ---
 
@@ -311,7 +311,7 @@ Every `tools/list` response ships the whole registry — name, description, and 
 
 **Schema-by-resource.** A tool whose payload schema is large SHOULD advertise an opaque object and serve the schema as a resource under `fdpm://schema/{schema_id}` (`application/schema+json`), validating server-side with the same Zod schema the resource is derived from (§11.1) so the agent-visible contract and the enforced contract cannot drift. `fdpm.profile.register` is the first instance: its input is an opaque `profile` object; the DomainProfile schema is `fdpm://schema/profile`; a malformed profile is a Tier-2 rejection (`isError: false`, `ok: false`, one `core:profile-schema` finding per violated path with `field_path`), never a protocol error, and nothing is registered on rejection; parents named in `extends` MUST already be registered (else `not_found`).
 
-**Evidence.** Measured 2026-08-28 on manifest 0.1.0: 30 tools, 33,929 bytes, of which 8,809 bytes (26 %) were the DomainProfile schema inlined into `fdpm.profile.register`. After this amendment: 25,699 bytes with destructive off, 24,709 with it on.
+**Evidence.** Measured 2026-08-28 on manifest 0.1.0: 30 tools, 33,929 bytes, of which 8,809 bytes (26 %) were the DomainProfile schema inlined into `fdpm.profile.register`. After this amendment: 25,699 bytes with destructive off, 24,709 with it on. Manifest 0.6.0 (32 tools, adding Tier-3 `fdpm.profile.retire` and the `profile_version` field on `fdpm.workbook.list`) measured 27,560 B with destructive off — the worst case, since a sixth destructive tool carries a disabled banner longer than its own description — and 26,372 B with it on; the budget was ratcheted 27,000 → 28,500 B.
 
 ### 8.6 Server instructions and schema of orientation (v0.1.4)
 
@@ -508,7 +508,7 @@ The full tool catalog by tier is rendered from the Tool primitives bound to this
 
 ## 17. Configuration
 
-Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 26,000 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.
+Environment variables / flags governing server behaviour. Inherits `FDPM_DATA_DIR` from Core. MCP-specific keys (`FDPM_MCP_*`) default to safe values — destructive tools off, no plugin tools, audit-args hashed, catalog capped at 28,500 bytes. `FDPM_MCP_CATALOG_BUDGET_BYTES` is the only knob on the §8.5 budget and raises the total only.
 
 ---
 
@@ -793,6 +793,12 @@ Affected sections: 8, 11, 16, 17, 25
 Inverts the Tier-3 advertisement posture from 'absent when disabled' to 'advertised with disabled banner.' Real-session evidence showed operators concluding 'the capability is missing' when in fact it was merely gated; the new posture lets LLM clients self-recover from destructive_disabled refusals. Authorization perimeter is unchanged — the dispatch gate was always the cryptographic boundary; advertisement is discoverability, not authorization. §8.3 prose, §22.3 acceptance criterion, §23.1 conformance procedure, and the Tier-3 invariant updated. Threat-model trade-off documented for v0.2 reconsideration under network deployment.
 
 Affected sections: 5, 8, 22, 23
+
+### 0.1.10 — 2026-09-02 — Profile-revision amendment.
+
+A DomainProfile id now names a family of revisions: the registry keys on (id, version), so fdpm.profile.register accepts a second version of a known id and only an exact repeat of a registered revision is a conflict (the error names the registered versions). fdpm.workbook.create resolves the binding once and records profile_version on the workbook, so a later revision never re-validates an existing workbook against a schema its operations were not appended under; an unpinned (pre-amendment) workbook resolves to the OLDEST revision, never the newest. extends holds refs (id or id@version) and registration pins an unpinned parent whose current revision is operator-persisted — never a plugin's, whose revisions come and go with releases. Adds Tier-3 fdpm.profile.retire (registry entry + persisted file; refused while a workbook binds it, a profile extends it, or a plugin owns it; dry_run returns those blockers as would_affect) and the profile_version field on fdpm.workbook.list. A plugin registering a revision of an id that also has an operator-persisted revision emits a profile.shadowed host warning naming which revision a bare id resolves to. Manifest 0.5.0 → 0.6.0; DEFAULT_CATALOG_BUDGET.total_bytes ratcheted 27,000 → 28,500 (measured 27,560 B destructive off, 26,372 B on).
+
+Affected sections: 8, 11
 
 ### 0.1.1 — 2026-05-04 — Pass-2 refinement.
 

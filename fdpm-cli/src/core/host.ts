@@ -1,5 +1,11 @@
 import { Store, type AppendInput, type AppendOutput } from "./store/store.js";
 import { ProfileRegistry } from "./profile/registry.js";
+import {
+  compareProfileVersions,
+  formatProfileRef,
+  parseProfileRef,
+} from "./profile/version.js";
+import { isCoreReserved } from "./identity/id-rules.js";
 import { ValidationPipeline } from "./validation/pipeline.js";
 import { FDPMException } from "./errors/fdpm-exception.js";
 import { JsonlLogStore, defaultDataDir } from "../persistence/jsonl-log.js";
@@ -209,7 +215,11 @@ export class Host {
           });
           continue;
         }
-        if (this.profiles.has(result.data.id)) continue;
+        // Keyed by revision: two files holding the same (id, version) is a
+        // duplicate, but a second revision of the same id is a first-class
+        // register, not a collision to skip.
+        const key = formatProfileRef(result.data.id, result.data.version);
+        if (this.profiles.has(key)) continue;
         this.profiles.register(result.data);
       }
     }
@@ -472,7 +482,8 @@ export class Host {
             });
             continue;
           }
-          if (this.profiles.has(result.data.id)) continue;
+          const key = formatProfileRef(result.data.id, result.data.version);
+          if (this.profiles.has(key)) continue;
           this.profiles.register(result.data);
         }
       }
@@ -613,8 +624,38 @@ export class Host {
    * SPEC-CORE, contradicted by the host's own compiler and by the bridge.
    * The rule was corrected instead; see FieldDef in models/meta.ts.
    */
-  registerPluginProfile(profile: DomainProfile): "registered" | "already-present" {
-    if (this.profiles.has(profile.id)) return "already-present";
+  registerPluginProfile(
+    profile: DomainProfile,
+    pluginId?: string,
+  ): "registered" | "already-present" {
+    if (this.profiles.has(formatProfileRef(profile.id, profile.version)))
+      return "already-present";
+    // An operator-persisted revision of the same id is a shadow in one
+    // direction or the other: whichever revision is newest is what a bare
+    // `profile_id` resolves to, so either the operator's patch or the
+    // plugin's shipped schema wins every NEW workbook binding. Both stay
+    // registered and both stay addressable as `id@version` — nothing is
+    // dropped — but the operator has to be told, because an unnoticed
+    // shadow presents as "my changes did nothing".
+    const operatorVersions = this.profiles
+      .versionsOf(profile.id)
+      .filter((v) => this.profiles.sourceOf(formatProfileRef(profile.id, v))?.kind === "operator");
+    if (operatorVersions.length > 0) {
+      const newest = [profile.version, ...operatorVersions].sort(compareProfileVersions).pop()!;
+      emitHostWarning({
+        code: "profile.shadowed",
+        message: `profile ${profile.id}: operator-persisted revision(s) ${operatorVersions.join(
+          ", ",
+        )} coexist with the ${pluginId ?? "plugin"} revision ${profile.version}; a bare profile id resolves to ${newest}`,
+        evidence: {
+          profile_id: profile.id,
+          plugin_version: profile.version,
+          operator_versions: operatorVersions,
+          resolved_version: newest,
+          ...(pluginId != null && { plugin_id: pluginId }),
+        },
+      });
+    }
     const parsed = DomainProfileSchema.safeParse(stripBridgeExtras(profile));
     if (!parsed.success) {
       const detail = parsed.error.issues
@@ -627,7 +668,9 @@ export class Host {
         { findings: parsed.error.issues, evidence: { profile_id: profile.id } },
       );
     }
-    this.profiles.register(profile);
+    this.profiles.register(profile, {
+      source: pluginId != null ? { kind: "plugin", plugin_id: pluginId } : { kind: "operator" },
+    });
     return "registered";
   }
 
@@ -642,12 +685,137 @@ export class Host {
     // their profiles on every startup via activate().
     const persist = opts?.persist ?? true;
     if (persist && this.persistence) {
-      await this.persistence.writeProfile(profile.id, profile);
+      // Persist the registered form, not the argument: `register` pins
+      // unpinned `extends` parents, and a reload that lost those pins
+      // would resolve the profile against whatever revision is newest at
+      // boot — the drift the pin exists to prevent.
+      const stored = this.profiles.getRaw(formatProfileRef(profile.id, profile.version));
+      await this.persistence.writeProfile(profile.id, stored, profile.version);
     }
+  }
+
+  /**
+   * Retire one profile revision: remove it from the registry and delete
+   * its persisted file.
+   *
+   * Refused — never forced — when anything still depends on it, because
+   * every read path (render, validate, workbook get, quality scoring)
+   * resolves a workbook's profile through the registry and throws
+   * `not_found` when it is absent. Deleting a referenced revision does not
+   * degrade those surfaces, it breaks them.
+   */
+  async retireProfile(ref: string): Promise<{ profile_id: string; version: string }> {
+    const parsed = parseProfileRef(ref);
+    const version = parsed.version ?? this.profiles.latestVersion(parsed.id);
+    if (!version) {
+      throw new FDPMException("not_found", `profile not found: ${ref}`, {
+        evidence: { profile_id: parsed.id, registered_versions: [] },
+      });
+    }
+    const key = formatProfileRef(parsed.id, version);
+    if (!this.profiles.has(key)) {
+      throw new FDPMException("not_found", `profile not found: ${key}`, {
+        evidence: {
+          profile_id: parsed.id,
+          registered_versions: this.profiles.versionsOf(parsed.id),
+        },
+      });
+    }
+    if (isCoreReserved(parsed.id)) {
+      throw new FDPMException(
+        "permission",
+        `profile ${key} is Core-owned and cannot be retired`,
+        { evidence: { profile_id: parsed.id, reason: "reserved_namespace" } },
+      );
+    }
+    const source = this.profiles.sourceOf(key);
+    if (source?.kind === "plugin") {
+      throw new FDPMException(
+        "conflict",
+        `profile ${key} is contributed by plugin ${source.plugin_id}; disable the plugin instead`,
+        {
+          evidence: { profile_id: parsed.id, reason: "plugin_owned", plugin_id: source.plugin_id },
+        },
+      );
+    }
+    const blockers = this.profileRetireBlockers(parsed.id, version);
+    if (blockers.workbooks.length > 0 || blockers.dependents.length > 0) {
+      throw new FDPMException(
+        "conflict",
+        `profile ${key} is still referenced by ${blockers.workbooks.length} workbook(s) and ${blockers.dependents.length} profile(s)`,
+        { evidence: { profile_id: parsed.id, version, ...blockers } },
+      );
+    }
+    this.profiles.unregister(key);
+    if (this.persistence) await this.persistence.deleteProfile(parsed.id, version);
+    return { profile_id: parsed.id, version };
+  }
+
+  /**
+   * What would refuse a retire of this revision: workbooks bound to it
+   * (pinned, or unpinned and resolving to it) and registered profiles that
+   * extend it. Also the preview `fdpm.profile.retire --dry-run` returns.
+   */
+  profileRetireBlockers(
+    id: string,
+    version: string,
+  ): { workbooks: string[]; dependents: string[] } {
+    const key = formatProfileRef(id, version);
+    const workbooks: string[] = [];
+    for (const workbook of this.store.listProjects()) {
+      if (workbook.profile_id !== id) continue;
+      if (this.workbookProfileRef(workbook) === key) workbooks.push(workbook.id);
+    }
+    const dependents: string[] = [];
+    for (const profile of this.profiles.listRaw()) {
+      if (profile.id === id && profile.version === version) continue;
+      for (const parent of profile.extends) {
+        const parsed = parseProfileRef(parent);
+        if (parsed.id !== id) continue;
+        const resolved = parsed.version ?? this.profiles.latestVersion(parsed.id);
+        if (resolved === version) {
+          dependents.push(formatProfileRef(profile.id, profile.version));
+          break;
+        }
+      }
+    }
+    return { workbooks, dependents };
+  }
+
+  /**
+   * The revision ref a workbook is bound to.
+   *
+   * A workbook created before pinning existed carries no `profile_version`.
+   * It resolves to the OLDEST registered revision, not the newest: that
+   * workbook was written when its id had exactly one revision, and any
+   * revision registered later is by definition a schema its operations
+   * were never validated against.
+   */
+  workbookProfileRef(workbook: { profile_id: string; profile_version?: string }): string {
+    if (workbook.profile_version) {
+      return formatProfileRef(workbook.profile_id, workbook.profile_version);
+    }
+    const oldest = this.profiles.oldestVersion(workbook.profile_id);
+    return oldest ? formatProfileRef(workbook.profile_id, oldest) : workbook.profile_id;
+  }
+
+  /** Resolved profile for a workbook record, honouring its version pin. */
+  resolveProfileForWorkbook(workbook: {
+    profile_id: string;
+    profile_version?: string;
+  }): DomainProfile {
+    return this.profiles.getResolved(this.workbookProfileRef(workbook));
   }
 
   // -- Workbook-level entry points -------------------------------------
 
+  /**
+   * `profile_id` accepts a bare id (binds the newest revision) or an
+   * `id@version` ref (binds exactly that one). Either way the resolved
+   * version is recorded on the workbook: the binding is decided once, here,
+   * and a later revision of the same id never re-points an existing
+   * workbook at a schema its operations were not validated against.
+   */
   async createProject(input: {
     workbook_id: string;
     name: string;
@@ -656,10 +824,11 @@ export class Host {
   }): Promise<AppendOutput> {
     if (!this.profiles.has(input.profile_id))
       throw new FDPMException("not_found", `profile not found: ${input.profile_id}`);
+    const bound = this.profiles.getRaw(input.profile_id);
     return this.appendAndPersist({
       kind: "workbook.create",
       workbook_id: input.workbook_id,
-      payload: { ...input },
+      payload: { ...input, profile_id: bound.id, profile_version: bound.version },
     });
   }
 
@@ -1150,7 +1319,7 @@ export class Host {
 
   requireResolvedProfile(workbook_id: string): DomainProfile {
     const slice = this.store.getProject(workbook_id);
-    return this.profiles.getResolved(slice.workbook.profile_id);
+    return this.resolveProfileForWorkbook(slice.workbook);
   }
 
   /**
@@ -1954,7 +2123,7 @@ export class Host {
     relations: ValidationReport[];
   } {
     const slice = this.store.getProject(workbook_id);
-    const profile = this.profiles.getResolved(slice.workbook.profile_id);
+    const profile = this.resolveProfileForWorkbook(slice.workbook);
     const ctx = this.validationContext(workbook_id);
     const prims = new Map(Object.entries(slice.primitives));
 

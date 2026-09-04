@@ -1,6 +1,16 @@
+---
+disclaimer:
+  notice: >-
+    No information within this document should be taken for granted.
+    Any statement or premise not backed by a real logical definition
+    or verifiable reference may be invalid, erroneous, or a hallucination.
+  generated_by: "Rev6 revision (§13.3 corrections, §13.4–§13.8 updates, §14.4 falsifier instantiation) by Claude Fable 5.1 via Claude Code; earlier revisions from the author's workflow"
+  date: "2026-09-03"
+---
+
 # Relativized Irreducibility and Emergence Pressure
 
-## Rev5: A Reconciled Framework for Abstraction, Closure Regimes, and Primitive Formation
+## A Reconciled Framework for Abstraction, Closure Regimes, and Primitive Formation
 
 ## Table of Contents
 
@@ -21,29 +31,18 @@
 15. Relation to Existing Work  
 16. References  
 17. Implications  
-18. Conclusion
+18. Conclusion  
+19. Provenance and Verification Record
 
 ---
 
 ## Abstract
 
-[DEFINITION] Complex systems are often described as reducible or irreducible. This distinction becomes misleading when irreducibility is treated as an intrinsic property of the system alone. A distributed backend, biological cell, neural network, software platform, or market may appear reducible under one representation and irreducible under another. What changes is not only the system, but the modeling language, observer, available resources, and task.
+Complex systems are often described as reducible or irreducible. The distinction misleads when irreducibility is treated as an intrinsic property of the system alone. A distributed backend, a biological cell, a neural network, or a market may be reducible under one representation and irreducible under another, and what changes is not only the system but the modeling language, the observer, the available resources, and the task.
 
-[DEFINITION] This paper proposes a framework of **relativized irreducibility**, in which reducibility is treated as a relation among system, language, observer, resource regime, and task:
+This paper treats reducibility as a relation among those five terms, `Reducible(S, L, O, R, T)`, and argues that abstraction layers form under **emergence pressure**: the point at which lower-level decomposition becomes too costly, lossy, opaque, or operationally irrelevant for a task. A successful abstraction does not eliminate irreducibility. It relocates it into a **closure regime** whose contracts, validation laws, canonical patterns, and observability surfaces distinguish known obligations from genuinely novel residuals. The concepts that make that distinction checkable are closure adequacy, closure regimes, abstraction debt, runtime escape, canonical pattern bases, and residual irreducibility.
 
-```text
-Reducible(S, L, O, R, T)
-```
-
-[CONJECTURE] The framework argues that abstraction layers form when lower-level decomposition becomes too costly, lossy, opaque, or operationally irrelevant for a task. This condition is called **emergence pressure**. Under emergence pressure, aggregates may be encapsulated behind contracts and promoted into new primitives in a higher-level language.
-
-Rev5 applies five corrections to Rev4. First, it adds a small quantitative comparison using the worked backend specification. Second, it adds an explicit falsifier for the threshold-framing conjecture. Third, it anchors [DERIVED] claims to their source definitions or assumptions. Fourth, it formalizes representative closure laws in Datalog-style notation. Fifth, it expands references and positions residual irreducibility against adjacent complexity measures.
-
-The main contribution is a set of concepts for distinguishing productive abstraction from accidental erasure: **closure adequacy**, **closure regimes**, **abstraction debt**, **runtime escape**, **canonical pattern bases**, and **residual irreducibility**.
-
-The paper’s central claim is:
-
-> A successful abstraction does not eliminate irreducibility; it relocates it into a closure regime whose contracts, validation laws, canonical patterns, and observability surfaces distinguish known obligations from genuinely novel residuals.
+The framework is applied to a six-axis backend specification language with fixed falsification thresholds, and the falsifiers are run against the paper's own worked specification. On the first run they fired. The specification, presented as valid, produced five error-level findings from the validators the case study names, two of them violations of the closure regime the paper itself had declared. Three of the four extension regions the paper had declared open were rejected by the schema. A mutation catch rate previously asserted as 8 of 8 measured 6 of 7 for the statically detectable mutations. The corrections are reported at the point where each claim changed, one seeded canonical-pattern violation that no validator catches is recorded as a measured gap, and four of the ten falsifiers remain unresolved because they need release, incident, review, or generation data that a seeded example cannot supply. The claim is modest. The reason to publish is that the framework has now been used once on a real artifact and caught real errors, including its own.
 
 ---
 
@@ -101,12 +100,12 @@ Claims are marked as follows:
 [DEFINITION]  Introduced by construction.
 [ASSUMPTION]  Required condition for a claim or mechanism to hold.
 [DERIVED]     Follows from stated assumptions or prior definitions.
-[THEOREM]     Formally stated result within a restricted fragment.
+[LEMMA]       Known result restated for the fragment used here, with citation.
 [CONJECTURE]  Plausible but requiring formal proof or empirical validation.
 [EMPIRICAL]   Requires measurement in concrete systems.
 ```
 
-The framework avoids presenting its notation as a complete theorem system. Rev5 contains one limited theorem about closure-law satisfiability in a finite Datalog fragment (§8.9). The broader framework remains conceptual and operational rather than fully formal.
+The framework avoids presenting its notation as a complete theorem system. The document contains one lemma, a known decidability result restated for the closure-law fragment it uses (§8.9), and one instantiated falsifier evaluation with measured results (§14.4). The broader framework remains conceptual and operational rather than fully formal.
 
 ### 2.2 Notation Index
 
@@ -309,7 +308,7 @@ A common intuition is:
 Cost(abstraction) < Cost(lower-level reasoning)
 ```
 
-Rev5 states this only with an explicit metric:
+The framework states this only with an explicit metric:
 
 ```text
 Cost_m(L_spec + validators + canonical base + residual failures, T)
@@ -548,11 +547,11 @@ fallback behavior when checking is inconclusive
 
 A useful abstraction should not hide irreducibility inside an undecidable validator without acknowledging the cost.
 
-### 8.9 Finite Datalog Closure Satisfiability [THEOREM]
+### 8.9 Finite Datalog Closure Satisfiability [LEMMA]
 
-**Theorem.** Let `Σ_L` be a finite set of closure laws expressed as function-free Datalog rules over a finite extensional database `D`. If the abstraction’s admissibility condition is expressed as a finite set of required and forbidden derived predicates over the least fixed point of `Σ_L ∪ D`, then closure-law satisfiability is decidable.
+**Lemma (known result, restated).** Let `Σ_L` be a finite set of closure laws expressed as function-free Datalog rules over a finite extensional database `D`. If the abstraction’s admissibility condition is expressed as a finite set of required and forbidden derived predicates over the least fixed point of `Σ_L ∪ D`, then closure-law satisfiability is decidable, and for a fixed rule set the check runs in time polynomial in the size of `D`.
 
-**Proof sketch.** Function-free Datalog over a finite domain has a finite Herbrand base. The immediate consequence operator is monotone over the finite lattice of possible ground atoms, so repeated application reaches a least fixed point in finitely many steps. Once the fixed point is reached, each required or forbidden predicate condition can be checked by finite lookup. Therefore, for this restricted closure-law fragment, the satisfiability check terminates. This does not establish decidability for unrestricted closure languages; it only makes A4 operational under the stated finite Datalog restriction.
+**Why it holds.** Function-free Datalog over a finite domain has a finite Herbrand base. The immediate-consequence operator is monotone over the finite lattice of ground atoms, so iterating it reaches the least fixed point in finitely many steps, and each required or forbidden predicate is then checked by finite lookup. This is the standard fixpoint semantics of Datalog (Abiteboul, Hull & Vianu, 1995); the polynomial data complexity of a fixed Datalog program is established in Dantsin, Eiter, Gottlob & Voronkov (2001). Nothing in this subsection is new. The result is restated because assumption A4 depends on it and because it fixes the fragment that the case study's closure-law validator implements. It says nothing about unrestricted closure languages.
 
 **Consequence.** A closure-adequate abstraction language should state the fragment in which closure laws are written. If it uses a more expressive language, it must also state what happens when satisfiability checking is inconclusive.
 
@@ -895,70 +894,18 @@ Correctness depends on non-local relations across these regions.
 
 ### 13.3 Worked Minimal Specification
 
-A minimal backend specification can be shown with one entity, one aggregate, one command, one query, one event, one state machine, one operation binding, one error envelope, and one observability contract.
+A minimal backend specification can be shown with one entity, one aggregate, one command, one query, one event, one state machine, two operation bindings, one error envelope, and one observability contract. The full specification is 235 lines of YAML. It is not reproduced here. It is the reproducible appendix of this paper and lives in the repository beside it, together with the mutation runner and the recorded results (§14.4.1):
+
+```text
+file:     relativized-irreducibility-case-study/case-study.spec.yaml
+sha256:   c29846c963c77f85c9d00e0d9169e9311eee515f0ba0927b6e0df5b716a6499f
+size:     235 non-empty lines of specification under a three-line header comment
+version:  framework_version 1.1.0, spec_version 0.1.0
+```
+
+The command that most of the §13.5 mutations target reads, verbatim:
 
 ```yaml
-spec_meta:
-  framework_version: "1.1.0"
-  spec_version: "0.1.0"
-  title: "Minimal Order Backend"
-  rule_grammar:
-    name: "cel"
-    version: "1.0"
-
-data_model:
-  primitive_types:
-    Money:
-      base: decimal
-      description: "Currency amount"
-      min: 0
-  identifier_types:
-    OrderId:
-      format:
-        pattern_ref: order_id_pattern
-      generation:
-        strategy: uuid_v7
-        locus: server
-      uniqueness_scope: global
-  named_patterns:
-    order_id_pattern:
-      regex: "^ord_[A-Za-z0-9]+$"
-      description: "Order identifier"
-  enumerations:
-    OrderStatus:
-      values:
-        - code: Draft
-        - code: Submitted
-        - code: Cancelled
-  composite_types: {}
-  entities:
-    Order:
-      id_field: id
-      id_type: OrderId
-      lifecycle_field:
-        field: status
-        state_machine_ref: order_lifecycle
-      fields:
-        - name: id
-          type: OrderId
-          cardinality: "1"
-        - name: status
-          type: OrderStatus
-          cardinality: "1"
-        - name: total
-          type: Money
-          cardinality: "1"
-          classification: internal
-  aggregates:
-    OrderAggregate:
-      root: Order
-      members: [Order]
-  references: []
-  tenancy:
-    mode: single_tenant
-
-operations:
-  commands:
     SubmitOrder:
       target_aggregate: OrderAggregate
       effect:
@@ -979,159 +926,9 @@ operations:
       synthetic_errors:
         row_not_found: not_found
         stale_version: stale_version
-  queries:
-    GetOrder:
-      target:
-        kind: single_entity
-        entity: Order
-      parameters:
-        - name: order_id
-          type: OrderId
-          cardinality: "1"
-      result:
-        kind: entity
-        entity: Order
-      consistency: strong
-      errors: [not_found]
-      synthetic_errors:
-        row_not_found: not_found
-  events:
-    OrderSubmitted:
-      source_aggregate: OrderAggregate
-      payload:
-        - name: order_id
-          type: OrderId
-          cardinality: "1"
-
-behavior:
-  state_machines:
-    order_lifecycle:
-      entity: Order
-      field: status
-      states: [Draft, Submitted, Cancelled]
-      initial: Draft
-      terminal_states: [Submitted, Cancelled]
-      transitions:
-        - from: Draft
-          to: Submitted
-          trigger: SubmitOrder
-          trigger_kind: command
-  invariants:
-    PositiveOrderTotal:
-      scope: entity
-      scope_targets: [Order]
-      rule:
-        grammar: cel
-        expression: "Order.total > 0"
-      enforcement_point: write
-      enforcement_timing: eager
-
-interface:
-  transports:
-    http:
-      kind: http
-      version: "1.1"
-  wire_formats:
-    json:
-      kind: json
-  operation_bindings:
-    - operation_kind: command
-      operation: SubmitOrder
-      transport: http
-      wire_format: json
-      http:
-        method: POST
-        path: /orders/{order_id}/submit
-        success_status: 200
-        error_status_map:
-          not_found: 404
-          stale_version: 409
-          invalid_state: 422
-    - operation_kind: query
-      operation: GetOrder
-      transport: http
-      wire_format: json
-      http:
-        method: GET
-        path: /orders/{order_id}
-        success_status: 200
-        error_status_map:
-          not_found: 404
-  error_envelope:
-    kind: rfc9457
-  error_taxonomy:
-    not_found:
-      default_status: 404
-      retryable: false
-    stale_version:
-      default_status: 409
-      retryable: true
-    invalid_state:
-      default_status: 422
-      retryable: false
-  auth_schemes:
-    Bearer:
-      kind: http_bearer
-      bearer_format: JWT
-
-cross_cutting:
-  authorization:
-    model: rbac
-    subjects:
-      roles: [user]
-    policies:
-      - operation_kind: command
-        operation: SubmitOrder
-        predicate:
-          grammar: cel
-          expression: "subject.role == 'user'"
-  tenancy_enforcement:
-    isolation_rule: strict_match
-  idempotency:
-    default: explicit_per_command
-  concurrency:
-    default: optimistic_versioning
-    conflict_response: stale_version
-  audit:
-    default: all_commands
-  observability:
-    logging:
-      format: json
-      required_fields: [trace_id, operation, aggregate_id, outcome]
-    metrics:
-      required_per_operation: [latency_ms, error_count]
-    tracing:
-      context_propagation: w3c_trace_context
-      sampling_strategy: parent_based
-
-non_functional:
-  persistence:
-    dialect: postgres
-    version: "16"
-    nested_storage_default: child_tables
-  id_generation:
-    default_strategy: uuid_v7
-    default_locus: server
-  timezone:
-    storage_zone: utc
-    wire_zone: iso8601_with_offset
-  encoding:
-    string_encoding: utf_8
-  topology:
-    shape: modular_monolith
-  configuration:
-    env_vars:
-      - name: DATABASE_URL
-        type: url
-        secret: true
-  health_checks:
-    liveness:
-      path: /health/live
-    readiness:
-      path: /health/ready
 ```
 
-This example is intentionally small. It is not presented as a production-ready specification. Its purpose is to show how the theory becomes operational.
+This example is intentionally small. It is not presented as a production-ready specification. Its purpose is to show how the theory becomes operational, and the file rather than the page is what the validators ran on. This revision corrected the file on five points; §14.4.4 lists them.
 
 ### 13.4 Closure-Regime Declaration for the Example
 
@@ -1144,49 +941,58 @@ The minimal backend example uses a mixed closure regime.
 | `operations.commands` | Closed | Supported commands define the complete write surface. |
 | `operations.queries` | Closed | Supported queries define the complete read surface. |
 | `operations.events` | Closed | Emitted events must be declared and versioned. |
-| `behavior.state_machines` | Closed | Lifecycle states and transitions must be complete for validation. |
+| `behavior.state_machines` | Closed | Lifecycle states and transitions must be complete for validation; every declared state must be reachable from the initial state. |
 | `interface.operation_bindings` | Closed | Non-internal operations must have explicit exposure. |
 | `interface.error_taxonomy` | Closed | Any emitted error must resolve to a declared error class. |
 | `synthetic_errors` | Closed over known generator failure keys | `row_not_found`, `stale_version`, `dedup_conflict`, and `unsupported` are reserved known failure modes; additional keys require explicit declaration. |
 | `cross_cutting.authorization` | Closed for declared operations | Every exposed command/query must have a policy or explicit exemption. |
-| `cross_cutting.observability` | Closed for required telemetry fields | Required logs, metrics, and trace context must be declared. |
-| vendor metadata | Open | Vendors may attach non-semantic annotations. |
-| plugin extensions | Open | Extension behavior may be declared outside the minimal core. |
-| custom observability exporters | Open | Exporter-specific configuration should not invalidate the core spec. |
-| future transports | Open until declared | Future transports may be added, but once used by an operation binding they become closed obligations. |
+| `cross_cutting.observability` | Closed for required telemetry fields | Required logs, metrics, and trace context must be declared; the metrics contract must name its naming convention. |
+| `interface.auth_schemes.*.accepted_algorithms` | Closed for JWT and OIDC schemes | A bearer or OIDC scheme must pin the signature algorithms it accepts. |
+| `cross_cutting.idempotency.key_source`, `dedup_window` | Closed when idempotency is enabled | An enabled idempotency policy must say where the key comes from and how long duplicates are remembered. |
+| vendor metadata | Closed in schema 1.1.0 | The previous revision declared this open; the §14.4 run showed that schema 1.1.0 rejects an `x-vendor` object at the document root (`additionalProperties: false`). The declaration is corrected to the enforced regime. |
+| plugin extensions | Closed in schema 1.1.0 | The previous revision declared this open; the §14.4 run showed that schema 1.1.0 rejects an `extensions` block at the document root. |
+| custom observability exporters | Closed in schema 1.1.0 | The previous revision declared this open; the §14.4 run showed that schema 1.1.0 rejects an `exporters` key under `cross_cutting.observability`. |
+| future transports | Open until bound | A transport may be declared without any operation binding; once an operation binding uses it, it becomes a closed obligation. Measured: a declared, unbound `grpc` transport is accepted (§14.4, E4). |
 
-This declaration makes absence semantics explicit. If `SubmitOrder` omits `stale_version`, that is invalid because transition commands are in a closed region for known synthetic concurrency errors. If a vendor annotation is absent, that is not invalid because vendor metadata is open-world.
+This declaration makes absence semantics explicit. If `SubmitOrder` omits `stale_version`, that is invalid because transition commands are in a closed region for known synthetic concurrency errors. If a vendor annotation is present, schema 1.1.0 rejects it: under this language version the example has no region in which non-semantic metadata can live.
+
+The last four rows were the ones the previous revision declared open. Three of the four were rejected by the schema on the first run (§14.4, row 6). That is this paper's own FD_3 (§14.1): the declaration and the enforced regime had diverged. Falsifier 6 was then passed by shrinking the claim, not by changing the schema. The declaration was narrowed to match what the schema enforces. A falsifier that passes after the claim shrinks is legitimate only when the shrinkage is declared, and this paragraph is that declaration. The alternative, reopening the three regions with an `x-` prefixed pattern property, is a measurable cost that the framework says should be measured before it is paid (§9.3). This revision defers it and says so.
 
 ### 13.5 Validation Walkthrough
 
-The §13.3 specification is intended to satisfy all eight validation layers below. The table shows representative invalid mutations and the layer that catches each one.
+The §13.3 specification produces zero error-level findings from the three static validators of §14.4. The table shows the eight seeded mutations, the layer intended to catch each one, and the layer that caught it when the mutation was run (protocol in §14.4.1).
 
-| Layer | Example caught |
-|---|---|
-| Grammar/schema | `success_status: "OK"` is invalid because status must be numeric. |
-| Local semantic validator | `Money.min_length` would be invalid because `Money` is decimal, not string. |
-| Cross-reference resolver | `SubmitOrder.target_aggregate: MissingAggregate` fails because the aggregate is undeclared. |
-| Closure-law validator | `SubmitOrder` emits `OrderSubmitted`, so the event must exist and be bindable if externally published. |
-| Closed-world check | A command with transition/modify/delete effect must declare required synthetic errors such as `row_not_found` and `stale_version` where applicable. |
-| Canonical pattern base | `POST /orders/{id}/submit` with `invalid_state → 422` matches a known command-state-transition pattern; a nonstandard status could be flagged for review. |
-| Observability contract | Logs must include `trace_id`, `operation`, `aggregate_id`, and `outcome`; otherwise debugging and audit are degraded. |
-| Runtime observation | If production emits `timeout` errors not in `error_taxonomy`, that is runtime escape. |
+| Intended layer | Mutation (M1–M8) | Caught by, measured |
+|---|---|---|
+| Grammar/schema | M1: `success_status: "OK"`; status must be numeric. | Schema. The catalog engine's L10 evaluator also crashed on the non-integer value. |
+| Local semantic validator | M2: `Money.min_length: 3` on a decimal type. | Schema: the primitive-type grammar forbids the key. No separate local-semantic validator was needed. |
+| Cross-reference resolver | M3: `SubmitOrder.target_aggregate: MissingAggregate`. | Closure law L3, and catalog rule L3. |
+| Closure-law validator | M4: `SubmitOrder` emits `OrderSubmitted`, and the event is not declared. | Closure law L14, and catalog rule L14. |
+| Closed-world check | M5: `SubmitOrder`, a transition command, without `stale_version` in `errors`, `synthetic_errors`, and its binding. | Schema: `synthetic_errors.stale_version` is required for transition commands. |
+| Canonical pattern base | M6: `invalid_state → 200`, an error class mapped to a success status. | **Nothing.** No validator fired. Recorded as a false acceptance in §14.4.3. |
+| Observability contract | M7: `trace_id` removed from `logging.required_fields`. | Catalog rule OBS-001, error severity. |
+| Runtime observation | M8: production emits `timeout`, absent from `error_taxonomy`; the specification is unchanged. | Not detectable statically, by construction. Caught by the runtime-observation check: observed error classes minus `error_taxonomy`. |
 
-This walkthrough demonstrates the practical claim: one abstraction contract can be syntactically valid while still failing semantic closure, canonical-pattern alignment, or observability adequacy.
+This walkthrough demonstrates the practical claim: one abstraction contract can be syntactically valid while still failing semantic closure, canonical-pattern alignment, or observability adequacy. It also shows the converse: one seeded canonical-pattern violation passes every static layer the language currently has.
 
 ### 13.6 Quantitative Mini-Measurement [EMPIRICAL]
 
-Rev5 includes a small, intentionally limited measurement to make the cost discussion non-empty. It is not evidence of superiority; it is a worked example of how measurement would be reported.
+This section reports a small, intentionally limited measurement so that the cost discussion is non-empty. It is not evidence of superiority; it is a worked example of how measurement is reported. The protocol, the fixed thresholds, and the full results are in §14.4.
 
-Using the §13.3 YAML block as the specification artifact:
+Using the case-study specification file named in §13.3 as the artifact:
 
 ```text
-spec lines, non-empty: 225
-representative invalid mutations in §13.5: 8
-validation layers exercised: 8
-mutations caught by intended validation layer: 8
-mutation catch rate in this seeded example: 8 / 8 = 100%
+spec lines, non-empty:                              235
+seeded invalid mutations (§13.5):                     8
+statically detectable by construction:                7
+caught by a static validator:                         6 of 7
+caught including runtime observation:                 7 of 8
+false acceptance rate on seeded invalids:             1 / 8 = 12.5 %
+error-level findings on the valid specification:      0  (schema, closure laws, 270-rule catalog)
+warning-level findings on the valid specification:   26
 ```
+
+The previous revision reported a catch rate of 8 / 8 for this table. That number was asserted from the intended layer of each mutation, not measured. The measured number is above.
 
 A coarse equivalent hand-written backend slice for the same obligations would normally require at least the following artifacts:
 
@@ -1210,7 +1016,7 @@ representative hand-written backend artifact count: 9
 artifact ratio: 1 : 9
 ```
 
-This comparison is deliberately weak. It does not measure effort, maintainability, defect rate, or runtime correctness. It only shows that one explicit metric can be attached to the framework. Stronger empirical work would measure engineer-hours, defect-detection time, validator runtime, false acceptance rate, and false rejection rate across a benchmark set.
+This comparison is deliberately weak. It does not measure effort, maintainability, defect rate, or runtime correctness. It only shows that one explicit metric can be attached to the framework. Stronger empirical work would measure engineer-hours, defect-detection time, validator runtime, false acceptance rate, and false rejection rate across a benchmark set; §14.4 reports the last three for this one example.
 
 ### 13.7 Example Cost Metrics
 
@@ -1224,6 +1030,19 @@ M4: number of closure-law violations per generated specification
 M5: validator runtime per specification
 M6: false rejection rate against valid hand-written examples
 M7: false acceptance rate against seeded invalid examples
+```
+
+Three of these were measured for the §13.3 example in this revision (§14.4):
+
+```text
+M5: validator runtime per specification
+    schema 3–4 ms; closure laws < 0.1 ms; 270-rule catalog ≈ 5 ms of evaluation
+    (≈ 60 ms wall clock including interpreter start and catalog load)
+M6: false rejection rate
+    0 / 1 on the corrected specification, error level;
+    3 / 4 on the held-out valid-extension suite
+M7: false acceptance rate against seeded invalid examples
+    1 / 8
 ```
 
 A future empirical study could compare:
@@ -1246,6 +1065,9 @@ Until such measurements exist, broad claims about cost reduction remain [CONJECT
 4. Runtime errors must be represented or they become runtime escape.
 5. Canonical patterns can reduce known semantic uncertainty.
 6. Observability is part of abstraction quality.
+7. A closure-regime declaration that is never executed against a validator is
+   abstraction debt: the previous revision's example violated its own declaration
+   twice and omitted three obligations its validators close (§14.4.4).
 ```
 
 It does not prove that the six-axis language is complete, minimal, or superior in all contexts.
@@ -1301,9 +1123,144 @@ The framework is weaker or inapplicable under several conditions.
 | Closure-law count grows faster than system complexity | Rule-count or validator-runtime growth exceeds pre-defined relation to spec size | Abstraction usefulness |
 | Users or generators cannot interpret the exposed contract | Task completion or valid-generation rate falls below agreed benchmark | Contract interpretability |
 
-The thresholds `N`, `p`, and tolerance bounds are domain parameters. They must be set before evaluation; otherwise the falsifiers remain rhetorical rather than operational.
+The thresholds `N`, `p`, and tolerance bounds are domain parameters. They must be set before evaluation; otherwise the falsifiers remain rhetorical rather than operational. §14.4 sets them once for the six-axis case study and reports the result of each evaluation that the seeded example can support.
 
-### 14.4 Internal Weaknesses of the Framework
+### 14.4 Instantiated Falsifiers: Six-Axis Case Study [EMPIRICAL]
+
+§14.3 leaves `N`, `p`, and the tolerance bounds as domain parameters. This section sets them once for the six-axis case study and reports the result of running every falsifier that the §13.3 specification can support. The thresholds were fixed before the first run. Two runs are reported: the first against the previous revision's specification (Rev5 in §19.6), the second against the corrected file named in §13.3.
+
+#### 14.4.1 Protocol
+
+```text
+artifact under test:
+  case-study.spec.yaml, the file named by hash in §13.3, parsed to JSON
+
+runner:
+  run_falsifiers.py beside the specification; M1–M8, E1–E4, and the growth
+  series are defined in it; results.json beside it is the recorded run from
+  which every number in §13.6 and §14.4 is quoted
+
+validators (the author's backend-specification toolchain, framework 1.1.0):
+  V-schema   JSON Schema 2020-12, backend_spec.schema.v1.1.0
+  V-closure  closure-law validator: laws L3–L18 evaluated as function-free
+             checks over the finite parsed specification (the §8.9 fragment)
+  V-catalog  rule catalog 1.1.0: 270 executable rules with error and warning
+             severities, run by its rule engine
+  V-runtime  runtime-observation check: observed error classes minus the keys
+             of interface.error_taxonomy (used for M8 only)
+
+seeded invalid set:
+  the eight mutations of §13.5 (M1–M8), each applied to a fresh copy of the
+  specification
+
+held-out valid-extension suite (one case per region the previous §13.4 declared open):
+  E1  vendor metadata: an x-vendor object at the document root
+  E2  plugin extensions: an extensions.plugins list at the document root
+  E3  custom observability exporter: cross_cutting.observability.exporters
+  E4  future transport: interface.transports.grpc declared, bound to nothing
+
+growth series (row 9):
+  k ∈ {1, 2, 4, 8, 16} copies of the Order slice (identifier type, enumeration,
+  entity, aggregate, command, query, event, state machine, invariant, bindings,
+  policies; every name suffixed per copy); rule-engine wall time is the median
+  of 5 runs; interpreter and catalog-load overhead is measured separately
+  (median of 5 catalog-load-only runs) and subtracted to give evaluation time
+
+acceptance rule:
+  an artifact is rejected when V-schema or V-closure reports any error, or when
+  V-catalog reports an error-level finding that the unmutated specification
+  does not report
+```
+
+#### 14.4.2 Parameters and Results
+
+| # | Falsifier (§14.3) | Parameter fixed for this case | Evaluable here | Measured | Verdict |
+|---|---|---|---|---|---|
+| 1 | Emergence-pressure justification | `m` = number of artifacts an engineer must open to see all six-axis obligations; falsified if the specification needs at least as many as the hand-written slice | Yes, coarsely | 1 specification artifact against 9 hand-written artifacts (§13.6) | Not falsified; weak metric |
+| 2 | Complexity-relocation benefit | Tolerance: median time-to-diagnosis (M1, M2 of §13.7) may not worsen by more than 20 % against direct inspection; validator runtime per specification ≤ 1 000 ms | Runtime only | V-schema 3–4 ms; V-closure < 0.1 ms; V-catalog ≈ 60 ms wall clock, of which ≈ 56 ms is interpreter start and catalog load and ≈ 5 ms is evaluation | Runtime bound holds; diagnosis-time study not run |
+| 3 | Closure adequacy | Fragment: L3–L18 as function-free checks over the finite parsed specification; falsified if the intended model (§13.3) fails any law or any error-level catalog rule | Yes | previous specification: 0 closure-law errors, 5 error-level catalog findings; corrected specification: 0 errors from all three validators | Previous example was not a model of its own regime; corrected example is |
+| 4 | Primitive promotion | `N` = 0 undeclared runtime error classes per release; `p` = 5 % of incidents unclassified by the contract | Seeded observation only | One observed class, `timeout`, absent from `error_taxonomy` while every static validator accepts the specification | Falsifier is live: one class exceeds `N`; no real release measured |
+| 5 | Observability adequacy | `p` = 5 % of incidents lacking any required log field | No; needs incident data | — | Unresolved |
+| 6 | Boundary partition correctness | Held-out suite E1–E4; falsified if the false-rejection rate exceeds 0 | Yes | E1, E2, E3 rejected by V-schema (`additionalProperties: false` at every level of schema 1.1.0); E4 accepted with one warning; false-rejection rate 3 / 4 = 75 % | **Falsified.** Passed afterwards by narrowing the declaration to the enforced regime, not by changing the schema; the narrowing is declared in §13.4 |
+| 7 | Closure-regime adequacy | `N` = 0 required obligations discovered post hoc in open regions per release | No; needs review history | After correction the only open region is unbound transports | Unresolved |
+| 8 | Canonical-pattern adequacy | Falsified if V-catalog reports any error-level finding on the valid specification; warnings tolerated and reported | Yes | previous specification: 5 error-level findings (BEH-005, SEC-002, SEC-005, REL-001, OBS-005); corrected specification: 0 errors, 26 warnings | Fired against the previous specification; cleared after correction |
+| 9 | Abstraction usefulness | Rule count must be constant in specification size; evaluation time must satisfy `t(k) ≤ 2·k·t(1)` for `k ≤ 16` | Yes | 270 rules at every `k`; `t(1)` = 4.9 ms, `t(16)` = 11.4 ms against a bound of 157 ms; every cloned specification passes all validators | Not falsified |
+| 10 | Contract interpretability | Valid-generation rate ≥ 90 % on a pre-registered generation benchmark | No; needs generation runs | — | Unresolved |
+
+Growth series in full:
+
+```text
+k    json lines   schema errs   closure errs   catalog errs   eval ms   eval ms / k
+1         386          0             0              0           4.9        4.9
+2         592          0             0              0           6.1        3.1
+4        1004          0             0              0           5.3        1.3
+8        1828          0             0              0           7.3        0.9
+16       3476          0             0              0          11.4        0.7
+```
+
+Evaluation times this small are noisy: two earlier runs of the same series gave 3.0 ms and 1.9 ms at `k` = 1 and 10.3 ms and 8.4 ms at `k` = 16. The row-9 verdict does not depend on the noise, because the bound is 157 ms and the largest value observed in any run is 11.4 ms.
+
+#### 14.4.3 Seeded-Invalid Results
+
+```text
+seeded invalid mutations:                     8
+statically detectable by construction:        7   (M8 is runtime-only)
+caught by a static validator:                 6 of 7
+caught including runtime observation:         7 of 8
+false acceptance rate on seeded invalids:     1 / 8 = 12.5 %
+```
+
+The one false acceptance is M6: `invalid_state → 200`, an error class mapped to a success status. No rule in catalog 1.1.0 fired, and neither the schema nor the closure laws constrain the status of an error mapping beyond its validity as an HTTP status. The obligation is known, an error class must map to a 4xx or 5xx status, but it is not mechanized. By §8.10 that is abstraction debt inside the validator itself. It is now declared rather than hidden.
+
+Two further observations from the run:
+
+```text
+1. M1, a non-integer success_status, crashed the catalog engine's L10 evaluator.
+   The engine assumes schema-valid input. Validators must run in layer order,
+   schema first, or the closure layer reports crashes instead of findings.
+
+2. M2, a string constraint on a decimal type, and M5, a transition command
+   without stale_version, were both caught by the JSON Schema rather than by a
+   separate local-semantic or closed-world validator. In framework 1.1.0 those
+   two obligations are encoded in the grammar. The conceptual layers of §8.2 do
+   not map one-to-one onto validator components (§12.3).
+```
+
+#### 14.4.4 What the First Run Found
+
+The previous revision's §13.3 specification was presented as intended to satisfy every validation layer. Run against the validators the case study names, it produced five error-level findings:
+
+```text
+BEH-005  behavior.state_machines.order_lifecycle
+         state Cancelled declared but unreachable from the initial state
+SEC-002  operations.queries.GetOrder
+         exposed query with no authorization policy
+SEC-005  interface.auth_schemes.Bearer
+         JWT scheme without accepted_algorithms
+REL-001  cross_cutting.idempotency
+         idempotency enabled without key_source and dedup_window
+OBS-005  cross_cutting.observability.metrics
+         no naming_convention
+```
+
+The first two violate regions that the previous §13.4 itself declared closed: state machines complete for validation, and a policy for every exposed command and query. The remaining three are obligations that catalog 1.1.0 closes and §13.4 did not list. All five are corrected in the §13.3 specification of this revision, and §13.4 now declares the three missing obligations.
+
+This is the framework applied to its own worked example. A closure-regime declaration that is never executed against a validator is abstraction debt in the sense of §8.10: the declaration hid two violations of its own stated regime and three obligations it did not state.
+
+#### 14.4.5 Summary
+
+```text
+falsifiers with parameters fixed:                     10 of 10
+evaluable on the seeded example:                      rows 1, 3, 6, 8, 9; the runtime half of row 2
+fired:                                                row 6, boundary partition correctness
+fired against the previous specification, cleared:    rows 3 and 8
+not falsified:                                        rows 1 and 9
+unresolved, parameters stated, data not available:    rows 4, 5, 7, 10; the study half of row 2
+```
+
+The bar set in §14.3 was one instantiated falsifier. Five are instantiated and one fired. The four that remain unresolved need release, incident, review, or generation data that a seeded specification cannot supply. Their parameters are fixed here so that the first real release can be scored against them.
+
+### 14.5 Internal Weaknesses of the Framework
 
 The framework has internal weaknesses that should not be hidden:
 
@@ -1311,9 +1268,14 @@ The framework has internal weaknesses that should not be hidden:
 1. Residual complexity is not bounded in general (§3.A8).
 2. Combine({Behavior(p_i)}) is intentionally uninterpreted (§7.3).
 3. Amortization is conjectural until repeated-use measurements exist (§12.4).
-4. The backend mini-measurement is seeded and illustrative, not externally valid (§13.6).
+4. The backend measurement is seeded and illustrative, not externally valid (§13.6, §14.4).
 5. Closure-law decidability is only guaranteed in restricted fragments (§8.9).
 6. The six-axis backend partition is a design partition, not a completeness theorem (§13.1).
+7. Four of the ten falsifiers are unresolved on the seeded example because they
+   need release, incident, review, or generation data (§14.4.5).
+8. The validators used in §14.4 have at least one known unmechanized obligation,
+   an error class mapped to a success status (§14.4.3), and one robustness
+   defect, a rule evaluator that crashes on schema-invalid input.
 ```
 
 These weaknesses define future work rather than invalidating the framework.
@@ -1336,6 +1298,8 @@ Software complexity metrics such as McCabe cyclomatic complexity and Halstead vo
 
 ## 16. References
 
+Abiteboul, S., Hull, R., & Vianu, V. (1995). *Foundations of Databases*. Addison-Wesley.
+
 Anderson, P. W. (1972). More is different: Broken symmetry and the nature of the hierarchical structure of science. *Science*, 177(4047), 393–396.
 
 Bar-Yam, Y. (2004). *Making Things Work: Solving Complex Problems in a Complex World*. NECSI Knowledge Press.
@@ -1347,6 +1311,12 @@ Codd, E. F. (1970). A relational model of data for large shared data banks. *Com
 Conant, R. C., & Ashby, W. R. (1970). Every good regulator of a system must be a model of that system. *International Journal of Systems Science*, 1(2), 89–97.
 
 Cunningham, W. (1992). The WyCash portfolio management system. In *Proceedings of OOPSLA 1992*.
+
+Dantsin, E., Eiter, T., Gottlob, G., & Voronkov, A. (2001). Complexity and expressive power of logic programming. *ACM Computing Surveys*, 33(3), 374–425. https://doi.org/10.1145/502807.502810
+
+de Luna e Silva, P. A. (2026a). *Silent Acceptance: LLM Output Error as an Architectural Invariant* (Version 2.0.0). Preprint. https://doi.org/10.5281/zenodo.19401266
+
+de Luna e Silva, P. A. (2026b). *The Harness Gets a Name: How the unit of analysis in AI moved from the model to the model plus its execution layer*. Manuscript in preparation.
 
 Dijkstra, E. W. (1968). The structure of the THE multiprogramming system. *Communications of the ACM*, 11(5), 341–346.
 
@@ -1400,6 +1370,8 @@ This conjecture is refuted for a given architectural domain if practitioners can
 
 AI systems are increasingly layered, agentic, tool-using, and difficult to inspect. The framework suggests that interpretability and control require closure-adequate abstraction languages.
 
+Two documents by the same author instantiate this. An agent harness, the execution layer around a model, is a closure regime for the model in the sense of §9: the responsibilities it declares, verification among them, are its contract surface, and harness tampering, behavior that matters for the task and is absent from those declared obligations, is runtime escape in the sense of §8.11 (de Luna e Silva, 2026b). Silent acceptance, the passing of model output to a consumer with no declared verification boundary, is abstraction debt in the sense of §8.10: the obligation to verify, left undeclared behind the language-model-call primitive (de Luna e Silva, 2026a).
+
 The relevant question is:
 
 ```text
@@ -1412,7 +1384,7 @@ This conjecture is refuted for a pre-registered class of AI systems if predictio
 
 For generative software systems, the relevant question is not merely whether code can be generated, but whether the input specification is closure-adequate.
 
-A generator operating over an incomplete abstraction will produce hidden runtime escape. A generator operating over a closure-adequate abstraction can produce systems whose obligations are explicit, checkable, observable, and distinguishable from genuinely novel residuals.
+A generator operating over an incomplete abstraction will produce hidden runtime escape. A generator operating over a closure-adequate abstraction can produce systems whose obligations are explicit, checkable, observable, and distinguishable from genuinely novel residuals. The verification boundary that de Luna e Silva (2026a) prescribes for any consumer of model output is the closure-regime declaration of §7.6 applied to one primitive: it states where the absence of verification counts as invalidity.
 
 ---
 
@@ -1422,7 +1394,7 @@ A generator operating over an incomplete abstraction will produce hidden runtime
 
 [CONJECTURE] Emergence pressure accumulates when lower-level decomposition becomes too costly, lossy, opaque, or operationally irrelevant. Under such pressure, aggregates are encapsulated behind contracts and may become new primitives. But primitive promotion is not justified by encapsulation alone. A reliable primitive requires closure adequacy: explicit obligations, satisfiable laws, resolvable relations, declared failure modes, correct closed/open partitioning, canonical-pattern support where appropriate, validation procedures, and observability surfaces.
 
-[EMPIRICAL] The six-axis backend case study demonstrates how this can be operationalized without overclaiming. It shows a design partition, a worked minimal specification, an explicit closure-regime declaration, a validation walkthrough, a seeded mini-measurement, and measurable cost questions. It does not prove that the six-axis language is complete or universally superior.
+[EMPIRICAL] The six-axis backend case study demonstrates how this can be operationalized without overclaiming. It shows a design partition, a worked minimal specification, an explicit closure-regime declaration, a validation walkthrough, a seeded mini-measurement, measurable cost questions, and an instantiated falsifier table whose first run falsified the example's own closure-regime declaration and found five error-level findings in the worked specification (§14.4). It does not prove that the six-axis language is complete or universally superior.
 
 The final claim is therefore:
 
@@ -1431,4 +1403,72 @@ The final claim is therefore:
 [CONJECTURE] This avoids both naive reductionism and vague emergentism. It treats emergence as pressure, abstraction as engineered relocation, and irreducibility as a relation between systems and the languages through which limited observers attempt to understand, control, generate, and validate them.
 
 This meta-positioning claim is weakened or refuted if the framework is shown either to collapse into ordinary reductionism, by making all higher-level descriptions eliminable without task-relative loss, or into vague emergentism, by failing to specify the language, observer, resource, and task conditions under which irreducibility is asserted.
+
+---
+
+## 19. Provenance and Verification Record
+
+This section is the paper's own closure-regime declaration. It states what was checked, by what, what was not, and how the document was produced, so that a reader can decide which claims to rely on without taking any of them on trust.
+
+### 19.1 What Was Verified, and How
+
+| Claim or artifact | Verified by | Result |
+|---|---|---|
+| The case-study specification (§13.3) is well-formed under framework 1.1.0 | JSON Schema 2020-12, `backend_spec.schema.v1.1.0` | 0 errors |
+| The specification satisfies closure laws L3–L18 | Closure-law validator, function-free checks in the §8.9 fragment | 0 errors |
+| The specification satisfies every error-level rule of catalog 1.1.0 | Rule engine over the 270-rule catalog | 0 errors, 26 warnings |
+| Mutation catch rates (§13.5, §13.6, §14.4.3) | The same three validators plus the runtime-observation check, over M1–M8 | 6 of 7 static; 7 of 8 with runtime observation |
+| Boundary partition correctness (§14.4, row 6) | Schema over the extension suite E1–E4 | 3 of 4 rejected; falsified, then passed by a declared narrowing (§13.4) |
+| Validator-runtime growth (§14.4, row 9) | Rule engine over `k` = 1 to 16 cloned slices | Bound holds with a wide margin; not falsified |
+| Decidability of closure-law satisfiability (§8.9) | Citation: Abiteboul, Hull & Vianu (1995); Dantsin et al. (2001) | Known result restated, not re-proved |
+| Reproducible appendix | `case-study.spec.yaml`, `run_falsifiers.py`, `results.json` beside this paper | Specification hash in §13.3; schema and catalog hashes in `results.json` |
+| References added in this revision | DOI resolution over the network on 2026-09-04: Dantsin et al. (2001) via the Crossref record for its DOI; de Luna e Silva (2026a) via its Zenodo record | Title, authors, venue, and year matched for both. Abiteboul, Hull & Vianu (1995) is a book and was not resolved online. de Luna e Silva (2026b) is unpublished and has nothing to resolve |
+| References carried over from earlier revisions | Not resolved over the network in this revision | Unverified beyond the author's reading |
+
+Every number in §13.6 and §14.4 is quoted from `results.json`; none was estimated. Evaluation times of a few milliseconds vary between runs (§14.4.2); the verdicts do not.
+
+### 19.2 What Remains Unresolved
+
+```text
+row 2   complexity-relocation benefit: the diagnosis-time study (Group A/B, §13.7)
+        has not been run; only the runtime bound is measured
+row 4   primitive promotion: the falsifier fired on a seeded observation only;
+        no real release has been measured against N = 0
+row 5   observability adequacy: no incident data
+row 7   closure-regime adequacy: no review history
+row 10  contract interpretability: no generation benchmark has been run
+M6      an error class mapped to a success status is caught by no validator in
+        catalog 1.1.0; the obligation is known and unmechanized
+```
+
+### 19.3 Review Notes
+
+This revision responds to two review passes produced in September 2026 by the same AI-assisted process that drafted it (§19.4), not by an independent reviewer. Their recommendations were evaluated rather than adopted. The reproducible appendix was placed beside the paper rather than in the validators' repository, as one pass proposed, because the validators live in a separate codebase and the artifact that travels with the paper is the one whose hash the paper reports. The list of unresolved falsifiers keeps row 4, which that pass omitted, because a falsifier that has fired only on a seeded observation is not resolved. Peer review by people who did not take part in drafting has not happened.
+
+### 19.4 Generation Disclosure
+
+This document was drafted by the author with AI assistance. Revisions up to Rev5 come from the author's workflow. Rev6 was revised, measured, and tooled with Claude Fable 5.1 via Claude Code on 2026-09-03: it wrote the runner, executed the validators, corrected the specification, and rewrote the sections named in §19.6 under the author's direction. The author is responsible for every claim. The frontmatter disclaimer applies to the whole document.
+
+### 19.5 Publication and Citation
+
+A Zenodo DOI is to be assigned to this revision at publication. Until it exists, cite by title and revision. The two documents cited in §17.3 and §17.4 are expected to cite this paper back once the DOI resolves. That is the intended relation between them: this paper is the general case of which they are instances.
+
+### 19.6 Revision History
+
+```text
+Rev4   the framework before the Rev5 corrections
+Rev5   added the §13.6 mini-measurement; an explicit falsifier for the threshold
+       conjecture (§6.4); source anchors on [DERIVED] claims; closure laws in
+       Datalog-style notation (§8.5); expanded references; and the positioning of
+       residual irreducibility against adjacent complexity measures (§10.3, §15)
+Rev6   fixed the §14.3 falsifier parameters for the case study and ran them (§14.4);
+       corrected the specification on five findings and the closure-regime
+       declaration on three rows (§13.3, §13.4); replaced the asserted 8 / 8 catch
+       rate with the measured one (§13.6); relabeled §8.9 from theorem to cited
+       lemma; moved the specification to a reproducible appendix cited by hash;
+       linked §17.3 and §17.4 to the silent-acceptance and harness documents;
+       moved revision history and generation disclosure into this section;
+       removed the revision label from the title and the epistemic tags from
+       the abstract
+```
 

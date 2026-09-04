@@ -55,7 +55,7 @@ export function buildRenderCommand(host: Host): Command {
       ) => {
         const ctx: OutputContext = { json: !!opts.json };
         const slice = host.getProject(workbookId);
-        const profile = host.profiles.getResolved(slice.workbook.profile_id);
+        const profile = host.resolveProfileForWorkbook(slice.workbook);
         const result = await host.plugins.runRenderer(
           target,
           {

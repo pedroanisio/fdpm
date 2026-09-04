@@ -95,7 +95,7 @@ export default {
     rmSync(pluginDir, { recursive: true, force: true });
   });
 
-  it("does not replace an existing persisted profile with the same id", async () => {
+  it("keeps both revisions when a plugin ships a divergent version of a persisted id", async () => {
     const dataDir = tmpPluginDir();
     const pluginDir = tmpPluginDir();
     const pluginId = "test.divergent-profile";
@@ -131,7 +131,72 @@ export default {
     await expect(host.load()).resolves.not.toThrow();
     const record = host.plugins.get(pluginId);
     expect(record?.state).toBe("active");
-    expect(host.profiles.getRaw(TEST_PROFILE.id).version).toBe(TEST_PROFILE.version);
+
+    // The registry keys on (id, version), so the operator's persisted
+    // revision is not replaced — it is still registered, still carries the
+    // content it was persisted with, and any workbook bound to it keeps
+    // resolving to it. What the plugin's divergent revision changes is only
+    // what a BARE id resolves to for new bindings: the newest revision.
+    expect(host.profiles.versionsOf(TEST_PROFILE.id)).toEqual([TEST_PROFILE.version, "9.9.9"]);
+    expect(
+      host.profiles.getRaw(`${TEST_PROFILE.id}@${TEST_PROFILE.version}`).primitive_types.length,
+    ).toBe(TEST_PROFILE.primitive_types.length);
+    expect(host.profiles.getRaw(TEST_PROFILE.id).version).toBe("9.9.9");
+    expect(
+      host.profiles.sourceOf(`${TEST_PROFILE.id}@${TEST_PROFILE.version}`),
+    ).toEqual({ kind: "operator" });
+
+    rmSync(dataDir, { recursive: true, force: true });
+    rmSync(pluginDir, { recursive: true, force: true });
+  });
+
+  it("warns the operator when a plugin revision shadows a persisted one", async () => {
+    const dataDir = tmpPluginDir();
+    const pluginDir = tmpPluginDir();
+    const pluginId = "test.shadowing-profile";
+    const manifest = {
+      id: pluginId,
+      version: "0.1.0",
+      spec_version: "1.1.0",
+      kind: "server",
+      host_compatibility: { fdpm: ">=1.0,<2" },
+      capabilities: [{ capability_id: "cap:profile", local_name: "demo" }],
+    };
+
+    const seedingHost = new Host({ dataDir, noPlugins: true });
+    await seedingHost.load();
+    await seedingHost.registerProfile(TEST_PROFILE, { persist: true });
+
+    writePlugin(
+      pluginDir,
+      pluginId,
+      manifest,
+      `
+const manifest = ${JSON.stringify(manifest)};
+const profile = ${JSON.stringify({ ...TEST_PROFILE, version: "9.9.9" })};
+export default {
+  manifest,
+  activate: (ctx) => { ctx.registerProfile(profile); },
+};
+`,
+    );
+
+    const warnings: string[] = [];
+    const originalWrite = process.stderr.write.bind(process.stderr);
+    process.stderr.write = ((chunk: string | Uint8Array) => {
+      warnings.push(typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk));
+      return true;
+    }) as typeof process.stderr.write;
+    try {
+      const host = new Host({ dataDir, builtinDirs: [pluginDir], pluginPaths: [] });
+      await host.load();
+    } finally {
+      process.stderr.write = originalWrite;
+    }
+
+    const shadow = warnings.find((w) => w.includes(TEST_PROFILE.id) && w.includes("9.9.9"));
+    expect(shadow).toBeDefined();
+    expect(shadow).toContain("resolves to 9.9.9");
 
     rmSync(dataDir, { recursive: true, force: true });
     rmSync(pluginDir, { recursive: true, force: true });

@@ -13,6 +13,7 @@ import type {
   ValidationReport,
 } from "../models/instance.js";
 import type { ProjectStateSlice } from "../store/state.js";
+import { parseProfileRef } from "../profile/version.js";
 import { CELParseError } from "../expr/errors.js";
 import {
   defaultExpressionRuntime,
@@ -434,8 +435,15 @@ function validatorAppliesToProfile(
   const owners = reg.originating_profile_ids?.();
   if (!owners || owners.length === 0) return true;
   if (owners.includes(profile.id)) return true;
-  for (const parentId of profile.extends) {
-    if (owners.includes(parentId)) return true;
+  for (const parent of profile.extends) {
+    // `extends` holds profile REFS: `id` or `id@version`. Validator
+    // ownership is registered per profile id (a plugin's `activate()`
+    // knows its ids, not which revision a composing profile pinned), so
+    // the version is stripped before the comparison. Comparing the raw
+    // ref silently unscopes every validator from a pinned composition
+    // profile, which turns its plugin-evaluated rules back into
+    // "predicate not evaluated" info findings.
+    if (owners.includes(parseProfileRef(parent).id)) return true;
   }
   return false;
 }

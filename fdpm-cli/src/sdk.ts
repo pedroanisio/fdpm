@@ -843,7 +843,7 @@ export async function renderProject(
   opts: RenderOptions,
 ): Promise<RenderResult> {
   const slice = host.getProject(opts.workbook);
-  const profile = host.profiles.getResolved(slice.workbook.profile_id);
+  const profile = host.resolveProfileForWorkbook(slice.workbook);
   const result = await host.plugins.runRenderer(
     opts.target,
     {

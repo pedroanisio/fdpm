@@ -153,7 +153,7 @@ export const renderResourceProvider: ResourceProvider<RenderUriMatch> = {
     // Verify the workbook exists. Host.getProject throws not_found
     // with a structured envelope — let it propagate.
     const slice = host.getProject(matched.workbookId);
-    const profile = host.profiles.getResolved(slice.workbook.profile_id);
+    const profile = host.resolveProfileForWorkbook(slice.workbook);
 
     // Verify the renderer is registered before invoking. Pass the
     // optional `rendererId` so a fragment-disambiguated URI selects

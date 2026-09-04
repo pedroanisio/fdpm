@@ -50,6 +50,7 @@ import { tool as structureReorderTool } from "./tools/structure-reorder.js";
 import { tool as structureReparentTool } from "./tools/structure-reparent.js";
 
 // Tier 3 — destructive (off by default).
+import { tool as profileRetireTool } from "./tools/profile-retire.js";
 import { tool as projectDeleteTool } from "./tools/workbook-delete.js";
 import { tool as primitiveDeleteTool } from "./tools/primitive-delete.js";
 import { tool as primitiveDeleteBatchTool } from "./tools/primitive-delete-batch.js";
@@ -98,6 +99,7 @@ export const TIER_2_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
  * tier gate (defense-in-depth, per SPEC-MCP-SERVER §22.3 / §23.1).
  */
 export const TIER_3_TOOLS: ReadonlyArray<McpToolEntry<unknown, unknown>> = [
+  profileRetireTool,
   projectDeleteTool,
   primitiveDeleteTool,
   primitiveDeleteBatchTool,
@@ -223,6 +225,9 @@ export const EXPOSED_HOST_METHODS: ReadonlySet<string> = new Set<string>([
   // Used by the batch-create tools (primitive.create_batch / relation.create_batch).
   "appendBatchWithCausation",
   // Tier 3 — destructive deletes (gated by --enable-destructive).
+  "retireProfile",
+  // Read by fdpm.profile.retire's dry_run preview.
+  "profileRetireBlockers",
   "deleteProject",
   "deletePrimitive",
   "deleteRelation",

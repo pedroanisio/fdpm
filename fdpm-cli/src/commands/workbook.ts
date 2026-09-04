@@ -160,7 +160,7 @@ export function buildProjectCommand(host: Host): Command {
       const ctx: OutputContext = { json: !!opts.json };
       const workbooks = host.listProjects();
       const rows = workbooks.map((workbook) => {
-        const profile = host.profiles.getResolved(workbook.profile_id);
+        const profile = host.resolveProfileForWorkbook(workbook);
         const canonical = splitCanonicalProfileId(workbook.profile_id);
         return {
           id: workbook.id,

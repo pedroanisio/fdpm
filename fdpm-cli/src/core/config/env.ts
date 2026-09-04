@@ -329,8 +329,8 @@ export const FDPM_ENV_VARS: readonly EnvVarSpec[] = [
     // Must equal DEFAULT_CATALOG_BUDGET.total_bytes in src/mcp/catalog.ts.
     // These drifted (registry 28000 vs code 26000) until 2026-08-29; the
     // env-contract test now asserts they agree.
-    defaultValue: "27000",
-    exampleValue: "27000",
+    defaultValue: "28500",
+    exampleValue: "28500",
     summary:
       "fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5)",
   },

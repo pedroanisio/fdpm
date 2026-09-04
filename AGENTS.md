@@ -313,6 +313,35 @@ Tier-2 rejection (`ok: false`, findings keyed `core:profile-schema` with
 { "uri": "fdpm://schema/profile", "mimeType": "application/schema+json", "text": "{ \"type\": \"object\", ... }" }
 ```
 
+#### Profile revisions — `id` names a family, `id@version` names one member
+
+The registry keys on `(id, version)`, so `fdpm.profile.register` accepts a
+new `version` of an id it already knows. Only an exact repeat of a
+registered revision is a `conflict`, and that error carries
+`evidence.registered_versions` — read it and bump rather than inventing a
+new id.
+
+A bare id resolves to the newest revision. The one place that is not the
+rule is a workbook: `fdpm.workbook.create` takes either form
+(`my:profile` or `my:profile@1.0.0`), resolves it once, and pins
+`profile_version` onto the workbook — reported by `fdpm.workbook.list`.
+Registering a newer revision afterwards does not move an existing
+workbook, so validation for work already appended never changes underneath
+it. A workbook created before pinning existed has no `profile_version` and
+resolves to the *oldest* revision.
+
+`extends` entries are refs as well; an unpinned parent is pinned at
+registration when its current revision is operator-registered.
+
+`fdpm.profile.retire` (Tier 3) removes one revision and its persisted
+file. It is refused with `conflict` while a workbook binds it, a profile
+extends it, or a plugin contributed it, and with `permission` for
+Core-owned ids; `dry_run: true` returns those blockers as
+`would_affect: { workbooks, dependents }` without touching anything. There
+is no MCP tool that turns a profile into a plugin — `fdpm profile promote`
+is CLI-only on purpose, because a generated plugin must be read by a human
+before it can run.
+
 #### Server instructions — `initialize.instructions` and `fdpm://guide` (SPEC-MCP-SERVER §8.6)
 
 Everything that is true of *every* tool — the cold-start workflow, the

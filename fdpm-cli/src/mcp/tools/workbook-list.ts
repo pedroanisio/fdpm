@@ -17,6 +17,7 @@ const ProjectSummary = z
     id: z.string(),
     name: z.string(),
     profile_id: z.string(),
+    profile_version: z.string().optional(),
     revision: z.number().int().nonnegative(),
   })
   .strict();
@@ -31,7 +32,7 @@ export const tool: McpToolEntry<z.infer<typeof Input>, z.infer<typeof Output>> =
   name: "fdpm.workbook.list",
   tier: "read_only",
   description:
-    "List loaded projects. Returns id, name, profile_id, and current revision for every project in the projection.",
+    "List loaded projects. Returns id, name, profile_id, the pinned profile_version, and current revision for every project in the projection.",
   input: Input,
   output: Output,
   annotations: { readOnlyHint: true },

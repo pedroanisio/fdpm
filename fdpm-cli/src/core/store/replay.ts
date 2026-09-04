@@ -122,6 +122,7 @@ function applyProjectCreate(state: StoreState, op: Operation, payload: any): voi
     workbook_id: string;
     name: string;
     profile_id: string;
+    profile_version?: string;
     description?: string;
   };
   if (projectExists(state, p.workbook_id))
@@ -132,6 +133,7 @@ function applyProjectCreate(state: StoreState, op: Operation, payload: any): voi
     profile_id: p.profile_id,
     created_at: op.timestamp,
     revision: op.revision,
+    ...(p.profile_version != null && { profile_version: p.profile_version }),
     ...(p.description != null && { description: p.description }),
   };
   state.workbooks[p.workbook_id] = workbook;

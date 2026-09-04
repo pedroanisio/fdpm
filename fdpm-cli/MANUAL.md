@@ -193,7 +193,7 @@ fdpm --no-persist workbook create --json --id tmp --name Tmp \
 | `FDPM_MCP_AUDIT_FULL_ARGS` | unset | Fdpm-mcp: truthy -> log full args (default: sha256 hash only). |
 | `FDPM_MCP_REQUIRE_CONFIRMATION_TOKEN` | unset | SPEC-MCP-SERVER §9.3: exactly `1` gates Tier 2/3 calls behind an `_confirmation_token` argument; requires FDPM_MCP_CONFIRMATION_TOKEN. |
 | `FDPM_MCP_CONFIRMATION_TOKEN` | unset | Fdpm-mcp: the token Tier 2/3 calls must present when the gate above is on; startup refuses if the gate is on and this is empty. |
-| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `27000` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
+| `FDPM_MCP_CATALOG_BUDGET_BYTES` | `28500` | Fdpm-mcp: cap on the UTF-8 byte size of the advertised tools/list catalog; boot refuses when exceeded (SPEC-MCP-SERVER §8.5). |
 | `FDPM_WORKSPACE` | unset | SPEC-WORKSPACE §8.3: workspace id or name to resolve via the registry; ignored when FDPM_DATA_DIR is set. |
 | `FDPM_REGISTRY_PATH` | `platform state directory` | SPEC-WORKSPACE §12: override the native operator-local registry path (XDG state on Linux, Application Support on macOS, LocalAppData on Windows). |
 
@@ -229,10 +229,60 @@ fdpm profile get profile:formal-specification:3.0 --json | jq '.primitive_types 
 
 # Register your own profile from a JSON file.
 fdpm profile register -f my-profile.json --json
+
+# Revise it: same id, higher version. Both revisions stay registered.
+fdpm profile register -f my-profile-v2.json --json
+
+# Take a revision back out (refused while anything still references it).
+fdpm profile retire my:profile@1.0.0 --dry-run
+fdpm profile retire my:profile@1.0.0
+
+# Turn a registered profile into a plugin skeleton you can extend.
+fdpm profile promote my:profile -o ./out
 ```
 
 A registered profile survives restarts (it's persisted under
-`<data-dir>/profiles/`). To remove one, delete its file and restart.
+`<data-dir>/profiles/`).
+
+### Revisions
+
+A profile id names a **family of revisions**: the registry keys on
+`(id, version)`, and `fdpm profile list` prints one row per revision.
+Registering the same `(id, version)` twice is a `conflict` that names the
+versions already registered — bump the `version` instead.
+
+A bare id means "the newest revision" everywhere except one place that
+matters: a workbook. `fdpm workbook create --profile my:profile` resolves the
+newest revision **once** and pins it onto the workbook, so registering a newer
+revision later never re-validates an existing workbook against a schema its
+operations were not written under. Bind a specific one with
+`--profile my:profile@1.0.0`, and read the pin back from
+`fdpm workbook list --json` (`profile_version`). A workbook created before
+pinning existed carries no pin and resolves to the *oldest* revision.
+
+`extends` entries are refs too — `parent:id` or `parent:id@1.2.0`. An unpinned
+parent is pinned at registration when its current revision is one you
+registered; a plugin's revisions are left unpinned, because a plugin ships only
+its current release and pinning to one would dangle on the next upgrade.
+
+`fdpm profile retire <ref>` removes a revision and its file. It refuses while a
+workbook binds it, another profile extends it, or a plugin contributed it —
+`--dry-run` reports exactly which. Deleting the file by hand instead is what
+breaks a workbook: every read path resolves its profile through the registry.
+
+### Promoting a profile to a plugin
+
+`fdpm profile promote <ref> -o <dir>` writes a loadable plugin directory —
+manifest, `profile.json`, `index.js`, `README.md` — whose `activate()`
+registers the profile, with the verb / renderer / prompt / validator slots
+named where you fill them in. A profile-only plugin is a schema; adding those
+makes it a domain vocabulary an agent can be dropped into cold.
+
+It refuses to write into a plugin discovery path, and there is no flag to make
+it: a generated plugin that lands in `~/.fdpm/plugins` would activate at the
+next start with nobody having read it. Copy it in yourself after review, then
+`fdpm plugin enable <plugin-id>` (a filesystem plugin is `community` trust, so
+it stays disabled until you say otherwise).
 
 ---
 

@@ -3,6 +3,23 @@ import { FDPMException } from "../errors/fdpm-exception.js";
 import { CORE_EMPTY_PROFILE } from "./core-empty.js";
 import { CORE_RENDERER_BINDING } from "./core-renderer.js";
 import { compileProfile } from "./compile.js";
+import {
+  compareProfileVersions,
+  formatProfileRef,
+  parseProfileRef,
+} from "./version.js";
+
+/**
+ * Provenance of a registered revision.
+ *
+ * A plugin re-registers its profiles on every startup from its own
+ * `activate()`, so retiring one would do nothing but desynchronise the
+ * registry from the plugin that owns it until the next boot. The retire
+ * gate reads this to refuse; nothing else branches on it.
+ */
+export type ProfileSource =
+  | { kind: "operator" }
+  | { kind: "plugin"; plugin_id: string };
 
 /**
  * Every renderer id a profile names, in either spelling.
@@ -61,19 +78,42 @@ function withCoreRenderer(profile: DomainProfile): DomainProfile {
  * (lazily computed and memoised).
  */
 export class ProfileRegistry {
+  /** Keyed by revision (`id@version`), not by id. */
   private readonly raw = new Map<string, DomainProfile>();
   private readonly resolved = new Map<string, DomainProfile>();
+  /** id → versions, kept sorted ascending by `compareProfileVersions`. */
+  private readonly versions = new Map<string, string[]>();
+  /** Revision key → who registered it. Consumed by the retire gate. */
+  private readonly sources = new Map<string, ProfileSource>();
 
   constructor() {
     // §1.5: core:empty is registered at startup.
     this.register(CORE_EMPTY_PROFILE);
   }
 
-  register(profile: DomainProfile): void {
-    if (this.raw.has(profile.id)) {
+  /**
+   * Register one revision.
+   *
+   * A second revision of a known id is accepted — the registry keys on
+   * `(id, version)`. Only an exact repeat of a revision already present is
+   * a `conflict`, and the error names the versions that ARE registered so
+   * the caller can bump instead of guessing.
+   *
+   * Unpinned `extends` entries are rewritten to the parent revision that is
+   * newest at registration time, when that revision is operator-persisted
+   * (`pinParent`). Without the pin, a later revision of a parent silently
+   * changes this profile's resolved shape — including for workbooks already
+   * bound to this exact revision. A parent that is not registered yet, or
+   * whose current revision belongs to a plugin, is left unpinned and
+   * resolves to the newest revision at resolve time.
+   */
+  register(profile: DomainProfile, opts?: { source?: ProfileSource }): void {
+    const key = formatProfileRef(profile.id, profile.version);
+    if (this.raw.has(key)) {
       throw new FDPMException(
         "conflict",
-        `profile already registered: ${profile.id}`,
+        `profile already registered: ${key}`,
+        { evidence: { profile_id: profile.id, registered_versions: this.versionsOf(profile.id) } },
       );
     }
     // Profiles may use the legacy Python-source spelling (`legacy_type`,
@@ -81,34 +121,135 @@ export class ProfileRegistry {
     // `name` aliases). Compile once at registration so the rest of the
     // runtime sees only the structured form.
     const compiled = compileProfile(profile);
-    this.raw.set(profile.id, compiled);
+    const pinned: DomainProfile = {
+      ...compiled,
+      extends: compiled.extends.map((ref) => this.pinParent(ref)),
+    };
+    this.raw.set(key, pinned);
+    const known = this.versions.get(profile.id) ?? [];
+    known.push(profile.version);
+    known.sort(compareProfileVersions);
+    this.versions.set(profile.id, known);
+    this.sources.set(key, opts?.source ?? { kind: "operator" });
     this.resolved.clear();
   }
 
-  has(id: string): boolean {
-    return this.raw.has(id);
+  /** Remove one revision. The ref MUST name a version. */
+  unregister(ref: string): void {
+    const parsed = parseProfileRef(ref);
+    if (!parsed.version) {
+      throw new FDPMException(
+        "verification",
+        `unregister requires an id@version ref, got: ${ref}`,
+        { evidence: { profile_id: parsed.id, registered_versions: this.versionsOf(parsed.id) } },
+      );
+    }
+    const key = formatProfileRef(parsed.id, parsed.version);
+    if (!this.raw.has(key)) {
+      throw new FDPMException("not_found", `profile not found: ${key}`, {
+        evidence: { profile_id: parsed.id, registered_versions: this.versionsOf(parsed.id) },
+      });
+    }
+    this.raw.delete(key);
+    this.sources.delete(key);
+    const left = this.versionsOf(parsed.id).filter((v) => v !== parsed.version);
+    if (left.length > 0) this.versions.set(parsed.id, left);
+    else this.versions.delete(parsed.id);
+    this.resolved.clear();
   }
 
+  /** Registered versions of one id, oldest first. */
+  versionsOf(id: string): string[] {
+    return [...(this.versions.get(id) ?? [])];
+  }
+
+  /** Newest registered version of an id, or undefined when none is. */
+  latestVersion(id: string): string | undefined {
+    const known = this.versions.get(id);
+    return known && known.length > 0 ? known[known.length - 1] : undefined;
+  }
+
+  /** Oldest registered version of an id, or undefined when none is. */
+  oldestVersion(id: string): string | undefined {
+    return this.versions.get(id)?.[0];
+  }
+
+  /** Who registered a revision. `ref` may be bare (newest revision). */
+  sourceOf(ref: string): ProfileSource | undefined {
+    return this.sources.get(this.resolveKey(ref, { required: false }) ?? "");
+  }
+
+  /** True when the ref names a registered revision (bare id: any revision). */
+  has(ref: string): boolean {
+    return this.resolveKey(ref, { required: false }) !== null;
+  }
+
+  /** Every registered revision, including several revisions of one id. */
   listRaw(): DomainProfile[] {
     return Array.from(this.raw.values());
   }
 
-  getRaw(id: string): DomainProfile {
-    const p = this.raw.get(id);
-    if (!p) throw new FDPMException("not_found", `profile not found: ${id}`);
-    return p;
+  /** Every registered id, once, regardless of how many revisions it has. */
+  listIds(): string[] {
+    return Array.from(this.versions.keys());
+  }
+
+  getRaw(ref: string): DomainProfile {
+    return this.raw.get(this.resolveKey(ref))!;
   }
 
   /** Resolved (extends-chain-flattened) profile. */
-  getResolved(id: string): DomainProfile {
-    const cached = this.resolved.get(id);
+  getResolved(ref: string): DomainProfile {
+    const key = this.resolveKey(ref);
+    const cached = this.resolved.get(key);
     if (cached) return cached;
-    const resolved = withCoreRenderer(this.resolve(id, new Set()));
-    this.resolved.set(id, resolved);
+    const resolved = withCoreRenderer(this.resolve(key, new Set()));
+    this.resolved.set(key, resolved);
     return resolved;
   }
 
-  private resolve(id: string, visiting: Set<string>): DomainProfile {
+  /**
+   * Ref → revision key. A bare id resolves to the NEWEST revision; an
+   * `id@version` ref resolves to exactly that revision or fails.
+   */
+  private resolveKey(ref: string): string;
+  private resolveKey(ref: string, opts: { required: false }): string | null;
+  private resolveKey(ref: string, opts?: { required: false }): string | null {
+    const parsed = parseProfileRef(ref);
+    const version = parsed.version ?? this.latestVersion(parsed.id);
+    const key = version ? formatProfileRef(parsed.id, version) : null;
+    if (key && this.raw.has(key)) return key;
+    if (opts?.required === false) return null;
+    throw new FDPMException("not_found", `profile not found: ${ref}`, {
+      evidence: { profile_id: parsed.id, registered_versions: this.versionsOf(parsed.id) },
+    });
+  }
+
+  /**
+   * Pin an unpinned parent to the revision current at registration —
+   * but ONLY when that revision is operator-persisted.
+   *
+   * A plugin re-registers its profiles from `activate()` on every boot and
+   * ships exactly the revisions of its current release. Pinning a child to
+   * a plugin's revision would turn the plugin's next version bump into a
+   * dangling parent (`not_found` at resolve time) instead of the intended
+   * inheritance. Operator revisions are the ones that persist to disk and
+   * outlive the process, so they are the ones worth — and safe — to pin.
+   */
+  private pinParent(ref: string): string {
+    const parsed = parseProfileRef(ref);
+    if (parsed.version) return ref;
+    const latest = this.latestVersion(parsed.id);
+    if (!latest) return ref;
+    const key = formatProfileRef(parsed.id, latest);
+    return this.sources.get(key)?.kind === "operator" ? key : ref;
+  }
+
+  private resolve(ref: string, visiting: Set<string>): DomainProfile {
+    // Normalise to a revision key before the cycle check: a chain that
+    // reaches the same revision through a pinned ref and a bare one is
+    // still a cycle, and comparing the two spellings would miss it.
+    const id = this.resolveKey(ref);
     if (visiting.has(id)) {
       throw new FDPMException(
         "verification",

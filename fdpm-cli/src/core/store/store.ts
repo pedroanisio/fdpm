@@ -308,12 +308,23 @@ export class Store {
 
   // -- Read API --------------------------------------------------------
 
-  listProjects(): { id: string; name: string; profile_id: string; revision: number }[] {
+  listProjects(): {
+    id: string;
+    name: string;
+    profile_id: string;
+    profile_version?: string;
+    revision: number;
+  }[] {
     this.ensureAllLoaded();
     return Object.values(this.state.workbooks).map((p) => ({
       id: p.id,
       name: p.name,
       profile_id: p.profile_id,
+      // The binding is (id, version); a summary that reports only the id
+      // under-reports which schema the workbook actually validates against,
+      // and callers deciding whether a revision is still referenced would
+      // read the wrong one. Absent on workbooks created before pinning.
+      ...(p.profile_version != null && { profile_version: p.profile_version }),
       revision: p.revision,
     }));
   }

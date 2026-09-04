@@ -101,7 +101,7 @@ export interface CatalogReport {
 }
 
 export const DEFAULT_CATALOG_BUDGET: CatalogBudget = Object.freeze({
-  total_bytes: 27_000,
+  total_bytes: 28_500,
   per_tool_bytes: 2_000,
 });
 
