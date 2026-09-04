@@ -48,9 +48,9 @@ practice they are what makes a profile usable.
 
 ## Inventory
 
-23 profiles from 22 repository plugins: 20 base and
-3 derived. Together they register 897 validators,
-47 renderers and 6 MCP prompts.
+24 profiles from 23 repository plugins: 21 base and
+3 derived. Together they register 1400 validators,
+49 renderers and 7 MCP prompts.
 
 | Profile | Version | Prim. | Rel. | Rules | Extends | Shipped by |
 | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -66,6 +66,7 @@ practice they are what makes a profile usable.
 | `profile:formal-specification-dnis:0.1` | 0.1.0 | 34 | 32 | 23 | `profile:formal-specification:3.0` + `profile:dnis:0.1` | `plugins/formal_specification_dnis/` |
 | `profile:formal-specification:3.0` | 3.1.0 | 32 | 30 | 23 | — | `plugins/formal_specification/` |
 | `profile:knowledge-cartridge:1.0` | 1.0.0 | 13 | 6 | 0 | — | `plugins/knowledge_cartridge/` |
+| `profile:logical-knowledge-base:1.0` | 1.0.0 | 117 | 77 | 0 | — | `plugins/logical_knowledge_base/` |
 | `profile:loop-forward:2.0` | 2.0.0 | 15 | 22 | 0 | — | `plugins/loop_forward/` |
 | `profile:planning:0.1` | 0.1.0 | 6 | 9 | 12 | — | `plugins/planning/` |
 | `profile:re-crt:6.2` | 6.2.0 | 10 | 15 | 0 | — | `plugins/re_crt/` |
@@ -78,8 +79,8 @@ practice they are what makes a profile usable.
 | `profile:uixo:1.2` | 1.2.0 | 712 | 210 | 0 | — | `plugins/uixo/` |
 | `profile:uml:2.5` | 2.5.1 | 22 | 24 | 0 | — | `plugins/uml/` |
 
-Across the 20 base profiles that is 969 primitive types,
-500 relation types and 133 declared validation rules. Derived
+Across the 21 base profiles that is 1086 primitive types,
+577 relation types and 133 declared validation rules. Derived
 profiles are excluded from those totals: their types are their parents',
 and counting them again would count every inherited type twice.
 
@@ -219,6 +220,20 @@ A corpus compressed into an executable competence module: a bounded competence e
 - **Importers:** `kc-jsonl`
 - **Exporters:** `kc-jsonl`
 - **MCP prompts:** `knowledge-cartridge/build_cartridge`
+
+### `profile:logical-knowledge-base:1.0`
+
+**Logical Knowledge Base 1.0.0** · v1.0.0
+
+A logical knowledge base as a typed, event-sourced graph: declarations, statements, rules, constraints, queries, proofs, argumentation, processes, conflict policies, provenance records and interoperability mappings as primitives; every `Reference` field as a typed edge; the formula, term, type and concept languages as JSON validated by the vendored schema.
+
+- **Resolved:** 117 primitive types, 77 relation types, 0 categories, 0 scopes, 0 declared validation rules
+- **Shipped by:** `plugins/logical_knowledge_base/` — `fdpm.logical-knowledge-base` v1.0.0
+- **Renderers (2):** `lkb:TheoryRenderer` → text/markdown, `lkb:ArgumentGraphRenderer` → image/svg+xml
+- **Validators (503, 11 distinct rule ids):** `lkb:val:arity`, `lkb:val:document`, `lkb:val:framework-grounded`, `lkb:val:mentions-current`, `lkb:val:node-shape`, `lkb:val:reference-family`, `lkb:val:reference-resolution`, `lkb:val:rule-cycle`, `lkb:val:self-parent`, `lkb:val:single-header`, `lkb:val:step-slot`
+- **Importers:** `lkb-json`
+- **Exporters:** `lkb-json`
+- **MCP prompts:** `logical-knowledge-base/author_theory`
 
 ### `profile:loop-forward:2.0`
 

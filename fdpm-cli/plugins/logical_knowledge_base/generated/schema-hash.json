@@ -1,0 +1,9 @@
+{
+  "hash": "2ad5c763df2187a5b0f00f294203b904384afe92606cde9245670ea05aec2c58",
+  "hash_algo": "sha256",
+  "pinned_plugin_version": "1.0.0",
+  "sources": [
+    "schemas/lkb.ts",
+    "derive.ts"
+  ]
+}

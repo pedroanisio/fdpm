@@ -22,6 +22,7 @@ import { renderStyleHtml } from "../../plugins/style/renderers/style_html.js";
 import { renderStyleSpecimen } from "../../plugins/style/renderers/style_specimen.js";
 import { renderComponentTree } from "../../plugins/uixo/renderers/component_tree.js";
 import { renderDocumentHtml as renderUixoDocumentHtml } from "../../plugins/uixo/renderers/document_html.js";
+import { renderArgumentGraph as renderLkbArgumentGraph } from "../../plugins/logical_knowledge_base/renderers/argument_graph.js";
 
 const decoder = new TextDecoder();
 const STATES: readonly FixtureState[] = ["empty", "short", "typical", "long", "malformed", "dense"];
@@ -66,6 +67,7 @@ const SVG_RENDERERS: readonly RendererSpec[] = [
   ["Planning Gantt", "plan:GanttSvgRenderer", renderGantt],
   ["Style specimen", "style:StyleSpecimenRenderer", renderStyleSpecimen],
   ["UIXO component tree", "uixo:ComponentTreeRenderer", renderComponentTree],
+  ["Logical knowledge base argument graph", "lkb:ArgumentGraphRenderer", renderLkbArgumentGraph],
 ];
 
 interface VisualFixture {

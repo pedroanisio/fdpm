@@ -816,6 +816,7 @@ The bundled plugins ship these:
 | `knowledge-cartridge/build_cartridge` | `fdpm.knowledge-cartridge` | Compressing a corpus into a six-layer competence cartridge. |
 | `fact-fiction/ground_fiction` | `fdpm.fact-fiction` | Writing historical fiction whose invented layer stays accountable to the record. |
 | `uml/model_a_domain` | `fdpm.uml` | Modelling a domain as UML classes, attributes and associations in a workbook. |
+| `logical-knowledge-base/author_theory` | `fdpm.logical-knowledge-base` | Adding declarations, statements, rules or arguments to a logical knowledge base: references as edges, formulas in schema shape, the document check last. |
 
 ```sh
 # Author a loop-forward pipeline: the call order that satisfies the

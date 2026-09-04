@@ -37,6 +37,81 @@ upgrade.
 
 ### Added
 
+#### `fdpm.logical-knowledge-base` — a LogicalKnowledgeBase document as a profile (`plugins/logical_knowledge_base/`)
+
+`profile:logical-knowledge-base:1.0` maps the 6,638-line `LogicalKnowledgeBase.ts`
+Zod schema (vendored from `_ingest_bin/` by `scripts/vendor-schema.ts`, upstream
+sha256 recorded in the copy's header) onto the host: **117 primitive types** — the
+115 node kinds of the document's fourteen root collections plus proof steps and
+process elements, a document header and an external-target stub — and **76
+relation types** — one per distinct `Reference` field name (73, from 130 fields),
+`lkb:provenance`, and `lkb:has-step` / `lkb:has-element` containment. The
+recursive expression language (59 formula kinds, terms, types, concepts) stays
+as tagged JSON on the owning node (194 fields) and is parsed with the vendored
+root schema at write time by `lkb:val:node-shape`; 44 nested plain objects become
+shared inline structs. The mapping is `derive.ts`, a program over the schema's
+Zod arms; `scripts/build-profile.ts --check` and `derive.test.ts` hold
+`generated/profile.json` byte-stable against it.
+
+What gets stronger: reference integrity becomes a write-time invariant (the host
+refuses an edge to a missing node; upstream reported it after assembling the
+document), every id-bearing node is its own revisioned primitive, provenance is
+a relation query. What is deliberately not re-implemented: the schema's twelve
+whole-document checks. `transfer.ts` reassembles the workbook into a document and
+runs the vendored root schema over it, and the `lkb-json` importer, the `lkb-json`
+exporter and the `lkb:val:document` validator all pass through that one path —
+the importer refuses an invalid document with the issues as evidence and writes
+nothing; the exporter refuses a workbook that does not assemble. Per-edge
+validators port what upstream states per reference instance: `lkb:val:reference-family`
+(`matchesTargetFamily`), `lkb:val:reference-resolution`, `lkb:val:rule-cycle`,
+`lkb:val:self-parent`, `lkb:val:step-slot`, plus `lkb:val:arity` over predicate
+and function applications. Two renderers — `lkb:TheoryRenderer` (Markdown, opens
+with the document check, prints formulas as `∀x. (Human(x) ⇒ Mortal(x))`) and
+`lkb:ArgumentGraphRenderer` (SVG, claims and arguments ranked by support depth) —
+and the `logical-knowledge-base/author_theory` prompt. Vendoring applies three
+declared transformations, the load-bearing one being a split of eleven
+discriminated unions into named arms so `tsc --declaration` can serialize them
+(TS7056). `docs/architecture/PROFILES.md` regenerated (24 profiles from 23
+plugins). Authored by Claude Fable 5.1 via Claude Code.
+
+Second pass, same day — what the graph can now guarantee and compute:
+
+- **Usage edges and referential integrity.** Every local `Reference` inside a
+  formula, struct or binding becomes a derived `lkb:mentions` edge (`path`,
+  `count`, `target_family?`), written by the importer and by
+  `applyDocumentUpdate`, checked by `lkb:val:mentions-current`, repaired by
+  `reconcileMentions()`. "Where is `Human` used" is `fdpm.relation.list`, and
+  the host's delete refusal now protects a declaration that formulas still
+  cite (`transfer.test.ts` asserts the `conflict`).
+- **Static target types where upstream names the family.** `priorityOver` and
+  `overrides` target the 16 rule kinds, `constraint_group.members` the 7
+  constraint kinds (plus the external-target stub). Upstream checks those
+  families only when a reference states `targetFamily`; the profile makes the
+  constraint unconditional — a deliberate tightening the README records. The
+  other 70 reference relation types stay open by the schema's own design.
+- **Grounded argumentation semantics** (`grounded.ts`): Dung's grounded
+  labelling over each framework declared `semantics: grounded`, the same move
+  `re_crt/triage.ts` makes. `lkb:val:framework-grounded` compares the declared
+  `acceptedArguments` with the computed extension; the argument graph colours
+  nodes by computed label and the theory listing gains a computed column.
+- **A text syntax for the expression language** (`formula.ts`): `∀x. Human(x)
+  ⇒ Mortal(x)` parses to the schema's tree; parse ∘ print ∘ parse is held
+  fixed against the printer, and every produced tree is checked against the
+  vendored schema.
+- **Diff import** (`diff.ts`): `planDocumentUpdate` / `applyDocumentUpdate`
+  turn a new version of a document into creates, replaces and deletes against
+  the existing workbook — unchanged nodes keep uid and history; idempotent;
+  invalid input changes nothing.
+- **Coverage of every kind.** `_generate.ts` synthesises a document with one
+  node of each of the 115 kinds from the schema's arms (required fields from
+  the declared constraints, plus the seven semantic fixups upstream's
+  `collectDomainSpecificIssues` demands, each named by its message);
+  `roundtrip-all-kinds.test.ts` imports, validates, exports and canonically
+  compares it. The arity validator's declaration index is now built once per
+  write. `lkb:ArgumentGraphRenderer` joined the Playwright visual suite (Axe,
+  four widths, print, gallery baseline). 83 tests in
+  `tests/plugins/logical_knowledge_base/`.
+
 #### Three-arm cold-agent eval runner — `src/eval/`, `scripts/run-cold-agent-eval.ts`
 
 The falsifiable contract PURPOSE.md gates v2 on, as code. `eval/cold-agent-v1.json`

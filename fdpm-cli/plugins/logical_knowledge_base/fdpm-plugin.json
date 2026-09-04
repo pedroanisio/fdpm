@@ -1,0 +1,147 @@
+{
+  "id": "fdpm.logical-knowledge-base",
+  "version": "1.0.0",
+  "spec_version": "1.3.0",
+  "kind": "server",
+  "name": "Logical Knowledge Base",
+  "description": "A LogicalKnowledgeBase document (schema 1.0.0) as an FDPM profile: 115 node kinds as primitive types, every Reference field as a typed edge, the formula/term/type/concept languages as schema-validated JSON, whole-document verification through the vendored root schema, an lkb-json importer/exporter, a theory listing and an argument graph.",
+  "authors": [
+    "FDPM Maintainers"
+  ],
+  "license": "Apache-2.0",
+  "host_compatibility": {
+    "fdpm": ">=1.1,<2"
+  },
+  "capabilities": [
+    {
+      "capability_id": "cap:profile",
+      "local_name": "logical-knowledge-base",
+      "entry": "PROFILE"
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "theory-md",
+      "entry": "renderTheory",
+      "metadata": {
+        "renderer_id": "lkb:TheoryRenderer",
+        "target": "text/markdown",
+        "output_path": "theory.md"
+      }
+    },
+    {
+      "capability_id": "cap:renderer",
+      "local_name": "argument-graph-svg",
+      "entry": "renderArgumentGraph",
+      "metadata": {
+        "renderer_id": "lkb:ArgumentGraphRenderer",
+        "target": "image/svg+xml",
+        "output_path": "argument-graph.svg"
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "node-shape",
+      "metadata": {
+        "rule_id": "lkb:val:node-shape",
+        "type_id": "lkb:*",
+        "description": "Every node's fields parse against its own arm of the vendored schema (references and provenance excluded, they are edges)."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "reference-family",
+      "metadata": {
+        "rule_id": "lkb:val:reference-family",
+        "type_id": "lkb:ref.*",
+        "description": "A reference edge carrying target_family points at a node of that family (upstream matchesTargetFamily)."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "reference-resolution",
+      "metadata": {
+        "rule_id": "lkb:val:reference-resolution",
+        "type_id": "lkb:ref.*",
+        "description": "local references target document nodes, imported/external ones an lkb:ExternalTarget; external ones carry external_uri."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "arity",
+      "metadata": {
+        "rule_id": "lkb:val:arity",
+        "type_id": "lkb:*",
+        "description": "Predicate and function applications inside formulas match the declared arity (variadic-aware)."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "rule-cycle",
+      "metadata": {
+        "rule_id": "lkb:val:rule-cycle",
+        "type_id": "lkb:ref.priorityOver",
+        "description": "priorityOver and overrides edges between rules form no cycle."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "self-parent",
+      "metadata": {
+        "rule_id": "lkb:val:self-parent",
+        "type_id": "lkb:ref.parentModule",
+        "description": "A module, world, jurisdiction, organization or security domain does not parent itself."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "mentions-current",
+      "metadata": {
+        "rule_id": "lkb:val:mentions-current",
+        "type_id": "lkb:*",
+        "description": "The derived lkb:mentions edges agree with the node's formulas (warning; reconcileMentions repairs)."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "framework-grounded",
+      "metadata": {
+        "rule_id": "lkb:val:framework-grounded",
+        "type_id": "lkb:ArgumentationFramework",
+        "description": "A grounded framework's declared acceptedArguments equals the computed grounded extension (warning)."
+      }
+    },
+    {
+      "capability_id": "cap:validator",
+      "local_name": "document",
+      "metadata": {
+        "rule_id": "lkb:val:document",
+        "type_id": "lkb:LogicalKnowledgeBase",
+        "description": "The workbook assembles into a document the vendored root schema accepts: id uniqueness, unresolved references, variable scope, side-effect approval and every other whole-document check upstream defines."
+      }
+    },
+    {
+      "capability_id": "cap:importer",
+      "local_name": "lkb-json",
+      "metadata": {
+        "format": "lkb-json",
+        "description": "A LogicalKnowledgeBase JSON document; parsed by the root schema, then split into primitives and edges."
+      }
+    },
+    {
+      "capability_id": "cap:exporter",
+      "local_name": "lkb-json",
+      "metadata": {
+        "format": "lkb-json",
+        "description": "Canonical LogicalKnowledgeBase JSON of the workbook; refuses a workbook that does not assemble into a valid document."
+      }
+    }
+  ],
+  "permissions": [
+    "read:workbooks",
+    "read:primitives",
+    "read:relations",
+    "render:server",
+    "import:workbook",
+    "export:workbook"
+  ]
+}
