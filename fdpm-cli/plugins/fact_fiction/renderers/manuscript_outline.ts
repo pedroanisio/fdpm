@@ -49,6 +49,15 @@ function escapeMd(s: string): string {
   return s.replace(/([\\`*_\[\]<])/g, "\\$1");
 }
 
+/**
+ * A field value for prose. `String(undefined)` is "undefined", which a
+ * malformed or half-built workbook then prints into the review document;
+ * a missing value reads as an em dash instead.
+ */
+function show(v: unknown): string {
+  return v === undefined || v === null ? "—" : String(v);
+}
+
 type Style = Record<string, unknown>;
 
 /** Overlay a style_override blob; supplied keys replace, others inherit. */
@@ -66,7 +75,7 @@ function mergeStyle(base: Style, p: PrimitiveInstance | undefined): Style {
 function styleLine(effective: Style, global_: Style): string {
   const parts: string[] = [];
   for (const key of STYLE_KEYS) {
-    if (effective[key] !== global_[key]) parts.push(`${key}: ${String(effective[key])}`);
+    if (effective[key] !== global_[key]) parts.push(`${key}: ${show(effective[key])}`);
   }
   return parts.length > 0 ? `style: ${parts.join(", ")} (inherited otherwise)` : "style: inherited";
 }
@@ -116,7 +125,7 @@ export const renderManuscriptOutline: RendererFn = (input): RendererOutput => {
     const globalStyle: Style = {};
     for (const key of STYLE_KEYS) globalStyle[key] = fv(work, key);
     lines.push(
-      `Global style: ${STYLE_KEYS.map((k) => `${k}: ${String(globalStyle[k])}`).join(", ")}`,
+      `Global style: ${STYLE_KEYS.map((k) => `${k}: ${show(globalStyle[k])}`).join(", ")}`,
     );
     lines.push("");
 
@@ -162,7 +171,7 @@ export const renderManuscriptOutline: RendererFn = (input): RendererOutput => {
       for (const s of sources) {
         const citedBy = edges("ff:Cites").filter((r) => r.target_id === s.id).length;
         lines.push(
-          `- ${escapeMd(String(fv(s, "citation") ?? s.id))} — ${String(fv(s, "type"))}, reliability ${String(fv(s, "reliability"))}, cited by ${citedBy} fact${citedBy === 1 ? "" : "s"}`,
+          `- ${escapeMd(String(fv(s, "citation") ?? s.id))} — ${show(fv(s, "type"))}, reliability ${show(fv(s, "reliability"))}, cited by ${citedBy} fact${citedBy === 1 ? "" : "s"}`,
         );
       }
       lines.push("");
@@ -174,7 +183,7 @@ export const renderManuscriptOutline: RendererFn = (input): RendererOutput => {
       lines.push("");
       for (const fe of fictions) {
         lines.push(
-          `### ${label(fe.id)} — ${String(fv(fe, "mechanism"))}, ${String(fv(fe, "historicity"))}`,
+          `### ${label(fe.id)} — ${show(fv(fe, "mechanism"))}, ${show(fv(fe, "historicity"))}`,
         );
         lines.push(escapeMd(String(fv(fe, "description") ?? "")));
         for (const r of outgoing("ff:BasedOn", fe.id)) {
@@ -194,7 +203,7 @@ export const renderManuscriptOutline: RendererFn = (input): RendererOutput => {
       for (const c of constraints) {
         const support = outgoing("ff:SupportedBy", c.id).map((r) => label(r.target_id));
         lines.push(
-          `- ${label(c.id)} (${String(fv(c, "kind"))}, ${String(fv(c, "severity"))})${support.length ? ` — supported by ${support.join(", ")}` : " — **UNSUPPORTED**"}`,
+          `- ${label(c.id)} (${show(fv(c, "kind"))}, ${show(fv(c, "severity"))})${support.length ? ` — supported by ${support.join(", ")}` : " — **UNSUPPORTED**"}`,
         );
       }
       lines.push("");
@@ -209,7 +218,7 @@ export const renderManuscriptOutline: RendererFn = (input): RendererOutput => {
       lines.push("|---|---|---|---|");
       for (const link of couples) {
         lines.push(
-          `| ${label(link.source_id)} | ${String(relFv(link, "relation"))} | ${label(link.target_id)} | ${escapeMd(String(relFv(link, "explanation") ?? ""))} |`,
+          `| ${label(link.source_id)} | ${show(relFv(link, "relation"))} | ${label(link.target_id)} | ${escapeMd(String(relFv(link, "explanation") ?? ""))} |`,
         );
       }
       lines.push("");
