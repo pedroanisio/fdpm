@@ -271,8 +271,12 @@ export function runPackedInstallSmoke({ cliRoot = CLI_ROOT } = {}) {
       { cwd: consumerDir, env: runtimeEnv },
       2,
     );
-    if (!mcpResult.stderr.includes("HTTP transport is not supported")) {
-      throw new Error("the installed fdpm-mcp shim did not reach its transport refusal path.");
+    // The refusal text is owned by src/bin/fdpm-mcp.ts (parseArgs); match the
+    // stable clause of the current message rather than a full sentence.
+    if (!mcpResult.stderr.includes("speaks stdio only")) {
+      throw new Error(
+        `the installed fdpm-mcp shim did not reach its transport refusal path; stderr was: ${mcpResult.stderr.slice(0, 400)}`,
+      );
     }
 
     return { cliVersion: expectedVersion };
