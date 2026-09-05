@@ -1,5 +1,5 @@
 /**
- * Seed content for the Codex delegation workbook (profile:codex-delegation:0.1).
+ * Seed content for the Codex delegation workbook (profile:codex-delegation:0.2).
  *
  * ARCHITECTURAL REQUIREMENT: LLMs will always produce some form of error.
  * Absence of output verification is a design defect, not a runtime bug.
@@ -95,6 +95,8 @@ export const WRAPPER_CHECKS = [
   "cdel.quotes_match",
   "cdel.diff_applies",
   "cdel.no_git_mutation",
+  "fpl.formal_artifact_check",
+  "fpl.reference_resolves",
 ] as const;
 export type WrapperCheck = (typeof WRAPPER_CHECKS)[number];
 
@@ -230,6 +232,35 @@ export const MODES: ModeDef[] = [
     ),
     checks: ["cdel.json_contract", "cdel.paths_exist", "cdel.no_git_mutation"],
   },
+  {
+    mode_name: "attempt",
+    description:
+      "One step of a frontier-proof pursuit. The subordinate agent returns a machine-checkable artifact (Lean 4, PARI/GP or exact-integer Python), the command that reproduces it, the claims it establishes, the references it actually used, and the obstructions it hit. The wrapper executes the artifact under bubblewrap and resolves every reference before the return is accepted; a proved or computed status whose artifact does not exit 0, or a reference whose title is not what the locator says, fails the delegation. The tree is read-only throughout: what Astra proposes, the boundary executes.",
+    sandbox_tier: "read-only",
+    writes_workspace: false,
+    network_access: false,
+    git_allowed: false,
+    requires_git_repo: false,
+    wrapper_flags: ["--sandbox", "read-only", "--skip-git-repo-check"],
+    schema: closed(
+      {
+        status: { type: "string", enum: ["proved", "computed", "partial", "failed", "refuted"] },
+        artifact_kind: { type: "string", enum: ["lean4", "cas", "python", "prose"] },
+        artifact: { type: "string" },
+        reproduction_command: { type: "string" },
+        summary: { type: "string" },
+        claims: {
+          type: "array",
+          items: closed({ statement: { type: "string" }, confidence: { type: "number", minimum: 0, maximum: 1 }, depends_on: { type: "array", items: { type: "string" } } }, ["statement", "confidence", "depends_on"]),
+        },
+        references: { type: "array", items: closed({ locator: { type: "string" }, title: { type: "string" }, used_for: { type: "string" } }, ["locator", "title", "used_for"]) },
+        obstructions: { type: "array", items: closed({ kind: { type: "string", enum: ["barrier", "conditional_barrier"] }, statement: { type: "string" } }, ["kind", "statement"]) },
+        self_reported_confidence: { type: "number", minimum: 0, maximum: 1 },
+      },
+      ["status", "artifact_kind", "artifact", "reproduction_command", "summary", "claims", "references", "obstructions", "self_reported_confidence"],
+    ),
+    checks: ["cdel.json_contract", "fpl.formal_artifact_check", "fpl.reference_resolves", "cdel.no_git_mutation"],
+  },
 ];
 
 // ── Prompt templates ───────────────────────────────────────────────────────
@@ -286,7 +317,7 @@ const TEMPLATES: TemplateDef[] = [
       "Relevant files and symbols: {{context_files}}",
       "Constraints and non-goals, including files not to touch: {{constraints}}",
       "The exact command that proves the work: {{proof_command}}",
-      "Return schema the subordinate agent must satisfy: {{return_schema}}",
+      "Do not write a return contract: the wrapper appends the selected mode's JSON Schema and enforces it.",
     ].join("\n"),
   },
   {
@@ -296,15 +327,9 @@ const TEMPLATES: TemplateDef[] = [
     description:
       "What the wrapper actually feeds the subordinate agent: the orchestrator's work order with the mode's JSON Schema appended as an enforced return contract.",
     content: [
-      "{{work_order}}",
+      "{{order}}",
       "",
-      "## Return contract",
-      "",
-      "Return exactly one JSON object and nothing else: no prose before it, no code fence around it. It is validated against this JSON Schema before anyone reads it; a return that fails is discarded, not repaired.",
-      "",
-      "{{return_schema}}",
-      "",
-      "Every path you name must exist in the repository. Every quote you attribute to a file must appear in that file verbatim, at the line you cite. You hold no git authority: do not commit, push, stage, stash, tag or rewrite history.",
+      "(The wrapper appends the selected mode's return contract — the JSON Schema the return is validated against — below this line. It is not repeated here so that the workbook and the wrapper cannot carry two different copies of it.)",
     ].join("\n"),
   },
   {
@@ -327,7 +352,8 @@ const TEMPLATES: TemplateDef[] = [
     content: [
       "Review verdict: {{review}}",
       "Validated return: {{delegated_return}}",
-      "Integrate what survived review. Record what you wrote, what you rejected and why, and the command output that proves the tree is still green. You do not commit; the operator does.",
+      "Proof command: {{proof_command}}",
+      "Integrate what survived review. Record what you wrote, what you rejected and why, then run the proof command and report its exit code and output tail as observed. You do not commit; the operator does.",
     ].join("\n"),
   },
 ];
@@ -490,9 +516,11 @@ export const STAGES: StageDef[] = [
     ),
     validators: [
       { kind: "named", validator_name: "cdel.json_contract", args: { one_of: MODES.map((m) => modeContractId(m.mode_name)), selector_path: "/mode", selector_stage: "order" } },
-      { kind: "named", validator_name: "cdel.paths_exist", args: { paths: ["/evidence/*/path", "/target_files/*", "/files_changed/*"], root_input: "repo_path", allow_missing: false } },
-      { kind: "named", validator_name: "cdel.quotes_match", args: { path: "/evidence", path_field: "path", line_field: "line", quote_field: "quote", root_input: "repo_path", comparison: "verbatim-substring" } },
-      { kind: "named", validator_name: "cdel.diff_applies", args: { path: "/diff", command: "git apply --check --recount -", applies_to_mode: "patch" } },
+      { kind: "named", validator_name: "cdel.paths_exist", args: { paths: ["/return/evidence/*/path", "/return/target_files/*", "/return/files_changed/*"], root_input: "repo_path", allow_missing: false } },
+      { kind: "named", validator_name: "cdel.quotes_match", args: { path: "/return/evidence", path_field: "path", line_field: "line", quote_field: "quote", root_input: "repo_path", comparison: "verbatim-substring" } },
+      { kind: "named", validator_name: "cdel.diff_applies", args: { path: "/return/diff", command: "git apply --check --recount -", applies_to_mode: "patch" } },
+      { kind: "named", validator_name: "fpl.formal_artifact_check", args: { artifact_path: "/return/artifact", kind_path: "/return/artifact_kind", command_path: "/return/reproduction_command", status_path: "/return/status", runners: { lean4: "lake env lean", cas: "/usr/bin/gp -q -f", python: "/usr/bin/python3 -I" }, prose_allowed_for: ["partial", "failed"], applies_to_mode: "attempt" } },
+      { kind: "named", validator_name: "fpl.reference_resolves", args: { path: "/return/references", locator_field: "locator", title_field: "title", resolvers: ["doi.org", "arxiv.org", "https"], title_match: "normalized-exact", applies_to_mode: "attempt" } },
       { kind: "named", validator_name: "cdel.no_git_mutation", args: { observed: ["HEAD", "index-digest", "stash-list", "ref-list"], root_input: "repo_path", on_change: "fail" } },
     ],
   },
@@ -736,6 +764,22 @@ const ORACLES: OracleDef[] = [
     control_domain: "filesystem:target-repo",
   },
   {
+    slug: "proof-assistant-cas",
+    name: "Proof assistant and CAS",
+    kind: "executable_specification",
+    evidence_source: "Lean 4 (lake env lean in scripts/frontier-proof-loop/fplproofs, with mathlib), PARI/GP (/usr/bin/gp -q -f) and Python 3 exact integer arithmetic (/usr/bin/python3 -I), executed under bubblewrap with the host read-only, no network and a hard timeout.",
+    version: "lean 4.33.1 / pari-gp 2.15.4 / python3 (system)",
+    control_domain: "sandbox:bubblewrap",
+  },
+  {
+    slug: "external-record-retrieval",
+    name: "External record retrieval",
+    kind: "external_source",
+    evidence_source: "Resolution of each cited locator through doi.org (CSL JSON), the arXiv export API or HTTPS, and comparison of the retrieved title with the cited title after normalisation.",
+    version: "live-at-check-time",
+    control_domain: "internet:publishers",
+  },
+  {
     slug: "operator-adjudication",
     name: "Operator adjudication",
     kind: "human_adjudication",
@@ -806,6 +850,24 @@ const VERIFIERS: VerifierDef[] = [
     implementation_ref: `cdel_git_snapshot in ${WRAPPER_PATH} captures the state; checkNoGitMutation in ${VERIFIER_PATH} compares the two snapshots. Runs on every delegation.`,
     implemented_by: namedValidator("cdel.no_git_mutation"),
     oracles: ["git-state"],
+  },
+  {
+    slug: "artifact-executes",
+    name: "Formal artifact executes",
+    mechanism:
+      "An attempt-mode artifact is written to a private directory and executed by the runner for its kind under bubblewrap; a proved, computed or refuted status requires exit 0, a timed-out run establishes nothing, and artifact_kind prose is allowed only with status partial or failed.",
+    implementation_ref: `fpl.formal_artifact_check in src/loop/named.ts over src/loop/checks/artifact.ts; run by ${VERIFIER_PATH} on every attempt delegation and re-run by the executor.`,
+    implemented_by: [modeContractId("attempt"), ...namedValidator("fpl.formal_artifact_check")],
+    oracles: ["proof-assistant-cas"],
+  },
+  {
+    slug: "reference-resolves",
+    name: "Reference resolves",
+    mechanism:
+      "Every reference an attempt cites is retrieved at its locator and the title found there must match the cited title after normalisation. One unresolvable or mismatching reference fails the delegation regardless of how good the artifact is.",
+    implementation_ref: `fpl.reference_resolves in src/loop/named.ts over src/loop/checks/reference.ts; run by ${VERIFIER_PATH} on every attempt delegation and re-run by the executor.`,
+    implemented_by: [modeContractId("attempt"), ...namedValidator("fpl.reference_resolves")],
+    oracles: ["external-record-retrieval"],
   },
   {
     slug: "closed-vocabulary-regex",
@@ -898,9 +960,9 @@ const BOUNDARIES: BoundaryDef[] = [
       row(
         "ERR_HALLUCINATION",
         "critical",
-        "Reject invented paths and quotes attributed to files that do not contain them.",
-        `Declared verifiers: cdel.paths_exist (every cited path stat-ed against the tree) and cdel.quotes_match (every quote matched as a fixed string in the file it is attributed to). ${UNCALIBRATED}`,
-        ["paths-exist", "quotes-match"],
+        "Reject invented paths and quotes attributed to files that do not contain them; in attempt mode, reject asserted-but-false results and fabricated references.",
+        `Declared verifiers: cdel.paths_exist (every cited path stat-ed against the tree), cdel.quotes_match (every quote matched as a fixed string in the file it is attributed to), and in attempt mode fpl.formal_artifact_check (the artifact executed, exit status compared with the claimed status) and fpl.reference_resolves (every locator retrieved, title compared). ${UNCALIBRATED}`,
+        ["paths-exist", "quotes-match", "artifact-executes", "reference-resolves"],
       ),
       ...schemaRows("return"),
       row(

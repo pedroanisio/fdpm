@@ -1,5 +1,5 @@
 /**
- * Build the Codex delegation workbook: register profile:codex-delegation:0.1
+ * Build the Codex delegation workbook: register profile:codex-delegation:0.2
  * and seed the pipeline, its delegation modes and its per-stage verification
  * boundaries.
  *

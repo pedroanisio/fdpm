@@ -27,8 +27,9 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
-import Ajv, { type ValidateFunction } from "ajv";
+import { Ajv, type ValidateFunction } from "ajv";
 import type { ErrorClass } from "../../plugins/silent_acceptance/ids.js";
+import { artifactVerdict, productionIO, referencesVerdict, type ValidatorIO } from "../../src/loop/named.js";
 import type { ModeName } from "./profile.js";
 import { MODES, type WrapperCheck } from "./seed.js";
 
@@ -290,6 +291,10 @@ export function checkNoGitMutation(mode: ModeName, before: GitSnapshot, after: G
  * Run every check that applies to the mode and report all failures, not just
  * the first. A caller that receives `ok: false` has no validated return: there
  * is no partial acceptance here, and no field of `value` is safe to read.
+ *
+ * The three repository modes are synchronous. Attempt mode executes the
+ * artifact and resolves references, so callers that may see it use
+ * `verifyDelegation`.
  */
 export function verifyReturn(input: VerifyInput): VerifyResult {
   const gitFailures = checkNoGitMutation(input.mode, input.before, input.after);
@@ -310,6 +315,26 @@ export function verifyReturn(input: VerifyInput): VerifyResult {
   return { ok: failures.length === 0, failures, value };
 }
 
+const ATTEMPT_RUNNERS = { lean4: ["lake", "env", "lean"], cas: ["/usr/bin/gp", "-q", "-f"], python: ["/usr/bin/python3", "-I"] };
+const PROSE_ALLOWED = ["partial", "failed"];
+
+/**
+ * The full boundary, including attempt mode: after the synchronous checks,
+ * the artifact is executed under bubblewrap and every reference is resolved.
+ * The verdict logic is `src/loop/named.ts`'s, imported rather than restated,
+ * so the wrapper and the executor cannot disagree about what "computed" means.
+ */
+export async function verifyDelegation(input: VerifyInput, io: ValidatorIO = productionIO()): Promise<VerifyResult> {
+  const base = verifyReturn(input);
+  if (!base.ok || input.mode !== "attempt" || base.value === undefined) return base;
+  const v = base.value;
+  const failures: Failure[] = [
+    ...(await artifactVerdict({ kind: v["artifact_kind"], artifact: v["artifact"], status: v["status"] }, io, input.repoPath, PROSE_ALLOWED, ATTEMPT_RUNNERS)).map((f) => ({ ...f, check: "fpl.formal_artifact_check" as const })),
+    ...(await referencesVerdict(v["references"], "locator", "title", io.fetch)).map((f) => ({ ...f, check: "fpl.reference_resolves" as const })),
+  ];
+  return { ok: failures.length === 0, failures, value: v };
+}
+
 // ── CLI ────────────────────────────────────────────────────────────────────
 
 interface CliArgs {
@@ -318,48 +343,63 @@ interface CliArgs {
   returnFile: string;
   beforeFile: string;
   afterFile: string;
+  scratch?: string;
+  leanProject?: string;
 }
 
 function parseArgs(argv: string[]): CliArgs {
-  const get = (flag: string): string => {
+  const get = (flag: string, required = true): string | undefined => {
     const index = argv.indexOf(flag);
     const value = index === -1 ? undefined : argv[index + 1];
-    if (value === undefined) throw new Error(`missing required argument ${flag}`);
+    if (value === undefined && required) throw new Error(`missing required argument ${flag}`);
     return value;
   };
-  const mode = get("--mode");
+  const mode = get("--mode")!;
   if (!MODES.some((m) => m.mode_name === mode)) {
     throw new Error(`--mode must be one of ${MODES.map((m) => m.mode_name).join("|")}, got ${JSON.stringify(mode)}`);
   }
+  const scratch = get("--scratch", false);
+  const leanProject = get("--lean-project", false);
   return {
     mode: mode as ModeName,
-    repo: get("--repo"),
-    returnFile: get("--return"),
-    beforeFile: get("--git-before"),
-    afterFile: get("--git-after"),
+    repo: get("--repo")!,
+    returnFile: get("--return")!,
+    beforeFile: get("--git-before")!,
+    afterFile: get("--git-after")!,
+    ...(scratch !== undefined ? { scratch } : {}),
+    ...(leanProject !== undefined ? { leanProject } : {}),
   };
 }
 
 const readSnapshot = (path: string): GitSnapshot => JSON.parse(readFileSync(path, "utf8")) as GitSnapshot;
 
-export function runCli(argv: string[]): number {
+export async function runCli(argv: string[]): Promise<number> {
   const args = parseArgs(argv);
-  const result = verifyReturn({
-    mode: args.mode,
-    returnText: readFileSync(args.returnFile, "utf8"),
-    repoPath: resolve(args.repo),
-    before: readSnapshot(args.beforeFile),
-    after: readSnapshot(args.afterFile),
+  const io = productionIO({
+    ...(args.scratch !== undefined ? { artifactScratchDir: resolve(args.scratch) } : {}),
+    ...(args.leanProject !== undefined ? { leanProjectDir: resolve(args.leanProject) } : {}),
   });
+  const result = await verifyDelegation(
+    {
+      mode: args.mode,
+      returnText: readFileSync(args.returnFile, "utf8"),
+      repoPath: resolve(args.repo),
+      before: readSnapshot(args.beforeFile),
+      after: readSnapshot(args.afterFile),
+    },
+    io,
+  );
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   return result.ok ? 0 : 1;
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  try {
-    process.exitCode = runCli(process.argv.slice(2));
-  } catch (err) {
-    process.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
-    process.exitCode = 2;
-  }
+  runCli(process.argv.slice(2))
+    .then((code) => {
+      process.exitCode = code;
+    })
+    .catch((err: unknown) => {
+      process.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
+      process.exitCode = 2;
+    });
 }

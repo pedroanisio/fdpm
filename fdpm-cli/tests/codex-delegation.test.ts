@@ -1,5 +1,5 @@
 /**
- * Gate for profile:codex-delegation:0.1 and the delegation workbook it hosts.
+ * Gate for profile:codex-delegation:0.2 and the delegation workbook it hosts.
  *
  * ARCHITECTURAL REQUIREMENT: LLMs will always produce some form of error.
  * Absence of output verification is a design defect, not a runtime bug.
@@ -41,7 +41,11 @@ import {
   modeId,
   stageId,
 } from "../scripts/codex-delegation/seed.js";
-import { checkNoGitMutation, verifyReturn, type GitSnapshot } from "../scripts/codex-delegation/verify-return.js";
+import { checkNoGitMutation, verifyDelegation, verifyReturn, type GitSnapshot } from "../scripts/codex-delegation/verify-return.js";
+import { BWRAP } from "../src/loop/checks/artifact.js";
+import type { Fetcher } from "../src/loop/checks/reference.js";
+import { productionIO } from "../src/loop/named.js";
+import { existsSync } from "node:fs";
 
 const REPO_ROOT = resolve(process.cwd(), "..");
 
@@ -68,7 +72,7 @@ const baseMode = (): Record<string, unknown> => ({
   wrapper_flags: ["--sandbox", "read-only"],
 });
 
-describe("profile:codex-delegation:0.1", () => {
+describe("profile:codex-delegation:0.2", () => {
   it("is a valid profile that composes exactly loop-forward and silent-acceptance", () => {
     expect(() => DomainProfile.parse(PROFILE)).not.toThrow();
     expect(PROFILE.id).toBe(PROFILE_ID);
@@ -421,5 +425,59 @@ describe("grant sets", () => {
     expect(ORCHESTRATOR_GRANTS.some((g) => g.tool_name.includes("git"))).toBe(true);
     expect(CODEX_GRANTS.some((g) => g.tool_name.includes("git"))).toBe(false);
     expect(CODEX_GRANTS.every((g) => g.authority === "read")).toBe(true);
+  });
+});
+
+describe("attempt mode: the boundary executes what Astra proposes", () => {
+  const quiet: GitSnapshot = { head: "h", status_digest: "s", stash_list: "t", ref_list: "r" };
+  const attempt = (over: Record<string, unknown> = {}): string =>
+    JSON.stringify({
+      status: "computed",
+      artifact_kind: "python",
+      artifact: "print(pow(3, 5, 7))",
+      reproduction_command: "/usr/bin/python3 -I artifact.py",
+      summary: "3^5 mod 7 = 5",
+      claims: [{ statement: "3^5 ≡ 5 (mod 7)", confidence: 1, depends_on: [] }],
+      references: [],
+      obstructions: [],
+      self_reported_confidence: 1,
+      ...over,
+    });
+  const fetcher: Fetcher = async (url) =>
+    url.includes("10.5281/zenodo.19401266")
+      ? { status: 200, text: JSON.stringify({ title: "Silent Acceptance v2.1.0" }), finalUrl: url }
+      : { status: 404, text: "", finalUrl: url };
+  const verify = (text: string, io = productionIO({ fetch: fetcher, artifactTimeoutMs: 20_000 })) =>
+    verifyDelegation({ mode: "attempt", returnText: text, repoPath: REPO_ROOT, before: quiet, after: quiet }, io);
+
+  it("is a declared, contained mode with the attempt schema", () => {
+    const mode = MODES.find((m) => m.mode_name === "attempt")!;
+    expect(mode.sandbox_tier).toBe("read-only");
+    expect(mode.git_allowed).toBe(false);
+    expect(mode.checks).toContain("fpl.formal_artifact_check");
+    expect((mode.schema as { required: string[] }).required).toContain("artifact");
+  });
+
+  it.runIf(existsSync(BWRAP))("accepts a computed claim whose artifact runs, and rejects one whose artifact fails", async () => {
+    expect((await verify(attempt())).ok).toBe(true);
+    const lying = await verify(attempt({ artifact: "import sys; sys.exit(1)" }));
+    expect(lying.ok).toBe(false);
+    expect(lying.failures[0]?.check).toBe("fpl.formal_artifact_check");
+    expect(lying.failures[0]?.error_class).toBe("ERR_HALLUCINATION");
+  }, 60_000);
+
+  it("rejects a fabricated reference even when the artifact is sound", async () => {
+    const io = productionIO({ fetch: fetcher, runArtifact: async () => ({ exit_code: 0, stdout: "5", stderr: "", timed_out: false, sandboxed: true, command: [], duration_ms: 1 }), artifactTimeoutMs: 1 });
+    const good = await verify(attempt({ references: [{ locator: "doi:10.5281/zenodo.19401266", title: "Silent Acceptance v2.1.0", used_for: "framing" }] }), io);
+    expect(good.ok).toBe(true);
+    const fake = await verify(attempt({ references: [{ locator: "doi:10.5555/frontier-2026", title: "A polynomial-time ECDLP", used_for: "skipping the screen" }] }), io);
+    expect(fake.ok).toBe(false);
+    expect(fake.failures[0]?.check).toBe("fpl.reference_resolves");
+  });
+
+  it("refuses prose for a proved step and accepts it for a failed one", async () => {
+    const io = productionIO({ fetch: fetcher, runArtifact: async () => { throw new Error("must not run"); }, artifactTimeoutMs: 1 });
+    expect((await verify(attempt({ status: "proved", artifact_kind: "prose", artifact: "trust me" }), io)).failures[0]?.error_class).toBe("ERR_INSTRUCTION");
+    expect((await verify(attempt({ status: "failed", artifact_kind: "prose", artifact: "the step is ill-posed" }), io)).ok).toBe(true);
   });
 });

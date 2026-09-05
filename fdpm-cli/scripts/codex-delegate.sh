@@ -16,11 +16,11 @@
 #
 # The mode records this script derives its behaviour from live in
 # scripts/codex-delegation/seed.ts and are registered in the fdpm workbook
-# `codex-delegation`, where profile:codex-delegation:0.1 enforces that no mode
+# `codex-delegation`, where profile:codex-delegation:0.2 enforces that no mode
 # runs without a sandbox, that no mode holds git authority, and that a writing
 # mode refuses to run outside a git working tree.
 #
-#   codex-delegate.sh --repo DIR --mode research|patch|write \
+#   codex-delegate.sh --repo DIR --mode research|patch|write|attempt \
 #                     --prompt-file FILE [--output FILE] [--model M] [--effort E]
 #
 set -euo pipefail
@@ -66,7 +66,8 @@ case "$mode" in
   research) sandbox="read-only"; requires_git=0 ;;
   patch) sandbox="read-only"; requires_git=1 ;;
   write) sandbox="workspace-write"; requires_git=1 ;;
-  *) echo "--mode must be research, patch or write" >&2; exit 2 ;;
+  attempt) sandbox="read-only"; requires_git=0 ;;
+  *) echo "--mode must be research, patch, write or attempt" >&2; exit 2 ;;
 esac
 
 is_git=0
@@ -145,10 +146,13 @@ fi
 # --- Boundary ---------------------------------------------------------------
 # cdel.json_contract, cdel.paths_exist, cdel.quotes_match, cdel.diff_applies
 # and cdel.no_git_mutation, in one pass, reporting every failure rather than
-# the first.
+# the first. Attempt mode adds fpl.formal_artifact_check (the artifact is
+# executed under bubblewrap, in this repository's _tmp/, with mathlib from the
+# frontier-proof-loop Lean project) and fpl.reference_resolves.
 set +e
 verdict="$("$tsx" "$here/codex-delegation/verify-return.ts" \
-  --mode "$mode" --repo "$repo" --return "$raw" --git-before "$before" --git-after "$after")"
+  --mode "$mode" --repo "$repo" --return "$raw" --git-before "$before" --git-after "$after" \
+  --scratch "$scratch/artifacts" --lean-project "$here/frontier-proof-loop/fplproofs")"
 verify_status=$?
 set -e
 

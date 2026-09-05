@@ -1,5 +1,5 @@
 /**
- * profile:codex-delegation:0.1 — composition profile for the Claude Code →
+ * profile:codex-delegation:0.2 — composition profile for the Claude Code →
  * Codex CLI delegation described in docs/how-to.md.
  *
  * ARCHITECTURAL REQUIREMENT: LLMs will always produce some form of error.
@@ -42,6 +42,11 @@
  *   sa:SolverConfiguration   → lf:ToolGrant             the grants its tool_set_digest covers
  *   lf:RunReceipt            → sa:OutputSubmission      the outputs a run presented to a boundary
  *
+ * 0.2 adds the `attempt` mode (a frontier-proof step whose artifact the
+ * boundary executes) to the mode_name enum. A registered profile is never
+ * overwritten in place — that would rewrite the schema of every workbook bound
+ * to it — so an enum change is a version bump.
+ *
  * Four of the contributed rules are decidable on the instance and therefore
  * block. They are the containment invariants docs/how-to.md previously stated
  * only in prose — "never use danger-full-access", "never git commit or push",
@@ -53,8 +58,8 @@
  */
 import type { DomainProfile } from "../../src/core/models/meta.js";
 
-export const PROFILE_ID = "profile:codex-delegation:0.1" as const;
-export const PROFILE_VERSION = "0.1.0" as const;
+export const PROFILE_ID = "profile:codex-delegation:0.2" as const;
+export const PROFILE_VERSION = "0.2.0" as const;
 export const SILENT_ACCEPTANCE_VERSION = "2.1.0" as const;
 export const SILENT_ACCEPTANCE_DOI = "10.5281/zenodo.19401266" as const;
 
@@ -101,7 +106,7 @@ export const SANDBOX_TIERS = ["read-only", "workspace-write", "danger-full-acces
 export type SandboxTier = (typeof SANDBOX_TIERS)[number];
 
 /** Delegation modes the wrapper implements. */
-export const MODE_NAMES = ["research", "patch", "write"] as const;
+export const MODE_NAMES = ["research", "patch", "write", "attempt"] as const;
 export type ModeName = (typeof MODE_NAMES)[number];
 
 type PrimitiveTypeDef = DomainProfile["primitive_types"][number];
@@ -189,7 +194,7 @@ export const PROFILE: DomainProfile = {
   id: PROFILE_ID,
   version: PROFILE_VERSION,
   name: "Codex Delegation",
-  label: "Codex Delegation 0.1 (loop-forward + silent-acceptance)",
+  label: "Codex Delegation 0.2 (loop-forward + silent-acceptance)",
   description:
     "Composition profile extending profile:loop-forward:2.0 and profile:silent-acceptance:2.1. A workbook on this profile holds the Claude Code → Codex CLI delegation pipeline of docs/how-to.md as validated data: the stages, the work-order and return contracts, the tool grants that are the containment, the delegation modes with their sandbox tiers, and the Silent Acceptance v2.1.0 verification boundary declared per stage over all nine intrinsic error classes with the operator as acceptance authority. Contributes one primitive type (cdel:DelegationMode) and the relations that join the two parents.",
   extends: [...PARENTS],

@@ -32,12 +32,12 @@ and plugin `generated/` trees.
 
 | Area | Lines (nearest 1,000) |
 |---|---:|
-| `src/` | ≈36K |
+| `src/` | ≈39K |
 | `plugins/` | ≈92K |
 | `tests/` | ≈58K |
-| `scripts/` | ≈46K |
+| `scripts/` | ≈47K |
 | `packages/zod-bridge/` | ≈7K |
-| **Total** | **≈240K** |
+| **Total** | **≈244K** |
 
 ## Counts
 
