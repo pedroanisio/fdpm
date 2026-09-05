@@ -34,10 +34,10 @@ and plugin `generated/` trees.
 |---|---:|
 | `src/` | ≈39K |
 | `plugins/` | ≈92K |
-| `tests/` | ≈58K |
-| `scripts/` | ≈47K |
+| `tests/` | ≈59K |
+| `scripts/` | ≈48K |
 | `packages/zod-bridge/` | ≈7K |
-| **Total** | **≈244K** |
+| **Total** | **≈245K** |
 
 ## Counts
 
