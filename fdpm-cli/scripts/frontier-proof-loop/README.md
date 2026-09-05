@@ -94,24 +94,33 @@ runtimes. The mechanism:
 
 ## Running it
 
+From Claude Code in VS Code, by tool calls — the session is the
+orchestrator, Codex is the solver, no API key. Register the loop server once
+(see docs/how-to.md §7), restart Claude Code, then:
+
+```
+fdpm_loop_start(
+  workbook_id = "frontier-proof-loop",
+  pipeline_id = "lf:pipeline:fpl-frontier-proof-loop",
+  inputs = { pursuit_id, domain, problem_statement, acceptance_criterion,
+             proofs_workbook_id, knowledge_workbook_id, evidence_root })
+```
+
+and answer each `prompt` with `fdpm_loop_submit`, polling `fdpm_loop_wait`
+while a solver stage runs. The pursuit's input values are on the
+`fpl:Pursuit` record (`fdpm_primitive_get frontier-proof-loop
+fpl:pursuit:ecdlp-frontiermath`).
+
+From a terminal:
+
 ```bash
 cd fdpm-cli
 npx tsx scripts/build-frontier-proof-loop.ts            # register + seed (re-runnable)
 kill -HUP <fdpm-mcp pids>                               # reload the servers
-
-# The orchestrator by hand — an interactive agent session answers the prompt
-# files the executor writes under _tmp/loop-forward/exchange/:
 npx tsx scripts/run-loop-forward.ts \
   --workbook frontier-proof-loop --pipeline lf:pipeline:fpl-frontier-proof-loop \
-  --orchestrator file \
-  --input pursuit_id=fpl:pursuit:ecdlp-frontiermath \
-  --input domain=mathematics \
-  --input problem_statement="$(...)" --input acceptance_criterion="$(...)" \
-  --input proofs_workbook_id=fpl-ecdlp-proofs --input knowledge_workbook_id=fpl-ecdlp-knowledge \
-  --input evidence_root=fdpm-cli/research/frontier-proof-loop/evidence/ecdlp
-
-# Unattended orchestrator stages need ANTHROPIC_API_KEY and explicit approvals:
-#   --orchestrator anthropic --approve-per-run lf:grant:fpl-fable-workbook-create --approve-per-action
+  --orchestrator file ...                               # prompt/output files under _tmp/loop-forward/exchange/
+#   --orchestrator anthropic --approve-per-run <grant> --approve-per-action   # needs ANTHROPIC_API_KEY
 ```
 
 ## What has been run

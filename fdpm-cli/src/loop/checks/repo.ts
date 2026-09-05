@@ -143,11 +143,19 @@ const GIT_FIELDS: ReadonlyArray<[keyof GitSnapshot, string]> = [
  * comparison reads git, never the output, so a producer that commits and then
  * reports `committed: false` fails the same check as one that reports
  * honestly (Silent Acceptance v2.1.0 §9.7). `allowWorkingTreeChange` exempts
- * the status digest for runs whose purpose is an unstaged diff to review.
+ * the status digest for runs whose purpose is an unstaged diff to review;
+ * `observed` narrows the comparison to the named fields (default: all four).
  */
-export function noGitMutation(check: string, before: GitSnapshot, after: GitSnapshot, allowWorkingTreeChange: boolean): CheckFailure[] {
+export function noGitMutation(
+  check: string,
+  before: GitSnapshot,
+  after: GitSnapshot,
+  allowWorkingTreeChange: boolean,
+  observed: ReadonlyArray<keyof GitSnapshot> = ["head", "status_digest", "stash_list", "ref_list"],
+): CheckFailure[] {
   const failures: CheckFailure[] = [];
   for (const [field, description] of GIT_FIELDS) {
+    if (!observed.includes(field)) continue;
     if (field === "status_digest" && allowWorkingTreeChange) continue;
     if (before[field] !== after[field]) {
       failures.push(failure(check, "ERR_INSTRUCTION", `Git state changed during the run: ${description} (${field}).`));

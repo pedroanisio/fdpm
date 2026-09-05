@@ -40,6 +40,7 @@ import { AnthropicDriver, CodexWrapperDriver, DENY_ALL, type ApprovalPolicy, typ
 import { runPipeline, type RunOutcome } from "../src/loop/executor.js";
 import { productionIO } from "../src/loop/named.js";
 import { loadPipeline } from "../src/loop/pipeline.js";
+import { wiringFor } from "../src/loop/wiring.js";
 import { openHost } from "../src/sdk.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -48,14 +49,6 @@ const REPO_ROOT_DEFAULT = resolve(PACKAGE_ROOT, "..");
 const WRAPPER = join(here, "codex-delegate.sh");
 const LEAN_PROJECT = join(here, "frontier-proof-loop", "fplproofs");
 
-/** Profile-specific wiring the executor cannot infer from loop-forward alone. */
-const PROFILE_WIRING: Record<string, { modeRelationType?: string; submissionEdgeType?: string; modeBinding?: string; driverConsumed: string[]; codexFixedMode?: string; codexUnwrapEnvelope?: boolean }> = {
-  "profile:codex-delegation": { modeRelationType: "cdel:StageRunsInMode", submissionEdgeType: "cdel:ReceiptSubmitted", modeBinding: "mode", driverConsumed: ["repo_path", "mode"] },
-  // The frontier loop's stages carry no repository or mode binding: every
-  // solver call is an attempt-mode delegation against the repository root.
-  // Its attempt contract is written over the raw attempt payload, so the wrapper envelope is unwrapped.
-  "profile:frontier-proof-loop": { submissionEdgeType: "fpl:ReceiptSubmitted", driverConsumed: [], codexFixedMode: "attempt", codexUnwrapEnvelope: true },
-};
 
 interface Args {
   workbook: string;
@@ -169,9 +162,7 @@ class FileExchangeDriver implements StageDriver {
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
   const host = await openHost(args.dataDir === undefined ? {} : { dataDir: args.dataDir });
-  const profileId = host.getProject(args.workbook).workbook.profile_id;
-  const wiringKey = Object.keys(PROFILE_WIRING).find((k) => profileId.startsWith(k));
-  const wiring = wiringKey === undefined ? { driverConsumed: [] as string[] } : PROFILE_WIRING[wiringKey]!;
+  const wiring = wiringFor(host.getProject(args.workbook).workbook.profile_id);
 
   if (args.printModel) {
     const model = loadPipeline(host, args.workbook, args.pipeline, wiring.modeRelationType === undefined ? {} : { modeRelationType: wiring.modeRelationType });

@@ -432,7 +432,10 @@ const isSnapshot = (x: unknown): x is GitSnapshot => {
   return !!r && ["head", "status_digest", "stash_list", "ref_list"].every((k) => typeof r[k] === "string");
 };
 
-const cdelNoGitMutation: NamedValidator = async (_args, ctx) => {
+/** The seed spells the observed facts as it does in the sa:Oracle text; map them onto snapshot fields. */
+const OBSERVED_FIELDS: Record<string, keyof GitSnapshot> = { HEAD: "head", head: "head", "index-digest": "status_digest", "status-digest": "status_digest", status_digest: "status_digest", "stash-list": "stash_list", stash_list: "stash_list", "ref-list": "ref_list", ref_list: "ref_list" };
+
+const cdelNoGitMutation: NamedValidator = async (args, ctx) => {
   const v = "cdel.no_git_mutation";
   const before = ctx.evidence["git_before"];
   const after = ctx.evidence["git_after"];
@@ -440,7 +443,12 @@ const cdelNoGitMutation: NamedValidator = async (_args, ctx) => {
     // A control that could not run has not passed.
     return [failure(v, "ERR_INSTRUCTION", "The stage driver captured no git snapshots, so git mutation cannot be excluded.")];
   }
-  return noGitMutation(v, before, after, ctx.mode === "write");
+  const names = Array.isArray(args["observed"]) ? strings(args["observed"] as unknown[]) : [];
+  const observed = names.map((n) => OBSERVED_FIELDS[n]).filter((f): f is keyof GitSnapshot => f !== undefined);
+  if (names.length > 0 && observed.length !== names.length) {
+    throw new ArgError(v, `observed names an unknown git fact: ${names.filter((n) => OBSERVED_FIELDS[n] === undefined).join(", ")}`);
+  }
+  return noGitMutation(v, before, after, ctx.mode === "write", observed.length > 0 ? observed : undefined);
 };
 
 // ── registry ───────────────────────────────────────────────────────────────

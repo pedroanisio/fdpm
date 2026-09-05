@@ -82,7 +82,7 @@ The wrapper depends on six `codex exec` features: `--cd`, `--sandbox` with the
 values `read-only` and `workspace-write`, `--output-last-message`, `-c
 key=value` config overrides, `--skip-git-repo-check`, and `--strict-config`.
 All six are present in **codex-cli 0.153.2**, the version this guide was
-verified against on 2026-09-05 with two real delegations (§7). If one is
+verified against on 2026-09-05 with real delegations (§8). If one is
 missing from `--help`, your version differs and the wrapper needs adjusting.
 
 `--strict-config` is the one people leave out, and it is load-bearing: without
@@ -403,49 +403,74 @@ outside either agent's runtime.
 
 ---
 
-## 7. Running it — the executor
+## 7. Running it — from Claude Code, by tool calls
 
-[`scripts/run-loop-forward.ts`](../fdpm-cli/scripts/run-loop-forward.ts) runs
-any loop-forward pipeline in a workbook to a terminal state and writes an
-`lf:RunReceipt` plus one `sa:OutputSubmission` per accepted stage output. It
-is the piece that turns the workbook from a description into a thing that
-runs; the code is in [`fdpm-cli/src/loop/`](../fdpm-cli/src/loop/).
+The executor is an MCP server of its own, `fdpm-loop`, so the orchestrator
+is **this** Claude Code session in VS Code and the solver is Codex — no
+`ANTHROPIC_API_KEY`, no file exchange. Register it next to the fdpm server
+once (user scope; adjust the checkout path):
 
 ```bash
-cd fdpm-cli
-npx tsx scripts/run-loop-forward.ts \
-  --workbook codex-delegation --pipeline lf:pipeline:cdel-codex-delegation \
-  --orchestrator file \
-  --input repo_path=/abs/repo --input mode=research \
-  --input goal="State what src/sdk.ts exports." \
-  --input context_files='["fdpm-cli/src/sdk.ts"]' \
-  --input constraints="read-only" --input proof_command="npx vitest run tests/sdk-public-surface.test.ts"
+claude mcp add --scope user fdpm-loop -- \
+  <checkout>/fdpm-cli/node_modules/.bin/tsx <checkout>/fdpm-cli/src/bin/fdpm-loop-mcp.ts
+# or, after `npm run build`:
+claude mcp add --scope user fdpm-loop -- node <checkout>/fdpm-cli/dist/src/bin/fdpm-loop-mcp.js
 ```
 
-What it enforces, in code the model cannot reach:
+Restart Claude Code; the tools appear as `mcp__fdpm-loop__fdpm_loop_*`. The
+server opens the same data dir the fdpm server serves (`FDPM_DATA_DIR` or
+`~/.fdpm-cli`), persists run state under `<data dir>/loop-runs/`, and resumes
+unfinished runs when it starts.
+
+The protocol is six tools, and the loop is a conversation with them:
+
+| Tool | What it does |
+|---|---|
+| `fdpm_loop_start(workbook_id, pipeline_id, inputs)` | Starts a run and returns `next`: a `prompt` for you, `running` if a solver stage was dispatched, or the `terminal` outcome. |
+| `fdpm_loop_submit(run_id, output)` | Your stage output — one JSON object matching the prompt's `contract_schema`. Judged against the stage contract exactly as a solver's would be; returns `accepted`, the attempt record with any failures, and `next`. A rejection re-issues the stage with the failures appended when the contract allows a retry. |
+| `fdpm_loop_wait(run_id, timeout_ms)` | Waits up to `timeout_ms` (default 20 s) for a running solver stage. Poll it. |
+| `fdpm_loop_status(run_id)` | Where the run is, every attempt record so far. Never waits. |
+| `fdpm_loop_abort(run_id, reason)` | Ends the run now; the receipt is still written. |
+| `fdpm_loop_list()` | The runs the server knows. |
+
+A frontier iteration from the orchestrator's seat looks like this:
+
+```
+fdpm_loop_start(frontier-proof-loop, lf:pipeline:fpl-frontier-proof-loop, {pursuit_id, domain, …})
+  → prompt: plan          read the proof workbook through the fdpm server, choose the step
+fdpm_loop_submit(run, {stop_reason, target_node_id, step, rationale})
+  → running: attempt      Codex is executing inside the loop server; do not edit the repo
+fdpm_loop_wait(run) …     → prompt: audit
+fdpm_loop_submit(run, {verdict, findings, reproduced, notes})
+  → prompt: register      write the unverified nodes through the fdpm server, read them back
+fdpm_loop_submit(run, {written, verification_status_written, evidence_bundle, dag_summary, …})
+  → prompt: plan (iteration 2) … or terminal, with outcome.receipt_id
+```
+
+What the server enforces, in code the orchestrator cannot reach:
 
 - **Every bound.** `max_iterations`, `max_model_calls`, `max_total_tokens`,
   `max_wall_clock_ms`, the per-contract attempt ceiling, the carry size. The
-  budget is checked before every model call, not after.
-- **Every contract.** A stage output reaches the next stage only after its
-  typed parse and every validator accepted it; a validator the registry does
-  not implement is a hard failure, never a pass. A driver error is a rejected
-  attempt, never output.
-- **Every approval.** Drivers are chosen by the agent's provider: `openai` runs
-  through the wrapper; `anthropic` runs a bounded tool-use loop against a
-  freshly spawned fdpm MCP server (needs `ANTHROPIC_API_KEY`), with `per_run`
-  grants exercisable only when named with `--approve-per-run` and `per_action`
-  grants prompting on a TTY with `--approve-per-action`, denied otherwise.
-- **The orchestrator by hand.** `--orchestrator file` writes each
-  orchestrator-stage prompt to `_tmp/loop-forward/exchange/<stage>.i<n>.a<m>.prompt.md`
-  and waits for the matching `.output.json`. An interactive agent session — or
-  you — is the orchestrator, and the receipt still records what was accepted
-  and why.
+  budget is checked before every stage, not after.
+- **Every contract.** Your submitted output reaches the next stage only after
+  its typed parse and every validator accepted it; a validator the registry
+  does not implement is a hard failure, never a pass. Solver returns are
+  re-validated on arrival, artifacts re-executed, references re-resolved.
+- **What was written, not what was reported.** Before judging a register
+  stage the server reloads its projection, so `fpl.written_ids_exist` and
+  `fpl.producer_status_guard` read what you actually wrote through the fdpm
+  server.
+- **Nothing approves itself.** The orchestrator writes through the fdpm
+  server it already has, under that server's own controls; the loop server
+  holds no grant on its behalf.
 
-`--dry-run` prints the loaded pipeline; `--print-model` dumps the typed model.
-The same script runs the frontier-proof loop
-(`--workbook frontier-proof-loop --pipeline lf:pipeline:fpl-frontier-proof-loop`),
-whose attempt stage is an attempt-mode delegation against this repository.
+Two other ways to run the same pipeline, for completeness:
+[`scripts/run-loop-forward.ts`](../fdpm-cli/scripts/run-loop-forward.ts)
+drives it from a terminal — `--orchestrator file` exchanges prompt and
+output files under `_tmp/loop-forward/exchange/`, and `--orchestrator
+anthropic` runs the orchestrator stages through the Anthropic API with
+`per_run`/`per_action` grants approved by you or denied. `--dry-run` prints
+the loaded pipeline.
 
 ---
 
@@ -497,13 +522,28 @@ Verified on 2026-09-05 against codex-cli 0.153.2 with `model = "gpt-6-astra"`:
    evidence). A first run with the tree being edited was rejected by
    `cdel.no_git_mutation`, as it should be.
 
-Not yet run: the orchestrator stages driven by the Anthropic API rather than
-by hand (no `ANTHROPIC_API_KEY` in this environment), and any
-`sa:CalibrationRun`. Both are executable with the script above; neither has
-happened. Note also what "by hand" means for the boundary: the orchestrator's
-writes went through the MCP server directly rather than through the
-executor's grant enforcement, so the per-action approval control was not
-exercised on that run — the store-reading validators were.
+5. **The delegation pipeline through `fdpm-loop`, by tool calls only.** An
+   MCP client connected to the loop server over stdio exactly as Claude Code
+   does and issued nothing but tool calls: `fdpm_loop_start` on the
+   codex-delegation pipeline (research mode, a question about
+   `fdpm-cli/src/sdk.ts`), `fdpm_loop_submit` for the order, `fdpm_loop_wait`
+   four times while Codex ran inside the server, `submit` for the review
+   (after independently opening the cited file) and the apply (with the
+   proof command actually run: exit 0, 3 tests), and `submit(answered)` in
+   iteration 2. Terminal `success`; receipt `lf:receipt:mcp-real-run-1` with
+   five submissions; 5 model calls, 36,451 tokens, 220 s; the workbook
+   validates at zero findings afterwards; the run state is on disk under
+   `loop-runs/`. Codex's answer — thirteen exported functions, `commit()` not
+   all-or-nothing, `partial_commit` evidence on the thrown exception,
+   `rollbackOnError` optional — was checked line by line and was right. No
+   API key was involved anywhere.
+
+Not yet run: the orchestrator stages driven by the Anthropic API (no
+`ANTHROPIC_API_KEY` in this environment; `--orchestrator anthropic` is the
+path), and any `sa:CalibrationRun`. On a by-hand run the orchestrator's
+writes go through the fdpm server under that server's controls rather than
+through the executor's grant enforcement; the store-reading validators and
+the git check between prompt and submit are what judge them.
 
 ---
 

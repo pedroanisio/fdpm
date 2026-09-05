@@ -313,6 +313,11 @@ describe("cdel.* over the wrapper envelope", () => {
     expect(await v({}, ctx(host, {}, { evidence: { git_before: quiet, git_after: quiet } }))).toEqual([]);
     expect((await v({}, ctx(host, {}, { evidence: { git_before: quiet, git_after: { ...quiet, head: "h2" } } })))[0]?.error_class).toBe("ERR_INSTRUCTION");
     expect(await v({}, ctx(host, {}, { mode: "write", evidence: { git_before: quiet, git_after: { ...quiet, status_digest: "dirty" } } }))).toEqual([]);
+    // `observed` narrows the comparison: an integration stage may dirty the tree but not move HEAD.
+    const dirtyTree = { git_before: quiet, git_after: { ...quiet, status_digest: "dirty" } };
+    expect(await v({ observed: ["HEAD", "stash-list", "ref-list"] }, ctx(host, {}, { evidence: dirtyTree }))).toEqual([]);
+    expect((await v({ observed: ["HEAD"] }, ctx(host, {}, { evidence: { git_before: quiet, git_after: { ...quiet, head: "moved" } } })))[0]?.error_class).toBe("ERR_INSTRUCTION");
+    await expect(v({ observed: ["HEAD", "vibes"] }, ctx(host, {}, { evidence: dirtyTree }))).rejects.toThrow(/unknown git fact/);
   });
 
   it("cdel.paths_exist and cdel.quotes_match address the envelope's return", async () => {
