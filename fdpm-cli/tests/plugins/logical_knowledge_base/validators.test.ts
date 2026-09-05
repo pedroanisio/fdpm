@@ -275,3 +275,15 @@ describe("through the host pipeline", () => {
     expect(second).toContain(VALIDATOR_RULE_IDS.ruleCycle);
   });
 });
+
+describe("lkb:val:document on a composed workbook", () => {
+  it("assembles only this plugin's records; other plugins' records in the same workbook are not document nodes", async () => {
+    // A frontier-proof-loop workbook holds lf:*, sa:* and recrt:* records next
+    // to the knowledge base. Before this filter the header warned once per
+    // foreign record — 25 warnings on a clean workbook.
+    const foreign = prim("lf:var:x", "lf:VariableSpec", { variable_name: "x", type: "string", description: "d", is_required: true, sensitivity: "internal" });
+    const foreignEdge = rel("lf:edge", "lf:PipelineDeclaresInput", "lf:pipeline:p", "lf:var:x");
+    const findings = await run(v.wholeDocument, HEADER, ctxOf([HEADER, HUMAN, foreign], [foreignEdge]));
+    expect(findings.filter((f) => f.message.includes("lf:"))).toEqual([]);
+  });
+});

@@ -432,13 +432,22 @@ const singleHeader: ValidatorFn = (instance, _t, _p, ctx) => {
   return [finding(VALIDATOR_RULE_IDS.singleHeader, "error", p.id, `a workbook holds one LogicalKnowledgeBase document; header(s) already present: ${others.map((o) => o.id).join(", ")}`)];
 };
 
+/** Records this plugin owns. In a composed profile the workbook also holds other plugins' records, which are not document nodes. */
+const isOwn = (typeId: string): boolean => typeId.startsWith("lkb:");
+
 const wholeDocument: ValidatorFn = (instance, _t, _p, ctx) => {
   const p = instance as PrimitiveInstance;
   const prims = primitivesOf(ctx);
   if (!prims) return noContext(VALIDATOR_RULE_IDS.document, p.id);
-  const primitives = Object.values(prims);
+  // Only this plugin's records assemble into the document. A workbook on a
+  // composition profile (frontier-proof-loop extends loop-forward,
+  // silent-acceptance, re-crt and this profile) carries lf:*, sa:* and
+  // recrt:* records alongside the knowledge base; reporting each of them as
+  // "not a LogicalKnowledgeBase node" would make the header warn on every
+  // legitimate composed workbook and train its reader to ignore the rule.
+  const primitives = Object.values(prims).filter((x) => isOwn(x.type_id));
   if (!primitives.some((x) => x.id === p.id)) primitives.push(p); // the header being created
-  const verified = verifyWorkbook(primitives, relationsOf(ctx));
+  const verified = verifyWorkbook(primitives, relationsOf(ctx).filter((r) => isOwn(r.type_id)));
   if (verified.ok) return [];
   return verified.issues.slice(0, MAX_ISSUES).map((i) =>
     finding(VALIDATOR_RULE_IDS.document, "warning", p.id, `${i.path}: ${i.message}`),
