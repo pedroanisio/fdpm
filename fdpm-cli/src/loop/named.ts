@@ -231,7 +231,11 @@ export async function referencesVerdict(refs: unknown, locatorField: string, tit
     }
     const verdict = await checkReference({ locator, title }, fetch);
     if (!verdict.ok) failures.push(failure(check, "ERR_HALLUCINATION", `Reference does not resolve: ${locator} (${verdict.reason ?? "unknown"}).`));
-    else if (!verdict.matches) failures.push(failure(check, "ERR_HALLUCINATION", `Reference ${locator} resolves to ${JSON.stringify(verdict.found_title)}, not to the cited ${JSON.stringify(title)}.`));
+    else if (!verdict.matches) {
+      const others = (verdict.found_titles ?? []).slice(1);
+      const also = others.length === 0 ? "" : ` (the page also declares ${others.map((t) => JSON.stringify(t)).join(", ")})`;
+      failures.push(failure(check, "ERR_HALLUCINATION", `Reference ${locator} resolves to ${JSON.stringify(verdict.found_title)}${also}, not to the cited ${JSON.stringify(title)}.`));
+    }
   }
   return failures;
 }

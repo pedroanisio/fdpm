@@ -23,7 +23,7 @@ import { join } from "node:path";
 import type { DriveBounds, DriveTranscript, ModelClient, ToolExecutionResult, ToolExecutor } from "../eval/driver.js";
 import { driveInstruction } from "../eval/driver.js";
 import type { FdpmMcpSession } from "../eval/mcp-client.js";
-import { gitSnapshot } from "./checks/repo.js";
+import { gitSnapshot, type CheckFailure } from "./checks/repo.js";
 import type { AgentModel, GrantModel, StageModel } from "./pipeline.js";
 
 export interface StageRun {
@@ -46,8 +46,15 @@ export interface StageRunResult {
   costUsd?: number;
   /** Facts captured around the run, handed to named validators as `ctx.evidence`. */
   evidence: Record<string, unknown>;
-  /** A driver-level failure that is not the model's output (spawn error, timeout). */
+  /** A driver-level failure that is not the model's output (spawn error, timeout, a wrapper refusal). */
   error?: string;
+  /**
+   * The failures behind `error` when the driver has them in the boundary's
+   * own vocabulary — a wrapper's verdict, check by check. The executor records
+   * these instead of one generic driver failure, so the attempt record says
+   * why the return was refused, not merely that it was.
+   */
+  failures?: CheckFailure[];
 }
 
 export interface StageDriver {
@@ -59,7 +66,7 @@ const sha256 = (text: string): string => createHash("sha256").update(text).diges
 
 // ── Scripted ───────────────────────────────────────────────────────────────
 
-export type Script = (run: StageRun) => string | { outputText: string; evidence?: Record<string, unknown>; error?: string };
+export type Script = (run: StageRun) => string | { outputText: string; evidence?: Record<string, unknown>; error?: string; failures?: CheckFailure[] };
 
 export class ScriptedDriver implements StageDriver {
   readonly kind = "scripted";
@@ -75,7 +82,7 @@ export class ScriptedDriver implements StageDriver {
       modelCalls: 1,
       evidence: result.evidence ?? {},
     };
-    return result.error === undefined ? base : { ...base, error: result.error };
+    return result.error === undefined ? base : { ...base, error: result.error, ...(result.failures ? { failures: result.failures } : {}) };
   }
 }
 
@@ -172,10 +179,27 @@ export class CodexWrapperDriver implements StageDriver {
     };
     if (timedOut) return { outputText: "", usage: { input_tokens: 0, output_tokens: 0 }, modelCalls: 1, evidence, error: "delegation exceeded the stage deadline" };
     if (code !== 0) {
-      // The wrapper refused at its boundary. Its stderr is the failure list;
-      // returning it as the output guarantees the contract rejects it and
-      // the executor records a failed attempt with the reason attached.
-      return { outputText: stderr.trim(), usage: { input_tokens: 0, output_tokens: 0 }, modelCalls: 1, evidence, error: `wrapper exited ${code}` };
+      // The wrapper exited non-zero. When it refused the return at its
+      // boundary, its stderr carries the verdict after codex's own banner:
+      // hand the executor the failures by name and the refused return to
+      // judge, never the banner as if it were output. Otherwise the last
+      // line of stderr is the reason (codex exec failed, no return to verify).
+      const refusal = parseWrapperRefusal(stderr);
+      if (refusal) {
+        evidence["wrapper_failures"] = refusal.failures;
+        if (refusal.raw_path !== undefined) evidence["wrapper_raw_return_path"] = refusal.raw_path;
+        const n = refusal.failures.length;
+        return {
+          outputText: refusal.value === undefined ? "" : JSON.stringify(refusal.value),
+          usage: { input_tokens: 0, output_tokens: 0 },
+          modelCalls: 1,
+          evidence,
+          error: `wrapper rejected the return at its verification boundary (${n} failure${n === 1 ? "" : "s"})`,
+          failures: refusal.failures,
+        };
+      }
+      const lastLine = stderr.split("\n").map((l) => l.trim()).filter((l) => l !== "").pop();
+      return { outputText: "", usage: { input_tokens: 0, output_tokens: 0 }, modelCalls: 1, evidence, error: lastLine === undefined ? `wrapper exited ${code}` : `wrapper exited ${code}: ${lastLine}` };
     }
     const envelopePath = stdout.trim().split("\n").pop() ?? outPath;
     let envelope = "";
@@ -188,6 +212,51 @@ export class CodexWrapperDriver implements StageDriver {
     Object.assign(evidence, handed.evidence);
     return { outputText: handed.outputText, usage: { input_tokens: run.taskPrompt.length, output_tokens: handed.outputText.length }, modelCalls: 1, evidence, ...(handed.error !== undefined ? { error: handed.error } : {}) };
   }
+}
+
+/** The wrapper's boundary verdict, read back out of its stderr. */
+export interface WrapperRefusal {
+  failures: CheckFailure[];
+  /** The refused return, when the wrapper echoed it. */
+  value?: unknown;
+  /** Where the wrapper kept the raw return for review. */
+  raw_path?: string;
+}
+
+const REFUSAL_MARKER = "delegation rejected at the verification boundary";
+const RAW_KEPT_RE = /^raw return kept for review at (.+)$/m;
+const ERROR_CLASSES: ReadonlySet<string> = new Set(["ERR_HALLUCINATION", "ERR_OMISSION", "ERR_SCHEMA", "ERR_TRUNCATION", "ERR_SYCOPHANCY", "ERR_INSTRUCTION", "ERR_CALIBRATION", "ERR_SEMANTIC", "ERR_REASONING"]);
+const isRecord = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
+
+/**
+ * Parse the verdict scripts/codex-delegate.sh prints when it refuses a return:
+ * the marker line, then `{ ok, failures[], value }` as JSON, then the line
+ * naming the kept raw return. Anything that does not fit that shape exactly
+ * is not a verdict, and the caller falls back to the wrapper's last line.
+ */
+export function parseWrapperRefusal(stderr: string): WrapperRefusal | undefined {
+  const at = stderr.indexOf(REFUSAL_MARKER);
+  if (at < 0) return undefined;
+  const fromMarker = stderr.slice(at);
+  const newline = fromMarker.indexOf("\n");
+  if (newline < 0) return undefined;
+  let body = fromMarker.slice(newline + 1);
+  const kept = RAW_KEPT_RE.exec(body);
+  const rawPath = kept?.[1]?.trim();
+  if (kept) body = body.slice(0, kept.index);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body.trim());
+  } catch {
+    return undefined;
+  }
+  if (!isRecord(parsed) || !Array.isArray(parsed["failures"])) return undefined;
+  const failures: CheckFailure[] = [];
+  for (const f of parsed["failures"]) {
+    if (!isRecord(f) || typeof f["check"] !== "string" || typeof f["error_class"] !== "string" || typeof f["message"] !== "string" || !ERROR_CLASSES.has(f["error_class"])) return undefined;
+    failures.push({ check: f["check"], error_class: f["error_class"] as CheckFailure["error_class"], message: f["message"] });
+  }
+  return { failures, ...("value" in parsed ? { value: parsed["value"] } : {}), ...(rawPath !== undefined ? { raw_path: rawPath } : {}) };
 }
 
 /**

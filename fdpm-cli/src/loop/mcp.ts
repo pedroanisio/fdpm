@@ -65,6 +65,7 @@ export interface RunSummary {
   total_tokens: number;
   terminal?: RunOutcome["terminal_state"];
   receipt_id?: string;
+  receipt_error?: string;
 }
 
 export interface LoopServiceOptions {
@@ -83,6 +84,14 @@ export interface LoopServiceOptions {
   automaticDriverFor?: (stage: StageModel, wiring: ProfileWiring, args: StartArgs) => StageDriver | undefined;
   /** Git facts around an orchestrator stage; injectable so tests can move HEAD without a repository. */
   snapshot?: (repoPath: string) => GitSnapshot;
+  /**
+   * This server instance's identity, written into every run it owns. Every
+   * Claude Code session starts its own loop server over the same run store;
+   * a run stays with the server that started it while that server lives.
+   */
+  instanceId?: string;
+  /** Whether the process that owns a persisted run is still running; injectable so tests can declare a server dead. */
+  isAlive?: (pid: number) => boolean;
 }
 
 export interface StartArgs {
@@ -104,9 +113,16 @@ interface Prompted {
   git_before: GitSnapshot;
 }
 
+/** Which server process holds a run. A sibling server adopts a run only when this process is gone. */
+interface Owner {
+  instance_id: string;
+  pid: number;
+}
+
 interface Persisted {
   state: RunState;
   args: StartArgs;
+  owner?: Owner;
   /** Set while a solver stage is in flight; a restart finds it and records the attempt as lost. */
   inflight?: { stage: string; iteration: number; attempt: number; since: number };
   prompted?: Prompted;
@@ -132,16 +148,30 @@ export class LoopError extends Error {
 
 const iso = (ms: number): string => new Date(ms).toISOString().replace(/\.\d{3}Z$/, "Z");
 
+/** `kill -0`: true while the process exists (EPERM means it exists under another user). */
+export function processIsAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return (err as NodeJS.ErrnoException).code === "EPERM";
+  }
+}
+
 export class LoopService {
   private readonly runs = new Map<string, Managed>();
   private readonly now: () => number;
   private readonly log: (line: string) => void;
   private readonly io: ValidatorIO;
   private readonly orchestrator: ReadonlySet<string>;
+  readonly instanceId: string;
+  private readonly isAlive: (pid: number) => boolean;
 
   constructor(private readonly opts: LoopServiceOptions) {
     this.now = opts.now ?? (() => Date.now());
     this.log = opts.log ?? (() => {});
+    this.instanceId = opts.instanceId ?? `${process.pid}-${Math.random().toString(36).slice(2, 10)}`;
+    this.isAlive = opts.isAlive ?? processIsAlive;
     const lean = join(opts.packageRoot, "scripts", "frontier-proof-loop", "fplproofs");
     this.io = opts.io ?? productionIO({ artifactScratchDir: join(opts.repoRoot, "_tmp", "loop-forward", "artifacts"), ...(existsSync(lean) ? { leanProjectDir: lean } : {}) });
     this.orchestrator = new Set(opts.orchestratorProviders ?? ["anthropic"]);
@@ -160,6 +190,7 @@ export class LoopService {
     const doc: Persisted = {
       state: m.run.state,
       args: m.args,
+      owner: { instance_id: this.instanceId, pid: process.pid },
       ...(m.inflight ? { inflight: { stage: m.inflight.stage, iteration: m.inflight.iteration, attempt: m.inflight.attempt, since: m.inflight.since } } : {}),
       ...(m.prompted ? { prompted: m.prompted } : {}),
     };
@@ -172,10 +203,14 @@ export class LoopService {
   }
 
   /**
-   * Load every persisted run that has not ended. A run whose solver stage
-   * was in flight when the previous process died gets that attempt recorded
-   * as a driver error — the output, if any, was never judged — and continues
-   * under the contract's retry policy.
+   * Load every persisted run that has not ended and that no living server
+   * owns. Sibling servers — one per Claude Code session — share the run
+   * store; a run belongs to the server that started it until that process
+   * is gone, so a server starting mid-run never records another server's
+   * live solver stage as lost or writes its receipt. A run whose owner is
+   * gone is adopted: a solver stage that was in flight gets that attempt
+   * recorded as a driver error — the output, if any, was never judged — and
+   * the run continues under the contract's retry policy.
    */
   async resumeAll(): Promise<string[]> {
     const dir = this.runDir;
@@ -189,6 +224,10 @@ export class LoopService {
         continue;
       }
       if (doc.state.terminal) continue;
+      if (doc.owner && doc.owner.instance_id !== this.instanceId && this.isAlive(doc.owner.pid)) {
+        this.log(`run ${doc.state.run_id} belongs to live server ${doc.owner.instance_id} (pid ${doc.owner.pid}); not adopted`);
+        continue;
+      }
       const wiring = this.wiringOf(doc.state.workbook_id);
       const run = LoopRun.resume(this.config(wiring, doc.args), doc.state);
       const m: Managed = { run, args: doc.args, wiring, ...(doc.prompted ? { prompted: doc.prompted } : {}) };
@@ -344,6 +383,12 @@ export class LoopService {
     const runId = args.run_id ?? `run-${iso(this.now()).replace(/[-:]/g, "").toLowerCase()}-${Math.random().toString(36).slice(2, 8)}`;
     if (this.runs.has(runId)) throw new LoopError("conflict", `run ${runId} already exists`);
     const wiring = this.wiringOf(args.workbook_id);
+    if (args.receipt_slug !== undefined) {
+      // The receipt is written when the run ends; a slug that already names
+      // one would collide then, after the work was done. Refuse it now.
+      const receiptId = `lf:receipt:${args.receipt_slug}`;
+      if (this.opts.host.getProject(args.workbook_id).primitives[receiptId]) throw new LoopError("conflict", `receipt ${receiptId} already exists in ${args.workbook_id}; choose another receipt_slug`);
+    }
     const run = LoopRun.start(this.config(wiring, args), { runId, workbookId: args.workbook_id, pipelineId: args.pipeline_id, inputs: args.inputs });
     const m: Managed = { run, args, wiring };
     this.runs.set(runId, m);
@@ -413,6 +458,7 @@ export class LoopService {
       total_tokens: s.total_tokens,
       ...(s.terminal ? { terminal: s.terminal.state } : {}),
       ...(s.receipt_id ? { receipt_id: s.receipt_id } : {}),
+      ...(s.receipt_error ? { receipt_error: s.receipt_error } : {}),
     };
   }
 }
@@ -437,7 +483,7 @@ export const LOOP_TOOLS: ReadonlyArray<ToolSpec> = [
         workbook_id: { type: "string", minLength: 1 },
         pipeline_id: { type: "string", minLength: 1 },
         inputs: { type: "object", additionalProperties: true },
-        receipt_slug: { type: "string", description: "Slug for lf:receipt:<slug>; defaults to pipeline name + timestamp." },
+        receipt_slug: { type: "string", description: "Slug for lf:receipt:<slug>; defaults to pipeline name + timestamp. Refused if that receipt already exists in the workbook." },
         codex_model: { type: "string" },
         codex_effort: { type: "string", enum: ["minimal", "low", "medium", "high", "xhigh"] },
       },
@@ -532,6 +578,8 @@ export const LOOP_SERVER_INSTRUCTIONS = [
   "1. fdpm_loop_start(workbook_id, pipeline_id, inputs) — read `next`.",
   "2. If next.kind is \"prompt\": read system_prompt and task_prompt, do the stage's work (read workbooks through the fdpm server, write through it when the stage says to), then fdpm_loop_submit(run_id, output) with exactly one JSON object matching contract_schema. The result says whether it was accepted and what comes next; a rejection re-issues the stage with the failures appended when the contract allows a retry.",
   "3. If next.kind is \"running\": a solver stage (Codex, through the delegation wrapper) is executing inside this server. Call fdpm_loop_wait(run_id) repeatedly until next changes. Do not edit the repository while it runs: the git-mutation check will reject the stage.",
-  "4. If next.kind is \"terminal\": the run ended; outcome.receipt_id names the lf:RunReceipt written to the workbook. Send the fdpm server SIGHUP (or reload) to see it there.",
+  "4. If next.kind is \"terminal\": the run ended; outcome.receipt_id names the lf:RunReceipt written to the workbook (outcome.receipt_error says why one could not be written). Send the fdpm server SIGHUP (or reload) to see it there.",
+  "A run belongs to the server that started it: a loop server started by another session leaves it alone while this one lives, and adopts it only once this process is gone.",
+  "When a solver attempt is rejected, the record's failures carry the wrapper's own verdict check by check (for example fpl.reference_resolves); a cited https title must be one the page declares for itself (og:title, citation_title or <title>, with or without the site suffix), and PDF or repository-path locators do not resolve.",
   "Every stage output you submit is validated against the stage contract exactly as a solver's would be. Nothing you submit becomes verified: registered records stay unverified until the acceptance authority records a verdict.",
 ].join("\n");

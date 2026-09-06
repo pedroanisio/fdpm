@@ -7,7 +7,7 @@
  * Absence of output verification is a design defect, not a runtime bug.
  * All LLM output must be treated as untrusted and validated explicitly.
  */
-import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -15,7 +15,7 @@ import { Host } from "../../src/core/host.js";
 import type { Fetcher } from "../../src/loop/checks/reference.js";
 import { gitSnapshot } from "../../src/loop/checks/repo.js";
 import { ScriptedDriver, type StageDriver, type StageRun, type StageRunResult } from "../../src/loop/drivers.js";
-import { LOOP_TOOLS, LoopService, callLoopTool, type Next } from "../../src/loop/mcp.js";
+import { LF_SCOPE, LOOP_TOOLS, LoopService, type LoopServiceOptions, callLoopTool, type Next } from "../../src/loop/mcp.js";
 import type { ValidatorIO } from "../../src/loop/named.js";
 import { wiringFor } from "../../src/loop/wiring.js";
 import { buildCodexDelegation } from "../../scripts/build-codex-delegation.js";
@@ -56,8 +56,8 @@ const apply = { written: [], rejected: [], proof_command: "true", proof_exit_cod
 /** The solver, scripted: answers the delegate stage after a tick, with git evidence. */
 const solver = (): ScriptedDriver => new ScriptedDriver(() => ({ outputText: JSON.stringify(envelope), evidence: { git_before: SNAPSHOT, git_after: SNAPSHOT } }));
 
-function service(host: Host, driver: StageDriver | undefined, dataDir: string | null = null): LoopService {
-  return new LoopService({ host, dataDir, repoRoot: REPO_ROOT, packageRoot: process.cwd(), io, automaticDriverFor: () => driver });
+function service(host: Host, driver: StageDriver | undefined, dataDir: string | null = null, extra: Partial<LoopServiceOptions> = {}): LoopService {
+  return new LoopService({ host, dataDir, repoRoot: REPO_ROOT, packageRoot: process.cwd(), io, automaticDriverFor: () => driver, ...extra });
 }
 
 const startArgs = { workbook_id: WORKBOOK_ID, pipeline_id: PIPELINE_ID, inputs: INPUTS, receipt_slug: "mcp-run" };
@@ -176,6 +176,63 @@ describe("LoopService", () => {
     expect(judged.record?.failures.map((f) => f.message).join(" ")).toContain("HEAD moved");
   });
 
+  it("refuses to start a run whose receipt slug already names a receipt in the workbook", async () => {
+    const host = await memoryHost();
+    const s = service(host, solver());
+    const first = await s.start(startArgs);
+    await s.abort(first.run_id, "make the receipt exist");
+    expect(host.getProject(WORKBOOK_ID).primitives["lf:receipt:mcp-run"]).toBeDefined();
+    await expect(s.start(startArgs)).rejects.toThrow(/lf:receipt:mcp-run already exists/);
+    expect(s.list()).toHaveLength(1);
+  });
+
+  it("records a receipt that cannot be written as receipt_error on the outcome, never as a throw", async () => {
+    const host = await memoryHost();
+    const s = service(host, solver());
+    const first = await s.start({ ...startArgs, receipt_slug: "dup" });
+    // Another writer takes the id between start and finish.
+    const taken = await host.createPrimitive(WORKBOOK_ID, {
+      id: "lf:receipt:dup",
+      type_id: "lf:RunReceipt",
+      scope_id: LF_SCOPE,
+      field_values: { pipeline_version: "0.0.0", terminal_state: "failed", started_at: "2026-01-01T00:00:00Z", finished_at: "2026-01-01T00:00:01Z", iteration_count: 1, model_call_count: 0, total_tokens: 0, wall_clock_ms: 1000, records: "[]" },
+    });
+    expect(taken.report.accepted).toBe(true);
+    const ended = await s.abort(first.run_id, "collide");
+    expect(ended.kind).toBe("terminal");
+    if (ended.kind !== "terminal") return;
+    expect(ended.outcome.receipt_id).toBeUndefined();
+    expect(ended.outcome.receipt_error).toMatch(/lf:receipt:dup/);
+    expect(s.status(first.run_id).summary.receipt_error).toMatch(/lf:receipt:dup/);
+    expect((await s.wait(first.run_id, 10)).kind).toBe("terminal");
+  });
+
+  it("carries a driver's structured boundary failures into the attempt record under their own error classes", async () => {
+    const host = await memoryHost();
+    const refusal = { check: "fpl.reference_resolves", error_class: "ERR_HALLUCINATION" as const, message: "Reference does not resolve: https://example.org/x (HTTP 404)." };
+    const refusing: StageDriver = {
+      kind: "refusing",
+      run: async () => ({
+        outputText: JSON.stringify(envelope.return),
+        usage: { input_tokens: 1, output_tokens: 1 },
+        modelCalls: 1,
+        evidence: { git_before: SNAPSHOT, git_after: SNAPSHOT },
+        error: "wrapper rejected the return at its verification boundary (1 failure)",
+        failures: [refusal],
+      }),
+    };
+    const s = service(host, refusing);
+    const first = await s.start(startArgs);
+    if (first.kind !== "prompt") throw new Error("expected a prompt");
+    await s.submit(first.run_id, order());
+    await s.wait(first.run_id, 5_000);
+    const rec = s.status(first.run_id).records.find((r) => r.stage === "delegate");
+    expect(rec?.accepted).toBe(false);
+    expect(rec?.driver_error).toContain("verification boundary");
+    expect(rec?.failures[0]).toEqual(refusal);
+    expect(rec?.failures.some((f) => f.check === "driver" && f.error_class === "ERR_TRUNCATION")).toBe(false);
+  });
+
   it("wires the frontier loop's solver stages as attempt-mode delegations that unwrap the envelope", () => {
     const w = wiringFor("profile:frontier-proof-loop:0.1");
     expect(w.codexFixedMode).toBe("attempt");
@@ -202,7 +259,7 @@ describe("persistence", () => {
     expect(existsSync(join(dir, "loop-runs", "persisted.json"))).toBe(true);
 
     const b = await diskHost(dir);
-    const sB = service(b, solver(), dir);
+    const sB = service(b, solver(), dir, { isAlive: () => false }); // the first server's process is gone
     expect(await sB.resumeAll()).toEqual(["persisted"]);
     const status = sB.status("persisted");
     expect(status.next.kind).toBe("prompt");
@@ -224,7 +281,7 @@ describe("persistence", () => {
     expect(running.next.kind).toBe("running");
     // The process "dies" here: nothing settles the driver. A new service reads the marker.
     const b = await diskHost(dir);
-    const sB = service(b, solver(), dir);
+    const sB = service(b, solver(), dir, { isAlive: () => false });
     await sB.resumeAll();
     const status = sB.status("lost");
     const lost = status.records.find((r) => r.stage === "delegate");
@@ -234,6 +291,36 @@ describe("persistence", () => {
     expect(status.next.kind).toBe("terminal");
     expect(status.summary.receipt_id).toBe("lf:receipt:mcp-run");
     expect(readdirSync(join(dir, "loop-runs"))).toContain("lost.json");
+  });
+
+  it("leaves a run alone while the server that owns it is alive, and adopts it once that server is gone", async () => {
+    const dir = join(scratch, "owned");
+    const a = await diskHost(dir);
+    await buildCodexDelegation(a);
+    const never: StageDriver = { kind: "never", run: () => new Promise<StageRunResult>(() => {}) };
+    const sA = service(a, never, dir, { instanceId: "server-a" });
+    const first = await sA.start({ ...startArgs, run_id: "shared" });
+    if (first.kind !== "prompt") throw new Error("expected a prompt");
+    expect((await sA.submit("shared", order())).next.kind).toBe("running");
+    const onDisk = (): { owner?: { instance_id: string; pid: number }; state: { records: unknown[] } } => JSON.parse(readFileSync(join(dir, "loop-runs", "shared.json"), "utf8"));
+    expect(onDisk().owner).toEqual({ instance_id: "server-a", pid: process.pid });
+
+    // A second server, started by another session while the solver is still running: server A is alive.
+    const b = await diskHost(dir);
+    const sB = service(b, solver(), dir, { instanceId: "server-b" });
+    expect(await sB.resumeAll()).toEqual([]);
+    expect(() => sB.status("shared")).toThrow(/unknown run/);
+    expect(sB.list()).toEqual([]);
+    expect(onDisk().state.records).toHaveLength(1); // nothing was recorded as lost
+    expect(onDisk().owner?.instance_id).toBe("server-a");
+
+    // Server A is gone: the next server adopts the run and records the lost attempt.
+    const c = await diskHost(dir);
+    const sC = service(c, solver(), dir, { instanceId: "server-c", isAlive: () => false });
+    expect(await sC.resumeAll()).toEqual(["shared"]);
+    expect(onDisk().owner?.instance_id).toBe("server-c");
+    const lost = sC.status("shared").records.find((r) => r.stage === "delegate");
+    expect(lost?.driver_error).toContain("restarted");
   });
 });
 

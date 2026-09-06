@@ -27,8 +27,15 @@ export interface Resolution {
   scheme: "doi" | "arxiv" | "https" | "unknown";
   /** The URL that was actually fetched, when one was. */
   url?: string;
-  /** The title as found at the locator, when one was. */
+  /** The title as found at the locator, when one was: the first of `found_titles`. */
   found_title?: string;
+  /**
+   * Every title the locator declares for itself, most specific first. An HTML
+   * page names itself in og:title, citation_title and <title>, and <title>
+   * usually carries a trailing site segment; a citation that equals any of
+   * these is the page's own title, not a fabrication.
+   */
+  found_titles?: string[];
   reason?: string;
 }
 
@@ -74,13 +81,31 @@ function titleFromAtom(xml: string): string | undefined {
   return title === undefined ? undefined : decodeEntities(title);
 }
 
-function titleFromHtml(html: string): string | undefined {
+/** A <title> minus its trailing site segment ("Paper | Site", "Paper — Site"), when it has one. */
+function withoutSiteSuffix(title: string): string | undefined {
+  let cut = -1;
+  for (const sep of [" | ", " — ", " – ", " :: ", " - "]) cut = Math.max(cut, title.lastIndexOf(sep));
+  if (cut <= 0) return undefined;
+  const head = title.slice(0, cut).trim();
+  return head === "" ? undefined : head;
+}
+
+/** Every title an HTML page declares for itself, most specific first, without duplicates. */
+export function titlesFromHtml(html: string): string[] {
+  const found: string[] = [];
   const og = /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1];
-  if (og) return decodeEntities(og);
+  if (og) found.push(decodeEntities(og));
   const citation = /<meta[^>]+name=["']citation_title["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1];
-  if (citation) return decodeEntities(citation);
+  if (citation) found.push(decodeEntities(citation));
   const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1];
-  return title === undefined ? undefined : decodeEntities(title);
+  if (title !== undefined) {
+    const decoded = decodeEntities(title);
+    found.push(decoded);
+    const bare = withoutSiteSuffix(decoded);
+    if (bare !== undefined) found.push(bare);
+  }
+  const seen = new Set<string>();
+  return found.filter((t) => t !== "" && !seen.has(normalizeTitle(t)) && (seen.add(normalizeTitle(t)), true));
 }
 
 function titleFromCsl(json: string): string | undefined {
@@ -105,20 +130,20 @@ export async function resolveReference(locator: string, fetcher: Fetcher): Promi
       const res = await fetcher(url, { Accept: "application/vnd.citationstyles.csl+json" });
       if (res.status < 200 || res.status >= 300) return { ok: false, scheme, url, reason: `HTTP ${res.status}` };
       const title = titleFromCsl(res.text);
-      return title === undefined ? { ok: false, scheme, url, reason: "no title in CSL record" } : { ok: true, scheme, url, found_title: title };
+      return title === undefined ? { ok: false, scheme, url, reason: "no title in CSL record" } : { ok: true, scheme, url, found_title: title, found_titles: [title] };
     }
     if (scheme === "arxiv") {
       const url = `https://export.arxiv.org/api/query?id_list=${encodeURIComponent(id)}&max_results=1`;
       const res = await fetcher(url, {});
       if (res.status < 200 || res.status >= 300) return { ok: false, scheme, url, reason: `HTTP ${res.status}` };
       const title = titleFromAtom(res.text);
-      return title === undefined ? { ok: false, scheme, url, reason: "no entry for that arXiv id" } : { ok: true, scheme, url, found_title: title };
+      return title === undefined ? { ok: false, scheme, url, reason: "no entry for that arXiv id" } : { ok: true, scheme, url, found_title: title, found_titles: [title] };
     }
     if (scheme === "https") {
       const res = await fetcher(id, { Accept: "text/html" });
       if (res.status < 200 || res.status >= 300) return { ok: false, scheme, url: id, reason: `HTTP ${res.status}` };
-      const title = titleFromHtml(res.text);
-      return title === undefined ? { ok: false, scheme, url: id, reason: "no title in page" } : { ok: true, scheme, url: id, found_title: title };
+      const titles = titlesFromHtml(res.text);
+      return titles.length === 0 ? { ok: false, scheme, url: id, reason: "no title in page" } : { ok: true, scheme, url: id, found_title: titles[0]!, found_titles: titles };
     }
     return { ok: false, scheme, reason: "locator is not a DOI, an arXiv id or an https URL" };
   } catch (err) {
@@ -134,13 +159,15 @@ export interface ReferenceCheck {
 export interface ReferenceVerdict extends Resolution {
   locator: string;
   cited_title: string;
-  /** True when the locator resolved AND the titles agree after normalisation. */
+  /** True when the locator resolved AND the cited title equals one of the titles found there, after normalisation. */
   matches: boolean;
 }
 
 export async function checkReference(ref: ReferenceCheck, fetcher: Fetcher): Promise<ReferenceVerdict> {
   const resolution = await resolveReference(ref.locator, fetcher);
-  const matches = resolution.ok && resolution.found_title !== undefined && normalizeTitle(resolution.found_title) === normalizeTitle(ref.title);
+  const candidates = resolution.found_titles ?? (resolution.found_title === undefined ? [] : [resolution.found_title]);
+  const cited = normalizeTitle(ref.title);
+  const matches = resolution.ok && cited !== "" && candidates.some((t) => normalizeTitle(t) === cited);
   return { ...resolution, locator: ref.locator, cited_title: ref.title, matches };
 }
 

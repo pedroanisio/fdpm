@@ -64,6 +64,8 @@ export interface RunState {
   cost_usd?: number;
   terminal?: Terminal;
   receipt_id?: string;
+  /** Why the receipt could not be written, when it could not; the run still ended. */
+  receipt_error?: string;
   /** The last accepted output of the last stage that produced one. */
   last_accepted?: { stage_id: string; output: unknown };
 }
@@ -81,6 +83,7 @@ export interface RunOutcome {
   handoff?: Record<string, unknown>;
   stage_outputs: Record<string, unknown>;
   receipt_id?: string;
+  receipt_error?: string;
   executor_error?: string;
 }
 
@@ -362,7 +365,12 @@ export class LoopRun {
         },
         this.config.registry,
       );
-      const failures = result.error === undefined ? verdict.failures : [{ check: "driver", error_class: "ERR_TRUNCATION" as const, message: result.error }, ...verdict.failures];
+      // A driver that names its failures (a wrapper's boundary verdict) has
+      // them recorded as they are; one that only reports an error gets the
+      // generic driver failure. Either way the attempt is not accepted.
+      const driverFailures: CheckFailure[] =
+        result.error === undefined ? [] : result.failures !== undefined && result.failures.length > 0 ? result.failures : [{ check: "driver", error_class: "ERR_TRUNCATION" as const, message: result.error }];
+      const failures = [...driverFailures, ...verdict.failures];
       const ok = verdict.ok && result.error === undefined;
       record = {
         iteration: s.iteration,
@@ -467,6 +475,7 @@ export class LoopRun {
       ...(s.cost_usd !== undefined ? { cost_usd: s.cost_usd } : {}),
       ...(terminal.executor_error !== undefined ? { executor_error: terminal.executor_error } : {}),
       ...(s.receipt_id !== undefined ? { receipt_id: s.receipt_id } : {}),
+      ...(s.receipt_error !== undefined ? { receipt_error: s.receipt_error } : {}),
     };
     if (terminal.state === "success" && s.last_accepted) out.final_output = s.last_accepted;
     if (terminal.state === "blocked" || terminal.state === "approval_required" || terminal.state === "stagnated") {
@@ -475,11 +484,24 @@ export class LoopRun {
     return out;
   }
 
-  /** Write the lf:RunReceipt (once) and the per-output submissions; returns the outcome with the receipt id. */
+  /**
+   * Write the lf:RunReceipt (once) and the per-output submissions; returns the
+   * outcome with the receipt id. A receipt that cannot be written — the id is
+   * taken, the host refuses the record — is recorded as `receipt_error` on
+   * the outcome: the run has ended either way, and the caller reads the
+   * outcome rather than an exception thrown out of a tool call.
+   */
   async finish(): Promise<RunOutcome> {
     if (!this.state.terminal) throw new Error("finish() before the run ended");
     if (this.config.receipt && this.state.receipt_id === undefined) {
-      this.state.receipt_id = await this.writeReceipt(this.outcome());
+      try {
+        this.state.receipt_id = await this.writeReceipt(this.outcome());
+        this.state.receipt_error = undefined;
+      } catch (err) {
+        const text = err instanceof Error ? err.message : String(err);
+        this.state.receipt_error = `receipt not written: ${text}`;
+        this.log(`run ${this.state.run_id}: ${this.state.receipt_error}`);
+      }
     }
     return this.outcome();
   }

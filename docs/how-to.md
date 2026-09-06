@@ -420,13 +420,16 @@ claude mcp add --scope user fdpm-loop -- node <checkout>/fdpm-cli/dist/src/bin/f
 Restart Claude Code; the tools appear as `mcp__fdpm-loop__fdpm_loop_*`. The
 server opens the same data dir the fdpm server serves (`FDPM_DATA_DIR` or
 `~/.fdpm-cli`), persists run state under `<data dir>/loop-runs/`, and resumes
-unfinished runs when it starts.
+unfinished runs when it starts. Each run records the server that started it;
+because every Claude Code session runs its own loop server over the same
+store, a server leaves another live server's runs alone and adopts one only
+once that process is gone.
 
 The protocol is six tools, and the loop is a conversation with them:
 
 | Tool | What it does |
 |---|---|
-| `fdpm_loop_start(workbook_id, pipeline_id, inputs)` | Starts a run and returns `next`: a `prompt` for you, `running` if a solver stage was dispatched, or the `terminal` outcome. |
+| `fdpm_loop_start(workbook_id, pipeline_id, inputs)` | Starts a run and returns `next`: a `prompt` for you, `running` if a solver stage was dispatched, or the `terminal` outcome. An optional `receipt_slug` is refused if `lf:receipt:<slug>` already exists in the workbook. |
 | `fdpm_loop_submit(run_id, output)` | Your stage output — one JSON object matching the prompt's `contract_schema`. Judged against the stage contract exactly as a solver's would be; returns `accepted`, the attempt record with any failures, and `next`. A rejection re-issues the stage with the failures appended when the contract allows a retry. |
 | `fdpm_loop_wait(run_id, timeout_ms)` | Waits up to `timeout_ms` (default 20 s) for a running solver stage. Poll it. |
 | `fdpm_loop_status(run_id)` | Where the run is, every attempt record so far. Never waits. |
@@ -463,6 +466,17 @@ What the server enforces, in code the orchestrator cannot reach:
 - **Nothing approves itself.** The orchestrator writes through the fdpm
   server it already has, under that server's own controls; the loop server
   holds no grant on its behalf.
+- **Whose run it is.** A run belongs to the server that started it until
+  that process is gone; a sibling server never records its live solver stage
+  as lost or writes its receipt. A receipt that cannot be written when the
+  run ends is reported as `receipt_error` on the outcome, never thrown at the
+  caller.
+- **Why a solver attempt was refused.** When the wrapper rejects a return at
+  its boundary, the attempt record carries the wrapper's own failures, check
+  by check (`fpl.reference_resolves`, `fpl.formal_artifact_check`, `cdel.*`),
+  and the refused return is what the executor judged. A cited https title
+  must be one the page declares for itself — `og:title`, `citation_title` or
+  `<title>`, with or without its site suffix.
 
 Two other ways to run the same pipeline, for completeness:
 [`scripts/run-loop-forward.ts`](../fdpm-cli/scripts/run-loop-forward.ts)

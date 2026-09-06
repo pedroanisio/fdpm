@@ -226,6 +226,36 @@ describe("fpl.reference_resolves", () => {
     expect(verdict.ok).toBe(true);
     expect(verdict.matches).toBe(false);
   });
+
+  it("matches the cited title against every title the page declares, with and without the site suffix", async () => {
+    const page = (og: string | undefined, title: string): string =>
+      `<html><head>${og === undefined ? "" : `<meta property="og:title" content="${og}">`}<title>${title}</title></head><body></body></html>`;
+    const pages: Fetcher = async (url) => {
+      if (url === "https://example.org/ecdlp") return { status: 200, text: page("The Elliptic-Curve Discrete Logarithm Problem (ECDLP)", "The Elliptic-Curve Discrete Logarithm Problem (ECDLP) | Epoch AI"), finalUrl: url };
+      if (url === "https://example.org/plain") return { status: 200, text: page(undefined, "Lower bounds for discrete logarithms | Journal Site"), finalUrl: url };
+      if (url === "https://example.org/bare") return { status: 200, text: page(undefined, "Lower bounds for discrete logarithms"), finalUrl: url };
+      return { status: 404, text: "", finalUrl: url };
+    };
+    const matches = async (locator: string, title: string): Promise<boolean> => (await checkReference({ locator, title }, pages)).matches;
+    // og:title is what the page calls itself; <title> carries the site suffix. Either citation is the page's own.
+    expect(await matches("https://example.org/ecdlp", "The Elliptic-Curve Discrete Logarithm Problem (ECDLP)")).toBe(true);
+    expect(await matches("https://example.org/ecdlp", "The Elliptic-Curve Discrete Logarithm Problem (ECDLP) | Epoch AI")).toBe(true);
+    expect(await matches("https://example.org/ecdlp", "Epoch AI")).toBe(false);
+    // No og:title: the <title> minus its trailing site segment is also the page's title.
+    expect(await matches("https://example.org/plain", "Lower bounds for discrete logarithms")).toBe(true);
+    expect(await matches("https://example.org/plain", "Lower bounds for discrete logarithms | Journal Site")).toBe(true);
+    expect(await matches("https://example.org/plain", "Journal Site")).toBe(false);
+    expect(await matches("https://example.org/bare", "Lower bounds")).toBe(false);
+    const verdict = await checkReference({ locator: "https://example.org/ecdlp", title: "nope" }, pages);
+    expect(verdict.found_title).toBe("The Elliptic-Curve Discrete Logarithm Problem (ECDLP)");
+    expect(verdict.found_titles).toEqual(["The Elliptic-Curve Discrete Logarithm Problem (ECDLP)", "The Elliptic-Curve Discrete Logarithm Problem (ECDLP) | Epoch AI"]);
+    const host = await freshHost();
+    const io: ValidatorIO = { fetch: pages, runArtifact: fakeRun({}), artifactTimeoutMs: 1 };
+    const mismatch = await v(args, ctx(host, { references: [{ locator: "https://example.org/ecdlp", title: "nope" }] }, { io }));
+    expect(mismatch).toHaveLength(1);
+    expect(mismatch[0]?.message).toContain("also declares");
+    expect(mismatch[0]?.message).toContain("| Epoch AI");
+  });
 });
 
 describe("workbook read-back validators", () => {

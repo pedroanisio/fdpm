@@ -516,8 +516,13 @@ the claim's `falsifier` says what would overturn it.
 **Goal.** Continue a run whose server process died.
 
 **What happens.** On start the server loads `<data dir>/loop-runs/*.json`
-and resumes every run without a terminal state. A solver stage that was in
-flight is recorded as a lost attempt (`driver_error` "the loop server
+and resumes every run without a terminal state that no living server owns.
+Each run records the server that started it (`owner: { instance_id, pid }`);
+every Claude Code session runs its own loop server over the same store, so a
+server started while another session's run is mid-solver leaves that run
+alone (its log says `belongs to live server … not adopted`) and adopts it
+only once that process is gone. For an adopted run, a solver stage that was
+in flight is recorded as a lost attempt (`driver_error` "the loop server
 restarted while … was running") and the contract's retry policy decides
 what happens next.
 
@@ -536,9 +541,10 @@ pending `prompt` or `running`; the records include the lost attempt.
 | `fpl.formal_artifact_check` | `ERR_HALLUCINATION` | the artifact exited non-zero, or PARI printed `***` and exited 0 | read the quoted runner output; the claim is not established |
 | `fpl.formal_artifact_check` | `ERR_SEMANTIC` | timed out | split the step or raise the timeout (D6) |
 | `fpl.formal_artifact_check` | `ERR_INSTRUCTION` | `prose` with `proved`/`computed` | a step needs an artifact a machine can check |
-| `fpl.reference_resolves` | `ERR_HALLUCINATION` | a locator did not resolve, or resolved to another title | a fabricated or misremembered citation; rejected whole |
+| `fpl.reference_resolves` | `ERR_HALLUCINATION` | a locator did not resolve, or resolved to none of the titles the page declares (`og:title`, `citation_title`, `<title>` with or without its site suffix); PDFs have no title to compare and repository paths are not references | a fabricated or misremembered citation; rejected whole. The message lists what the page declares |
 | `cdel.no_git_mutation` | `ERR_INSTRUCTION` | git moved during the stage | someone edited the repository, or the sandbox did not hold; investigate before re-running |
-| `driver` | `ERR_TRUNCATION` | the wrapper refused or the server restarted | `wrapper_stderr_path` in the record's evidence has the wrapper's verdict |
+| any check above, with `driver_error` "wrapper rejected the return at its verification boundary" | the check's own | the wrapper refused the return before the executor saw it | the failures are the wrapper's verdict, check by check; `wrapper_raw_return_path` in the record's evidence is the refused return |
+| `driver` | `ERR_TRUNCATION` | the wrapper exited without a verdict (`codex exec` failed) or the server restarted | the message carries the wrapper's last stderr line; `wrapper_stderr_path` in the record's evidence has all of it |
 
 The frontier attempt contract retries twice with the failures appended to
 Codex's order; the delegation pipeline's delegate stage does not retry.
@@ -657,6 +663,9 @@ silent-acceptance profile refuses `covered` without those fields.
 ### D1. Inspect a run
 
 - `fdpm_loop_status(run_id)` — where it is and every attempt so far.
+- `receipt_error` on the outcome or the summary: the run ended but its
+  receipt could not be written (for example the id was taken). The run file
+  under `<data dir>/loop-runs/` still holds every record.
 - The receipt: `fdpm_primitive_get <workbook> lf:receipt:<slug>` after D2;
   `records` is the serialized attempt history; `handoff` the carried state.
 - Renders: `fdpm://workbook/<workbook>/render/text/markdown` (budget
@@ -727,7 +736,10 @@ grants and context policy, not over these overrides.
 | `mcp__fdpm-loop__*` tools absent | server not registered, or the session predates registration | `claude mcp get fdpm-loop`; register per how-to.md §7; restart Claude Code |
 | `fdpm_loop_start` → `input "x" is not declared` / `required input y is missing` | inputs do not match the pipeline's VariableSpecs | copy the input names from the pursuit record or the table above |
 | `fdpm_loop_submit` → `conflict: run … is waiting on its delegate stage` | a solver stage is running | `fdpm_loop_wait` until `next` changes |
-| `fdpm_loop_submit` → `not_found: unknown run` | the server process that held the run restarted and the run had ended, or the id is wrong | `fdpm_loop_list`; finished runs are on disk, not listed |
+| `fdpm_loop_submit` → `not_found: unknown run` | the server process that held the run restarted and the run had ended, the id is wrong, or another session's live server owns the run | `fdpm_loop_list`; finished runs are on disk, not listed; a run another session started is driven from that session |
+| `fdpm_loop_start` → `conflict: receipt lf:receipt:<slug> already exists` | the `receipt_slug` was used by an earlier run | choose another slug |
+| the terminal outcome carries `receipt_error` | the receipt could not be written when the run ended | the run file under `<data dir>/loop-runs/` has every record; fix the cause (usually a taken id) and record the outcome by hand |
+| `fpl.reference_resolves` "resolves to X (the page also declares …), not to the cited Y" | the citation equals none of the page's own titles | cite one of the declared titles; do not cite PDFs or repository paths |
 | submit rejected with `Failures:` in the next prompt | your output missed the contract | the failures name the keys or the checks; fix and resubmit |
 | `cdel.no_git_mutation` on a solver stage | the repository changed during the delegation | stop editing; re-run |
 | `cdel.no_git_mutation` "HEAD moved" on `review` or `apply` | the orchestrator committed during its stage | never commit inside a stage; the operator commits |

@@ -35,6 +35,64 @@ upgrade.
 > the 2026-08-30 candidate state made explicit rather than inferred.
 
 
+### Fixed
+
+#### The loop server adopted runs that another live server owned (`src/loop/mcp.ts`, `src/loop/run.ts`)
+
+Every Claude Code session starts its own `fdpm-loop` server over the shared
+run store `<data dir>/loop-runs/`, and `resumeAll()` adopted every unfinished
+run it found there. A server started while a sibling's solver stage was in
+flight recorded that attempt as "the loop server restarted while attempt was
+running; the attempt was lost", exhausted the stage under the contract's retry
+ceiling, ended the run and wrote its receipt — three seconds before the owning
+server's real result arrived. The owner then failed its own receipt write with
+`primitive id collision`, thrown out of `fdpm_loop_wait`. Observed on
+2026-09-06 with `lf:receipt:fpl-ecdlp-run-3`, whose last record is the
+sibling's, not the owner's.
+
+Runs now carry an owner (`{ instance_id, pid }`) in their persisted state. A
+server resumes a run only when no owner is recorded (files from before this
+change), the owner is itself, or the owner's process is gone (`kill -0`);
+otherwise it logs `belongs to live server … not adopted` and leaves the file
+alone. `LoopServiceOptions` gained `instanceId` and `isAlive` so the rule is
+testable. A receipt that cannot be written is no longer thrown: `finish()`
+records `receipt_error` on the run state, and `RunOutcome`, `RunSummary` and
+the terminal `next` carry it. `fdpm_loop_start` refuses a `receipt_slug` that
+already names an `lf:RunReceipt` in the workbook (`conflict`) instead of
+letting the run do its work and collide at the end.
+
+#### A wrapper refusal surfaced as a JSON parse error over the Codex banner (`src/loop/drivers.ts`, `src/loop/run.ts`)
+
+When `scripts/codex-delegate.sh` refused a return at its boundary and exited 1,
+`CodexWrapperDriver` handed the executor the wrapper's whole stderr as the
+stage output. Stderr begins with codex's banner, so every such attempt was
+recorded as `driver: ERR_TRUNCATION "wrapper exited 1"` plus
+`lf.output_contract: ERR_SCHEMA "Unexpected token 'O', "OpenAI Cod"…"`, and
+the actual verdict (for example `fpl.reference_resolves`) was only in the
+`.wrapper.err` file. The driver now parses the wrapper's verdict
+(`parseWrapperRefusal`): the record's failures are the wrapper's own, check by
+check and error class by error class, the refused return is what the executor
+judges, and the evidence carries `wrapper_failures` and
+`wrapper_raw_return_path`. `StageRunResult` gained `failures?: CheckFailure[]`
+for any driver that can name its failures; a non-zero exit without a verdict
+reports the wrapper's last stderr line. Nothing is accepted that was refused.
+
+#### `fpl.reference_resolves` compared the cited title with only one of the page's titles (`src/loop/checks/reference.ts`, `src/loop/named.ts`)
+
+An HTML page names itself more than once — `og:title`, `citation_title`,
+`<title>` — and `<title>` usually carries a trailing site segment. The
+validator took the first it found and rejected a citation that matched any
+other, so citing the FrontierMath page by its `<title>` "… (ECDLP) | Epoch AI"
+was `ERR_HALLUCINATION` while the page's `og:title` was the same words without
+the suffix; two otherwise valid solver returns were refused for it on
+2026-09-06. `resolveReference` now returns every title the page declares
+(`found_titles`, most specific first, plus the `<title>` without its trailing
+` | `, ` — `, ` – `, ` :: ` or ` - ` segment) and `checkReference` accepts a
+citation equal to any of them after normalisation. A citation that matches
+none is still rejected, and the message now lists what the page declares. DOI
+and arXiv resolution are unchanged. PDF locators still do not resolve (no
+title to compare), and repository paths are still not references.
+
 ### Added
 
 #### `fdpm.logical-knowledge-base` — a LogicalKnowledgeBase document as a profile (`plugins/logical_knowledge_base/`)
