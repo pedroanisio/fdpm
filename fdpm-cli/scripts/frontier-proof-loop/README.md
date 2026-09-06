@@ -153,4 +153,4 @@ claim `unverified`. Its terminal states on such a problem are `blocked`,
 `stagnated` and `exhausted`. It is a machine for not fooling yourself, and it
 is built so that it cannot report a proof it did not find.
 
-[Back to the repository README](../../../README.md)
+[User manual — scenarios](../../../docs/frontier-loop-manual.md) · [Back to the repository README](../../../README.md)

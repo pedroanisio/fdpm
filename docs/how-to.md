@@ -622,4 +622,4 @@ whose specification is itself the hard part.
 - Claude Code documentation: <https://docs.claude.com/en/docs/claude-code/overview>
 - Codex CLI config reference: <https://developers.openai.com/codex/config-reference>
 - Official Codex plugin for Claude Code: <https://github.com/openai/codex-plugin-cc> — an alternative bridge with its own default sandbox behaviour and no return-contract enforcement
-- [Frontier proof loop](../fdpm-cli/scripts/frontier-proof-loop/README.md) · [Repository README](../README.md) · [Architecture](architecture/FDPM-ARCHITECTURE.md) · [Profile atlas](architecture/PROFILES.md)
+- [User manual — scenarios](frontier-loop-manual.md) · [Frontier proof loop](../fdpm-cli/scripts/frontier-proof-loop/README.md) · [Repository README](../README.md) · [Architecture](architecture/FDPM-ARCHITECTURE.md) · [Profile atlas](architecture/PROFILES.md)
