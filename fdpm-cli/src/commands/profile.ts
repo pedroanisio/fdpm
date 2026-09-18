@@ -92,15 +92,22 @@ export function buildProfileCommand(host: Host): Command {
         id: p.id,
         version: p.version,
         label: p.label,
-        primitive_type_count: p.primitive_types.length,
-        relation_type_count: p.relation_types.length,
+        ...profileTypeCounts(host, p),
       }));
       emit(ctx, { profiles }, () =>
         renderTable(profiles, [
           { header: "PROFILE", value: (p) => p.id },
           { header: "VERSION", value: (p) => p.version },
-          { header: "PRIMITIVES", value: (p) => p.primitive_type_count, align: "right" },
-          { header: "RELATIONS", value: (p) => p.relation_type_count, align: "right" },
+          {
+            header: "PRIMITIVES",
+            value: (p) => p.primitive_type_count ?? "?",
+            align: "right",
+          },
+          {
+            header: "RELATIONS",
+            value: (p) => p.relation_type_count ?? "?",
+            align: "right",
+          },
           { header: "LABEL", value: (p) => p.label ?? "" },
         ], { empty: "(no profiles)" }),
       );
@@ -238,3 +245,40 @@ export const commandMetadata: CommandMetadataMap = {
     projectIdsFromJson: NO_PROJECT_JSON,
   },
 };
+
+/**
+ * The type counts a `profile list` row reports.
+ *
+ * Counted on the RESOLVED profile, not the raw one. A composition profile
+ * declares no types of its own and inherits them through `extends`:
+ * `profile:formal-specification-dnis:0.1` counted 0 and 0 next to rows whose
+ * counts were real, while a workbook bound to it can use 34 primitive and 32
+ * relation types. The listing exists to answer "which profile do I pick", and
+ * a zero there does not read as "ask a different way" — it reads as "nothing
+ * here", and hides the candidate.
+ *
+ * When the `extends` chain does not resolve — a pinned parent whose plugin
+ * moved on — there is no honest count to report, so the row says so with a
+ * null (`?` in the table) and `resolved: false`. Falling back to the raw
+ * count would print the same misleading zero the resolved count exists to
+ * remove, and would print it exactly when the profile is unusable.
+ */
+export function profileTypeCounts(
+  host: Host,
+  profile: { id: string; version: string },
+): {
+  primitive_type_count: number | null;
+  relation_type_count: number | null;
+  resolved: boolean;
+} {
+  try {
+    const resolved = host.profiles.getResolved(`${profile.id}@${profile.version}`);
+    return {
+      primitive_type_count: resolved.primitive_types.length,
+      relation_type_count: resolved.relation_types.length,
+      resolved: true,
+    };
+  } catch {
+    return { primitive_type_count: null, relation_type_count: null, resolved: false };
+  }
+}

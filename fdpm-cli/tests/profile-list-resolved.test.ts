@@ -90,3 +90,51 @@ describe("profile list --resolved", () => {
     expect(fs.primitive_types).toBeUndefined();
   });
 });
+
+describe("profile list — composition profiles", () => {
+  /**
+   * `profile:formal-specification-dnis:0.1` declares no types of its own; it
+   * composes `formal-specification:3.0` + `dnis:0.1` through `extends`. The
+   * summary table counted the RAW arrays, so the row read
+   *
+   *     profile:formal-specification-dnis:0.1  0.1.0  0  0  Formal-Specification + DNIS
+   *
+   * next to rows whose counts were real. Zero is not a smaller number here,
+   * it is a wrong one: the profile carries 34 primitive and 32 relation types
+   * and a workbook bound to it can use every one. The listing exists to answer
+   * "which profile do I pick", and it answered by hiding the candidate.
+   */
+  const DNIS_ID = "profile:formal-specification-dnis:0.1";
+
+  it("counts the inherited vocabulary, not the empty local declaration", () => {
+    const listed = runCli(["profile", "list", "--json"]);
+    expect(listed.status).toBe(0);
+    const row = JSON.parse(listed.stdout).profiles.find(
+      (p: { id: string }) => p.id === DNIS_ID,
+    );
+    expect(row).toBeDefined();
+
+    const resolved = runCli(["profile", "get", DNIS_ID, "--json"]);
+    expect(resolved.status).toBe(0);
+    const full = JSON.parse(resolved.stdout);
+
+    expect(full.primitive_types.length).toBeGreaterThan(0);
+    expect(row.primitive_type_count).toBe(full.primitive_types.length);
+    expect(row.relation_type_count).toBe(full.relation_types.length);
+  });
+
+  it("renders those counts in the text table", () => {
+    const { stdout, status } = runCli(["profile", "list"]);
+    expect(status).toBe(0);
+    const line = stdout.split("\n").find((l) => l.includes(DNIS_ID));
+    expect(line).toBeDefined();
+    expect(line).not.toMatch(/\s0\s+0\s/);
+  });
+
+  it("leaves a non-composition profile's counts untouched (regression)", () => {
+    const { stdout, status } = runCli(["profile", "list", "--json"]);
+    expect(status).toBe(0);
+    const row = JSON.parse(stdout).profiles.find((p: { id: string }) => p.id === FS_ID);
+    expect(row.primitive_type_count).toBe(32);
+  });
+});

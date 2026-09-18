@@ -222,8 +222,16 @@ A profile is a domain schema. The CLI ships two activated by default:
   `formal-specification` plugin. 32 primitive types, 30 relation types.
 
 ```sh
-# List all profiles.
-fdpm profile list --json | jq '.profiles[] | {id, version, types: (.primitive_types | length)}'
+# List all profiles. The summary rows carry counts, not the type arrays —
+# `.primitive_types` is absent here, and `jq`'s `length` reads absent as 0,
+# so ask for the count field by name.
+fdpm profile list --json | jq '.profiles[] | {id, version, types: .primitive_type_count}'
+
+# Counts are of the RESOLVED profile, so a composition profile reports the
+# vocabulary it inherits rather than the nothing it declares:
+#   profile:formal-specification-dnis:0.1 → 34, not 0.
+# A profile whose `extends` chain does not resolve reports null (`?` in the
+# table) and `resolved: false`.
 
 # Inspect a specific profile (resolved, with extends-chain merged).
 fdpm profile get profile:formal-specification:3.0 --json | jq '.primitive_types | map(.id)'
