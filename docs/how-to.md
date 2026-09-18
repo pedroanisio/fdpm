@@ -190,10 +190,11 @@ left as an option nobody would remember to justify.
 ### 3.4 Scratch files
 
 All scratch — work orders, raw returns, git snapshots, executed artifacts — is
-written under `_tmp/codex-delegate/` at this repository's root, which is
-git-ignored and which you can read, diff and delete. Nothing goes to the
-system temp directory: work you cannot see or review is unauditable, and it
-outlives the repository it belonged to.
+written under the host data dir: `$FDPM_DATA_DIR/loop/codex-delegate/`
+(`~/.fdpm-cli/loop/codex-delegate/` by default), or wherever
+`CODEX_DELEGATE_SCRATCH` points. You can read, diff and delete it. Nothing goes
+to the system temp directory (work you cannot see or review is unauditable)
+and nothing goes into the repository (a run's output is not a release asset).
 
 ### 3.5 Install it as a skill
 
@@ -222,7 +223,7 @@ Invoke only through the wrapper, as a background Bash task:
 
     /abs/path/to/fdpm-cli/scripts/codex-delegate.sh \
       --repo /abs/path --mode research|patch|write|attempt \
-      --prompt-file <repo>/_tmp/order.md
+      --prompt-file /abs/path/to/order.md
 
 The wrapper prints the path of a validated envelope, or exits non-zero with the
 failures. A non-zero exit means there is no return: do not read the raw file
@@ -481,7 +482,7 @@ What the server enforces, in code the orchestrator cannot reach:
 Two other ways to run the same pipeline, for completeness:
 [`scripts/run-loop-forward.ts`](../fdpm-cli/scripts/run-loop-forward.ts)
 drives it from a terminal — `--orchestrator file` exchanges prompt and
-output files under `_tmp/loop-forward/exchange/`, and `--orchestrator
+output files under `$FDPM_DATA_DIR/loop/exchange/`, and `--orchestrator
 anthropic` runs the orchestrator stages through the Anthropic API with
 `per_run`/`per_action` grants approved by you or denied. `--dry-run` prints
 the loaded pipeline.
@@ -497,7 +498,7 @@ Verified on 2026-09-05 against codex-cli 0.153.2 with `model = "gpt-6-astra"`:
    `export function add(a, b) {`; the boundary confirmed the path and the
    verbatim quote at that line and printed the envelope. 10,970 tokens.
 2. **Attempt mode, first run — rejected.** The ECDLP instance under
-   `fdpm-cli/research/ecdlp/` (a FrontierMath open problem; the operator's
+   `static/fixtures/ecdlp/` (a FrontierMath open problem; the operator's
    copy). Codex produced a self-contained PARI/GP script certifying the
    instance. The boundary rejected it: `cdel.no_git_mutation` saw the working
    tree's status digest change during the run — because this repository was

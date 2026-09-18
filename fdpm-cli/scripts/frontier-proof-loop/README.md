@@ -119,51 +119,21 @@ npx tsx scripts/build-frontier-proof-loop.ts            # register + seed (re-ru
 kill -HUP <fdpm-mcp pids>                               # reload the servers
 npx tsx scripts/run-loop-forward.ts \
   --workbook frontier-proof-loop --pipeline lf:pipeline:fpl-frontier-proof-loop \
-  --orchestrator file ...                               # prompt/output files under _tmp/loop-forward/exchange/
+  --orchestrator file ...                               # prompt/output files under ~/.fdpm-cli/loop/exchange/
 #   --orchestrator anthropic --approve-per-run <grant> --approve-per-action   # needs ANTHROPIC_API_KEY
 ```
 
-## What has been run
+## Runs and their evidence
 
-On 2026-09-05, one run of three iterations through `run-loop-forward.ts`
-with `--orchestrator file` (an interactive Claude Fable session answering the
-prompt files) and Codex (`gpt-6-astra`) as the solver, on the ECDLP pursuit:
-
-| Iteration | Step | Solver artifact | Boundary | Registered |
-|---|---|---|---|---|
-| 1 | Certify the instance | PARI/GP, 8 checks incl. `ellcard` | executed under bubblewrap; reproduced; constants matched to `challenge.json` | 1 assumption + 8 derived + 1 derived aggregate nodes, 8 claims, provenance record |
-| 2 | Screen special cases | PARI/GP: anomalous, embedding degree ≤ 40, j ∈ {0,1728} | executed; reproduced; all three recomputed independently in Python | 3 derived + 1 aggregate nodes, 3 claims, proposition + claim + provenance |
-| 3 | — | — | plan reported `blocked`: the last open leaf is explained by the undefeated generic-group barrier | handoff with the carried DAG state |
-
-Receipt `lf:receipt:fpl-ecdlp-run-2`: 9 attempts, 9 accepted, 62,322 tokens,
-772 s. Every registered node is `unverified`; every claim is `stated` /
-`proposed`. No `recrt:EvidenceBundle` exists: that record is the acceptance
-authority's, and none has been written. The evidence bundles the authority
-would recompute are under
-`fdpm-cli/research/frontier-proof-loop/evidence/ecdlp/run-2` and `run-2-i2`
-(manifest roots `9a1fd9f1…` and `24bb817b…`).
-
-On 2026-09-06, two runs by tool calls from Claude Code through the `fdpm-loop`
-server, with Codex (`gpt-6-astra`, effort `high`) as the solver, continuing the
-same workbooks:
-
-| Run | Iteration | Step | Solver artifact | Boundary | Registered |
-|---|---|---|---|---|---|
-| 3 | 1 | Exclude a short-interval scalar | Python BSGS with m = 2^20 over Q and −Q, a planted-logarithm self-test, PARI/GP cross-checks | executed under bubblewrap; reproduced twice by the orchestrator (verbatim command and extracted artifact) | 2 derived nodes (`sa-interval-excluded-2p40`, `sa-bsgs-selftest`), claims #13–14, proposition + claim + provenance |
-| 3 | 2 | Literature check of the problem page | — | both attempts refused at the wrapper boundary: the orchestrator's step named the page's `<title>` with its site suffix while the validator compared only `og:title` (fixed since; see CHANGELOG) | — |
-| 4 | 1 | Literature check of the problem page | prose (`partial`): excerpts of at most 25 words, machine comparison of the seven published parameters with `challenge.json` | reference resolved; excerpts re-located verbatim and the comparison re-run by the orchestrator | 4 derived nodes (`lit-*`), claims #15–18, obstruction `no-public-side-information` (conditional barrier), rule `published-statement`, 2 propositions + 2 claims + provenance |
-| 4 | 2 | — | — | plan reported `blocked`: the live leaf is explained by the generic-group barrier and by the new conditional barrier; no bypass is known | handoff with the carried DAG state |
-
-Receipts `lf:receipt:fpl-ecdlp-run-3` (`failed`) and
-`lf:receipt:fpl-ecdlp-run-4` (`blocked`; 5 attempts, 5 accepted, 69,199
-tokens, 638 s). Run 3's receipt was written by a sibling loop server that
-another session started mid-run and that adopted the run from the shared
-store; its last record ("the loop server restarted while attempt was running")
-is that server's, not the real second attempt, which the wrapper had refused
-for the title mismatch. Both defects are fixed (runs now carry an owner; the
-validator accepts any title the page declares; see CHANGELOG); the receipt is
-left as written. Evidence bundles: `run-3` (manifest root `fafd1792…`) and
-`run-4` (`000002f2…`). Everything registered is `unverified`.
+Every run writes an `lf:RunReceipt` to the `frontier-proof-loop` workbook
+(attempts, accepted attempts, tokens, wall time) and its registered nodes,
+claims and provenance to the pursuit's two workbooks. Evidence bundles are
+written under the host data dir (`~/.fdpm-cli/evidence/<pursuit>/<run>/`) and
+named by the manifest root the acceptance authority recomputes. Nothing a run
+registers is verified: every node is `unverified`, every claim `stated` /
+`proposed`, and no `recrt:EvidenceBundle` exists until the acceptance
+authority creates one from a root it computed itself. The workbooks and the
+receipts are the record of what has run; this file does not repeat them.
 
 ## What a Millennium Prize pursuit would produce
 

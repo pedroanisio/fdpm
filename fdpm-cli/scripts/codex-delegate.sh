@@ -27,8 +27,12 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 pkg="$(cd "$here/.." && pwd)"
-root="$(cd "$here/../.." && pwd)"
-scratch="$root/_tmp/codex-delegate"
+# Scratch (raw returns, executed artifacts) lives under the host data dir —
+# the loop server passes CODEX_DELEGATE_SCRATCH; a standalone call falls back
+# to FDPM_DATA_DIR, then to the default data dir. Never /tmp (shared, world-
+# readable) and never the repository (a published wrapper has no checkout).
+data_dir="${FDPM_DATA_DIR:-$HOME/.fdpm-cli}"
+scratch="${CODEX_DELEGATE_SCRATCH:-$data_dir/loop/codex-delegate}"
 mkdir -p "$scratch"
 
 # Resolve tsx from this package rather than through `npx`, which resolves from
@@ -147,8 +151,8 @@ fi
 # cdel.json_contract, cdel.paths_exist, cdel.quotes_match, cdel.diff_applies
 # and cdel.no_git_mutation, in one pass, reporting every failure rather than
 # the first. Attempt mode adds fpl.formal_artifact_check (the artifact is
-# executed under bubblewrap, in this repository's _tmp/, with mathlib from the
-# frontier-proof-loop Lean project) and fpl.reference_resolves.
+# executed under bubblewrap in the scratch directory above, with mathlib from
+# the frontier-proof-loop Lean project) and fpl.reference_resolves.
 set +e
 verdict="$("$tsx" "$here/codex-delegation/verify-return.ts" \
   --mode "$mode" --repo "$repo" --return "$raw" --git-before "$before" --git-after "$after" \

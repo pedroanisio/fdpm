@@ -6,7 +6,8 @@
  * Absence of output verification is a design defect, not a runtime bug.
  * All LLM output must be treated as untrusted and validated explicitly.
  */
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 import { Host } from "../../src/core/host.js";
 import type { Fetcher } from "../../src/loop/checks/reference.js";
@@ -95,6 +96,7 @@ function options(host: Host, driver: ScriptedDriver, over: Partial<ExecutorOptio
     driverFor: () => driver,
     io,
     repoRoot: REPO_ROOT,
+    evidenceRoot: join(tmpdir(), "fdpm-loop-executor-evidence"),
     modeRelationType: CDEL_R.StageRunsInMode,
     modeBinding: "mode",
     driverConsumedBindings: ["repo_path", "mode"],

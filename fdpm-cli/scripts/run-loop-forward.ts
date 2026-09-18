@@ -20,8 +20,9 @@
  * scripts/codex-delegate.sh; `anthropic` runs a bounded tool-use loop against
  * a freshly spawned fdpm MCP server on the same data dir (needs
  * ANTHROPIC_API_KEY), or — with --orchestrator file — exchanges prompt and
- * output files under _tmp/loop-forward/ so an interactive agent session can
- * be the orchestrator by hand.
+ * output files under `<data dir>/loop/exchange/` so an interactive agent
+ * session can be the orchestrator by hand. Scratch, artifacts and evidence
+ * bundles live under the host data dir, never in the repository.
  *
  * Approvals are the operator's: a `per_run` grant is exercisable only when
  * named with --approve-per-run; a `per_action` grant prompts on a TTY when
@@ -29,6 +30,7 @@
  * approve itself.
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -170,7 +172,9 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  const scratch = join(args.repoRoot, "_tmp", "loop-forward");
+  const base = host.dataDir ?? join(tmpdir(), "fdpm-loop");
+  const scratch = join(base, "loop");
+  const evidenceRoot = join(base, "evidence");
   mkdirSync(scratch, { recursive: true });
 
   const approvals: ApprovalPolicy = {
@@ -197,6 +201,7 @@ async function main(): Promise<number> {
       driver = new CodexWrapperDriver({
         wrapperPath: WRAPPER,
         scratchDir: join(scratch, "codex"),
+        env: { CODEX_DELEGATE_SCRATCH: join(scratch, "codex-delegate") },
         ...(wiring.codexFixedMode ? { fixedMode: wiring.codexFixedMode, fixedRepo: args.repoRoot } : {}),
         ...(wiring.codexUnwrapEnvelope ? { unwrapEnvelope: true } : {}),
         ...(args.codexModel ? { model: args.codexModel } : {}),
@@ -238,8 +243,9 @@ async function main(): Promise<number> {
       pipelineId: args.pipeline,
       inputs: args.inputs,
       driverFor: (stage) => driverFor(stage.agent.provider),
-      io: productionIO(existsSync(LEAN_PROJECT) ? { leanProjectDir: LEAN_PROJECT } : {}),
+      io: productionIO({ artifactScratchDir: join(scratch, "artifacts"), ...(existsSync(LEAN_PROJECT) ? { leanProjectDir: LEAN_PROJECT } : {}) }),
       repoRoot: args.repoRoot,
+      evidenceRoot,
       ...(wiring.modeRelationType ? { modeRelationType: wiring.modeRelationType } : {}),
       ...(wiring.modeBinding ? { modeBinding: wiring.modeBinding } : {}),
       driverConsumedBindings: wiring.driverConsumed,

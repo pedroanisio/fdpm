@@ -282,9 +282,11 @@ describe("the wrapper script and the mode records describe the same run", () => 
     expect(wrapper).toContain("--strict-config");
   });
 
-  it("keeps scratch inside the repository", () => {
+  it("keeps scratch under the host data dir, never /tmp and never the repository", () => {
     expect(wrapper).not.toMatch(/\/tmp\//);
-    expect(wrapper).toContain("_tmp/");
+    expect(wrapper).not.toContain("_tmp/");
+    expect(wrapper).toContain('${CODEX_DELEGATE_SCRATCH:-');
+    expect(wrapper).toContain('${FDPM_DATA_DIR:-');
   });
 
   it("emits the sandbox tier each mode declares", () => {

@@ -35,10 +35,11 @@ export interface WorkbookSeed {
 export const ORCHESTRATION_WORKBOOK_ID = "frontier-proof-loop";
 export const PROOFS_WORKBOOK_ID = "fpl-ecdlp-proofs";
 export const KNOWLEDGE_WORKBOOK_ID = "fpl-ecdlp-knowledge";
-export const EVIDENCE_ROOT = "fdpm-cli/research/frontier-proof-loop/evidence/ecdlp";
+/** Relative to the loop's evidence root (`<FDPM_DATA_DIR>/evidence`); never a repository path. */
+export const EVIDENCE_ROOT = "ecdlp";
 
 /** Accountable owner of the loop-forward records (the contract allows a person here). */
-const LF_OWNER = "user:pedroanisio";
+const LF_OWNER = "team:fdpm-frontier-proof";
 /** Accountable owner of the silent-acceptance records (the profile forbids personal data here). */
 const SA_OWNER = "team:fdpm-frontier-proof";
 const CREATED_BY = "claude-fable-5-1 via Claude Code (scripts/build-frontier-proof-loop.ts)";
@@ -202,7 +203,7 @@ const AUDIT_TASK = [
 const REGISTER_TASK = [
   "PURSUIT: {{pursuit_id}}",
   "PROOF WORKBOOK: {{proofs_workbook_id}}   KNOWLEDGE WORKBOOK: {{knowledge_workbook_id}}",
-  "EVIDENCE ROOT (repository path where bundles are written): {{evidence_root}}",
+  "EVIDENCE ROOT (directory under the loop's evidence root, `<data dir>/evidence`, where bundles are written; bundle_path is relative to that root): {{evidence_root}}",
   "STEP: {{step}}",
   "SOLVER OUTPUT: {{attempt}}",
   "AUDIT: {{audit}}",
@@ -239,7 +240,7 @@ const V = {
   proofs_workbook_id: { name: "proofs_workbook_id", type: "string", description: "Id of the pursuit's re-crt workbook." },
   knowledge_workbook_id: { name: "knowledge_workbook_id", type: "string", description: "Id of the pursuit's logical-knowledge-base workbook." },
   pursuit_id: { name: "pursuit_id", type: "string", description: "Id of the fpl:Pursuit in the orchestration workbook." },
-  evidence_root: { name: "evidence_root", type: "string", description: "Repository path under which evidence bundles are written." },
+  evidence_root: { name: "evidence_root", type: "string", description: "Directory under the loop's evidence root (`<data dir>/evidence`) where this pursuit's bundles are written." },
   dag_state: { name: "dag_state", type: "json", description: "Carried reason-DAG summary from the last register stage." },
   obstruction_log: { name: "obstruction_log", type: "json", description: "Carried obstructions from the last register stage." },
   iteration_log: { name: "iteration_log", type: "string", description: "Carried, appended iteration notes." },
@@ -557,7 +558,7 @@ const CERTIFY_STEP = {
   title: "Certify the challenge instance",
   kind: "computation",
   instructions:
-    "Using the parameters in fdpm-cli/research/ecdlp/challenge.json (p, a, b, P, Q, n, h), check that p and n are prime, the curve y^2 = x^3 + a x + b over F_p is nonsingular, P and Q lie on it, [n]P = [n]Q = O, and #E(F_p) = h*n.",
+    "Using the parameters in static/fixtures/ecdlp/challenge.json (p, a, b, P, Q, n, h), check that p and n are prime, the curve y^2 = x^3 + a x + b over F_p is nonsingular, P and Q lie on it, [n]P = [n]Q = O, and #E(F_p) = h*n.",
   success_test: "A PARI/GP script over exact integers prints 1 for the conjunction of all checks and exits 0.",
 };
 const CERTIFY_ARTIFACT =
@@ -931,14 +932,14 @@ export function orchestrationSeed(): WorkbookSeed {
     primitives.push(lf(exampleId(e.id), LF.PipelineExample, e.fields));
     relations.push(rel(LFR.PipelineHasExample, PIPELINE_ID, exampleId(e.id)));
   }
-  const ACCEPTANCE_DATASET = "fdpm-cli/research/ecdlp (challenge.json, verify.py, results.json, manifest.json)";
+  const ACCEPTANCE_DATASET = "static/fixtures/ecdlp (challenge.json, verify.py)";
   primitives.push(
     lf(EVAL_ID, LF.EvaluationPolicy, {
       metric: "authority_accepted_claim_ratio",
       unit: "ratio",
       comparator: "gte",
       threshold: 0.8,
-      development_dataset_ref: "fdpm-cli/research/ecdlp/deep-20260904 (operator's in-progress ECDLP rounds: results, proofs, manifests)",
+      development_dataset_ref: "static/fixtures/ecdlp (challenge.json, verify.py); the loop's own evidence bundles under `<data dir>/evidence/ecdlp` once runs exist",
       acceptance_dataset_ref: ACCEPTANCE_DATASET,
     }),
   );
@@ -1067,10 +1068,10 @@ export function orchestrationSeed(): WorkbookSeed {
       title: "ECDLP — recover the in-range scalar x with [x]P = Q (FrontierMath open problem)",
       domain: "mathematics",
       statement:
-        "Let E: y^2 = x^3 + a x + b be an elliptic curve over the prime field F_p, and let P and Q be points on E of prime order n with cofactor h = 5, so that #E(F_p) = 5n. Find the integer x with 0 ≤ x < n such that [x]P = Q. The parameters p, a, b, P, Q, n, h are the operator's copy of the FrontierMath open-problem instance at fdpm-cli/research/ecdlp/challenge.json; they are not restated here so that no digit is transcribed by a model.",
+        "Let E: y^2 = x^3 + a x + b be an elliptic curve over the prime field F_p, and let P and Q be points on E of prime order n with cofactor h = 5, so that #E(F_p) = 5n. Find the integer x with 0 ≤ x < n such that [x]P = Q. The parameters p, a, b, P, Q, n, h are the operator's copy of the FrontierMath open-problem instance at static/fixtures/ecdlp/challenge.json; they are not restated here so that no digit is transcribed by a model.",
       target_kind: "computation",
       acceptance_criterion:
-        "An integer x with 0 ≤ x < n such that [x]P = Q, re-verified by an independent script over exact integers (fdpm-cli/research/ecdlp/verify.py or an equivalent the operator runs), with the run captured in an recrt:EvidenceBundle whose manifest_root the operator recomputed from the files. Certification of the instance (primality of p and n, nonsingularity, point orders, #E = 5n) is a prerequisite step, not the criterion.",
+        "An integer x with 0 ≤ x < n such that [x]P = Q, re-verified by an independent script over exact integers (static/fixtures/ecdlp/verify.py or an equivalent the operator runs), with the run captured in an recrt:EvidenceBundle whose manifest_root the operator recomputed from the files. Certification of the instance (primality of p and n, nonsingularity, point orders, #E = 5n) is a prerequisite step, not the criterion.",
       status: "open",
       proofs_workbook_id: PROOFS_WORKBOOK_ID,
       knowledge_workbook_id: KNOWLEDGE_WORKBOOK_ID,
@@ -1111,7 +1112,7 @@ export function proofsSeed(): WorkbookSeed {
   const primitives: PrimitiveSpec[] = [
     { id: REASON_DAG, type: "recrt:ReasonDAG", fields: { id: "ecdlp", title: "ECDLP challenge — reason DAG" } },
     { id: OBSTRUCTION_DAG, type: "recrt:ObstructionDAG", fields: { id: "ecdlp", title: "ECDLP challenge — obstruction DAG" } },
-    node("goal", "goal", "Exhibit an integer x with 0 ≤ x < n and [x]P = Q for the instance in fdpm-cli/research/ecdlp/challenge.json."),
+    node("goal", "goal", "Exhibit an integer x with 0 ≤ x < n and [x]P = Q for the instance in static/fixtures/ecdlp/challenge.json."),
     node("instance-certified", "open", "Certify the instance: p and n prime, the curve nonsingular, P and Q on the curve with [n]P = [n]Q = O, and #E(F_p) = 5n, by an exact-arithmetic script."),
     node("special-cases-excluded", "open", "Screen the known structural weaknesses: anomalous curve (#E = p), small embedding degree (MOV / Frey–Rück transfer), and j ∈ {0, 1728} special structure; record which are excluded and which remain."),
     node("structural-attack", "open", "Find exploitable structure that beats the generic bound: a weak factorisation of n − 1 or n + 1 usable through a transfer, a lift with small cofactor, an isogeny to a weak curve, or side information about x."),
@@ -1176,7 +1177,7 @@ export function knowledgeSeed(): WorkbookSeed {
     { id: "lkb:prop:scalar-found", type: "lkb:PropositionDeclaration", fields: { source_id: "prop:scalar-found", name: "ScalarFound", description: "There is an integer x with 0 ≤ x < n and [x]P = Q for the challenge instance." } },
     { id: "lkb:prop:instance-certified", type: "lkb:PropositionDeclaration", fields: { source_id: "prop:instance-certified", name: "InstanceCertified", description: "p and n are prime, the curve is nonsingular, P and Q lie on it with order n, and #E(F_p) = 5n." } },
     { id: "lkb:claim:instance-certified", type: "lkb:Claim", fields: { source_id: "claim:instance-certified", label: "The challenge instance is well-formed", formula: formula.formula, status: "proposed" } },
-    { id: "lkb:provenance:challenge-source", type: "lkb:ProvenanceRecord", fields: { source_id: "provenance:challenge-source", sourceDocument: "fdpm-cli/research/ecdlp/challenge.json", sourceFormat: "custom", sourceUri: "https://epoch.ai/frontiermath/open-problems/elliptic-curve-discrete-logarithm", conversionStatus: "native", description: "The operator's copy of the FrontierMath open-problem instance." } },
+    { id: "lkb:provenance:challenge-source", type: "lkb:ProvenanceRecord", fields: { source_id: "provenance:challenge-source", sourceDocument: "static/fixtures/ecdlp/challenge.json", sourceFormat: "custom", sourceUri: "https://epoch.ai/frontiermath/open-problems/elliptic-curve-discrete-logarithm", conversionStatus: "native", description: "The operator's copy of the FrontierMath open-problem instance." } },
   ];
   // The lkb:mentions edges are derived data: lkb:val:mentions-current compares
   // the edges on a node with the ones the plugin derives from its formulas,

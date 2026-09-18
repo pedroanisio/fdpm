@@ -61,6 +61,13 @@ export interface StageContext {
   host: Host;
   /** Repository root for path checks. */
   repoRoot: string;
+  /**
+   * Directory evidence bundles are written under (the host data dir's
+   * `evidence/` by default). `bundle_path` in a stage output resolves inside
+   * it and may not escape it. Never the repository: evidence is a run's
+   * output, and the release tree carries no run output.
+   */
+  evidenceRoot: string;
   /** Facts the stage driver captured around the run (git snapshots, wrapper verdicts). */
   evidence: Readonly<Record<string, unknown>>;
   /** For validators that apply to one mode of a multi-mode stage. */
@@ -349,8 +356,8 @@ const evidenceBundleManifest: NamedValidator = async (args, ctx) => {
   if (!row || typeof row["manifest_root"] !== "string" || typeof row["bundle_path"] !== "string") {
     return [failure(v, "ERR_SCHEMA", "evidence_bundle must be null or {manifest_root, bundle_path}.")];
   }
-  const dir = resolveInsideRepo(ctx.repoRoot, row["bundle_path"]);
-  if (dir === null) return [failure(v, "ERR_HALLUCINATION", `bundle_path escapes the repository: ${row["bundle_path"]}`)];
+  const dir = resolveInsideRepo(ctx.evidenceRoot, row["bundle_path"]);
+  if (dir === null) return [failure(v, "ERR_HALLUCINATION", `bundle_path escapes the evidence root: ${row["bundle_path"]}`)];
   let actual: string;
   try {
     actual = manifestRoot(dir);

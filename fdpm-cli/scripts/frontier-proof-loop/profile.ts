@@ -185,7 +185,7 @@ const PURSUIT: PrimitiveTypeDef = {
     field("knowledge_workbook_id", "string", true, "Workbook on profile:logical-knowledge-base:1.0 holding declarations, claims, arguments and provenance.", {
       validations: [{ kind: "pattern", value: WORKBOOK_ID_PATTERN, level: "error" }],
     }),
-    field("evidence_root", "string", true, "Repository path under which evidence bundles for this pursuit are written; recrt:EvidenceBundle.bundle_path is relative to it."),
+    field("evidence_root", "string", true, "Directory under the loop's evidence root (`<FDPM_DATA_DIR>/evidence`) where this pursuit's evidence bundles are written; recrt:EvidenceBundle.bundle_path is relative to that root. Never a repository path: evidence is run output."),
     field("external_refs", "list", false, "Locators (DOI, arXiv, URL) the pursuit rests on. Every entry must resolve; an unresolvable locator is removed, not kept.", {
       item_field: { name: "item", kind: "string", required: true, validations: [] },
     }),

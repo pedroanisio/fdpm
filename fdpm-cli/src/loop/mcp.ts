@@ -28,6 +28,7 @@
  * server it already has, and this server reloads its own projection before
  * judging what was written.
  */
+import { tmpdir } from "node:os";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Host } from "../core/host.js";
@@ -75,6 +76,14 @@ export interface LoopServiceOptions {
   repoRoot: string;
   /** The package root, for the wrapper script and the Lean project. */
   packageRoot: string;
+  /**
+   * Where artifacts, wrapper orders and exchange files are written:
+   * `<dataDir>/loop` by default, the OS temp dir for an in-memory service.
+   * Never the repository: a published server has no checkout to write into.
+   */
+  scratchDir?: string;
+  /** Where evidence bundles resolve: `<dataDir>/evidence` by default. */
+  evidenceRoot?: string;
   io?: ValidatorIO;
   now?: () => number;
   log?: (line: string) => void;
@@ -166,6 +175,10 @@ export class LoopService {
   private readonly orchestrator: ReadonlySet<string>;
   readonly instanceId: string;
   private readonly isAlive: (pid: number) => boolean;
+  /** Resolved scratch location (artifacts, wrapper orders); see LoopServiceOptions.scratchDir. */
+  readonly scratchDir: string;
+  /** Resolved evidence root; see LoopServiceOptions.evidenceRoot. */
+  readonly evidenceRoot: string;
 
   constructor(private readonly opts: LoopServiceOptions) {
     this.now = opts.now ?? (() => Date.now());
@@ -173,7 +186,10 @@ export class LoopService {
     this.instanceId = opts.instanceId ?? `${process.pid}-${Math.random().toString(36).slice(2, 10)}`;
     this.isAlive = opts.isAlive ?? processIsAlive;
     const lean = join(opts.packageRoot, "scripts", "frontier-proof-loop", "fplproofs");
-    this.io = opts.io ?? productionIO({ artifactScratchDir: join(opts.repoRoot, "_tmp", "loop-forward", "artifacts"), ...(existsSync(lean) ? { leanProjectDir: lean } : {}) });
+    const base = opts.dataDir ?? join(tmpdir(), "fdpm-loop");
+    this.scratchDir = opts.scratchDir ?? join(base, "loop");
+    this.evidenceRoot = opts.evidenceRoot ?? join(base, "evidence");
+    this.io = opts.io ?? productionIO({ artifactScratchDir: join(this.scratchDir, "artifacts"), ...(existsSync(lean) ? { leanProjectDir: lean } : {}) });
     this.orchestrator = new Set(opts.orchestratorProviders ?? ["anthropic"]);
   }
 
@@ -253,6 +269,7 @@ export class LoopService {
       host,
       io: this.io,
       repoRoot: this.opts.repoRoot,
+      evidenceRoot: this.evidenceRoot,
       ...(wiring.modeRelationType ? { modeRelationType: wiring.modeRelationType } : {}),
       ...(wiring.modeBinding ? { modeBinding: wiring.modeBinding } : {}),
       driverConsumedBindings: wiring.driverConsumed,
@@ -278,7 +295,8 @@ export class LoopService {
     if (stage.agent.provider !== "openai") return undefined;
     return new CodexWrapperDriver({
       wrapperPath: join(this.opts.packageRoot, "scripts", "codex-delegate.sh"),
-      scratchDir: join(this.opts.repoRoot, "_tmp", "loop-forward", "codex"),
+      scratchDir: join(this.scratchDir, "codex"),
+      env: { CODEX_DELEGATE_SCRATCH: join(this.scratchDir, "codex-delegate") },
       ...(wiring.codexFixedMode ? { fixedMode: wiring.codexFixedMode, fixedRepo: this.opts.repoRoot } : {}),
       ...(wiring.codexUnwrapEnvelope ? { unwrapEnvelope: true } : {}),
       ...(args.codex_model ? { model: args.codex_model } : {}),

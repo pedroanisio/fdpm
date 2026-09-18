@@ -242,6 +242,27 @@ describe("LoopService", () => {
   });
 });
 
+describe("scratch and evidence locations", () => {
+  it("derive from the data dir, not from the repository", async () => {
+    const host = await memoryHost();
+    const dir = join(scratch, "locations");
+    const s = service(host, solver(), dir);
+    expect(s.scratchDir).toBe(join(dir, "loop"));
+    expect(s.evidenceRoot).toBe(join(dir, "evidence"));
+    expect(s.scratchDir.startsWith(REPO_ROOT)).toBe(false);
+    const overridden = service(host, solver(), dir, { scratchDir: join(dir, "s"), evidenceRoot: join(dir, "e") });
+    expect(overridden.scratchDir).toBe(join(dir, "s"));
+    expect(overridden.evidenceRoot).toBe(join(dir, "e"));
+  });
+
+  it("fall back to the OS temp dir for an in-memory service, still outside the repository", async () => {
+    const host = await memoryHost();
+    const s = service(host, solver(), null);
+    expect(s.scratchDir.startsWith(REPO_ROOT)).toBe(false);
+    expect(s.evidenceRoot.startsWith(REPO_ROOT)).toBe(false);
+  });
+});
+
 describe("persistence", () => {
   async function diskHost(dir: string): Promise<Host> {
     const host = new Host({ dataDir: dir, builtinDirs: [resolve(process.cwd(), "plugins")], pluginPaths: [] });

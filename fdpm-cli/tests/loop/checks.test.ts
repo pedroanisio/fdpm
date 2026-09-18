@@ -39,7 +39,7 @@ const noFetch: Fetcher = async () => {
 
 function ctx(host: Host, output: unknown, over: Partial<StageContext> = {}): StageContext {
   const io: ValidatorIO = { fetch: noFetch, runArtifact: fakeRun({}), artifactTimeoutMs: 1_000 };
-  return { output, stageOutputs: new Map(), inputs: {}, workbookId: "wb", host, repoRoot: REPO_ROOT, evidence: {}, io, ...over };
+  return { output, stageOutputs: new Map(), inputs: {}, workbookId: "wb", host, repoRoot: REPO_ROOT, evidenceRoot: join(scratch, "evidence"), evidence: {}, io, ...over };
 }
 
 describe("pointer", () => {
@@ -324,7 +324,7 @@ describe("fpl.evidence_bundle_manifest", () => {
     expect(root).toMatch(/^[a-f0-9]{64}$/);
     expect(manifestRoot(bundle)).toBe(root);
     const args = { path: "/evidence_bundle", hash_algorithm: "sha256", line_format: "sha256  path", root: "sha256 over the sorted lines" };
-    const c = (bundlePath: string, manifest_root: string) => ctx(host, { evidence_bundle: { manifest_root, bundle_path: bundlePath } }, { repoRoot: scratch });
+    const c = (bundlePath: string, manifest_root: string) => ctx(host, { evidence_bundle: { manifest_root, bundle_path: bundlePath } }, { evidenceRoot: scratch });
     expect(await v(args, c("bundle", root))).toEqual([]);
     expect((await v(args, c("bundle", "0".repeat(64))))[0]?.error_class).toBe("ERR_HALLUCINATION");
     expect((await v(args, c("../outside", root)))[0]?.message).toContain("escapes");

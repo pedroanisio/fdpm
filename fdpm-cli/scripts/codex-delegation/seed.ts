@@ -50,7 +50,7 @@ export const VERIFIER_PATH = "fdpm-cli/scripts/codex-delegation/verify-return.ts
 /** Repository-relative path of the operator guide these records back. */
 export const GUIDE_PATH = "docs/how-to.md";
 
-const LF_OWNER = "user:pedroanisio";
+const LF_OWNER = "team:fdpm-codex-delegation";
 const SA_OWNER = "team:fdpm-orchestration";
 const CREATED_BY = "claude-opus-5 via Claude Code (scripts/build-codex-delegation.ts)";
 const CREATED_AT = "2026-09-05T00:00:00Z";

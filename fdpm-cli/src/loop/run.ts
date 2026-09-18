@@ -98,6 +98,8 @@ export interface RunConfig {
   host: Host;
   io: ValidatorIO;
   repoRoot: string;
+  /** Where evidence bundles resolve; see StageContext.evidenceRoot. */
+  evidenceRoot: string;
   modeRelationType?: string;
   modeBinding?: string;
   driverConsumedBindings?: readonly string[];
@@ -359,6 +361,7 @@ export class LoopRun {
           workbookId: s.workbook_id,
           host: this.config.host,
           repoRoot: this.config.repoRoot,
+          evidenceRoot: this.config.evidenceRoot,
           evidence: result.evidence,
           io: this.config.io,
           ...(mode !== undefined ? { mode } : {}),

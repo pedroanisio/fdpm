@@ -90,8 +90,10 @@ export class ScriptedDriver implements StageDriver {
 
 export interface CodexWrapperOptions {
   wrapperPath: string;
-  /** Directory the order files are written to (the repository's _tmp/). */
+  /** Directory the order, envelope and stderr files are written to (under the host data dir). */
   scratchDir: string;
+  /** Extra environment for the wrapper process (its own scratch location, for one). */
+  env?: Readonly<Record<string, string>>;
   /** Binding name that carries the repository path the delegation runs in. */
   repoBinding?: string;
   /** Binding name that carries the mode, when the stage's mode is not fixed. */
@@ -142,7 +144,7 @@ export class CodexWrapperDriver implements StageDriver {
     const before = gitSnapshot(repo);
     const started = Date.now();
     const { code, stdout, stderr, timedOut } = await new Promise<{ code: number | null; stdout: string; stderr: string; timedOut: boolean }>((resolveRun) => {
-      const child = (this.opts.spawn ?? spawn)(this.opts.wrapperPath, args, { stdio: ["ignore", "pipe", "pipe"] });
+      const child = (this.opts.spawn ?? spawn)(this.opts.wrapperPath, args, { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, ...(this.opts.env ?? {}) } });
       let out = "";
       let err = "";
       let timedOut = false;

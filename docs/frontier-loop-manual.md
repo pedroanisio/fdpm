@@ -372,7 +372,7 @@ evidence bundle whose manifest_root I recomputed. Then run the loop."
 1. `fdpm_workbook_create({workbook_id: "fpl-rh-proofs", name, profile_id: "profile:re-crt:6.2"})` and `… "fpl-rh-knowledge" … "profile:logical-knowledge-base:1.0"`.
 2. In `fpl-rh-proofs`: `recrt:ReasonDAG`, `recrt:ObstructionDAG`, a `recrt:ProofNode` of `node_type: "goal"` stating the hypothesis, open leaves as `node_type: "open"` (e.g. "state the hypothesis in mathlib terms", "establish the functional-equation prerequisites", "literature check of known equivalents"), `recrt:ProofSupports` leaf → goal, `recrt:ProofInDAG` for every node, `recrt:ProofRootOf` goal → DAG, a `recrt:RuleBasis` with `recrt:Rule`s such as `cas-certified-computation` and `published-theorem`.
 3. In `fpl-rh-knowledge`: the `lkb:LogicalKnowledgeBase` header, `lkb:AgentDeclaration`s for the orchestrator, the solver and the operator.
-4. In `frontier-proof-loop`: the `fpl:Pursuit` with every required field — `title`, `domain`, `statement`, `target_kind`, `acceptance_criterion` (your sentence, verbatim), `status: "open"`, `proofs_workbook_id`, `knowledge_workbook_id`, `evidence_root` (e.g. `fdpm-cli/research/frontier-proof-loop/evidence/rh`), `opened_at`, `owner`, plus `external_refs` that resolve — and an `fpl:PipelinePursues` edge from `lf:pipeline:fpl-frontier-proof-loop`.
+4. In `frontier-proof-loop`: the `fpl:Pursuit` with every required field — `title`, `domain`, `statement`, `target_kind`, `acceptance_criterion` (your sentence, verbatim), `status: "open"`, `proofs_workbook_id`, `knowledge_workbook_id`, `evidence_root` (e.g. `rh`, a directory under `~/.fdpm-cli/evidence/`), `opened_at`, `owner`, plus `external_refs` that resolve — and an `fpl:PipelinePursues` edge from `lf:pipeline:fpl-frontier-proof-loop`.
 5. `fdpm_loop_start` with the pursuit's inputs.
 
 **Verify.** `fdpm_workbook_list` shows the two workbooks;
@@ -601,8 +601,8 @@ running is ignored on return.
 `proof_witnessed` on evidence you recomputed.
 
 **Steps.**
-1. Locate the bundle: the node's `open_payload` names it, e.g.
-   `fdpm-cli/research/frontier-proof-loop/evidence/ecdlp/run-2/`.
+1. Locate the bundle: the node's `open_payload` names it relative to the
+   evidence root, e.g. `ecdlp/run-2/` under `~/.fdpm-cli/evidence/`.
 2. Re-run the artifact yourself: `bwrap … -- /usr/bin/gp -q -f <bundle>/artifact.gp` (or `lake env lean`, or `python3 -I`); compare with `<bundle>/stdout.txt`.
 3. Recompute the root:
    ```bash
@@ -645,7 +645,7 @@ has no supersession edge; the note is the link.
 is `accepted_risk` with an implemented verifier as its compensating control.
 
 **Steps.** Assemble a labelled set of solver returns (the receipts' raw
-returns under `_tmp/codex-delegate/` are a start); for each error class
+returns under `~/.fdpm-cli/loop/codex-delegate/` are a start); for each error class
 count what the verifier caught and missed; create `sa:CalibrationRun`
 (`calibration_id`, `dataset_ref`, `dataset_digest`, `estimator`,
 `confidence_level`, `sample_size_total`, `started_at`, `status: "passed"`,
@@ -685,7 +685,7 @@ cd fdpm-cli
 npx tsx scripts/run-loop-forward.ts --workbook frontier-proof-loop \
   --pipeline lf:pipeline:fpl-frontier-proof-loop --orchestrator file --input …
 ```
-Prompts and answers are files under `_tmp/loop-forward/exchange/`. Same
+Prompts and answers are files under `~/.fdpm-cli/loop/exchange/`. Same
 executor, same checks, no server.
 
 ### D4. Unattended orchestrator stages (needs an API key)
@@ -720,12 +720,14 @@ grants and context policy, not over these overrides.
 | What | Where |
 |---|---|
 | run state | `~/.fdpm-cli/loop-runs/<run_id>.json` |
-| solver orders, raw returns, wrapper stderr | `_tmp/loop-forward/codex/` and `_tmp/codex-delegate/` (git-ignored) |
-| executed artifacts | `_tmp/loop-forward/artifacts/` (deleted after each run) |
-| evidence bundles | `fdpm-cli/research/frontier-proof-loop/evidence/<pursuit>/` (git-ignored; the bundle record's `bundle_path`) |
+| solver orders, raw returns, wrapper stderr | `~/.fdpm-cli/loop/codex/` and `~/.fdpm-cli/loop/codex-delegate/` |
+| executed artifacts | `~/.fdpm-cli/loop/artifacts/` (deleted after each run) |
+| evidence bundles | `~/.fdpm-cli/evidence/<pursuit>/` (the bundle record's `bundle_path` is relative to `~/.fdpm-cli/evidence/`) |
 | receipts, nodes, claims | the workbooks in `~/.fdpm-cli` |
 
-`_tmp/` is cleared only when you ask.
+Everything above is under the host data dir (`FDPM_DATA_DIR`); nothing a run
+produces is written into the repository. The data dir is cleared only when
+you ask.
 
 ---
 
