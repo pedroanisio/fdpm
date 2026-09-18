@@ -11,13 +11,13 @@
     "typed-graph",
     "cli"
   ],
-  "homepage": "https://github.com/pedroanisio/fdpm-cli#readme",
+  "homepage": "https://github.com/pedroanisio/fdpm#readme",
   "bugs": {
-    "url": "https://github.com/pedroanisio/fdpm-cli/issues"
+    "url": "https://github.com/pedroanisio/fdpm/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pedroanisio/fdpm-cli.git",
+    "url": "git+https://github.com/pedroanisio/fdpm.git",
     "directory": "fdpm-cli"
   },
   "type": "module",
@@ -32,6 +32,7 @@
   },
   "files": [
     "dist",
+    "!dist/src/eval",
     "README.md",
     "LICENSE"
   ],
@@ -41,7 +42,7 @@
   "scripts": {
     "build": "tsc -p . && npm run copy-plugin-assets && node scripts/ensure-bin-mode.mjs",
     "build:zod-bridge": "npm run build --workspace @fdpm/zod-bridge",
-    "check": "npm run typecheck && npm run build && npm test && npm run test:public-readiness",
+    "check": "npm run typecheck && npm run build && npm test && npm run test:public-readiness && npm run public:check",
     "copy-plugin-assets": "node scripts/copy-plugin-assets.mjs",
     "dev": "tsx src/bin/fdpm.ts",
     "eval:cold-agent": "tsx scripts/run-cold-agent-eval.ts",
@@ -59,7 +60,9 @@
     "test:public-readiness": "node tests/_meta/public-readiness.test.mjs",
     "test:renderers:visual": "playwright test --config playwright.config.ts",
     "test:watch": "vitest",
-    "typecheck": "tsc -p . --noEmit"
+    "typecheck": "tsc -p . --noEmit",
+    "hooks:install": "git config core.hooksPath fdpm-cli/scripts/git-hooks",
+    "image:check": "node scripts/check-image-contents.mjs"
   },
   "dependencies": {
     "@fdpm/zod-bridge": "^0.4.0",

@@ -27,5 +27,6 @@ jobs:
           cache-dependency-path: fdpm-cli/package-lock.json
       - run: npm ci
       - run: npm run release:check
+      - run: npm run image:check
       - run: npm pack --dry-run --json --workspace @fdpm/zod-bridge
       - run: npm pack --dry-run --json

@@ -13,6 +13,11 @@ COPY packages ./packages
 RUN npm ci
 COPY . .
 RUN npm run build
+# `src/eval` is the cold-agent eval runner: developer tooling that imports a
+# devDependency. It compiles with the rest of `src/` but is neither reachable
+# from the package exports nor runnable once dev dependencies are pruned, so
+# it does not ship (mirrors the `!dist/src/eval` exclusion in package.json).
+RUN rm -rf dist/src/eval
 # Drop dev dependencies in place rather than re-resolving them in the
 # runtime stage. A second `npm ci --omit=dev` there would re-run the
 # `@fdpm/zod-bridge` workspace's `prepare` script, which needs `tsc` —

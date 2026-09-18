@@ -102,6 +102,23 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test:public-readiness
+      - name: Repository, tarball and identity gate
+        run: npm run public:check
       - run: npm audit --omit=dev --audit-level=high
       - run: npm pack --dry-run --json --workspace @fdpm/zod-bridge
       - run: npm pack --dry-run --json
+
+  image:
+    name: Image contents
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: fdpm-cli
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Build the runtime image and check what it contains
+        run: npm run image:check

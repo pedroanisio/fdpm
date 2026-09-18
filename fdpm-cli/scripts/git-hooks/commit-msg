@@ -1,0 +1,5 @@
+#!/bin/sh
+# A commit message is a tracked document: no local paths, scratch dirs, task ids or private endpoints.
+set -e
+root=$(git rev-parse --show-toplevel)
+exec node "$root/fdpm-cli/scripts/check-public-readiness.mjs" --commit-msg "$1"

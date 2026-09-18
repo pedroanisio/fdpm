@@ -20,6 +20,9 @@ evidence where compilation alone is insufficient.
 - [ ] `npm run build` passes.
 - [ ] Documentation and generated artifacts agree with their source of truth.
 - [ ] No credentials, local artifacts, or unrelated dirty files are included.
+- [ ] No plan, prompt, run log, session narrative, or assessment is added or
+      extended under `docs/`, `static/`, or a README; durable rationale was
+      rewritten to stand alone, and `npm run public:check` passes.
 - [ ] AI-authored material, if any, was reviewed and verified.
 
 ## Limitations

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Information-discipline gate over the staged files (see scripts/check-public-readiness.mjs).
+# Install once with: npm --prefix fdpm-cli run hooks:install
+set -e
+root=$(git rev-parse --show-toplevel)
+exec node "$root/fdpm-cli/scripts/check-public-readiness.mjs" --staged

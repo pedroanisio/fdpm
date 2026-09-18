@@ -1,5 +1,16 @@
-# Scratch directories (git-ignored working space) must not reach the image:
-# the image must be a function of the commit, not of the checkout — the same
-# principle that pins the architecture census to the git index.
+# The image must be a function of the commit, not of the checkout — the same
+# principle that pins the architecture census to the git index. Nothing the
+# build stage does not need enters the context, so nothing local can leak
+# into a layer.
+.git
+node_modules
+packages/*/node_modules
+dist
+coverage
+research
 _tmp
 packages/_tmp
+.env
+.env.*
+!.env.example
+*.log

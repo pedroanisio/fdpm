@@ -1,0 +1,8 @@
+# Documentation and fixtures are reviewed for information discipline by the
+# maintainer: the deterministic gate (npm run public:check) cannot see a
+# paragraph that narrates a working session in neutral words.
+/docs/            @pedroanisio
+/static/          @pedroanisio
+/**/README.md     @pedroanisio
+/fdpm-cli/CHANGELOG.md @pedroanisio
+/fdpm-cli/.information-discipline.allow @pedroanisio

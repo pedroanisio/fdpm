@@ -1,0 +1,7 @@
+# Standing and temporary exceptions to the information-discipline rules in
+# scripts/check-public-readiness.mjs. One per line:
+#   <rule-id> <path>[:<line>] <expires YYYY-MM-DD|never> <reason>
+# An expired entry fails the check; so does an entry whose path is gone.
+# Exceptions are for fixtures that must carry a forbidden shape, never for
+# documents.
+id.coordination-identifier fdpm-cli/scripts/rename_plugin.py:90 never the rename tool's skip list names the coordination directory so it is never rewritten

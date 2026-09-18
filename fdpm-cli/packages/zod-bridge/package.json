@@ -11,13 +11,13 @@
     "plugin",
     "code-generation"
   ],
-  "homepage": "https://github.com/pedroanisio/fdpm-cli/tree/main/fdpm-cli/packages/zod-bridge#readme",
+  "homepage": "https://github.com/pedroanisio/fdpm/tree/main/fdpm-cli/packages/zod-bridge#readme",
   "bugs": {
-    "url": "https://github.com/pedroanisio/fdpm-cli/issues"
+    "url": "https://github.com/pedroanisio/fdpm/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pedroanisio/fdpm-cli.git",
+    "url": "git+https://github.com/pedroanisio/fdpm.git",
     "directory": "fdpm-cli/packages/zod-bridge"
   },
   "type": "module",

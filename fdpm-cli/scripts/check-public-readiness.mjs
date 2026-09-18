@@ -13,6 +13,11 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REPO_ROOT = resolve(SCRIPT_DIR, "..", "..");
 
+/** The one repository every manifest, README and link must name. */
+export const CANONICAL_REPOSITORY = "pedroanisio/fdpm";
+const CANONICAL_GIT_URL = `git+https://github.com/${CANONICAL_REPOSITORY}.git`;
+const CANONICAL_ISSUES_URL = `https://github.com/${CANONICAL_REPOSITORY}/issues`;
+
 const REQUIRED_PUBLIC_FILES = [
   "README.md",
   "CONTRIBUTING.md",
@@ -108,16 +113,12 @@ export function evaluatePackageManifest(packagePath, manifest) {
   }
   if (
     manifest.repository?.type !== "git" ||
-    typeof manifest.repository?.url !== "string" ||
-    !manifest.repository.url.includes("github.com/pedroanisio/fdpm-cli")
+    manifest.repository?.url !== CANONICAL_GIT_URL
   ) {
-    findings.push(`${label} repository metadata does not identify the canonical GitHub repository`);
+    findings.push(`${label} repository.url must be ${CANONICAL_GIT_URL}`);
   }
-  if (
-    typeof manifest.bugs?.url !== "string" ||
-    !manifest.bugs.url.endsWith("/pedroanisio/fdpm-cli/issues")
-  ) {
-    findings.push(`${label} bugs.url does not identify the public issue tracker`);
+  if (manifest.bugs?.url !== CANONICAL_ISSUES_URL) {
+    findings.push(`${label} bugs.url must be ${CANONICAL_ISSUES_URL}`);
   }
   if (typeof manifest.engines?.node !== "string") {
     findings.push(`${label} engines.node is missing`);
@@ -224,6 +225,235 @@ export function evaluateCheckScript(manifest) {
     return ["fdpm-cli/package.json scripts.check must build before npm test"];
   }
   return [];
+}
+
+// ── Information discipline ───────────────────────────────────────────────────
+//
+// The release tree carries production assets and professional documentation
+// only. Working material — plans, prompts, agent instructions, findings,
+// execution logs, session narrative — lives outside the repository and must
+// not be cited from it. These evaluators are deterministic; a paragraph that
+// narrates a session in neutral words is caught by review, not here.
+
+/** Directories whose contents are working material by definition. */
+const WORKING_PATH_PATTERN =
+  /^(?:\.agent-tasks|_tmp|_ingest_bin|fdpm-cli\/_tmp|fdpm-cli\/research|docs\/hygiene\/(?:doc-hygiene-report|quarantine)|docs\/(?:goal-|journals\/|reviews\/|drafts\/)|static\/refs\/|static\/proofs\/)/;
+
+/** Files that define the scratch policy and therefore name the directories. */
+const POLICY_FILES = new Set([
+  ".gitignore",
+  ".dockerignore",
+  "fdpm-cli/.dockerignore",
+  "CLAUDE.md",
+  "CONTRIBUTING.md",
+  "fdpm-cli/.information-discipline.allow",
+]);
+
+/** The checker and its tests carry every forbidden shape as a fixture. */
+const SELF_FILES = new Set([
+  "fdpm-cli/scripts/check-public-readiness.mjs",
+  "fdpm-cli/tests/_meta/public-readiness.test.mjs",
+  "fdpm-cli/scripts/git-hooks/pre-commit",
+  "fdpm-cli/scripts/git-hooks/commit-msg",
+]);
+
+/** Home directories that are synthetic by convention; fixtures and examples use them. */
+const NEUTRAL_USERS = new Set(["alice", "bob", "ada", "example", "user", "operator"]);
+
+const ABSOLUTE_PATH_PATTERN =
+  /(?:^|[^A-Za-z0-9_])(?:\/home\/([a-z][a-z0-9_-]*)|\/Users\/([A-Za-z][A-Za-z0-9_-]*)|[A-Za-z]:\\+Users\\+([A-Za-z][A-Za-z0-9_-]*)|(\/mnt\/transcripts)|(\/tmp\/claude))/g;
+const SCRATCH_CITATION_PATTERN = /(?:^|[^A-Za-z0-9_./])(?:_tmp\/|fdpm-cli\/research\/)/;
+/** A command that WRITES scratch (`-o _tmp/x`, `FDPM_DATA_DIR=_tmp/x`, `rm -rf _tmp/x`) is an instruction, not a citation. */
+const SCRATCH_WRITE_PATTERN = /(?:^|\s)(?:-o|--output|--out|FDPM_DATA_DIR=|rm -rf|mkdir -p)\s*_tmp\//;
+const COORDINATION_PATTERN = /task-1[0-9]{12}-[0-9a-f]{4}|agent-(?:claude|codex|root)-[a-z0-9]|\.agent-tasks/;
+const NARRATIVE_PATTERN =
+  /\b(?:this|prior|previous|next) session's\b|\b(?:prior|previous|next) session\b|\bin this conversation\b|\bhandoff summary\b|\bprevious agent\b|\blessons learned\b|\/mnt\/transcripts/i;
+/** Shapes of the private memory store and private infrastructure that must never be cited. */
+const PRIVATE_ENDPOINT_PATTERN = /sslip\.io|repo-work|registry\.digitalocean\.com\//;
+const COMMENT_LINE_PATTERN = /^\s*(?:\/\/|\/\*|\*|#(?!!))/;
+const MARKDOWN_EXTENSIONS = new Set([".md", ".markdown"]);
+
+function markdownBodyStart(lines) {
+  if (lines[0]?.trim() !== "---") return 0;
+  for (let index = 1; index < Math.min(lines.length, 60); index += 1) {
+    if (lines[index].trim() === "---") return index + 1;
+  }
+  return 0;
+}
+
+function neutral(match) {
+  const user = match[1] ?? match[2] ?? match[3];
+  return typeof user === "string" && NEUTRAL_USERS.has(user.toLowerCase());
+}
+
+function allowed(entries, ruleId, path, line) {
+  return entries.some(
+    (entry) => entry.rule === ruleId && entry.path === path && (entry.line === null || entry.line === line),
+  );
+}
+
+/**
+ * Parse `.information-discipline.allow`: one exception per line,
+ * `<rule-id> <path>[:<line>] <expires YYYY-MM-DD|never> <reason>`.
+ * An expired entry is an error, not a silent pass; so is one with no reason.
+ */
+export function parseAllowlist(text, today) {
+  const entries = [];
+  const errors = [];
+  text.split(/\r?\n/).forEach((raw, index) => {
+    const line = raw.trim();
+    if (line === "" || line.startsWith("#")) return;
+    const parts = line.split(/\s+/);
+    const [rule, target, expires, ...reason] = parts;
+    if (parts.length < 4 || !/^id\.[a-z-]+$/.test(rule ?? "")) {
+      errors.push(`.information-discipline.allow:${index + 1}: expected "<rule-id> <path>[:<line>] <expires|never> <reason>"`);
+      return;
+    }
+    if (expires !== "never" && !/^\d{4}-\d{2}-\d{2}$/.test(expires)) {
+      errors.push(`.information-discipline.allow:${index + 1}: expiry must be YYYY-MM-DD or never`);
+      return;
+    }
+    if (expires !== "never" && expires < today) {
+      errors.push(`.information-discipline.allow:${index + 1}: exception for ${target} expired on ${expires}`);
+      return;
+    }
+    const lineMatch = /^(.*):(\d+)$/.exec(target);
+    entries.push({
+      rule,
+      path: lineMatch ? lineMatch[1] : target,
+      line: lineMatch ? Number(lineMatch[2]) : null,
+      expires,
+      reason: reason.join(" "),
+    });
+  });
+  return { entries, errors };
+}
+
+/** Tracked paths that are working material by location. */
+export function evaluateWorkingPaths(entries) {
+  return entries
+    .filter((entry) => WORKING_PATH_PATTERN.test(entry.path))
+    .map((entry) => ({
+      rule: "id.tracked-working-dir",
+      path: entry.path,
+      line: null,
+      excerpt: "",
+      fix: "relocate to the local work directory; the release tree carries no plans, prompts, session records or run logs",
+    }));
+}
+
+/**
+ * Line-level rules over one text file. Which rules apply depends on the file
+ * class: absolute paths, coordination identifiers and private endpoints are
+ * checked on every line; scratch citations on prose and on source comments;
+ * session narrative on Markdown bodies only, because "session" is an
+ * ordinary noun in an MCP server.
+ */
+export function evaluateTextDiscipline(path, text, allowEntries = []) {
+  if (SELF_FILES.has(path)) return [];
+  const findings = [];
+  const isMarkdown = MARKDOWN_EXTENSIONS.has(extname(path).toLowerCase());
+  const isPolicy = POLICY_FILES.has(path);
+  const lines = text.split(/\r?\n/);
+  const bodyStart = isMarkdown ? markdownBodyStart(lines) : 0;
+  const push = (ruleId, line, excerpt, fix) => {
+    if (allowed(allowEntries, ruleId, path, line)) return;
+    findings.push({ rule: ruleId, path, line, excerpt: excerpt.trim().slice(0, 80), fix });
+  };
+
+  lines.forEach((content, index) => {
+    const line = index + 1;
+    for (const match of content.matchAll(ABSOLUTE_PATH_PATTERN)) {
+      if (neutral(match)) continue;
+      push("id.absolute-local-path", line, content, "use a repository-relative path, a URL, or a neutral home such as /home/alice");
+      break;
+    }
+    if (!isPolicy && COORDINATION_PATTERN.test(content)) {
+      push("id.coordination-identifier", line, content, "coordination state belongs to the local work directory; describe the fact, not the task");
+    }
+    if (PRIVATE_ENDPOINT_PATTERN.test(content)) {
+      push("id.private-endpoint", line, content, "never cite the private memory store or private infrastructure; state the fact it established");
+    }
+    if (!isPolicy && (isMarkdown || COMMENT_LINE_PATTERN.test(content)) && SCRATCH_CITATION_PATTERN.test(content) && !SCRATCH_WRITE_PATTERN.test(content)) {
+      push("id.scratch-citation", line, content, "a reader cannot open _tmp/ or research/; name a tracked path, a data-dir path, or state the fact");
+    }
+    if (!isPolicy && isMarkdown && index >= bodyStart && NARRATIVE_PATTERN.test(content)) {
+      push("id.session-narrative", line, content, "distil the session into a fact, a decision or a gotcha; drop the narrative");
+    }
+  });
+  return findings;
+}
+
+/** Everything `npm pack` may ship. */
+const PACKED_ALLOW = [
+  /^(?:package\.json|README\.md|LICENSE)$/,
+  /^dist\/src\/(?!eval\/).+\.(?:js|js\.map|d\.ts|d\.ts\.map)$/,
+  /^dist\/plugins\/(?!.*\/tests?\/)[^/]+\/.+\.(?:js|js\.map|d\.ts|d\.ts\.map|json)$/,
+  /^dist\/plugins\/[^/]+\/(?:README|GENERATOR|EDUCATION)\.md$/,
+];
+
+export function evaluatePackedFiles(paths) {
+  return paths
+    .filter((path) => !PACKED_ALLOW.some((pattern) => pattern.test(path)))
+    .map((path) => ({
+      rule: "id.package-file-allowlist",
+      path,
+      line: null,
+      excerpt: "",
+      fix: "exclude it from the tarball (package.json files) or move it out of the plugin directory",
+    }));
+}
+
+/** Paths that must not exist in the runtime image (as `tar -t` prints them, with or without a leading ./). */
+const IMAGE_DENY =
+  /^(?:\.\/)?app\/(?:research\/|coverage\/|_tmp\/|\.git\/|\.env(?:\.|$)|dist\/src\/eval\/|plugins\/[^/]+\/SCHEMA-SCORECARD\.md$|plugins\/[^/]+\/(?:tests?|scripts)\/)/;
+
+export function evaluateImageListing(paths) {
+  return paths
+    .filter((path) => IMAGE_DENY.test(path))
+    .map((path) => ({
+      rule: "id.image-file-allowlist",
+      path,
+      line: null,
+      excerpt: "",
+      fix: "extend .dockerignore or remove the file after the build stage",
+    }));
+}
+
+/** README and the manifests name one repository. */
+export function evaluateIdentityConsistency({ readme, manifests }) {
+  const findings = [];
+  const canonicalLink = `https://github.com/${CANONICAL_REPOSITORY}`;
+  if (!readme.includes(canonicalLink) || /pedroanisio\/fdpm-cli\b/.test(readme)) {
+    findings.push({ rule: "id.identity-consistent", path: "README.md", line: null, excerpt: "", fix: `link the repository as ${canonicalLink}` });
+  }
+  for (const [path, manifest] of Object.entries(manifests)) {
+    if (manifest?.repository?.url !== CANONICAL_GIT_URL || manifest?.bugs?.url !== CANONICAL_ISSUES_URL) {
+      findings.push({ rule: "id.identity-consistent", path, line: null, excerpt: "", fix: `repository.url ${CANONICAL_GIT_URL}, bugs.url ${CANONICAL_ISSUES_URL}` });
+    }
+  }
+  return findings;
+}
+
+/** A commit message is a tracked document too. */
+export function evaluateCommitMessage(message) {
+  const findings = [];
+  // One finding per line: the first rule that matches names the defect.
+  message.split(/\r?\n/).forEach((content, index) => {
+    const local = [...content.matchAll(ABSOLUTE_PATH_PATTERN)].some((match) => !neutral(match));
+    if (local) {
+      findings.push({ rule: "id.absolute-local-path", path: "commit message", line: index + 1, excerpt: content.trim().slice(0, 80), fix: "describe the change, not where the working material lives" });
+    } else if (COORDINATION_PATTERN.test(content) || PRIVATE_ENDPOINT_PATTERN.test(content) || /(?:^|[^A-Za-z0-9_./])_tmp\//.test(content)) {
+      findings.push({ rule: "id.coordination-identifier", path: "commit message", line: index + 1, excerpt: content.trim().slice(0, 80), fix: "no task ids, agent ids, scratch paths or private endpoints in commit messages" });
+    }
+  });
+  return findings;
+}
+
+export function formatFinding(finding) {
+  const where = finding.line === null ? finding.path : `${finding.path}:${finding.line}`;
+  const excerpt = finding.excerpt ? ` — ${finding.excerpt}` : "";
+  return `${finding.rule} ${where}${excerpt} — fix: ${finding.fix}`;
 }
 
 function git(repoRoot, args, options = {}) {
@@ -335,18 +565,108 @@ export function checkRepository(repoRoot = DEFAULT_REPO_ROOT) {
     findings.push(`possible ${candidate.kind}: ${candidate.path}:${candidate.line}`);
   }
 
+  findings.push(...checkInformationDiscipline(repoRoot, { paths: filesToScan(repoRoot) }));
+
   return [...new Set(findings)].sort();
 }
 
-function main() {
-  const findings = checkRepository();
+const today = () => new Date().toISOString().slice(0, 10);
+
+function loadAllowlist(repoRoot) {
+  const path = join(repoRoot, "fdpm-cli", ".information-discipline.allow");
+  if (!existsSync(path)) return { entries: [], errors: [] };
+  const parsed = parseAllowlist(readFileSync(path, "utf8"), today());
+  for (const entry of parsed.entries) {
+    if (!existsSync(join(repoRoot, entry.path))) parsed.errors.push(`.information-discipline.allow: ${entry.path} no longer exists; remove the entry`);
+  }
+  return parsed;
+}
+
+/**
+ * The deterministic half of information discipline over a set of paths
+ * (every tracked text file by default; the staged files from the pre-commit
+ * hook). Returns formatted findings.
+ */
+export function checkInformationDiscipline(repoRoot, { paths, tarball = true }) {
+  const out = [];
+  const allow = loadAllowlist(repoRoot);
+  out.push(...allow.errors);
+  out.push(...evaluateWorkingPaths(paths.map((path) => ({ path }))).map(formatFinding));
+  for (const path of paths) {
+    if (BINARY_EXTENSIONS.has(extname(path).toLowerCase())) continue;
+    const absolutePath = join(repoRoot, path);
+    if (!existsSync(absolutePath)) continue;
+    const stat = lstatSync(absolutePath);
+    if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+    const buffer = readFileSync(absolutePath);
+    if (buffer.includes(0)) continue;
+    out.push(...evaluateTextDiscipline(path, buffer.toString("utf8"), allow.entries).map(formatFinding));
+  }
+  const readmePath = join(repoRoot, "README.md");
+  if (existsSync(readmePath)) {
+    const manifests = {};
+    for (const manifestPath of PACKAGE_MANIFESTS) {
+      const absolutePath = join(repoRoot, manifestPath);
+      if (existsSync(absolutePath)) manifests[manifestPath] = JSON.parse(readFileSync(absolutePath, "utf8"));
+    }
+    out.push(...evaluateIdentityConsistency({ readme: readFileSync(readmePath, "utf8"), manifests }).map(formatFinding));
+  }
+  if (tarball) out.push(...checkPackedTarball(repoRoot));
+  return out;
+}
+
+/** What `npm pack` would ship from the current dist/, against the allowlist. */
+export function checkPackedTarball(repoRoot) {
+  const cliRoot = join(repoRoot, "fdpm-cli");
+  if (!existsSync(join(cliRoot, "dist"))) return ["fdpm-cli/dist is missing: run npm run build before the package check"];
+  const raw = execFileSync("npm", ["pack", "--dry-run", "--ignore-scripts", "--json"], {
+    cwd: cliRoot,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "ignore"],
+    shell: process.platform === "win32",
+  });
+  const listing = JSON.parse(raw)[0]?.files?.map((file) => file.path) ?? [];
+  return evaluatePackedFiles(listing).map(formatFinding);
+}
+
+function report(label, findings) {
   if (findings.length > 0) {
-    process.stderr.write(`Public-readiness check failed (${findings.length} finding(s)):\n`);
+    process.stderr.write(`${label} failed (${findings.length} finding(s)):\n`);
     for (const finding of findings) process.stderr.write(`- ${finding}\n`);
     process.exitCode = 1;
     return;
   }
-  process.stdout.write("Public-readiness check passed.\n");
+  process.stdout.write(`${label} passed.\n`);
+}
+
+function readListing(argument) {
+  const text = argument === "-" ? readFileSync(0, "utf8") : readFileSync(argument, "utf8");
+  return text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+}
+
+/**
+ *   check-public-readiness.mjs                 the whole repository (release gate)
+ *   check-public-readiness.mjs --staged        staged files only (pre-commit hook)
+ *   check-public-readiness.mjs --commit-msg F  the commit message in F (commit-msg hook)
+ *   check-public-readiness.mjs --image-listing F|-   an exported image's `tar -t` listing
+ */
+function main() {
+  const argv = process.argv.slice(2);
+  if (argv[0] === "--staged") {
+    const staged = git(DEFAULT_REPO_ROOT, ["diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z"]).split("\0").filter(Boolean);
+    report("Information-discipline check (staged files)", checkInformationDiscipline(DEFAULT_REPO_ROOT, { paths: staged, tarball: false }));
+    return;
+  }
+  if (argv[0] === "--commit-msg") {
+    report("Commit-message check", evaluateCommitMessage(readFileSync(argv[1], "utf8")).map(formatFinding));
+    return;
+  }
+  if (argv[0] === "--image-listing") {
+    report("Image-content check", evaluateImageListing(readListing(argv[1])).map(formatFinding));
+    return;
+  }
+  report("Public-readiness check", checkRepository());
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
