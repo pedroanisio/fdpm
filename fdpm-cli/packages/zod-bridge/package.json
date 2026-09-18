@@ -67,7 +67,7 @@
     "@marcbachmann/cel-js": "^7.6.1"
   },
   "devDependencies": {
-    "@types/node": "^22.5.4",
+    "@types/node": "^26.4.0",
     "typescript": "^5.5.4",
     "vitest": "^4.1.11",
     "zod": "^4.0.0"
