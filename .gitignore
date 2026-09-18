@@ -16,3 +16,4 @@ docs/hygiene/quarantine-summaries.md
 .repo/
 .vite/vitest/results.json
 fdpm-cli/coverage/
+fdpm-cli/research/
