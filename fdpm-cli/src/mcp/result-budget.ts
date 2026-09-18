@@ -3,14 +3,16 @@
  *
  * `read-guard.ts` has capped `resources/read` since it landed; the tool path
  * had no equivalent, and the asymmetry was not academic. Measured against the
- * profiles this tree loads, `fdpm.profile.get` with its default `view: "full"`
- * serves 5,409,966 B for `profile:uixo:1.2`, 113,888 B for
+ * 27 profiles this tree loads, `fdpm.profile.get` with its default
+ * `view: "full"` serves 5,409,966 B for `profile:uixo:1.2`, 113,888 B for
  * `profile:academic-paper:0.4.1` and 79,789 B for
- * `profile:formal-specification:3.0`. A client refused a 61,233-character
- * result outright — and the audit log recorded that call, and the fifty-nine
- * before it, as `ok: true`, because nothing on the tool path measured the
- * response. A server whose telemetry cannot see its own worst failure mode is
- * not instrumented for it.
+ * `profile:formal-specification:3.0`; 14 of the 27 are over the ceiling at
+ * that view. A client refused a 61,233-character result outright — and the
+ * audit log recorded that call, and the fifty-nine before it, as `ok: true`,
+ * because nothing on the tool path measured the response. (The `types` view
+ * of `profile:media:1.0` measures 61,233 B today, which is the only payload
+ * in the tree matching that figure.) A server whose telemetry cannot see its
+ * own worst failure mode is not instrumented for it.
  *
  * WHY REFUSAL RATHER THAN TRUNCATION. A truncated result is a partial answer
  * the model cannot distinguish from a complete one, and it will reason from
@@ -112,6 +114,13 @@ export function measureResultBytes(result: unknown): number {
  * views, a search names `limit`. A refusal that does not say what smaller call
  * to make is a dead end, so the levers are declared next to each tool's schema
  * (`McpToolEntry.narrowing`) rather than guessed here from the tool name.
+ *
+ * The levers a tool declares are its whole vocabulary, in descending order of
+ * information. They are not necessarily the ones that would fit THIS ceiling:
+ * `view: "types"` is 1,835,052 B on `profile:uixo:1.2`, so quoting the ladder
+ * verbatim there sends the caller to a second refusal. A tool that can measure
+ * its own alternatives declares `narrowingFor` instead, and the dispatcher
+ * passes the measured list here; see `../mcp/dispatch.ts`.
  */
 export function resultTooLargeException(args: {
   tool: string;

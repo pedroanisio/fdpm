@@ -459,6 +459,7 @@ async function dispatchOne(
       ctx.session.markFresh(host, project_ids_for_seed);
     }
     outcome = finalizeSuccess(
+      host,
       audit,
       ctx,
       tool,
@@ -525,6 +526,7 @@ function resolveProjectIds(
 }
 
 function finalizeSuccess(
+  host: Host,
   audit: McpAuditLog | null,
   ctx: DispatchCtx,
   tool: McpToolEntry<unknown, unknown>,
@@ -570,11 +572,12 @@ function finalizeSuccess(
   const serialised = serialiseResult(result);
   const cap = ctx.maxResultBytes ?? DEFAULT_MAX_RESULT_BYTES;
   if (tool.tier === "read_only" && serialised.bytes > cap) {
+    const narrowing = narrowingAdvice(tool, host, args, cap);
     const err = resultTooLargeException({
       tool: tool.name,
       bytes: serialised.bytes,
       cap,
-      ...(tool.narrowing === undefined ? {} : { narrowing: tool.narrowing }),
+      ...(narrowing === undefined ? {} : { narrowing }),
     });
     const env = errorEnvelope(err);
     writeComplete(audit, ctx, tool.name, callId, argsHash, args, {
@@ -818,3 +821,35 @@ function writeStartAndComplete(
 }
 
 export type { McpToolEntry } from "./types.js";
+
+/**
+ * What to tell a caller whose read overshot the ceiling.
+ *
+ * A tool that can measure its own alternatives (`narrowingFor`) is asked
+ * for the ones that fit THIS call's ceiling; every other tool quotes its
+ * static ladder. The measured form is preferred because advice a caller
+ * cannot follow is worse than none: it costs a round trip and reads as an
+ * instruction that works.
+ *
+ * `narrowingFor` runs on an already-failing path, so its own failure must
+ * not replace the refusal with an unrelated error — a profile whose
+ * `extends` chain does not resolve would otherwise turn a `quota` into a
+ * `not_found`. On a throw the caller gets the static ladder, which is
+ * exactly the pre-measurement behaviour.
+ */
+function narrowingAdvice(
+  tool: McpToolEntry<unknown, unknown>,
+  host: Host,
+  args: unknown,
+  cap: number,
+): readonly string[] | undefined {
+  if (tool.narrowingFor !== undefined) {
+    try {
+      const measured = tool.narrowingFor({ host, args, cap });
+      if (measured.length > 0) return measured;
+    } catch {
+      // Fall through to the static ladder.
+    }
+  }
+  return tool.narrowing;
+}

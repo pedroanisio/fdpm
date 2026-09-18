@@ -93,6 +93,69 @@ none is still rejected, and the message now lists what the page declares. DOI
 and arXiv resolution are unchanged. PDF locators still do not resolve (no
 title to compare), and repository paths are still not references.
 
+#### Composition profiles reported an empty vocabulary (`src/mcp/tools/profile-get.ts`, `src/commands/profile.ts`)
+
+`fdpm.profile.get` read the raw registered profile for every view. A composition
+profile declares no types of its own and inherits them through `extends`, so its
+`types` view answered
+
+```json
+{ "primitive_types": [], "relation_types": [], "_view": "types" }
+```
+
+in 206 B with `ok: true` — schema-valid, well-formed, and wrong.
+`profile:formal-specification-dnis:0.1` carries 34 primitive and 32 relation
+types; a caller could not tell that response from a profile that genuinely has
+none. It was also inconsistent inside one tool family: `fdpm.profile.type_info`
+has always read the resolved profile, so `type_ids` omitted ids that `type_info`
+then answered for.
+
+The three vocabulary views (`summary`, `type_ids`, `types`) now project the
+**resolved** profile; `view: "full"` still returns the raw document as
+registered, because that is the profile as stored and the `extends` merge is a
+derivation of it. A vocabulary view of a profile whose chain does not resolve
+throws `not_found` naming the missing parent instead of degrading to the raw
+document.
+
+`fdpm profile list` counted the raw arrays the same way and printed `0  0` for
+every composition row. It now counts the resolved profile, and reports `null`
+(`?` in the table) with `resolved: false` when the chain does not resolve — the
+raw count there would reprint the misleading zero exactly when the profile is
+unusable. The summary rows gained a `resolved` field; `primitive_type_count` and
+`relation_type_count` are now `number | null`.
+
+Measured over the 27 profiles this tree loads, the `types` view moves from
+117 B – 1,835,052 B on raw documents to the resolved vocabulary; five profiles
+are now over the 32,768 B ceiling at that view (was three), and
+`formal-specification-dnis` moves from a 206 B wrong answer to a 33,746 B
+refusal that names `view: "type_ids"` at 1,249 B. A refusal that points at a
+working call is the better failure.
+
+#### The result-ceiling refusal named calls that could not fit (`src/mcp/dispatch.ts`, `src/mcp/types.ts`)
+
+`McpToolEntry.narrowing` is a tool's levers in descending order of information,
+and the refusal quoted it verbatim. That is the wrong list for a caller that
+just overshot: on `profile:uixo:1.2` the `types` view is 1,835,052 B against a
+32,768 B ceiling, so the advice opened with a call that earns a second refusal.
+Advice a caller cannot follow costs a round trip and reads as an instruction
+that works.
+
+New optional `McpToolEntry.narrowingFor` computes the advice against the ceiling
+that refused. `fdpm.profile.get` implements it by projecting and measuring each
+candidate view with the same function the dispatcher measures the refused result
+with, naming only those that fit and always terminating at
+`fdpm.profile.type_info`. Tools without it keep quoting their static ladder, and
+a `narrowingFor` that throws falls back to that ladder rather than replacing the
+`quota` refusal with an unrelated error.
+
+#### `MANUAL.md` profile-listing example printed `0` for every profile
+
+The example piped `profile list --json` into `jq '{types: (.primitive_types | length)}'`.
+Summary rows carry counts, not the type arrays, and `jq`'s `length` reads an
+absent field as `0` — so the example reported `types: 0` for all 27 profiles,
+`profile:uixo:1.2`'s 712 included. It now reads `.primitive_type_count`.
+
+
 ### Added
 
 #### `fdpm.logical-knowledge-base` — a LogicalKnowledgeBase document as a profile (`plugins/logical_knowledge_base/`)

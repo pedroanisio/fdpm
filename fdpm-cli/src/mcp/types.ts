@@ -126,4 +126,25 @@ export interface McpToolEntry<I = unknown, O = unknown> {
   handler: (host: Host, args: I, ctx: DispatchCtx) => Promise<O>;
   annotations: { readOnlyHint?: boolean; destructiveHint?: boolean };
   narrowing?: readonly string[];
+  /**
+   * The measured form of `narrowing`, for a tool that can compute what its
+   * own smaller calls would weigh.
+   *
+   * `narrowing` is a static ladder: this tool's levers in descending order
+   * of information. That is the right list to advertise, and the wrong list
+   * to hand a caller that just overshot — `fdpm.profile.get` on
+   * `profile:uixo:1.2` would be told to try `view: "types"`, which is
+   * 1,835,052 B against a 32,768 B ceiling and earns a second refusal.
+   *
+   * When present this is called on the refusal path with the ceiling that
+   * refused, and its result replaces `narrowing` in the message and the
+   * evidence block. It MUST return only calls that would succeed. If it
+   * throws, the dispatcher falls back to the static `narrowing`: a caller
+   * gets the general ladder rather than losing the refusal itself.
+   */
+  narrowingFor?: (input: {
+    host: Host;
+    args: I;
+    cap: number;
+  }) => readonly string[];
 }

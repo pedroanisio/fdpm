@@ -358,3 +358,99 @@ describe("result budget — the audit log records what was served", () => {
     expect(Number(complete?.["result_bytes"])).toBeGreaterThan(4096);
   });
 });
+
+describe("result budget — the refusal names a call that actually fits", () => {
+  /**
+   * The static `narrowing` list is the tool's whole vocabulary of levers, in
+   * descending order of information. It is not the answer to "what should
+   * THIS caller ask for next": on `profile:uixo:1.2` the `types` view is
+   * 1,835,052 B against a 32,768 B ceiling, so a refusal that opens with
+   * `view: "types"` sends the caller into a second refusal it was told to
+   * expect nothing of. Advice that cannot succeed is worse than no advice —
+   * it costs a round trip and reads as a working instruction.
+   *
+   * So the refusal for a tool that can measure its own alternatives is
+   * measured, not quoted: name the largest view that fits under THIS call's
+   * ceiling, and never name one that does not.
+   */
+  async function bigProfileDispatcher(typeCount: number, cap?: number) {
+    const { host, ctx } = await bootstrap(cap);
+    const big = structuredClone(TEST_PROFILE) as unknown as Record<string, unknown>;
+    big["id"] = "test:huge";
+    big["primitive_types"] = Array.from({ length: typeCount }, (_, i) => ({
+      id: `test:huge:t${i}`,
+      fields: [
+        {
+          name: "title",
+          kind: "string",
+          required: true,
+          description: `Field ${i}. ${"Long-form prose the types view drops. ".repeat(6)}`,
+          validations: [],
+        },
+      ],
+      id_format: { pattern: `^t${i}:[a-z0-9-]+$`, uniqueness: "workbook" },
+      inline_structs: [],
+      is_partition_unit: false,
+    }));
+    big["relation_types"] = [];
+    await host.registerProfile(big as never);
+    return createDispatcher(host, ctx, null);
+  }
+
+  function narrowingOf(result: { structuredContent: unknown }): string[] {
+    const env = (
+      result.structuredContent as { error: { evidence?: Record<string, unknown> } }
+    ).error;
+    return (env.evidence?.["narrowing"] as string[] | undefined) ?? [];
+  }
+
+  it("omits view: types when the types view is itself over the ceiling", async () => {
+    const d = await bigProfileDispatcher(400);
+
+    const refused = await d.call("fdpm.profile.get", { profile_id: "test:huge" });
+    expect(refused.isError).toBe(true);
+
+    const advice = narrowingOf(refused);
+    expect(advice).not.toContain('view: "types"');
+    expect(advice).toContain('view: "type_ids"');
+
+    // And the advice is not merely plausible — the call it names succeeds.
+    const followed = await d.call("fdpm.profile.get", {
+      profile_id: "test:huge",
+      view: "type_ids",
+    });
+    expect(followed.isError).toBe(false);
+  });
+
+  it("still offers view: types when the types view fits", async () => {
+    const d = await bigProfileDispatcher(150);
+
+    const refused = await d.call("fdpm.profile.get", { profile_id: "test:huge" });
+    expect(refused.isError).toBe(true);
+    expect(narrowingOf(refused)).toContain('view: "types"');
+  });
+
+  it("falls back to type_info when no view fits the ceiling", async () => {
+    // A ceiling below even the summary view. The ladder still has to end
+    // somewhere a caller can stand: one type at a time.
+    const d = await bigProfileDispatcher(400, 64);
+
+    const refused = await d.call("fdpm.profile.get", { profile_id: "test:huge" });
+    expect(refused.isError).toBe(true);
+    const advice = narrowingOf(refused);
+    expect(advice.some((a) => a.includes("type_info"))).toBe(true);
+    expect(advice).not.toContain('view: "types"');
+    expect(advice).not.toContain('view: "type_ids"');
+    expect(advice).not.toContain('view: "summary"');
+  });
+
+  it("keeps quoting the static levers for a tool that cannot measure its own", async () => {
+    const { host, ctx } = await bootstrap(256);
+    const tool = padTool(["limit: 10"]);
+    const d = createDispatcher(host, ctx, null, (n) => (n === tool.name ? tool : null));
+
+    const refused = await d.call("test.pad", { size: 4096 });
+    expect(refused.isError).toBe(true);
+    expect(narrowingOf(refused)).toEqual(["limit: 10"]);
+  });
+});

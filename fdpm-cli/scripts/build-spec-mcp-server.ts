@@ -672,8 +672,9 @@ const toolEntries: Array<{
     tool_name: "fdpm.profile.get",
     tier: "read_only",
     exposure: "always",
-    description: "Look up a domain profile by id.",
-    backed_by: "host.profiles (lookup by id)",
+    description:
+      "Look up a domain profile by id. `view: \"full\"` (the default) serves the raw profile as registered; the `summary`, `type_ids` and `types` views serve the resolved profile, so a composition profile's inherited vocabulary is reported rather than its empty local declaration.",
+    backed_by: "host.profiles.getRaw() (full) / host.profiles.getResolved() (vocabulary views)",
   },
   {
     id: "spec:tool:workbook-list",
@@ -1525,9 +1526,9 @@ const conformance: PrimitiveSpec[] = [
       ordinal: 6,
       name: "Tool-result ceiling refuses a read and names the smaller call",
       procedure:
-        "Start `fdpm-mcp` with default config against a data dir holding a profile whose full form exceeds 32,768 B. Call `fdpm.profile.get` with only `profile_id`. Then repeat with `view: \"types\"`, and — for a profile with hundreds of types — with `view: \"type_ids\"`. Read `fdpm.health` and the audit report.",
+        "Start `fdpm-mcp` with default config against a data dir holding two profiles: one whose full form exceeds 32,768 B but whose `types` view does not, and one with hundreds of types whose `types` view also exceeds it. Call `fdpm.profile.get` with only `profile_id` on each. Then make every call named in each refusal\'s `evidence.narrowing`. Read `fdpm.health` and the audit report.",
       expected:
-        "The first call returns isError=true, category `quota`, `evidence.reason: \"result_too_large\"`, and `evidence.narrowing` listing the views and `fdpm.profile.type_info`; nothing is returned in place of the profile. The narrowed calls succeed and carry the `_view` marker. `fdpm.health` reports `max_result_bytes`. The audit log's complete entry for the refused call carries `result_bytes` above the cap, and `fdpm://audit/report/all` shows that tool's `result_bytes` p50/p95/max.",
+        "Both calls return isError=true, category `quota`, `evidence.reason: \"result_too_large\"`; nothing is returned in place of the profile. `evidence.narrowing` is measured against the ceiling that refused, not quoted from a fixed list: the first refusal names `view: \"types\"`, the second does not name it and names `view: \"type_ids\"` instead. Every call a refusal names succeeds and carries the `_view` marker — a refusal never names a call that would itself be refused. When no view fits, the narrowing still ends at `fdpm.profile.type_info`, which answers for one type. `fdpm.health` reports `max_result_bytes`. The audit log\'s complete entry for each refused call carries `result_bytes` above the cap, and `fdpm://audit/report/all` shows that tool\'s `result_bytes` p50/p95/max.",
     },
   },
 ];

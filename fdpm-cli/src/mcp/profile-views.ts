@@ -7,13 +7,19 @@
  * but most callers want one of three well-known shapes:
  *
  *   - `full`     — the entire DomainProfile (default; backwards-compatible).
- *   - `summary`  — id, version, label/name, counts of types/rules. ~200 B.
+ *   - `summary`  — id, version, label/name, counts of types/rules.
  *   - `type_ids` — id, version, plus the bare id lists. The rung between
  *                  a count and a vocabulary.
  *   - `types`    — id, version, plus a stripped primitive_types[]
  *                  (id, id_pattern, label, fields[name,type,required])
  *                  and relation_types[] (id, source/target ids,
- *                  symmetric, transitive). ~5 KB for typical profiles.
+ *                  symmetric, transitive).
+ *
+ * This module is a pure projector over whichever profile document it is
+ * handed. WHICH document that is belongs to the caller:
+ * `fdpm.profile.get` serves `full` from the raw profile and the three
+ * vocabulary views from the resolved one, because a composition profile's
+ * vocabulary lives entirely in its `extends` chain. See `tools/profile-get.ts`.
  *
  * `summary` is the right view for catalogue/listing UIs. `types` is
  * the right view for an agent that asks "what fields does plan:Task
@@ -22,15 +28,23 @@
  * renderer bindings, descriptions, etc.).
  *
  * `type_ids` exists because `types` is not small for every profile. Measured
- * over the profiles this tree loads, `types` runs 117 B to 31,122 B — and
- * then `profile:uixo:1.2`, whose 712 primitive types and 210 relation types
- * put its stripped `types` view at 1,835,052 B and its `full` view at
- * 5,409,966 B. No tool-result ceiling admits either. `summary` says only how
- * many types there are, which does not let a caller ask for one; `type_ids`
- * names them, and `fdpm.profile.type_info` then answers for the single type
- * the caller wants. That is the whole path from "I know nothing about this
- * profile" to "I can construct one primitive" without a payload that no
- * client can hold.
+ * over the 27 profiles this tree loads, as `fdpm.profile.get` serves them:
+ *
+ *   full      448 B .. 5,409,966 B   14 profiles over the 32,768 B ceiling
+ *   types     117 B .. 1,835,052 B    5 profiles over it
+ *   type_ids  126 B ..    26,830 B    none over it
+ *   summary   280 B ..     1,045 B    none over it
+ *
+ * The ceiling above `types` is `profile:uixo:1.2`, whose 712 primitive types
+ * and 210 relation types put its stripped `types` view at 1,835,052 B and its
+ * `full` view at 5,409,966 B — the latter past the 1 MB resource cap too, so
+ * uixo has no whole-object route at all. `summary` says only how many types
+ * there are, which does not let a caller ask for one; `type_ids` names them,
+ * and `fdpm.profile.type_info` then answers for the single type the caller
+ * wants. That is the whole path from "I know nothing about this profile" to
+ * "I can construct one primitive" without a payload that no client can hold,
+ * and `type_ids` fitting every profile in the tree is what makes the path
+ * terminate rather than bottom out at one-type-per-call.
  *
  * The view payload always carries a `_view` discriminator so callers
  * can distinguish full from projected responses without inspecting
