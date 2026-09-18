@@ -1081,7 +1081,7 @@ The following are deliberately excluded from Core v1.1. Listing them prevents ac
 - **Cross-workbook federation (instances referencing other workbooks)** — §5.3 forbids cross-workbook references in v1.1. Federation is a future SPEC.
 - **Real-time collaboration (CRDT, OT, or socket layer)** — The operation log makes some of this feasible; it is not an obligation of v1.1.
 - **Hot reload of Core code without restart** — Out of scope; restart is the v1.1 mechanism.
-- **`cap:shared-constants` for cross-runtime constants** — Would address `drift-risk-map.md` findings #1, #5–#8 systematically.
+- **`cap:shared-constants` for cross-runtime constants** — Would address systematically the constants mirrored by hand across the Python and TypeScript runtimes (operation kinds, id rules, version pins), which today drift silently.
 - **`cross_partition_relations: "preserve"` for `:split`** — Requires cross-workbook references in the meta-model, which §5.3 forbids in v1.1.
 - **`cross_partition_relations: "annotate"` for `:split`** — Defensible but lossy; deferred until a user story demands it.
 - **Workbook merge / re-join (inverse of `:split`)** — Once split, workbooks are independent in v1.1.
@@ -1139,7 +1139,6 @@ Other open questions (defaulted):
 - CLAUDE.md — process and verification rules this SPEC inherits. (CLAUDE.md) _[verified]_ — Read at SPEC-authoring time; PALS's LAW and the Core Principles are inherited verbatim.
 - Companion SPEC — defines the plugin runtime that consumes this Core. (docs/specs/SPEC-PLUGGABLE-ARCHITECTURE.md) _[verified]_ — Read at SPEC-authoring time; companion §4 capability catalogue and §5 manifest schema are referenced throughout.
 - DISCLAIMER.md — epistemic commitments. (DISCLAIMER.md) _[self_evident]_
-- drift-risk-map.md — current coupling/drift inventory; informs §17.4 and §20. (drift-risk-map.md) _[unverified]_ — Reader must verify the current state of the drift-risk map; it changes as the codebase evolves.
 - ISO/IEC/IEEE 42010 — architecture description framework, source of "stakeholders + concerns + viewpoints" framing used implicitly throughout. (https://www.iso.org/standard/74393.html) _[unverified]_ — Cited for the stakeholder/concern framing only; not load-bearing for any normative claim.
 - PEP 660 / `importlib.metadata.entry_points` — entry-point mechanism Core relies on for plugin discovery (companion SPEC). (https://peps.python.org/pep-0660/) _[unverified]_ — Reader must verify; the entry-point mechanism specifics belong to the companion SPEC.
 - PURPOSE.md — universality mandate this SPEC implements at the architectural level. (PURPOSE.md) _[verified]_ — Read at SPEC-authoring time; the universality framing motivates §1's domain-neutrality decision.

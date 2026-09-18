@@ -16,7 +16,7 @@
  *   npx tsx fdpm-cli/scripts/build-uml-roadmap.ts
  * Render the board:
  *   npx tsx fdpm-cli/src/bin/fdpm.ts render uml-roadmap text/markdown \
- *     --renderer-id plan:AgentBoardRenderer -o docs/planning/uml-roadmap.md
+ *     --renderer-id plan:AgentBoardRenderer -o _tmp/uml-roadmap/board.md
  */
 import { openHost } from "../src/sdk.js";
 import { defineProject, type PrimitiveSpec, type RelationSpec } from "../src/sdk.js";

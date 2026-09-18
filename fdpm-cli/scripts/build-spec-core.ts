@@ -297,17 +297,6 @@ const references: PrimitiveSpec[] = [
     },
   },
   {
-    id: "spec:ref:drift-risk-map",
-    type: "spec:Reference",
-    fields: {
-      kind: "repo_file",
-      citation: "drift-risk-map.md — current coupling/drift inventory; informs §17.4 and §20.",
-      locator: "drift-risk-map.md",
-      verification: "unverified",
-      verification_note: "Reader must verify the current state of the drift-risk map; it changes as the codebase evolves.",
-    },
-  },
-  {
     id: "spec:ref:store-py",
     type: "spec:Reference",
     fields: {
@@ -691,7 +680,7 @@ const futureWork: PrimitiveSpec[] = [
   fw("spec:fw:cross-workbook-federation", "Cross-workbook federation (instances referencing other workbooks)", "§5.3 forbids cross-workbook references in v1.1. Federation is a future SPEC.", null),
   fw("spec:fw:realtime-collaboration", "Real-time collaboration (CRDT, OT, or socket layer)", "The operation log makes some of this feasible; it is not an obligation of v1.1.", null),
   fw("spec:fw:hot-reload", "Hot reload of Core code without restart", "Out of scope; restart is the v1.1 mechanism.", null),
-  fw("spec:fw:cap-shared-constants", "`cap:shared-constants` for cross-runtime constants", "Would address `drift-risk-map.md` findings #1, #5–#8 systematically.", null),
+  fw("spec:fw:cap-shared-constants", "`cap:shared-constants` for cross-runtime constants", "Would address systematically the constants mirrored by hand across the Python and TypeScript runtimes (operation kinds, id rules, version pins), which today drift silently.", null),
   fw("spec:fw:cross-partition-preserve", "`cross_partition_relations: \"preserve\"` for `:split`", "Requires cross-workbook references in the meta-model, which §5.3 forbids in v1.1.", null),
   fw("spec:fw:cross-partition-annotate", "`cross_partition_relations: \"annotate\"` for `:split`", "Defensible but lossy; deferred until a user story demands it.", null),
   fw("spec:fw:workbook-merge", "Workbook merge / re-join (inverse of `:split`)", "Once split, workbooks are independent in v1.1.", null),
@@ -2049,7 +2038,6 @@ const relations: RelationSpec[] = [
 
   // Citations
   rel("rel:doc-cites-companion", "spec:Cites", documentSpec.id, "spec:ref:companion-spec"),
-  rel("rel:doc-cites-drift", "spec:Cites", documentSpec.id, "spec:ref:drift-risk-map"),
   rel("rel:doc-cites-store", "spec:Cites", documentSpec.id, "spec:ref:store-py"),
   rel("rel:doc-cites-models-core", "spec:Cites", documentSpec.id, "spec:ref:models-core-py"),
   rel("rel:doc-cites-main", "spec:Cites", documentSpec.id, "spec:ref:main-py"),

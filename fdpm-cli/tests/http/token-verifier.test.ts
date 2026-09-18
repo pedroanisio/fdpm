@@ -144,8 +144,8 @@ describe("parseIntrospection — refused", () => {
 describe("Keycloak-shaped introspection responses", () => {
   const KC = {
     tenantClaim: "tenant",
-    resource: "https://mcp.veraformx.com/mcp",
-    issuer: "https://id.xaai.ai/realms/platform",
+    resource: "https://mcp.example.com/mcp",
+    issuer: "https://auth.example.com/realms/platform",
     audience: "fdpm-mcp",
   };
 

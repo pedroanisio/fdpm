@@ -77,7 +77,7 @@ describe("resolveBindHost", () => {
 /**
  * Required-plugin preflight.
  *
- * Observed 2026-09-01: the doks-tor1 overlay installs `fdpm-media` from its
+ * Observed in a deployment that installs a plugin (`fdpm-media`) from its
  * own image and authorises it with `FDPM_TRUSTED_KEYS`. Those are two strings
  * in two repositories that must match exactly, and when they did not the
  * plugin was discovered, silently disabled, and the gateway still answered

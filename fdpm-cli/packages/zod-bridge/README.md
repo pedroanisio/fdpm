@@ -75,7 +75,7 @@ For development before the first npm release, install from the repository
 workspace instead:
 
 ```bash
-git clone https://github.com/pedroanisio/fdpm-cli.git
+git clone https://github.com/pedroanisio/fdpm.git
 cd fdpm-cli/fdpm-cli
 npm ci
 npm run build --workspace @fdpm/zod-bridge
@@ -265,4 +265,4 @@ upgrading.
 
 Apache License, Version 2.0 (SPDX `Apache-2.0`). The full text ships in this
 package as `LICENSE` and is the same file as the repository-root
-[`LICENSE`](https://github.com/pedroanisio/fdpm-cli/blob/main/LICENSE).
+[`LICENSE`](https://github.com/pedroanisio/fdpm/blob/main/LICENSE).

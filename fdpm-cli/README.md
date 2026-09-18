@@ -5,12 +5,12 @@ typed graphs whose mutations are validated, appended to an operation log, and
 replayable. The package ships two binaries, a JavaScript API, the built-in
 plugin set, and a Model Context Protocol server.
 
-The repository's [main README](https://github.com/pedroanisio/fdpm-cli#readme)
+The repository's [main README](https://github.com/pedroanisio/fdpm#readme)
 is the product overview; the
-[design document](https://github.com/pedroanisio/fdpm-cli/blob/main/docs/architecture/DESIGN.md)
+[design document](https://github.com/pedroanisio/fdpm/blob/main/docs/architecture/DESIGN.md)
 describes the architecture, implementation status, trust model, and
 specification mapping. The
-[user manual](https://github.com/pedroanisio/fdpm-cli/blob/main/fdpm-cli/MANUAL.md)
+[user manual](https://github.com/pedroanisio/fdpm/blob/main/fdpm-cli/MANUAL.md)
 is the task-oriented command reference.
 
 ## Status
@@ -19,7 +19,7 @@ The source package is at version `1.3.0`. Neither `@fdpm/cli` nor its
 `@fdpm/zod-bridge` workspace has completed its first npm publication. Until
 that release exists, install and run from a checkout as shown below. The
 release process is documented in
-[`RELEASING.md`](https://github.com/pedroanisio/fdpm-cli/blob/main/RELEASING.md).
+[`RELEASING.md`](https://github.com/pedroanisio/fdpm/blob/main/RELEASING.md).
 
 ## Requirements
 
@@ -33,7 +33,7 @@ Windows. Build scripts use Node APIs instead of relying on POSIX utilities.
 ## Install from source
 
 ```sh
-git clone https://github.com/pedroanisio/fdpm-cli.git
+git clone https://github.com/pedroanisio/fdpm.git
 cd fdpm-cli/fdpm-cli
 npm ci
 npm run build
@@ -98,7 +98,7 @@ them.
 
 Set `FDPM_MCP_ENABLE_DESTRUCTIVE=1` only for sessions that are authorized to
 delete workbook data. See the repository's
-[`SECURITY.md`](https://github.com/pedroanisio/fdpm-cli/blob/main/SECURITY.md)
+[`SECURITY.md`](https://github.com/pedroanisio/fdpm/blob/main/SECURITY.md)
 for vulnerability reporting and the current trust boundary.
 
 ## JavaScript API
@@ -137,13 +137,13 @@ that stricter gate and a production dependency audit.
 
 ## Contributing and support
 
-- [Contributing guide](https://github.com/pedroanisio/fdpm-cli/blob/main/CONTRIBUTING.md)
-- [Support policy](https://github.com/pedroanisio/fdpm-cli/blob/main/SUPPORT.md)
-- [Security policy](https://github.com/pedroanisio/fdpm-cli/blob/main/SECURITY.md)
-- [Governance](https://github.com/pedroanisio/fdpm-cli/blob/main/GOVERNANCE.md)
+- [Contributing guide](https://github.com/pedroanisio/fdpm/blob/main/CONTRIBUTING.md)
+- [Support policy](https://github.com/pedroanisio/fdpm/blob/main/SUPPORT.md)
+- [Security policy](https://github.com/pedroanisio/fdpm/blob/main/SECURITY.md)
+- [Governance](https://github.com/pedroanisio/fdpm/blob/main/GOVERNANCE.md)
 
 ## License
 
 Apache License, Version 2.0 (SPDX `Apache-2.0`). The full text ships in this
 package as `LICENSE` and is the same file as the repository-root
-[`LICENSE`](https://github.com/pedroanisio/fdpm-cli/blob/main/LICENSE).
+[`LICENSE`](https://github.com/pedroanisio/fdpm/blob/main/LICENSE).

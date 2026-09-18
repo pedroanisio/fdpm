@@ -174,10 +174,10 @@ describe("portable package and CI entry points", () => {
     }
 
     expect(read("scripts/build-spec-mcp-server.ts")).toContain("SIGBREAK");
-    for (const file of [
-      "docs/specs/SPEC-MCP-SERVER.md",
-      "docs/architecture/FDPM-ARCHITECTURE.md",
-    ]) {
+    // The normative spec is the one tracked document that states both reload
+    // signals; the architecture analyses that once repeated it are not part of
+    // the release tree.
+    for (const file of ["docs/specs/SPEC-MCP-SERVER.md"]) {
       const source = readFileSync(join(REPO_ROOT, file), "utf8");
       expect(source, file).toContain("SIGHUP");
       expect(source, file).toContain("SIGBREAK");

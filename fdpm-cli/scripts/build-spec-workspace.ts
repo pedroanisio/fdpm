@@ -2856,7 +2856,7 @@ const sections: PrimitiveSpec[] = [
         "    {",
         "      \"id\": \"01K9XYZABCDEF1234567890ABC\",",
         "      \"name\": \"prod-laptop\",",
-        "      \"path\": \"/home/admin/.fdpm-cli\",",
+        "      \"path\": \"/home/alice/.fdpm-cli\",",
         "      \"last_used\": \"2026-05-05T12:00:00.000Z\",",
         "      \"last_backup\": \"2026-05-04T02:30:00.000Z\"",
         "    },",

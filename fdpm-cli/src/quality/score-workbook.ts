@@ -2,7 +2,7 @@
  * ⚠ ARCHITECTURAL CONTRACT (PALS's LAW) — LLM OUTPUT IS UNVERIFIED BY DEFAULT
  *
  * This module is the verification layer for FDPM workbooks. It is the
- * mechanical realisation of docs/drafts/workbook-quality-rubric.md —
+ * mechanical realisation of docs/specs/QUALITY-RUBRIC.md —
  * every check is a pure function of (workbook, profile, host) and emits
  * an evidence-bearing report. Do NOT make any of these checks depend on
  * model output, prose interpretation, or wall-clock time.
@@ -16,7 +16,7 @@ import type { PluginRecord } from "../plugin/runtime.js";
 import { PluginManifest } from "../plugin/manifest.js";
 
 // ---------------------------------------------------------------------------
-// Public types — see docs/drafts/workbook-quality-rubric.md §2 / §3
+// Public types — see docs/specs/QUALITY-RUBRIC.md §2 / §3
 // ---------------------------------------------------------------------------
 
 export type WorkbookGrade =

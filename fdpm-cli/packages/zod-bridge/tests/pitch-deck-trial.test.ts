@@ -2,9 +2,8 @@
  * Integration trial: @fdpm/zod-bridge@0.3.0 against
  * static/schemas/pitch-deck.schema.v2.ts.
  *
- * The v0.1.0 trial journal (docs/journals/zod-bridge-pitch-deck-trial.md)
- * left an honest defect: the bridge collapsed the entire pitch-deck
- * schema into ONE PrimitiveTypeDef. The fix was deferred to "lift
+ * The v0.1.0 trial against this schema surfaced a defect: the bridge
+ * collapsed the entire pitch-deck schema into ONE PrimitiveTypeDef. The fix was deferred to "lift
  * markers" (v0.2.0) and then to the sidecar (v0.3.0).
  *
  * This test exercises the v0.3.0 path end-to-end and asserts the

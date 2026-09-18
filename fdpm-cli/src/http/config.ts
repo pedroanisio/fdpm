@@ -72,10 +72,10 @@ export const REQUIRED_PLUGINS_ENV = "FDPM_MCP_REQUIRED_PLUGINS";
  *
  * Empty by default: a gateway that ships only the plugins baked into its
  * image needs nothing here, and no existing deployment changes behaviour.
- * It earns its keep for plugins installed from OUTSIDE the image — the
- * per-plugin init-container images the doks-tor1 overlay copies into
- * FDPM_PLUGIN_PATH — because those depend on two strings in two
- * repositories agreeing: the plugin's `trust.signed_by` and this pod's
+ * It earns its keep for plugins installed from OUTSIDE the image — for
+ * example per-plugin init containers that copy a plugin into
+ * FDPM_PLUGIN_PATH — because those depend on two strings in two places
+ * agreeing: the plugin's `trust.signed_by` and this pod's
  * FDPM_TRUSTED_KEYS.
  */
 export function resolveRequiredPlugins(env: NodeJS.ProcessEnv): string[] {

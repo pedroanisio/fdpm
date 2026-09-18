@@ -873,7 +873,7 @@ The following are intentionally **not** in v1.1. They are listed so reviewers ca
 - Multi-tenant plugin permissions (current FDPM is single-tenant).
 - Pattern/wildcard slot keys (§7.4 — exact-match only in v1.0).
 - Subresource integrity (`integrity` field) on frontend bundles — added in v1.1 per §7.3.
-- A `cap:shared-constants` capability addressing the Python↔TypeScript drift surface flagged in `drift-risk-map.md` findings #1, #5–#8. The plugin migration alone does not eliminate that surface; a future SPEC will.
+- A `cap:shared-constants` capability addressing the Python↔TypeScript drift surface: constants mirrored by hand across both runtimes (operation kinds, id rules, version pins). The plugin migration alone does not eliminate that surface; a future SPEC will.
 - A `cap:workbook-event` capability letting plugins subscribe to operation-log events (any `Operation.kind` from Core SPEC §5.5.1) without polling. Core SPEC §5.4.4 / §5.5.8 documents the deferral. Plugins that need to react to operations in v1.1 must poll `GET /workbooks/{id}/log` under the `read:audit` permission. Polling is intentionally awkward; the awkwardness is the signal that `cap:workbook-event` belongs in a future SPEC.
 - A `cap:projection` capability letting plugins build their own derived views over the operation log (e.g. a domain-specific search index, materialised relation aggregate, or alternative diff view). The natural "free feature" event sourcing unlocks; deferred to the same future SPEC as `cap:project-event`.
 - Plugin contributions to the graph operations themselves (Core SPEC §5.4 split/clone). These are Core-implemented; plugins observe via the operation log, never implement alternate semantics.
@@ -962,7 +962,6 @@ The reference echo plugin is the positive baseline; intentionally broken sibling
 - `@CLAUDE.md` — process and verification rules this SPEC inherits.
 - `@DISCLAIMER.md` — epistemic commitments.
 - Companion SPEC: `docs/specs/SPEC-CORE.md` — defines the host this SPEC's plugins consume; sections referenced directly: §5.4 (graph operations: split/clone), §5.5 (event sourcing — kind set, replay, upcasting), §7.1 (validation pipeline), §8 (verification gate), §9 (platform endpoints + §9.6 no-compat-window + §9.7 document-editing API + §9.8 time-travel/undo), §10.4 (frontend plugin budgets), §11.3 (Core-reserved namespaces), §13.3 (audit log unified with operation log).
-- `drift-risk-map.md` — current coupling/drift inventory; informs §14 out-of-scope.
 - `src/fdpm/main.py` — current static plugin loading (lines 23–33, 45–50, 142–152).
 - `src/fdpm/store.py` — current registration target (line 42).
 - `src/fdpm/models/core.py` — `DomainProfile`, `PrimitiveTypeDef`, `RelationTypeDef`, `RendererBinding`, `ValidationRuleDef` definitions.
@@ -1091,7 +1090,7 @@ policy. Same-PR atomic conversion is now the rule; CI is the gate.
 | 9.2 | Replaced "Compatibility shim (one minor release)" with "No legacy shim — atomic removal in the migration PR." | Operator decision; same rationale as SPEC-CORE 1.0.2. |
 | 9.3 (formerly 9.2 post-renumber) | Migration ordering re-aligned: same-PR atomic moves, no flag-flip-then-shim-removal sequence. | Aligns with SPEC-CORE §19.4. |
 | 13 | Acceptance criterion 2 says "removed atomically (no shim, per §9.2)." | Reflects §9.2 change. |
-| 14 | Out-of-scope unchanged conceptually but adds `cap:shared-constants` cross-reference to drift-risk-map. | Visibility of residual drift surface. |
+| 14 | Out-of-scope unchanged conceptually but adds the `cap:shared-constants` cross-reference. | Visibility of residual drift surface. |
 | 15 | Risk-row "Existing third-party callers depending on direct register(store) break" replaced with "Removing register(store) atomically breaks any external code depending on it; accepted by design." | Reflects §9.2 change. |
 | 16 | Step 6 explicitly says "no shim"; new Step 13 covers the Core-violating router migration; rebucketed Step 14. | Reflects §9.2 + alignment with SPEC-CORE §19.4. |
 

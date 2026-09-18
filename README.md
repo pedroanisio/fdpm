@@ -108,7 +108,6 @@ The verb / resource / prompt architecture is a hypothesis, and its kill criterio
 - [AGENTS.md](AGENTS.md) — programmatic reference for agents
 - [PURPOSE.md](PURPOSE.md) — why the project exists
 - [docs/specs/SPEC-CORE.md](docs/specs/SPEC-CORE.md) and [docs/specs/SPEC-MCP-SERVER.md](docs/specs/SPEC-MCP-SERVER.md) — the normative specifications
-- [docs/PUBLIC-READINESS.md](docs/PUBLIC-READINESS.md) — release-readiness assessment
 - [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [RELEASING.md](RELEASING.md)
 - [fdpm-cli/packages/zod-bridge/README.md](fdpm-cli/packages/zod-bridge/README.md) — Zod schema to plugin generator
 
@@ -121,8 +120,8 @@ This work is subject to the methodological caveats and commitments described in 
 
 - Counts: read from [docs/architecture/PROFILES.md](docs/architecture/PROFILES.md), generated from the running host by `fdpm-cli/scripts/build-profile-atlas.ts` and drift-gated by `fdpm-cli/tests/_meta/doc-drift.test.ts`; the operation-kind count is the length of `OPERATION_KINDS` in `fdpm-cli/src/core/operations/kinds.ts`.
 - Licence: `fdpm-cli/tests/_meta/public-readiness.test.mjs` pins the SHA-256 of the canonical Apache text for all three `LICENSE` copies and the SPDX field in both manifests.
-- Visibility: the GitHub API returned `visibility: public` and `license: Apache-2.0` for `pedroanisio/fdpm` on 2026-09-04; the npm registry returned 404 for both packages the same day.
-- Not verified: the cold-agent eval has not run, so no first-try success number exists. The claims about what the schema is worth — aimed retries, trustworthy handoffs, where the value concentrates — are the author's judgement, not measurements.
+- Release gates: `npm run public:check` (package metadata, tracked-artifact hygiene, credential shapes, information discipline, tarball contents) and `npm run image:check` (runtime image contents) must pass before a publication; [RELEASING.md](RELEASING.md) lists the remaining operator steps and the npm registry is the record of what has shipped.
+- Not measured: the cold-agent eval ([docs/eval/COLD-AGENT-EVAL.md](docs/eval/COLD-AGENT-EVAL.md)) yields the first-try success number; until it has run, the claims about what the schema is worth — aimed retries, trustworthy handoffs, where the value concentrates — are the author's judgement, not measurements.
 
 ### Verification boundary
 

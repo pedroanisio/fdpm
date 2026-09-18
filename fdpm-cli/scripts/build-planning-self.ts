@@ -12,13 +12,13 @@
  * Render outputs:
  *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render planning-self text/markdown \
- *     --renderer-id plan:RoadmapRenderer -o docs/planning/roadmap.md
+ *     --renderer-id plan:RoadmapRenderer -o _tmp/planning-self/roadmap.md
  *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render planning-self image/svg+xml \
- *     --renderer-id plan:GanttSvgRenderer -o docs/planning/gantt.svg
+ *     --renderer-id plan:GanttSvgRenderer -o _tmp/planning-self/gantt.svg
  *   FDPM_DATA_DIR=/tmp/fdpm-planning-self npx tsx fdpm-cli/src/bin/fdpm.ts \
  *     render planning-self text/markdown \
- *     --renderer-id plan:AgentBoardRenderer -o docs/planning/board.md
+ *     --renderer-id plan:AgentBoardRenderer -o _tmp/planning-self/board.md
  */
 
 import {

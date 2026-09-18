@@ -296,7 +296,7 @@ from the trial workbook (`PitchDeck`, `Audience`, `Source`,
 ## [0.1.1] — 2026-05-06
 
 Patch release. Six correctness fixes surfaced by a real-schema trial
-([`docs/journals/zod-bridge-pitch-deck-trial.md`](../../../docs/journals/zod-bridge-pitch-deck-trial.md))
+(the 0.1.0 trial against `static/schemas/pitch-deck.schema.v2.ts`)
 against `static/schemas/pitch-deck.schema.v2.ts` (1347 lines, 13 named
 sub-schemas, 2 discriminated unions, 1 z.record, 1 .transform() chain).
 Each fix has a paired test in `tests/regressions.test.ts`.

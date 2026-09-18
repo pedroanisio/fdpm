@@ -30,6 +30,13 @@ const PLUGIN_DIR = join(HERE, "..");
 const VENDORED = join(PLUGIN_DIR, "schemas", "agent-memory.ts");
 const HASH_FILE = join(PLUGIN_DIR, "generated", "schema-hash.json");
 
+/**
+ * Where the contract lives, as a locator rather than a path: the vendoring
+ * runs from whatever checkout the operator names with --source, and the hash
+ * file must not carry that machine's directory layout.
+ */
+const VENDORED_FROM = "documents-base:src/agent-memory.schema.ts";
+
 const IMPORT_FROM = 'from "./loop-forward.schema.js"';
 const IMPORT_TO = 'from "./_contract-types.js"';
 
@@ -76,7 +83,9 @@ function main(argv: readonly string[]): number {
       {
         algorithm: "sha256",
         files: { "schemas/agent-memory.ts": sha256(expected) },
-        vendored_from: sourcePath,
+        // A locator the next reader can act on, never a machine path: the
+        // upstream repository and file, resolved by the operator's checkout.
+        vendored_from: VENDORED_FROM,
         vendored_from_digest: sha256(sourceText),
         vendored_at: new Date().toISOString().replace(/\.\d{3}Z$/u, "Z"),
         schema_version: versionMatch?.[1] ?? null,

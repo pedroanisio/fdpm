@@ -1496,11 +1496,9 @@ export const dos52RollbackDeckInput: z.input<typeof BusinessDeckSchema> = {
 
     visual_artifacts: [
       {
-        // Mirrors the full-render FrameGraph at
-        // static/refs/framegraph_dos_scope_boundary.yml (scene.id =
-        // dos_scope_boundary). The deck-level artifact captures the
-        // intent and required elements; the FrameGraph file carries
-        // the canvas/layers/ports/connectors that render this slide.
+        // The deck-level artifact captures the intent and required
+        // elements of the slide; the FrameGraph that renders it (canvas,
+        // layers, ports, connectors) is not part of this fixture.
         id: "visual_dos_scope_boundary",
         title: "DOS scope boundary — included vs excluded endpoint roles",
         artifact_type: "diagram",

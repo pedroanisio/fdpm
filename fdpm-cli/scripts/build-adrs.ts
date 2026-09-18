@@ -350,6 +350,9 @@ const relations: RelationSpec[] = [
   },
 ];
 
+/** Bump when a decision is added or changed; it is the document's date. */
+const DECISIONS_REVISED_ON = "2026-09-18";
+
 // ── Output path (--out=path overrides default) ─────────────────────────────
 
 function parseOutPath(): string {
@@ -398,10 +401,29 @@ async function main(): Promise<void> {
   const outPath = parseOutPath();
   // ADR renderer returns either a string or a Buffer/Uint8Array under
   // `bytes`; the markdown branch is a string.
-  const body =
+  const rendering =
     typeof rendered.bytes === "string"
       ? rendered.bytes
       : Buffer.from(rendered.bytes).toString("utf8");
+
+  // Every tracked Markdown document carries the repository's disclaimer
+  // frontmatter (CLAUDE.md, Conventions). The renderer emits the document
+  // body only, so the generator adds the header; the date is the source
+  // script's last recorded revision, not the run date, so a re-render of an
+  // unchanged corpus is byte-identical.
+  const FRONTMATTER = [
+    "---",
+    "disclaimer:",
+    "  notice: >-",
+    "    No information within this document should be taken for granted.",
+    "    Any statement or premise not backed by a real logical definition",
+    "    or verifiable reference may be invalid, erroneous, or a hallucination.",
+    '  generated_by: "sw:ADRRenderer (fdpm.software-architecture) from fdpm-cli/scripts/build-adrs.ts"',
+    `  date: "${DECISIONS_REVISED_ON}"`,
+    "---",
+    "",
+  ].join("\n");
+  const body = FRONTMATTER + rendering;
   await mkdir(dirname(outPath), { recursive: true });
   await writeFile(outPath, body, "utf8");
   console.log("Rendered ADR document:", outPath);

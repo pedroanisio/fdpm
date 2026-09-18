@@ -14,9 +14,10 @@ disclaimer:
 
 # fdpm — design document
 
-This is the former repository README, moved here on 2026-09-04 when the
-README became the product overview. It remains the authoritative design
-narrative and status ledger.
+This is the design narrative of fdpm: what the system is, how an agent
+drives it, the trust model, the persistence and workspace models, and what is
+intentionally not implemented. Release state lives in [RELEASING.md](../../RELEASING.md)
+and the changelog, not here.
 
 ## Disclaimer
 
@@ -33,17 +34,10 @@ This work is subject to the methodological caveats and commitments described in 
 
 ## Public release status
 
-The repository is public and licensed under the Apache License, Version 2.0:
-the canonical text is [`LICENSE`](../../LICENSE), byte-identical copies sit in both
-package roots so the npm tarballs ship it, and both package manifests declare
-SPDX `Apache-2.0`. It is **not yet a published release**: the licence is
-settled, so the one remaining release item is the first npm publication of
-`@fdpm/cli` 1.3.0 and `@fdpm/zod-bridge` 0.4.0, and the release gate
-(`npm run public:check`) must report zero findings before either is published.
-
-See [`docs/PUBLIC-READINESS.md`](../PUBLIC-READINESS.md) for the verified
-state and operator actions, [`CONTRIBUTING.md`](../../CONTRIBUTING.md) for the change
-workflow, and [`SECURITY.md`](../../SECURITY.md) for private vulnerability reports.
+The repository is public under the Apache License, Version 2.0 (canonical
+text in [`LICENSE`](../../LICENSE), byte-identical copies in both package roots).
+The publication steps and gates are in [RELEASING.md](../../RELEASING.md);
+what has shipped is what the npm registry records.
 
 ## Who this is for
 
@@ -120,7 +114,7 @@ How humans participate:
   and `causation_op_id`. A human can replay to any revision,
   inspect why an agent chose a verb, and undo via inverse ops.
 
-## Implementation status (vs. the design above)
+## Implementation status at 1.3.0 (vs. the design above)
 
 The runtime, plugin model, MCP server, and renderer pipeline below
 are shipped. The verb / resource / prompt / expression surfaces are
@@ -267,33 +261,9 @@ implemented.
   backup / restore / verify). Phase 1 of the R2 remote-server
   roadmap — the interface boundary a future `RemoteWorkspace` slots
   into without breaking local consumers.
-- **Regression-tested implementation surface**. Coverage spans:
-  - Core: meta-model, profile resolution (incl. `extends` chains for
-    composition profiles), validation pipeline, verification gate,
-    event-sourced replay, time-travel, undo (per kind), atomic batch
-    rollback, optimistic concurrency, split/clone, transfer round-
-    trip, audit truncation, versioning.
-  - DNIS / SPEC-CORE 1.2 §5.6: TV-1..TV-7 against the in-memory
-    store; §5.6.6 conformance (TV-1, TV-3 with 5-entry split
-    causation chain, TV-5, TV-7 evidence shape, idempotency replay,
-    document round-trip) against a real Host instance via the
-    `DnisHostAdapter`.
-  - Render-DSL: helper-set v1.2.0 `fn.section_of` lookup, opt-in
-    body_md template evaluation, slug-keyed `section_index` with
-    title-collision disambiguation, `number_override` for letter
-    appendices and mid-chain-insert sections.
-  - Plugin runtime: discovery, manifest validation, lifecycle states,
-    quarantine on activate-failure, trust-tier inference, forward-
-    compat (v1.0 manifest on v1.x host), admin lifecycle
-    (enable/disable), profile composition via `extends`.
-  - formal_specification content parity: 32/30/23/5/3 counts match
-    Python source; primitive ids match `_ALL_PRIMITIVE_IDS`; inline
-    structs (Alternative, Variable, TensorSpec) carry expected
-    fields; end-to-end create-workbook/create-Section flow +
-    validation rejection on bad enum value.
-  - Legacy spec parser: every Python source field-type spec form
-    (string, ConstrainedText, Enum[...], T[], StructField[X][])
-    round-trips to the CLI's structured `kind` form.
+- **Regression-tested.** The test suite under `fdpm-cli/tests/` is the
+  record of what is verified; `npm test` runs it, and the drift tests under
+  `tests/_meta/` hold the generated documents to their sources.
 
 ## Install / build
 
@@ -787,6 +757,33 @@ FDPM_DATA_DIR=/tmp/fdpm-spec-mcp npx tsx fdpm-cli/src/bin/fdpm.ts \
   --renderer-id spec:SpecMarkdownRenderer \
   -o docs/specs/SPEC-MCP-SERVER.md
 ```
+
+### Boundary contracts
+#### B1 — JSONL log ↔ Store
+
+The append-only log is bytes-on-disk; the Store is in-memory typed instances. **Contract:** every line of the log is a valid `Operation` (Zod-validated at append, presumed valid at replay). **Drift risk:** a hand-edit to the JSONL file invalidates this presumption silently — replay would either succeed with corrupt state or throw an obscure error. *(Evidence: no integrity check at replay. Confidence: high.)*
+
+#### B2 — Host ↔ Plugin runtime
+
+Plugins are TypeScript modules discovered by manifest at load time. **Contract:** a plugin contributes a `DomainProfile` (and optional renderers/validators) but never imports `host.persistence` or `host.store` directly — SPEC-MCP-SERVER §8.4 and the CI gate at [tests/mcp-source-imports.test.ts](../../fdpm-cli/tests/mcp-source-imports.test.ts) enforce this for MCP-tool sources; SPEC-PLUGGABLE-ARCHITECTURE §6 enforces it for plugins. **Drift risk:** a plugin that bypasses the §7 pipeline by importing internals would corrupt invariants without an immediate error.
+
+#### B3 — Host ↔ MCP server
+
+The MCP server holds one Host. **Contract:** every state-mutating MCP tool calls a public `host.*` method; tools never construct `Operation` objects directly; the manifest's classification gate ensures every public Host method is either exposed via a tool or explicitly listed in `not-exposed.ts`. **Drift risk:** a new Host method added without classification fails CI ([tests/mcp-classification.test.ts](../../fdpm-cli/tests/mcp-classification.test.ts)).
+
+#### B4 — Profile id ↔ Workbook binding
+
+A workbook's profile_id is set at creation and immutable. **Contract:** the workbook's log can only contain operations referencing types defined in (the resolved closure of) that profile. **Drift risk:** if a plugin author mutates a profile's type catalogue across versions without bumping the profile-id's `<major>.<minor>`, existing workbooks bound to the old version produce validation errors that look like data corruption. The version-tail rule in SPEC-PLUGIN-NAMING §5.5 (`profile:<leaf>:<major>.<minor>`) is what guards this.
+
+#### B5 — `extends` chain ↔ structural shape
+
+`extends` resolves any chain that loads. A proposed gate: `extends` validates each parent's `structural_shape` against the child's `composes_with_shapes`. **Drift risk between the current and the gated behaviour:** existing composition profiles (`spec-authoring-dnis`, `formal-specification-dnis`) are coherent by hand; they will pass the proposed gate, but the gate will reject the silent miscompositions a future author might introduce. The rename script at [fdpm-cli/scripts/rename_plugin.py](../../fdpm-cli/scripts/rename_plugin.py) won't catch incoherent compositions either — it's name-rewriting, not semantic.
+
+#### B6 — Op-log ↔ Audit log (MCP)
+
+The op-log records what *the workbook looks like*; the MCP audit log records *who asked for what*. They are separate files, intentionally — the op-log is the persistent state, the audit log is operational telemetry. **Contract:** every dispatched MCP call writes paired start/complete entries to `$FDPM_DATA_DIR/mcp-audit.jsonl` sharing one `call_id` ULID. **Drift risk:** a process crash between start and complete leaves an orphan start entry; the audit log doesn't transactionally pair them.
+
+---
 
 ### Architectural decisions
 

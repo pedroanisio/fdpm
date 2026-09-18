@@ -17,12 +17,17 @@ Do not publish while any item below is unresolved:
    byte-identical copies of the canonical text, and both package manifests
    must carry `"license": "Apache-2.0"`; `npm run test:public-readiness`
    pins the canonical digest and `npm run public:check` compares the copies.
-2. Run `npm run public:check` from `fdpm-cli/` with zero findings.
-3. Make the GitHub repository public and set its description, topics, and
+2. Run `npm run public:check` from `fdpm-cli/` with zero findings. It covers
+   package metadata, tracked-artifact hygiene, credential shapes, the
+   information-discipline rules, and the tarball allowlist.
+3. Run `npm run image:check` from `fdpm-cli/` (Docker required) with zero
+   findings: the runtime image carries no working material, scratch, or
+   dead modules.
+4. Make the GitHub repository public and set its description, topics, and
    homepage.
-4. Enable private vulnerability reporting, dependency alerts, secret
+5. Enable private vulnerability reporting, dependency alerts, secret
    scanning, and branch protection for `main`.
-5. Confirm the package versions are not already present in the npm registry.
+6. Confirm the package versions are not already present in the npm registry.
 
 ## Local release verification
 

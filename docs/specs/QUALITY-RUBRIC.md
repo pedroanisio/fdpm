@@ -4,14 +4,16 @@ disclaimer:
     No information within this document should be taken for granted.
     Any statement or premise not backed by a real logical definition
     or verifiable reference may be invalid, erroneous, or a hallucination.
-  generated_by: "Claude Opus 4.7 (1M context) via Claude Code"
-  date: "2026-05-07"
+  generated_by: "Claude Opus 4.7 (1M context) via Claude Code; promoted to the specification corpus by Claude Opus 5 (1M context) via Claude Code"
+  date: "2026-09-18"
 ---
 
 # FDPM Workbook Quality Rubric — 100/100 Golden Standard
 
-**Status:** DRAFT. Local working document. Two open items flagged at end need
-operator decision before this rubric is normative.
+**Status:** the rubric `fdpm-cli/src/quality/score-workbook.ts` implements
+and `fdpm-cli/scripts/quality-score-all-plugins.ts` reports against. Two
+parameters remain open (§4); the implementation applies the stricter reading
+of each until they are fixed.
 
 **Scope:** defines what "100/100" means for an FDPM workbook (an instance
 authored against a plugin's profile), plus the derived plugin score (a plugin
@@ -103,9 +105,11 @@ Grade ladder identical to L1.
 
 ---
 
-## 4. Open items
+## 4. Open questions
 
-These two questions need an operator decision **before** this rubric is locked.
+Two parameters of the rubric are not yet fixed. Until they are, the
+implementation applies the stricter reading; changing either is a rubric
+revision, recorded here and in the changelog.
 
 ### Q1. `spec-plugin-authoring-howto` workbook source
 
@@ -115,9 +119,8 @@ that contains the §7 "Documentation Obligations for Approval" section. The
 source artifact for that workbook is **not present** in `docs/specs/` or any
 build script under `scripts/`. The wording for items P5, P7 and excellence
 signal E5 is therefore paraphrased from `EDUCATION.md` and tagged
-*`[howto-paraphrased]`*. **Decision needed:** locate the workbook source (or
-elevate `EDUCATION.md`'s wording to normative status) before P5/P7/E5 are
-locked.
+*`[howto-paraphrased]`*. Open: locate the workbook source, or elevate
+`EDUCATION.md`'s wording to normative status, before P5/P7/E5 are locked.
 
 ### Q2. Lifecycle-hook exemption for composition plugins
 
@@ -127,14 +130,13 @@ locked.
 existing profiles without registering new ones — declare 0–4 hooks
 inconsistently. The rubric currently penalises all three under P2/P3.
 
-**Decision needed:** carve out *or* enforce uniformly.
+Open: carve out *or* enforce uniformly.
 
 - **Option A (enforce)**: penalty stands; fix the three composition manifests.
+  This is the reading the implementation applies today.
 - **Option B (carve out)**: P2/P3 sub-rule — lifecycle hooks required only when
   the plugin registers a *root* profile (`extends: []`). Composition profiles
   are exempt.
-
-I will not pick — these bind future plugin authors differently.
 
 ---
 

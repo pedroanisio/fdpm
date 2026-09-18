@@ -153,8 +153,8 @@ endpoint-checked.
 ## Vendoring
 
 `schemas/uixo-native.ts` is generated in another repository
-("Do not hand-edit; regenerate instead") and lived in a `_tmp/` directory
-nothing may depend on. It is vendored by
+("Do not hand-edit; regenerate instead") and arrived through a scratch
+directory nothing may depend on. It is vendored by
 [`scripts/vendor-uixo.ts`](./scripts/vendor-uixo.ts), which prepends a
 header and applies a short recorded list of type annotations — five
 exports whose inferred types exceed what TypeScript will serialise into a

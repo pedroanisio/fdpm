@@ -44,9 +44,8 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-// /home/admin/github-mirror/_editors/fdpm-cli (repo root)
-// __dirname = .../fdpm-cli/fdpm-cli/packages/zod-bridge/tests
-// up 4 = .../fdpm-cli (the outer fdpm-cli that holds /static, /docs, etc.)
+// __dirname = <repo>/fdpm-cli/packages/zod-bridge/tests
+// up 4 = <repo> (the repository root that holds /static, /docs, etc.)
 const REPO_ROOT = resolve(__dirname, "..", "..", "..", "..");
 // Hermetic CI path (test isolation).
 const TMP_OUT = join(tmpdir(), `pitch-deck-bridge-out-${process.pid}`);

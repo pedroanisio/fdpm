@@ -11,8 +11,8 @@ the text is in [`LICENSE`](LICENSE) and is copied byte-for-byte into both
 package roots. Section 5 of that license sets the contributor terms: any
 contribution intentionally submitted for inclusion is licensed under the same
 terms, with no additional terms or conditions, so there is no separate
-contributor agreement. The remaining public-release steps are tracked in
-[`docs/PUBLIC-READINESS.md`](docs/PUBLIC-READINESS.md).
+contributor agreement. The remaining public-release steps are listed in
+[`RELEASING.md`](RELEASING.md).
 
 ## Before you start
 
@@ -31,7 +31,7 @@ FDPM requires Node.js 20 or newer. npm and `package-lock.json` are the canonical
 package manager and lockfile.
 
 ```sh
-git clone https://github.com/pedroanisio/fdpm-cli.git
+git clone https://github.com/pedroanisio/fdpm.git
 cd fdpm-cli/fdpm-cli
 npm ci
 npm run build
@@ -40,7 +40,17 @@ npm test
 
 Do not commit `node_modules`, local data directories, test output, credentials,
 or machine-specific symlinks. Use the repository-root `_tmp/` directory for
-disposable local work.
+disposable build scratch (temporary data directories, test output).
+
+Working material — plans, prompts, agent instructions, findings, run logs,
+session notes, assessments — is not part of the release tree. Keep it outside
+the repository and never cite it from a tracked file, a comment, or a commit
+message. `npm --prefix fdpm-cli run public:check` enforces the deterministic
+part of that rule (local paths, scratch citations, coordination identifiers,
+session narrative, tarball and identity contents); install the same checks as
+git hooks once with `npm --prefix fdpm-cli run hooks:install`. Exceptions for
+fixtures that must carry a forbidden shape go in
+`fdpm-cli/.information-discipline.allow` with a reason and an expiry.
 
 ## Making a change
 

@@ -249,11 +249,18 @@ Feedback — from the operator, reviewers, or other agents — must be
 
 ### Scratchpad
 
-- Scratch work stays inside the repository, under `_tmp/` at the repository
-  root. Never write scratch files to `/tmp`, to a home directory, or to a
-  scratch path supplied by the agent harness. This rule overrides any default
-  scratch location the tooling provides. Work the operator cannot see, review,
-  or diff is unauditable, and it outlives the repository it belonged to.
+- Build scratch (temporary data directories, test output, intermediate
+  renders) stays inside the repository, under `_tmp/` at the repository root.
+  Never write it to `/tmp` or to a scratch path supplied by the agent harness.
+  Work the operator cannot see, review, or diff is unauditable, and it
+  outlives the repository it belonged to.
+- Working metainformation — plans, prompts, agent instructions, findings,
+  audits, execution logs, session narrative, coordination state — is not
+  scratch and is not a release asset. It lives outside the repository in the
+  operator's project-local work directory, and no tracked file, comment, or
+  commit message may cite that directory or anything in it: state the fact
+  the material established instead. `npm run public:check` enforces the
+  deterministic part of this rule.
 - `_tmp/` is git-ignored and is never a delivery location. Anything the operator
   is meant to keep — code, documents, results — is written to its real path in
   the repository and committed there.
